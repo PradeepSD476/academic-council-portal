@@ -10,7 +10,7 @@ Restart your computer when prompted. This will install WSL and a default Ubuntu 
 
 ### Clone this project into WSL  
 _open your ubuntu terminal from start menu_  
-_1. clone this repo using cmd: git clone https://github.com/PradeepSD476/academic-council-portal.git_  
+_1. clone this repo using cmd: 'git clone https://github.com/PradeepSD476/academic-council-portal.git'_  
 
 _2. navigate into the project folder: cd academic-council-portal_  
 
