@@ -1,16 +1,10 @@
-import { signInWithPopup } from 'firebase/auth'
 import React from 'react'
-import { auth, provider } from './lib/firebass'
+import Login from './pages/Login/login.jsx'
 
-const handleLogin = async () => {
-  const response = await signInWithPopup(auth, provider);
-  console.log(response);
-}
 const App = () => {
   return (
     <div>
-      <h1>Academic Council Portal</h1>
-      <button onClick={handleLogin}>Login with Google</button>
+      <Login/>
     </div>
   )
 }
