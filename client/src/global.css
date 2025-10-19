@@ -1,0 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@100..900&display=swap');
+@import "tailwindcss";
+
+
+@theme{
+    
+}
+
+.h1-heading{
+    font: bold;
+    font-family: "Hanuman";
+}
+
+
+

@@ -1,11 +1,11 @@
 import React from 'react'
 
-function Navbar() {
+const WingPage = () => {
   return (
     <div>
-      navbar
+      wing
     </div>
   )
 }
 
-export default Navbar
+export default WingPage
