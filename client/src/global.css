@@ -2,6 +2,20 @@
 @import "tailwindcss";
 
 
+@theme{
+    --font-hanuman: "Hanuman", sans-serif;
+}
+
+@layer components {
+    .heading {
+        @apply font-hanuman font-bold;
+    }
+
+    .paragraphs {
+        @apply font-hanuman;
+    }
+}
+
 
 
 
