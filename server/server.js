@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import http from 'http';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import prisma from './config/db.js';
 
 
 dotenv.config();
@@ -23,6 +24,13 @@ const server = http.createServer(app);
 app.get('/', (req, res) => {
   res.send('server is live...');
 })
+
+async function main() {
+  const allUsers = await prisma.user.findMany()
+  console.log(allUsers);
+}
+
+main()
 
 server.listen(process.env.PORT, () => {
   console.log(`Server is running on PORT: ${process.env.PORT}`);
