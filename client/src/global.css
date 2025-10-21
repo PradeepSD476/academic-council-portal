@@ -1,15 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@100..900&display=swap');
 @import "tailwindcss";
 
-
-@theme{
-    
+@theme {
+    //font-hanuman
+    --font-hanuman: "Hanuman", sans-serif; //will be using hanuman everywhere
 }
 
-.h1-heading{
-    font: bold;
-    font-family: "Hanuman";
-}
 
 
 
