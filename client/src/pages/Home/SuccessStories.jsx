@@ -39,7 +39,7 @@ const SuccessStories = () => {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="text-lg text-white font-semibold uppercase tracking-widest bg-gradient-to-r from-blue-700 to-blue-500 px-6 py-1 rounded-2xl"
+          className="text-lg text-white font-semibold uppercase tracking-widest bg-linear-to-r from-blue-700 to-blue-500 px-6 py-1 rounded-2xl"
         >
           Success Stories
         </motion.span>
