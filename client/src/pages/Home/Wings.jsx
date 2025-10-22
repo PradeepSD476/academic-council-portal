@@ -25,7 +25,7 @@ const Wings = () => {
           transition={{ duration: 0.5 }}
           className="text-sm md:text-lg font-semibold uppercase tracking-widest bg-linear-to-r from-blue-700 to-blue-500 px-2 md:px-6 py-1 rounded-2xl"
         >
-          Core Structure of the ACC Team
+          Core Structure of the ACC Team Member
         </motion.span>
 
         <motion.h1
