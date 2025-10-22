@@ -62,7 +62,7 @@ const SuccessStories = () => {
       </div>
 
       {/* Outer Card */}
-      <div className="relative bg-white rounded-2xl shadow-lg p-6">
+      <div className="relative  rounded-2xl shadow-lg p-6">
         <Swiper
           modules={[Navigation, Pagination]}
           navigation={{
@@ -79,7 +79,7 @@ const SuccessStories = () => {
           {successStories.map((story) => (
             <SwiperSlide key={story.id}>
               {/* Card */}
-              <div className="bg-gray-50 rounded-xl shadow-md p-4 flex flex-col gap-4">
+              <div className="bg-[#9BE6C1] rounded-xl shadow-md p-4 flex flex-col gap-4">
                 <div className="text-center md:text-left">
                   <h3 className="text-xl font-semibold text-gray-900">{story.name}</h3>
                   <p className="text-gray-700 font-medium">{story.company}</p>
