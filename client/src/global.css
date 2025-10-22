@@ -1,6 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@100..900&display=swap');
 @import "tailwindcss";
 
+html, body, #root {
+  height: 100%;
+}
+body {
+  display: flex;
+  flex-direction: column;
+}
+main {
+  flex: 1;
+}
+
 
 
 
