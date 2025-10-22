@@ -23,7 +23,7 @@ const Wings = () => {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="text-sm md:text-lg font-semibold uppercase tracking-widest bg-gradient-to-r from-blue-700 to-blue-500 px-2 md:px-6 py-1 rounded-2xl"
+          className="text-sm md:text-lg font-semibold uppercase tracking-widest bg-linear-to-r from-blue-700 to-blue-500 px-2 md:px-6 py-1 rounded-2xl"
         >
           Core Structure of the ACC Team
         </motion.span>

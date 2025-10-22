@@ -98,7 +98,7 @@ function Navbar() {
               <li>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="w-full text-left text-white text-lg font-semibold uppercase tracking-wider bg-gradient-to-r from-blue-700 to-blue-500 px-6 py-2 rounded-full hover:from-blue-600 hover:to-blue-400 transition-all duration-300 ease-in-out"
+                  className="w-full text-left text-white text-lg font-semibold uppercase tracking-wider bg-linear-to-r from-blue-700 to-blue-500 px-6 py-2 rounded-full hover:from-blue-600 hover:to-blue-400 transition-all duration-300 ease-in-out"
                 >
                   Login
                 </button>

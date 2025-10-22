@@ -44,7 +44,7 @@ const PastEvents = () => {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
-                    className="text-lg text-white py-1 font-semibold uppercase tracking-widest bg-gradient-to-r from-blue-700 to-blue-500 px-6 rounded-2xl"
+                    className="text-lg text-white py-1 font-semibold uppercase tracking-widest bg-linear-to-r from-blue-700 to-blue-500 px-6 rounded-2xl"
                 >
                     Past Events
                 </motion.span>
