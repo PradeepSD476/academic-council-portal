@@ -6,6 +6,7 @@ import Footer from './components/layout/footer.jsx';
 import Home from './pages/Home/page.jsx';
 import Contact from './pages/Contact/page.jsx';
 import WingPage from './pages/Wing/page.jsx';
+import Wings from './pages/Wings/page.jsx';
 
 const App = () => {
   return (
@@ -19,6 +20,7 @@ const App = () => {
           <Route path='/' element={<Home />} />
           <Route path='/contact-us' element={<Contact />} />
           <Route path='/wing/:wingId' element={<WingPage />} />
+          <Route path='/wings' element={<Wings/>}/>
         </Routes>
         </main>
         <Footer />
