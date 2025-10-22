@@ -12,21 +12,21 @@ const successStories = [
     id: 1,
     name: "John Doe",
     company: "Tech Solutions Inc.",
-    address: ["123 Main Street", "New York, NY 10001", "USA"],
-    message: "Working here helped me grow professionally and gave me the confidence to lead projects.",
+    address: ["New York, USA"],
+    message:"Working here helped me grow professionally and gave me the confidence to lead projects.",
   },
   {
     id: 2,
     name: "Jane Smith",
     company: "Innovate Labs",
-    address: ["456 Elm Street, San Francisco, CA 94102, USA"],
-    message: "I learned invaluable skills and connected with amazing mentors who guided my career.",
+    address: ["San Francisco, USA"],
+    message:"I learned invaluable skills and connected with amazing mentors who guided my career.",
   },
   {
     id: 3,
     name: "Alex Johnson",
     company: "Global Tech Corp.",
-    address: ["789 Oak Avenue", "Seattle, WA 98101", "USA"],
+    address: ["Seattle, USA"],
     message: "The experience and exposure I gained here helped me land my dream role.",
   },
 ];
@@ -57,12 +57,11 @@ const SuccessStories = () => {
           transition={{ duration: 0.7 }}
           className="mt-4 text-gray-600 max-w-2xl mx-auto"
         >
-          Compelling narratives detailing significant achievements and profound transformations across various domains.
+          Compelling narratives detailing significant achievements and profound
+          transformations across various domains.
         </motion.p>
       </div>
-
-      {/* Outer Card */}
-      <div className="relative  rounded-2xl shadow-lg p-6">
+      <div className="relative rounded-2xl shadow-lg p-6">
         <Swiper
           modules={[Navigation, Pagination]}
           navigation={{
@@ -75,29 +74,36 @@ const SuccessStories = () => {
             0: { slidesPerView: 1 },
             1024: { slidesPerView: 2 },
           }}
+          className="pb-10!"
         >
           {successStories.map((story) => (
             <SwiperSlide key={story.id}>
-              {/* Card */}
-              <div className="bg-[#9BE6C1] rounded-xl shadow-md p-4 flex flex-col gap-4">
-                <div className="text-center md:text-left">
-                  <h3 className="text-xl font-semibold text-gray-900">{story.name}</h3>
-                  <p className="text-gray-700 font-medium">{story.company}</p>
-                  <p className="text-gray-500 text-sm">{story.address.join(", ")}</p>
+              <div className="flex justify-center items-stretch h-full">
+                <div className="bg-[#9BE6C1] w-full max-w-md rounded-xl shadow-md p-6 flex flex-col justify-between h-full min-h-[300px] transition-all hover:shadow-xl">
+                  <div className="text-center md:text-left">
+                    <h3 className="text-xl font-semibold text-gray-900">
+                      {story.name}
+                    </h3>
+                    <p className="text-gray-700 font-medium">
+                      {story.company}
+                    </p>
+                    <p className="text-gray-500 text-sm">
+                      {story.address.join(", ")}
+                    </p>
+                  </div>
+                  <div className=" border-t border-gray-400"></div>
+                  <p className="text-gray-700 text-sm leading-relaxed italic">
+                    “{story.message}”
+                  </p>
                 </div>
-
-                
-                <p className="text-gray-600 text-sm mt-4">{story.message}</p>
               </div>
             </SwiperSlide>
           ))}
         </Swiper>
-
-        
-        <div className="absolute top-1/2 left-4 -translate-y-1/2 text-2xl text-gray-900 cursor-pointer custom-prev z-10">
+        <div className="absolute top-1/2 left-0 sm:left-3 -translate-y-1/2 text-2xl text-gray-900 cursor-pointer custom-prev z-10">
           <FaChevronLeft />
         </div>
-        <div className="absolute top-1/2 right-4 -translate-y-1/2 text-2xl text-gray-900 cursor-pointer custom-next z-10">
+        <div className="absolute top-1/2 right-0 sm:right-3 -translate-y-1/2 text-2xl text-gray-900 cursor-pointer custom-next z-10">
           <FaChevronRight />
         </div>
       </div>

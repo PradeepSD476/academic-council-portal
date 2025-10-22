@@ -26,7 +26,7 @@ const Wings = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           to="/wings"
-          className="inline-block text-sm md:text-lg font-semibold uppercase tracking-widest bg-gradient-to-r from-blue-700 to-blue-500 px-4 md:px-6 py-2 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+          className="inline-block text-sm md:text-lg font-semibold uppercase tracking-widest bg-linear-to-r from-blue-700 to-blue-500 px-4 md:px-6 py-2 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
         >
           Core Structure of the ACC Team
         </MotionLink>
