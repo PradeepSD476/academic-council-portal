@@ -2,3 +2,5 @@
 node_modules
 
 /generated/prisma
+
+firebase-service-account-key.json

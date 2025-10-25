@@ -7,24 +7,27 @@ import Home from './pages/Home/page.jsx';
 import Contact from './pages/Contact/page.jsx';
 import WingPage from './pages/Wing/page.jsx';
 import Wings from './pages/Wings/page.jsx';
+import AuthState from './context/auth/authState.jsx';
 
 const App = () => {
   return (
     <>
       <BrowserRouter>
-      <div className="flex flex-col min-h-screen">
-        <Navbar />
-        <main className="flex-grow pt-16">
-        <Routes>
-          <Route path='/login' element={<Login />} />
-          <Route path='/' element={<Home />} />
-          <Route path='/contact-us' element={<Contact />} />
-          <Route path='/wing/:wingId' element={<WingPage />} />
-          <Route path='/wings' element={<Wings/>}/>
-        </Routes>
-        </main>
-        <Footer />
-        </div>
+        <AuthState>
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <main className="flex-grow pt-16">
+              <Routes>
+                <Route path='/login' element={<Login />} />
+                <Route path='/' element={<Home />} />
+                <Route path='/contact-us' element={<Contact />} />
+                <Route path='/wing/:wingId' element={<WingPage />} />
+                <Route path='/wings' element={<Wings />} />
+              </Routes>
+            </main>
+            <Footer />
+          </div>
+        </AuthState>
       </BrowserRouter>
     </>
   )

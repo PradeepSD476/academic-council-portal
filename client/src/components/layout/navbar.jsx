@@ -49,9 +49,9 @@ function Navbar() {
 
           {/*Login on large device */}
           <div className="hidden md:flex">
-            <button className="px-6 py-2 text-lg bg-blue-600 rounded-full text-white hover:bg-blue-700 transition-all duration-300">
+            <Link to={'/login'} className="px-6 py-2 text-lg bg-blue-600 rounded-full text-white hover:bg-blue-700 transition-all duration-300">
               Login
-            </button>
+            </Link>
           </div>
 
           {/*Hamburger */}
