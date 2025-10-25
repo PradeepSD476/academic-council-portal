@@ -53,6 +53,7 @@ const AuthState = ({ children }) => {
         return () => unsubscribe();
     }, []);
 
+    
     const login = async () => {
         setLoading(true);
         try {
