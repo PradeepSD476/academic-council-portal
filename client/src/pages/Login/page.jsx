@@ -1,18 +1,14 @@
 import React from 'react'
-// import { signInWithPopup } from 'firebase/auth'
-// import { auth, provider } from '../../lib/firebass'
-
-// const handleLogin = async () => {
-//   const response = await signInWithPopup(auth, provider);
-//   console.log(response);
-// }
+import { useContext } from 'react'
+import AuthContext from '../../context/auth/authContext'
 
 function Login() {
+  const authContext = useContext(AuthContext);
   return (
-    <div>
-      {/* <h1>Academic Council Portal</h1>
-      <button onClick={handleLogin}>Login with Google</button> */}
-      login
+    <div className='mt-10'>
+      <h1>Academic Council Portal</h1>
+      <button onClick={authContext.login}>Login</button>
+      <button onClick={authContext.logout}>Logout</button>
     </div>
   )
 }

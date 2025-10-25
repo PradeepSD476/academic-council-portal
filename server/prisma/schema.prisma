@@ -11,12 +11,80 @@ datasource db {
 model User {
   id    Int     @id @default(autoincrement())
   email String  @unique
-  name  String?
-  avatar String
-  isStudent Boolean @default(true)
-  isSuperAdmin Boolean @default(false)
-  isFaculty Boolean @default(false)
-  isAdminStudent Boolean @default(false)
+  displayName  String?
+  photoURL String?
+  role Role @default(STUDENT)
+  rollNo String?
+  branchName String?
+  admissionYear Int?
+  program Program?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  uploadedResources   Resource[]
+  postedAnnouncements Announcement[]
+}
+
+enum Role {
+  STUDENT
+  RESOURCE_ADMIN
+  ANNOUNCEMENT_ADMIN
+  SUPER_ADMIN
+}
+
+enum Program {
+  MTECH
+  BTECH
+  PHD
+  MSC
+}
+
+model Course {
+  id Int @id @default(autoincrement())
+  courseCode String @unique
+  name String
+  description String?
+  branchName    String 
+  academicYear  Int    
+  program       Program
+  resources Resource[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Resource {
+  id Int @id @default(autoincrement())
+  title String
+  description String?
+  fileURL String
+  resourceType ResourceType
+  uploadedBy User? @relation(fields: [uploadedById], references: [id])
+  uploadedById Int?
+  course Course? @relation(fields: [courseId], references: [id])
+  courseId Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ResourceType {
+  NOTES
+  PYQ
+  TUTORIAL
+  LAB_ASSIGNMENT
+  LAB_MANUAL
+  BOOK
+  LECTURE_SLIDE
+  ASSIGNMENT
+}
+
+model Announcement {
+  id Int @id @default(autoincrement())
+  title String
+  description String?
+  isPinned Boolean @default(false)
+  isFileAttached Boolean @default(false)
+  fileURL String?
+  uploadedBy User? @relation(fields: [uploadedById], references: [id])
+  uploadedById Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

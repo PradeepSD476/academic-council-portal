@@ -3,7 +3,8 @@ import dotenv from 'dotenv';
 import http from 'http';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import prisma from './config/db.js';
+import authRoutes from './routes/auth.js';
+import resourceRoutes from './routes/resource.js'
 
 
 dotenv.config();
@@ -11,7 +12,7 @@ dotenv.config();
 const app = express();
 
 app.use(cors({
-  origin: process.env.CLIENT_URL,
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
@@ -25,12 +26,8 @@ app.get('/', (req, res) => {
   res.send('server is live...');
 })
 
-async function main() {
-  const allUsers = await prisma.user.findMany()
-  console.log(allUsers);
-}
-
-main()
+app.use('/api/auth', authRoutes);
+app.use('/api/resource', resourceRoutes);
 
 server.listen(process.env.PORT, () => {
   console.log(`Server is running on PORT: ${process.env.PORT}`);
