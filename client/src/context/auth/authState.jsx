@@ -33,7 +33,6 @@ const AuthState = ({ children }) => {
                         }
                         const backendData = await response.json();
                         setUser(backendData.user);
-                        console.log("User :", backendData.user);
                     } catch (err) {
                         console.log("Error", err);
                     }
