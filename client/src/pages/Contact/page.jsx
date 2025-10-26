@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { motion } from "framer-motion";
 
 const team = [
@@ -161,17 +161,56 @@ const containerVariants = {
 
 const PersonCard = ({ person, color }) => {
   const [isFlipped, setIsFlipped] = useState(false);
+  const [isLockedOpen, setIsLockedOpen] = useState(false);
+  const cardRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (cardRef.current && !cardRef.current.contains(event.target)) {
+        setIsFlipped(false);
+        setIsLockedOpen(false);
+      }
+    };
+
+    if (isLockedOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isLockedOpen]);
+
+  const handleHoverStart = () => {
+    if (!isLockedOpen) {
+      setIsFlipped(true);
+    }
+  };
+
+  const handleHoverEnd = () => {
+    if (!isLockedOpen) {
+      setIsFlipped(false);
+    }
+  };
+
+  const handleTap = () => {
+    const newLockState = !isLockedOpen;
+    setIsLockedOpen(newLockState);
+    setIsFlipped(newLockState);
+  };
 
   return (
     <motion.div
+      ref={cardRef}
       variants={cardVariants}
       className="w-64 h-80 cursor-pointer"
       style={{ perspective: '1000px' }}
     >
       <motion.div
         className="relative w-full h-full [transform-style:preserve-3d] shadow-xl rounded-xl"
-        onHoverStart={() => setIsFlipped(true)}
-        onHoverEnd={() => setIsFlipped(false)}
+        onHoverStart={handleHoverStart}
+        onHoverEnd={handleHoverEnd}
+        onTap={handleTap}
         animate={{ rotateY: isFlipped ? 180 : 0 }}
         transition={{ duration: 0.6, ease: "easeInOut" }}
       >
@@ -267,7 +306,7 @@ const Contact = () => {
               className="flex flex-wrap justify-center gap-8"
               variants={containerVariants}
               initial="hidden"
-              viewport={{ once: true, amount: 0.2 }} // 
+              viewport={{ once: true, amount: 0.2 }}
               whileInView="visible"
             >
               {wing.wingpeople.map((person, index) => (
