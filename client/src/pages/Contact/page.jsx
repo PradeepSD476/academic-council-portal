@@ -267,7 +267,7 @@ const Contact = () => {
               className="flex flex-wrap justify-center gap-8"
               variants={containerVariants}
               initial="hidden"
-              viewport={{ once: true, amount: 0.2 }}
+              viewport={{ once: true, amount: 0.2 }} // 
               whileInView="visible"
             >
               {wing.wingpeople.map((person, index) => (
