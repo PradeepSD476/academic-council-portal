@@ -4,3 +4,4 @@ node_modules
 /generated/prisma
 
 firebase-service-account-key.json
+academic-council-portal-gcs.json

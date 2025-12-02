@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/storage": "^7.17.2",
     "@prisma/client": "^6.17.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -19,7 +20,8 @@
     "express": "^5.1.0",
     "firebase-admin": "^13.5.0",
     "http": "^0.0.1-security",
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "path": "^0.12.7"
   },
   "devDependencies": {
     "prisma": "^6.17.1"
