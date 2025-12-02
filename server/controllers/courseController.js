@@ -6,7 +6,7 @@ export const getMyCourses = async (req, res) => {
         if (!userEmail) {
             return res.status(401).json({
                 success: false,
-                message: "Authentication Required"
+                message: "Authentication Required..."
             })
         }
         const user = await prisma.user.findUnique({
@@ -98,6 +98,6 @@ export const addCourse = async (req, res) => {
 
     } catch (err) {
         console.log("Error....", err);
-        return res.status(500).json({ error: 'Failed to add course.' });
+        return res.status(500).json({ error: 'Failed to add course...' });
     }
 }

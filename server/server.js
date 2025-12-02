@@ -4,8 +4,10 @@ import http from 'http';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.js';
-import resourceRoutes from './routes/resource.js'
-
+import courseRoutes from './routes/course.js'
+import signedURLRoutes from './routes/signedURL.js'
+import announcementRoutes from './routes/announcement.js'
+import { checkAuth } from './middlewares/checkAuth.js'
 
 dotenv.config();
 
@@ -27,8 +29,10 @@ app.get('/', (req, res) => {
 })
 
 app.use('/api/auth', authRoutes);
-app.use('/api/resource', resourceRoutes);
+app.use('/api/course', checkAuth, courseRoutes);
+app.use('/api/upload', checkAuth, signedURLRoutes);
+app.use('/api/announcement', checkAuth, announcementRoutes);
 
 server.listen(process.env.PORT, () => {
-  console.log(`Server is running on PORT: ${process.env.PORT}`);
+  console.log(`Server is running on PORT: http://localhost:${process.env.PORT}`);
 })

@@ -18,6 +18,7 @@ const AuthState = ({ children }) => {
                 if (isValidEmail || isDevEmail) {
                     try {
                         const idToken = await currentFirebaseUser.getIdToken();
+                        console.log(idToken);
                         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
                             method: 'POST',
                             headers: {
@@ -32,6 +33,7 @@ const AuthState = ({ children }) => {
                         }
                         const backendData = await response.json();
                         setUser(backendData.user);
+                        console.table(backendData.user);
                     } catch (err) {
                         console.log("Error", err);
                     }
