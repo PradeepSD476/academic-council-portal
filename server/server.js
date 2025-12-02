@@ -12,6 +12,7 @@ import { checkAuth } from './middlewares/checkAuth.js'
 dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 5000
 
 app.use(cors({
   origin: '*',
@@ -33,6 +34,6 @@ app.use('/api/course', checkAuth, courseRoutes);
 app.use('/api/upload', checkAuth, signedURLRoutes);
 app.use('/api/announcement', checkAuth, announcementRoutes);
 
-server.listen(process.env.PORT, () => {
-  console.log(`Server is running on PORT: http://localhost:${process.env.PORT}`);
+server.listen(PORT, () => {
+  console.log(`Server is running on PORT: ${PORT}`);
 })
