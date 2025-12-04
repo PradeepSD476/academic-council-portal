@@ -4,9 +4,9 @@ import { checkAdmin } from '../middlewares/checkAdmin.js';
 
 const router = express.Router();
 
-router.post('/upload', addAnnouncement);
-router.post('/update', editAnnouncement);
+router.post('/upload', checkAdmin, addAnnouncement);
+router.post('/update', checkAdmin, editAnnouncement);
 router.get('/read', getAnnouncements);
-router.post('/delete', deleteAnnouncement);
+router.post('/delete', checkAdmin, deleteAnnouncement);
 
 export default router;

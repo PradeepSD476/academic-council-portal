@@ -32,13 +32,20 @@ export const getMyCourses = async (req, res) => {
 
         if (currentAcademicYear < 1) {
             console.warn(`Calculated invalid academic year ${currentAcademicYear} for user ${userEmail}`);
-            return res.status(400).json({ error: 'Could not determine valid academic year.' });
+            return res.status(400).json({
+                success: false,
+                message: "invalid current academic year (<1)..."
+            });
         }
         const courses = await prisma.course.findMany({
             where: {
-                branchName: user.branchName,
                 academicYear: currentAcademicYear,
-                program: user.program
+                program: user.program,
+                OR:[
+                    {branchName: user.branchName},
+                    {branchName: 'HS'},
+                    {branchName: 'CC'}
+                ]
             },
             select: {
                 id: true,
@@ -50,7 +57,11 @@ export const getMyCourses = async (req, res) => {
                 courseCode: 'asc',
             },
         })
-        res.status(200).json(courses);
+        res.status(200).json({
+            success: true,
+            message: "successfully fetched my courses...",
+            data: courses
+        });
     } catch (error) {
         console.error('Error fetching user courses:', error);
         res.status(500).json({ error: 'Failed to fetch courses.' });

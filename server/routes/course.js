@@ -5,6 +5,6 @@ import { checkAdmin } from '../middlewares/checkAdmin.js';
 const router = express.Router();
 
 router.get('/myCourses', getMyCourses);
-router.post('/addCourse', addCourse);
+router.post('/addCourse', checkAdmin, addCourse);
 
 export default router
