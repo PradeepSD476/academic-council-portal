@@ -31,12 +31,12 @@ app.get('/', (req, res) => {
   res.send('server is live...');
 })
 
-app.use('/api/auth', authRoutes);
-app.use('/api/course', checkAuth, courseRoutes);
-app.use('/api/upload', checkAuth, signedURLRoutes);
-app.use('/api/announcement', checkAuth, announcementRoutes);
-app.use('/api/profile', checkAuth, profileRoutes);
-app.use('/api/resource', checkAuth, resourceRoutes);
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1', checkAuth, courseRoutes);
+app.use('/api/v1/upload', checkAuth, signedURLRoutes);
+app.use('/api/v1', checkAuth, announcementRoutes);
+app.use('/api/v1', checkAuth, profileRoutes);
+app.use('/api/v1', checkAuth, resourceRoutes);
 
 server.listen(PORT, () => {
   console.log(`Server is running on PORT: ${PORT}`);

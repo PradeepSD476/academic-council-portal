@@ -1,58 +1,68 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import prisma from '../config/db.js';
 
 export const getAnnouncements = async (req, res) => {
-    const startPoint = req.query.startPoint || 1
-    if (startPoint < 1) {
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit);
+    const bucketName = process.env.GCS_BUCKET_NAME;
+    if (!page || !limit) {
         return res.status(400).json({
             success: false,
-            message: "starting index must be greater than 0..."
+            error: "Bad Request",
+            message: "Pagination parameters 'page' and 'limit' are required."
+        })
+    }
+    if (page < 1 || limit < 1) {
+        return res.status(422).json({
+            success: false,
+            error: "Unprocessable Entity",
+            message: "Pagination parameters must be positive integers. 'page' and 'limit' must be 1 or greater."
         })
     }
     try {
         const results = await prisma.announcement.findMany({
-            skip: (startPoint - 1) * 5, 
-            take: 5,
+            skip: (page - 1) * limit,
+            take: limit,
             orderBy: {
                 updatedAt: 'desc'
             }
         })
+        const resultWithUrls = results.map(result => ({
+            ...result,
+            fileURL: `https://storage.googleapis.com/${bucketName}/${result.filePath}`
+        }))
         return res.status(200).json({
             success: true,
-            message: "Successfully fetched announcements...",
-            announcements: results,
+            message: "Data fetched Successfully",
+            data: resultWithUrls,
         })
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: "Failed to get Announcements..."
+            error: "Internal Server Error",
+            message: "Something went wrong. Please try again later."
         })
     }
 }
 
 export const addAnnouncement = async (req, res) => {
-    const { title, description, fileURL } = req.body;
-    const userEmail = req.user.email;
-    try {
-        const user = await prisma.user.findUnique({
-            where: {
-                email: userEmail
-            },
-            select: {
-                id: true
-            }
+    const { title, description, filePath } = req.body;
+    if (!title || !description) {
+        return res.status(400).json({
+            success: false,
+            error: "BadRequest",
+            message: "Validation failed. Required fields are missing."
         })
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "UnAuthorized User..."
-            })
-        }
+    }
+    const user = req.user;
+    try {
         const newAnnouncement = await prisma.announcement.create({
             data: {
                 title: title,
                 description: description,
-                fileURL: fileURL || null,
-                isFileAttached: !!fileURL,
+                filePath: filePath || null,
+                isFileAttached: !!filePath,
                 uploadedById: user.id
             }
         })
@@ -63,84 +73,99 @@ export const addAnnouncement = async (req, res) => {
         })
     }
     catch (error) {
-        return res.status(403).json({
+        return res.status(500).json({
             success: false,
-            message: "Failed to create Announcement"
+            error: "ServerError",
+            message: "Unable to create announcement due to a server error. Please try again."
         })
     }
 }
 
 export const deleteAnnouncement = async (req, res) => {
-    const { announcementId } = req.body;
+    const announcementId = req.params.id;
+    if (!announcementId) {
+        return res.status(400).json({
+            success: false,
+            error: "BadRequest",
+            message: "Announcement ID is required."
+        })
+    }
     try {
-        console.log("Guy 1 is working...")
         const announcement = await prisma.announcement.findUnique({
             where: {
-                id: announcementId,
+                id: parseInt(announcementId),
             }
         })
-        console.log("Guy 2 is working...", announcement)
         if (!announcement) {
-            return res.status(400).json({
+            return res.status(404).json({
                 success: false,
-                message: "Invalid Announcement Id..",
+                error: "NotFound",
+                message: "Announcement not found."
             })
         }
         const deleteAnnouncement = await prisma.announcement.delete({
             where: {
-                id: announcementId,
+                id: parseInt(announcementId),
             }
         })
         return res.status(200).json({
             success: true,
-            message: "Successfully deleted the announcement",
-            announcement: announcement
+            message: "Content deleted successfully."
         })
     } catch (error) {
-        return res.status(403).json({
+        return res.status(500).json({
             success: false,
-            message: "Failed to delete Announcement"
+            error: "ServerError",
+            message: "Unable to delete announcement due to a server error. Please try again."
         })
     }
 }
 
 export const editAnnouncement = async (req, res) => {
-    const { announcementId, newTitle, newDescription, newFileUrl } = req.body;
-    const userEmail = req.user.email;
+    const announcementId = req.params.id;
+    const updates = req.body;
+    if (!announcementId) {
+        return res.status(400).json({
+            success: false,
+            error: "BadRequest",
+            message: "Announcement ID is required."
+        })
+    }
+    if (!updates) {
+        return res.status(400).json({
+            success: false,
+            error: "BadRequest",
+            message: "No update fields provided."
+        })
+    }
     try {
-        const user = await prisma.user.findUnique({
+        const announcement = await prisma.announcement.findUnique({
             where: {
-                email: userEmail
-            },
-            select: {
-                id: true
+                id: parseInt(announcementId),
             }
         })
-        if (!user) {
+        if (!announcement) {
             return res.status(404).json({
                 success: false,
-                message: "UnAuthorized User"
+                error: "NotFound",
+                message: "Announcement not found."
             })
         }
-        const announcement = await prisma.announcement.update({ 
+        const updateAnnouncement = await prisma.announcement.update({
             where: {
-                id: announcementId,
+                id: parseInt(announcementId),
             },
-            data: {
-                title: newTitle,
-                description: newDescription,
-                fileURL: newFileUrl
-            }
+            data: updates
         })
         return res.status(201).json({
             success: true,
-            message: "Edited successfully...",
-            data: announcement
+            message: "Announcement updated successfully."
         })
     } catch (error) {
-        return res.status(403).json({
+        return res.status(500).json({
             success: false,
-            message: "Failed to edit announcement...",
+            error: "ServerError",
+            message: "Unable to update announcement due to a server error. Please try again."
         })
     }
 }

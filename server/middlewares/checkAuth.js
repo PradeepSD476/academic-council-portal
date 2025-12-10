@@ -9,19 +9,35 @@ export const checkAuth = async (req, res, next) => {
     }
     try {
         const decodedToken = await admin.auth().verifyIdToken(idToken);
-        if (!decodedToken) {
-            return res.status(403).json({
+        const userEmail = decodedToken.email;
+        if (!userEmail) {
+            return res.status(400).json({
                 success: false,
-                message: "Access Denied: Login Required..."
+                error: "Bad Request",
+                message: "Token does not contain a valid email address."
             })
         }
-        req.user = decodedToken;
+        const user = await prisma.user.findUnique({
+            where: {
+                email: userEmail
+            }
+        })
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                error: "User Not Found",
+                message: "No user account found for the provided token."
+            })
+        }
+        req.user = user;
         next();
     } catch (error) {
-        console.log(error);
-        return res.status(401).json({
+        console.error(error);
+        return res.status(500).json({
             success: false,
-            message: "Invalid or expired token..."
-        })
+            error: "AuthenticationServiceError",
+            message: "Unable to verify authentication token due to a server error. Please try again."
+        });
     }
+
 }

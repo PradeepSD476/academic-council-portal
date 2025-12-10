@@ -7,7 +7,7 @@ const signedURL = async (req, res) => {
         if (!filename || !contentType) {
             return res.status(400).json({ success: false, message: 'Missing filename or contentType.' });
         }
-
+        
         const uniqueSuffix = uuidv4();
         const destination = `${folder}/${uniqueSuffix}_${filename}`; 
 
@@ -27,7 +27,6 @@ const signedURL = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error generating signed URL:', error);
         res.status(500).json({ success: false, message: 'Could not generate upload URL.' });
     }
 }
