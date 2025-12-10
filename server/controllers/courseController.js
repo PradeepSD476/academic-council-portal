@@ -1,51 +1,27 @@
 import prisma from '../config/db.js';
 
 export const getMyCourses = async (req, res) => {
-    const userEmail = req.user?.email;
+    const user = req.user;
     try {
-        if (!userEmail) {
-            return res.status(401).json({
-                success: false,
-                message: "Authentication Required..."
-            })
-        }
-        const user = await prisma.user.findUnique({
-            where: {
-                email: userEmail,
-            },
-            select: {
-                branchName: true,
-                admissionYear: true,
-                program: true
-            }
-        })
-        if (!user || !user.branchName || !user.admissionYear || !user.program) {
-            return res.status(401).json({
-                success: false,
-                message: "Insufficient Data..."
-            })
-        }
         const currentMonth = new Date().getMonth();
         const currentCalendarYear = new Date().getFullYear();
         const academicYearStart = (currentMonth >= 6) ? currentCalendarYear : currentCalendarYear - 1;
         const currentAcademicYear = academicYearStart - user.admissionYear + 1;
 
         if (currentAcademicYear < 1) {
-            console.warn(`Calculated invalid academic year ${currentAcademicYear} for user ${userEmail}`);
-            return res.status(400).json({
+            return res.status(422).json({
                 success: false,
-                message: "invalid current academic year (<1)..."
+                error: "InvalidAcademicYear",
+                message: "Academic Year is invalid."
             });
         }
         const courses = await prisma.course.findMany({
             where: {
                 academicYear: currentAcademicYear,
                 program: user.program,
-                OR:[
-                    {branchName: user.branchName},
-                    {branchName: 'HS'},
-                    {branchName: 'CC'}
-                ]
+                allowedBranch: {
+                    has: user.branchName
+                }
             },
             select: {
                 id: true,
@@ -57,51 +33,53 @@ export const getMyCourses = async (req, res) => {
                 courseCode: 'asc',
             },
         })
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
-            message: "successfully fetched my courses...",
-            data: courses
-        });
+            message: "Data fetched Successfully",
+            data: courses,
+        })
     } catch (error) {
-        console.error('Error fetching user courses:', error);
-        res.status(500).json({ error: 'Failed to fetch courses.' });
+        return res.status(500).json({
+            success: false,
+            error: "Internal Server Error",
+            message: "Something went wrong. Please try again later."
+        })
     }
 }
 
 export const addCourse = async (req, res) => {
-    const { courseCode, name, description, branchName, academicYear, program } = req.body;
-    if(!courseCode || !name || !description || !branchName || !academicYear || !program){
+    const { courseCode, name, description, allowedBranches, academicYear, program } = req.body;
+    if (!courseCode || !name || !allowedBranches || !academicYear || !program) {
         return res.status(400).json({
             success: false,
-            message: "Missing Course Details..."
+            error: "BadRequest",
+            message: "Validation failed. Required fields are missing."
         })
     }
     try {
         const course = await prisma.course.findUnique({
             where: {
-                courseCode: courseCode,
-                academicYear: academicYear,
-                program: program,
-                branchName: branchName
+                courseCode: courseCode
             }
         })
         if (course) {
-            return res.status(401).json({
+            return res.status(409).json({
                 success: false,
-                message: "Course Already Exists."
-            })
+                error: "AlreadyExists",
+                message: "A record with this Course Code already exists."
+            });
         }
         const addedCourse = await prisma.course.create({
             data: {
                 courseCode: courseCode,
                 name: name,
                 description: description,
-                branchName: branchName,
+                allowedBranch: allowedBranches,
                 academicYear: academicYear,
                 program: program
             },
         })
-        return res.status(200).json({
+        return res.status(201).json({
             success: true,
             message: "Course Added Successfully..",
             addedCourse: addedCourse

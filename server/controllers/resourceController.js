@@ -1,17 +1,31 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import prisma from '../config/db.js';
 
 export const getResources = async (req, res) => {
-    const { startPoint, courseId, resourceType } = req.query;
-    if (startPoint < 1) {
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit);
+    const courseId = parseInt(req.query.courseId);
+    const resourceType = req.query.resourceType;
+    const bucketName = process.env.GCS_BUCKET_NAME;
+    if (!page || !limit) {
         return res.status(400).json({
             success: false,
-            message: "starting index must be greater than 0..."
+            error: "Bad Request",
+            message: "Pagination parameters 'page' and 'limit' are required."
+        })
+    }
+    if (page < 1 || limit < 1) {
+        return res.status(422).json({
+            success: false,
+            error: "Unprocessable Entity",
+            message: "Pagination parameters must be positive integers. 'page' and 'limit' must be 1 or greater."
         })
     }
     try {
         const results = await prisma.resource.findMany({
-            skip: (startPoint - 1) * 3, 
-            take: 5,
+            skip: (page - 1) * limit,
+            take: limit,
             where: {
                 courseId: parseInt(courseId),
                 resourceType: resourceType,
@@ -20,43 +34,36 @@ export const getResources = async (req, res) => {
                 updatedAt: 'desc'
             }
         })
-        console.log("Results", results)
+        const resultWithUrls = results.map(result => ({
+            ...result,
+            fileURL: `https://storage.googleapis.com/${bucketName}/${result.filePath}`
+        }))
         return res.status(200).json({
             success: true,
-            message: "Successfully fetched resources...",
-            resources: results,
+            message: "Data fetched Successfully",
+            data: resultWithUrls,
         })
     } catch (error) {
         console.log(error);
         return res.status(500).json({
             success: false,
-            message: "Failed to get Resources..."
+            error: "Internal Server Error",
+            message: "Something went wrong. Please try again later."
         })
     }
 }
 
 export const addResource = async (req, res) => {
-    const { title, description, fileUrl, resourceType, courseCode } = req.body;
-    const userEmail = req.user.email;
-    if (!title || !fileUrl || !resourceType || !courseCode) {
+    const { title, description, filePath, resourceType, courseCode } = req.body;
+    const user = req.user;
+    if (!title || !filePath || !resourceType || !courseCode) {
         return res.status(400).json({
             success: false,
+            error: "BadRequest",
             message: "Validation failed. Required fields are missing."
         })
     }
-
     try {
-        const user = await prisma.user.findUnique({
-            where: {
-                email: userEmail
-            }
-        })
-        if(!user){
-            return res.status(401).json({
-                success: false,
-                message: "Unauthorized user..."
-            })
-        }
         const course = await prisma.course.findUnique({
             where: {
                 courseCode: courseCode
@@ -65,8 +72,9 @@ export const addResource = async (req, res) => {
 
         if (!course) {
             return res.status(404).json({
-                success: true,
-                message: "Course with such courseCode not found.."
+                success: false,
+                error: "NotFound",
+                message: "Course not found."
             })
         }
 
@@ -74,7 +82,7 @@ export const addResource = async (req, res) => {
             data: {
                 title: title,
                 description: description,
-                fileURL: fileUrl,
+                filePath: filePath,
                 resourceType: resourceType,
                 uploadedById: user.id,
                 courseId: course.id,
@@ -83,90 +91,104 @@ export const addResource = async (req, res) => {
 
         return res.status(201).json({
             success: true,
-            message: "successfully added the resource...",
+            message: "Successfully Created Resource.",
             data: resource
         })
     } catch (error) {
-        console.log(error);
         return res.status(500).json({
             success: false,
-            message: "Internal server error..."
+            error: "ServerError",
+            message: "Unable to create resource due to a server error. Please try again."
         })
     }
 }
 
 export const deleteResource = async (req, res) => {
-    const { resourceId } = req.body;
+    const resourceId = req.params.id;
+    if (!resourceId) {
+        return res.status(400).json({
+            success: false,
+            error: "BadRequest",
+            message: "Resource ID is required."
+        })
+    }
     try {
         const resource = await prisma.resource.findUnique({
             where: {
-                id: resourceId,
+                id: parseInt(resourceId),
             }
         })
         if (!resource) {
-            return res.status(400).json({
+            return res.status(404).json({
                 success: false,
-                message: "Invalid Resource Id..",
+                error: "NotFound",
+                message: "resource not found."
             })
         }
         const deleteResource = await prisma.resource.delete({
             where: {
-                id: resourceId,
+                id: parseInt(resourceId),
             }
         })
         return res.status(200).json({
             success: true,
-            message: "Successfully deleted the resource...",
-            resource: resource
+            message: "Content deleted successfully."
         })
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: "Failed to delete Resource..."
+            error: "ServerError",
+            message: "Unable to delete resource due to a server error. Please try again."
         })
     }
 }
 
 export const editResource = async (req, res) => {
-    const { resourceId, newTitle, newDescription, newFileUrl, newResourceType, newCourseId } = req.body;
-    const userEmail = req.user.email;
+    const resourceId = req.params.id;
+    const updates = req.body;
+    if (!resourceId) {
+        return res.status(400).json({
+            success: false,
+            error: "BadRequest",
+            message: "Resource ID is required."
+        })
+    }
+    if (!updates) {
+        return res.status(400).json({
+            success: false,
+            error: "BadRequest",
+            message: "No update fields provided."
+        })
+    }
     try {
-        const user = await prisma.user.findUnique({
+        const resource = await prisma.resource.findUnique({
             where: {
-                email: userEmail
-            },
-            select: {
-                id: true
+                id: parseInt(resourceId),
             }
         })
-        if (!user) {
+        if (!resource) {
             return res.status(404).json({
                 success: false,
-                message: "UnAuthorized User"
+                error: "NotFound",
+                message: "Resource not found."
             })
         }
-        const resource = await prisma.resource.update({ 
+        const updateResource = await prisma.resource.update({
             where: {
-                id: resourceId,
+                id: parseInt(resourceId),
             },
-            data: {
-                title: newTitle,
-                description: newDescription,
-                fileURL: newFileUrl,
-                resourceType: newResourceType,
-                courseId: newCourseId,
-                uploadedById: user.id
-            }
+            data: updates
         })
         return res.status(201).json({
             success: true,
-            message: "Edited successfully...",
-            data: resource
+            message: "Resource updated successfully.",
+            data: updateResource
         })
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: "Failed to edit resource...",
+            error: "ServerError",
+            message: "Unable to update resource due to a server error. Please try again."
         })
     }
 }

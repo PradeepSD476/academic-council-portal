@@ -1,15 +1,8 @@
-import admin from '../config/firebaseAdmin.js';
+import prisma from '../config/db.js';
 export const checkAdmin = async (req, res, next) => {
-    const idToken = req.headers.authorization?.split(' ')[1];
-    if (!idToken) {
-        return res.status(401).json({
-            success: false,
-            message: "Unauthorized: Invalid idToken...",
-        })
-    }
+    const user = req.user;
     try {
-        const decodedToken = await admin.auth().verifyIdToken(idToken);
-        const { role } = decodedToken;
+        const role = user.role;
         const allowedRoles = ['RESOURCE_ADMIN', 'ANNOUNCEMENT_ADMIN', 'SUPER_ADMIN']
         if(allowedRoles.includes(role)){
             next();
@@ -21,10 +14,11 @@ export const checkAdmin = async (req, res, next) => {
         })
         }
     } catch (error) {
-        console.log(error);
-        return res.status(401).json({
+        console.error(error);
+        return res.status(500).json({
             success: false,
-            message: "Invalid or expired token..."
-        })
+            error: "AccessServiceError",
+            message: "Unable to verify Access due to a server error. Please try again."
+        });
     }
 }

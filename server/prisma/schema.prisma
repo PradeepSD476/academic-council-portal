@@ -13,7 +13,7 @@ model User {
   email String  @unique
   displayName  String?
   photoURL String?
-  role Role @default(STUDENT)
+  role Role @default(SUPER_ADMIN)
   rollNo String?
   branchName String?
   admissionYear Int?
@@ -43,7 +43,7 @@ model Course {
   courseCode String @unique
   name String
   description String?
-  branchName    String 
+  allowedBranch String[]
   academicYear  Int    
   program       Program
   resources Resource[]
@@ -55,7 +55,7 @@ model Resource {
   id Int @id @default(autoincrement())
   title String
   description String?
-  fileURL String
+  filePath String
   resourceType ResourceType
   uploadedBy User? @relation(fields: [uploadedById], references: [id])
   uploadedById Int?
@@ -64,7 +64,6 @@ model Resource {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-
 enum ResourceType {
   NOTES
   PYQ
@@ -82,7 +81,7 @@ model Announcement {
   description String?
   isPinned Boolean @default(false)
   isFileAttached Boolean @default(false)
-  fileURL String?
+  filePath String?
   uploadedBy User? @relation(fields: [uploadedById], references: [id])
   uploadedById Int?
   createdAt DateTime @default(now())

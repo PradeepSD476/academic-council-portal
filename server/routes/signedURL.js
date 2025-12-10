@@ -1,5 +1,5 @@
 import express from 'express';
-import signedURL from '../utils/signedURL.js';
+import signedURL from '../controllers/uploadController.js';
 import { checkAdmin } from '../middlewares/checkAdmin.js';
 
 const router = express.Router();

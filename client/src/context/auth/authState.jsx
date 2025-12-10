@@ -13,35 +13,25 @@ const AuthState = ({ children }) => {
         const unsubscribe = onAuthStateChanged(auth, async (currentFirebaseUser) => {
             setFirebaseUser(currentFirebaseUser);
             if (currentFirebaseUser) {
-                const isValidEmail = currentFirebaseUser.email.endsWith('@iitp.ac.in');
-                const isDevEmail = (currentFirebaseUser.email === 'sagitrapradeep2006@gmail.com')
-                if (isValidEmail || isDevEmail) {
-                    try {
-                        const idToken = await currentFirebaseUser.getIdToken();
-                        console.log(idToken);
-                        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
-                            method: 'POST',
-                            headers: {
-                                'Authorization': `Bearer ${idToken}`
-                            },
-                        })
-                        if (!response.ok) {
-                            await signOut(auth);
-                            setUser(null);
-                            throw new Error("Backend Auth Failed !");
+                try {
+                    const idToken = await currentFirebaseUser.getIdToken();
+                    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/auth/login`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${idToken}`
+                        },
+                    })
+                    if (!response.ok) {
+                        await signOut(auth);
+                        setUser(null);
+                        throw new Error("Backend Auth Failed !");
 
-                        }
-                        const backendData = await response.json();
-                        setUser(backendData.user);
-                        console.table(backendData.user);
-                    } catch (err) {
-                        console.log("Error", err);
                     }
-                }
-                else {
-                    await signOut(auth);
-                    setUser(null);
-                    alert('Access Denied : Please Use Valid Email....')
+                    const backendData = await response.json();
+                    setUser(backendData.data);
+                    console.table(backendData.data);
+                } catch (err) {
+                    console.log("Error", err);
                 }
             }
             else {
@@ -53,7 +43,7 @@ const AuthState = ({ children }) => {
         return () => unsubscribe();
     }, []);
 
-    
+
     const login = async () => {
         setLoading(true);
         try {
