@@ -70,7 +70,6 @@ const AuthState = ({ children }) => {
                 console.log("User not found... creating new user");
                 await createUserWithEmailAndPassword(auth, email, password);
                 await signInWithEmailAndPassword(auth, email, password);
-                navigate("/login-with-roll")
             } else {
                 console.error("Login Error:", err);
             }
@@ -97,6 +96,7 @@ const AuthState = ({ children }) => {
         loading,
         login,
         logout,
+        loading,
         isAuthenticated: !!user && !!firebaseUser,
     }
 
