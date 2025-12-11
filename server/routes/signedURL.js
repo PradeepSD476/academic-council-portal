@@ -4,6 +4,6 @@ import { checkAdmin } from '../middlewares/checkAdmin.js';
 
 const router = express.Router();
 
-router.post('/get-upload-url', checkAdmin, signedURL);
+router.post('/upload/get-upload-url', checkAdmin, signedURL);
 
 export default router
