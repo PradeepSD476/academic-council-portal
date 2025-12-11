@@ -1,4 +1,5 @@
 import admin from '../config/firebaseAdmin.js';
+import prisma from '../config/db.js';
 export const checkAuth = async (req, res, next) => {
     const idToken = req.headers.authorization?.split(' ')[1];
     if (!idToken) {

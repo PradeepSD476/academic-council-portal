@@ -1,4 +1,3 @@
-import prisma from '../config/db.js';
 export const checkAdmin = async (req, res, next) => {
     const user = req.user;
     try {

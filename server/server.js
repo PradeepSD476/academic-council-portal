@@ -28,12 +28,12 @@ app.use(cookieParser());
 const server = http.createServer(app);
 
 app.get('/', (req, res) => {
-  res.send('server is live...');
+  res.send('The server is live and running. The API is ready to accept requests.');
 })
 
-app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1', authRoutes);
 app.use('/api/v1', checkAuth, courseRoutes);
-app.use('/api/v1/upload', checkAuth, signedURLRoutes);
+app.use('/api/v1', checkAuth, signedURLRoutes);
 app.use('/api/v1', checkAuth, announcementRoutes);
 app.use('/api/v1', checkAuth, profileRoutes);
 app.use('/api/v1', checkAuth, resourceRoutes);
