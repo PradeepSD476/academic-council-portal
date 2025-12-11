@@ -2,12 +2,15 @@ import { useState } from "react";
 import AuthContext from "./authContext";
 import { auth, provider } from "../../lib/firebass";
 import { useEffect } from "react";
-import { onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
+import { createUserWithEmailAndPassword, EmailAuthCredential, onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
+import { Navigate, useNavigate } from "react-router-dom";
 
 const AuthState = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [firebaseUser, setFirebaseUser] = useState(null);
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentFirebaseUser) => {
@@ -44,10 +47,11 @@ const AuthState = ({ children }) => {
     }, []);
 
 
-    const login = async () => {
+    const googleLogin = async () => {
         setLoading(true);
         try {
             await signInWithPopup(auth, provider);
+            
         }
         catch (err) {
             console.log("Error", err)
@@ -55,6 +59,26 @@ const AuthState = ({ children }) => {
         }
         setLoading(false);
     }
+
+    const login = async (email, password) => {
+        setLoading(true);
+
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+        } catch (err) {
+            if (err.code === "auth/user-not-found") {
+                console.log("User not found... creating new user");
+                await createUserWithEmailAndPassword(auth, email, password);
+                await signInWithEmailAndPassword(auth, email, password);
+                navigate("/login-with-roll")
+            } else {
+                console.error("Login Error:", err);
+            }
+        }
+
+        setLoading(false);
+    };
+
 
     const logout = async () => {
         setLoading(true);
@@ -69,6 +93,7 @@ const AuthState = ({ children }) => {
     const values = {
         user,
         firebaseUser,
+        googleLogin,
         loading,
         login,
         logout,

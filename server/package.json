@@ -21,7 +21,8 @@
     "firebase-admin": "^13.5.0",
     "http": "^0.0.1-security",
     "nodemon": "^3.1.10",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "url": "^0.11.4"
   },
   "devDependencies": {
     "prisma": "^6.17.1"
