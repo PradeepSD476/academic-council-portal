@@ -16,6 +16,8 @@ import Announcements from "./pages/student/Announcements.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import ManageCourses from "./pages/admin/ManageCourses.jsx";
 import ManageUsers from "./pages/admin/ManageUsers.jsx";
+import ManageResources from "./pages/admin/ManageResources.jsx";
+import ManageAnnouncement from "./pages/admin/ManageAnnouncement.jsx";
 import { Toaster } from "react-hot-toast";
 import ProtectedRoute from "./components/ProtectedRoute.jsx"
 
@@ -58,6 +60,8 @@ const AppRoutes = () => {
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="manage-courses" element={<ManageCourses />} />
         <Route path="manage-users" element={<ManageUsers />} />
+        <Route path="manage-resources" element={<ManageResources />} />
+        <Route path="manage-announcements" element={<ManageAnnouncement />} />
       </Route>
     </Routes>
   );
