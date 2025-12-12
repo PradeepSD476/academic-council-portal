@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,19 +8,62 @@ datasource db {
 }
 
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  displayName  String?
-  photoURL String?
-  role Role @default(SUPER_ADMIN)
-  rollNo String?
-  branchName String?
-  admissionYear Int?
-  program Program?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  uploadedResources   Resource[]
+  id                  Int            @id @default(autoincrement())
+  email               String         @unique
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  admissionYear       Int?
+  branchName          String?
+  displayName         String?
+  photoURL            String?
+  program             Program?
+  role                Role           @default(SUPER_ADMIN)
+  rollNo              String?
   postedAnnouncements Announcement[]
+  uploadedResources   Resource[]
+}
+
+model Course {
+  id            Int        @id @default(autoincrement())
+  courseCode    String     @unique
+  name          String
+  description   String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  academicYear  Int
+  allowedBranch String[]
+  program       Program
+  credits       Decimal    @db.Decimal
+  instructor    String
+  resources     Resource[]
+}
+
+model Resource {
+  id           Int          @id @default(autoincrement())
+  title        String
+  description  String?
+  filePath     String
+  resourceType ResourceType
+  uploadedById Int?
+  courseId     Int?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  course       Course?      @relation(fields: [courseId], references: [id])
+  uploadedBy   User?        @relation(fields: [uploadedById], references: [id])
+}
+
+model Announcement {
+  id             Int      @id @default(autoincrement())
+  title          String
+  description    String?
+  isPinned       Boolean  @default(false)
+  isFileAttached Boolean  @default(false)
+  filePath       String?
+  uploadedById   Int?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  priority       String?
+  uploadedBy     User?    @relation(fields: [uploadedById], references: [id])
 }
 
 enum Role {
@@ -38,32 +80,6 @@ enum Program {
   MSC
 }
 
-model Course {
-  id Int @id @default(autoincrement())
-  courseCode String @unique
-  name String
-  description String?
-  allowedBranch String[]
-  academicYear  Int    
-  program       Program
-  resources Resource[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Resource {
-  id Int @id @default(autoincrement())
-  title String
-  description String?
-  filePath String
-  resourceType ResourceType
-  uploadedBy User? @relation(fields: [uploadedById], references: [id])
-  uploadedById Int?
-  course Course? @relation(fields: [courseId], references: [id])
-  courseId Int?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
 enum ResourceType {
   NOTES
   PYQ
@@ -73,17 +89,4 @@ enum ResourceType {
   BOOK
   LECTURE_SLIDE
   ASSIGNMENT
-}
-
-model Announcement {
-  id Int @id @default(autoincrement())
-  title String
-  description String?
-  isPinned Boolean @default(false)
-  isFileAttached Boolean @default(false)
-  filePath String?
-  uploadedBy User? @relation(fields: [uploadedById], references: [id])
-  uploadedById Int?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }

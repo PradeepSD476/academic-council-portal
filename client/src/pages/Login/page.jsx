@@ -12,7 +12,7 @@ function Login() {
     if (authContext.firebaseUser && authContext.user) {
       if(!authContext.user.rollNo)
         navigate("/login-with-roll");
-      else navigate("/dashboard")
+      else navigate("/dashboard/courses")
     }
   }, [authContext.firebaseUser, authContext.user]);
 

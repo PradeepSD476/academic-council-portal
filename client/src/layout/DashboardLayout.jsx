@@ -33,13 +33,13 @@ export default function DashboardLayout() {
 
 
     return (
-        <div className="flex h-[92vh] bg-gray-100">
+        <div className="flex h-[92vh] bg-white">
 
 
             {/*SIDEBAR */}
             <aside
                 className={`
-                    fixed md:static top-0 left-0 h-full w-72 bg-white border-r shadow-lg flex flex-col z-40 
+                    fixed md:static top-0 left-0 h-full w-80 bg-white  shadow-lg flex flex-col z-40 
                     transition-transform duration-300
                     ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
                 `}
@@ -137,7 +137,7 @@ export default function DashboardLayout() {
             </aside>
 
             <main className="flex-1 overflow-y-auto  mt-16 md:mt-0">
-                <div className="bg-white rounded-xl shadow p-6 ">
+                <div className="rounded-xl p-6 ">
                     <Outlet />
                 </div>
             </main>

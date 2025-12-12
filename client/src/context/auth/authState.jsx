@@ -93,7 +93,6 @@ const AuthState = ({ children }) => {
         user,
         firebaseUser,
         googleLogin,
-        loading,
         login,
         logout,
         loading,

@@ -2,12 +2,15 @@ import prisma from '../config/db.js';
 
 export const getMyCourses = async (req, res) => {
     const user = req.user;
+    
     try {
         const currentMonth = new Date().getMonth();
         const currentCalendarYear = new Date().getFullYear();
         const academicYearStart = (currentMonth >= 6) ? currentCalendarYear : currentCalendarYear - 1;
         const currentAcademicYear = academicYearStart - user.admissionYear + 1;
 
+        
+        
         if (currentAcademicYear < 1) {
             return res.status(422).json({
                 success: false,
@@ -15,6 +18,7 @@ export const getMyCourses = async (req, res) => {
                 message: "Academic Year is invalid."
             });
         }
+        // console.log(user);
         const courses = await prisma.course.findMany({
             where: {
                 academicYear: currentAcademicYear,
@@ -27,12 +31,16 @@ export const getMyCourses = async (req, res) => {
                 id: true,
                 courseCode: true,
                 name: true,
-                description: true
+                description: true,
+                instructor: true,
+                credits: true,
             },
             orderBy: {
                 courseCode: 'asc',
             },
         })
+
+        // console.log(courses);
         return res.status(200).json({
             success: true,
             message: "Data fetched Successfully",

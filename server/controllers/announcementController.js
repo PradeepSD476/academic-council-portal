@@ -28,6 +28,7 @@ export const getAnnouncements = async (req, res) => {
                 updatedAt: 'desc'
             }
         })
+        console.log(results);
         const resultWithUrls = results.map(result => ({
             ...result,
             fileURL: `https://storage.googleapis.com/${bucketName}/${result.filePath}`
@@ -66,6 +67,7 @@ export const addAnnouncement = async (req, res) => {
                 uploadedById: user.id
             }
         })
+        
         return res.status(201).json({
             success: true,
             message: "Successfully created Announcement...",
