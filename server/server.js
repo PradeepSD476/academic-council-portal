@@ -31,6 +31,10 @@ app.get('/', (req, res) => {
   res.send('The server is live and running. The API is ready to accept requests.');
 })
 
+app.get("/health", (req, res) => {
+  res.json({ status: "OK", uptime: process.uptime() });
+});
+
 app.use('/api/v1', authRoutes);
 app.use('/api/v1', checkAuth, courseRoutes);
 app.use('/api/v1', checkAuth, signedURLRoutes);
