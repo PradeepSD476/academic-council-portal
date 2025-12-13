@@ -26,7 +26,12 @@ export const getAnnouncements = async (req, res) => {
             take: limit,
             orderBy: {
                 updatedAt: 'desc'
-            }
+            },
+            include: {
+                uploadedBy: {
+                    select: { displayName: true },
+                },
+            },
         })
         console.log(results);
         const resultWithUrls = results.map(result => ({
@@ -67,7 +72,7 @@ export const addAnnouncement = async (req, res) => {
                 uploadedById: user.id
             }
         })
-        
+
         return res.status(201).json({
             success: true,
             message: "Successfully created Announcement...",

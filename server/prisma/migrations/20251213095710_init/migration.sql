@@ -1,16 +1,5 @@
-/*
-  Warnings:
-
-  - You are about to drop the column `avatar` on the `User` table. All the data in the column will be lost.
-  - You are about to drop the column `isAdminStudent` on the `User` table. All the data in the column will be lost.
-  - You are about to drop the column `isFaculty` on the `User` table. All the data in the column will be lost.
-  - You are about to drop the column `isStudent` on the `User` table. All the data in the column will be lost.
-  - You are about to drop the column `isSuperAdmin` on the `User` table. All the data in the column will be lost.
-  - You are about to drop the column `name` on the `User` table. All the data in the column will be lost.
-
-*/
 -- CreateEnum
-CREATE TYPE "Role" AS ENUM ('STUDENT', 'FACULTY', 'STUDENT_ADMIN', 'SUPER_ADMIN');
+CREATE TYPE "Role" AS ENUM ('STUDENT', 'RESOURCE_ADMIN', 'ANNOUNCEMENT_ADMIN', 'SUPER_ADMIN');
 
 -- CreateEnum
 CREATE TYPE "Program" AS ENUM ('MTECH', 'BTECH', 'PHD', 'MSC');
@@ -18,20 +7,22 @@ CREATE TYPE "Program" AS ENUM ('MTECH', 'BTECH', 'PHD', 'MSC');
 -- CreateEnum
 CREATE TYPE "ResourceType" AS ENUM ('NOTES', 'PYQ', 'TUTORIAL', 'LAB_ASSIGNMENT', 'LAB_MANUAL', 'BOOK', 'LECTURE_SLIDE', 'ASSIGNMENT');
 
--- AlterTable
-ALTER TABLE "User" DROP COLUMN "avatar",
-DROP COLUMN "isAdminStudent",
-DROP COLUMN "isFaculty",
-DROP COLUMN "isStudent",
-DROP COLUMN "isSuperAdmin",
-DROP COLUMN "name",
-ADD COLUMN     "admissionYear" INTEGER,
-ADD COLUMN     "branchName" TEXT,
-ADD COLUMN     "displayName" TEXT,
-ADD COLUMN     "photoURL" TEXT,
-ADD COLUMN     "program" "Program",
-ADD COLUMN     "role" "Role" NOT NULL DEFAULT 'STUDENT',
-ADD COLUMN     "rollNo" TEXT;
+-- CreateTable
+CREATE TABLE "User" (
+    "id" SERIAL NOT NULL,
+    "email" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "admissionYear" INTEGER,
+    "branchName" TEXT,
+    "displayName" TEXT,
+    "photoURL" TEXT,
+    "program" "Program",
+    "role" "Role" NOT NULL DEFAULT 'SUPER_ADMIN',
+    "rollNo" TEXT,
+
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "Course" (
@@ -41,6 +32,11 @@ CREATE TABLE "Course" (
     "description" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "academicYear" INTEGER NOT NULL,
+    "allowedBranch" TEXT[],
+    "program" "Program" NOT NULL,
+    "credits" DECIMAL NOT NULL,
+    "instructor" TEXT NOT NULL,
 
     CONSTRAINT "Course_pkey" PRIMARY KEY ("id")
 );
@@ -76,13 +72,16 @@ CREATE TABLE "Announcement" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Course_courseCode_key" ON "Course"("courseCode");
 
 -- AddForeignKey
-ALTER TABLE "Resource" ADD CONSTRAINT "Resource_uploadedById_fkey" FOREIGN KEY ("uploadedById") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Resource" ADD CONSTRAINT "Resource_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Resource" ADD CONSTRAINT "Resource_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Resource" ADD CONSTRAINT "Resource_uploadedById_fkey" FOREIGN KEY ("uploadedById") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Announcement" ADD CONSTRAINT "Announcement_uploadedById_fkey" FOREIGN KEY ("uploadedById") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;

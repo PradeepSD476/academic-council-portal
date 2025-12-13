@@ -62,7 +62,6 @@ model Announcement {
   uploadedById   Int?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-  priority       String?
   uploadedBy     User?    @relation(fields: [uploadedById], references: [id])
 }
 

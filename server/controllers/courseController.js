@@ -18,7 +18,7 @@ export const getMyCourses = async (req, res) => {
                 message: "Academic Year is invalid."
             });
         }
-        // console.log(user);
+        console.log(user);
         const courses = await prisma.course.findMany({
             where: {
                 academicYear: currentAcademicYear,
@@ -40,7 +40,6 @@ export const getMyCourses = async (req, res) => {
             },
         })
 
-        // console.log(courses);
         return res.status(200).json({
             success: true,
             message: "Data fetched Successfully",
@@ -56,8 +55,8 @@ export const getMyCourses = async (req, res) => {
 }
 
 export const addCourse = async (req, res) => {
-    const { courseCode, name, description, allowedBranches, academicYear, program } = req.body;
-    if (!courseCode || !name || !allowedBranches || !academicYear || !program) {
+    const { courseCode, name, description, allowedBranches, academicYear, program, instructor, credits } = req.body;
+    if (!courseCode || !name || !allowedBranches || !academicYear || !program || !credits || !instructor) {
         return res.status(400).json({
             success: false,
             error: "BadRequest",
@@ -84,7 +83,9 @@ export const addCourse = async (req, res) => {
                 description: description,
                 allowedBranch: allowedBranches,
                 academicYear: academicYear,
-                program: program
+                program: program,
+                instructor: instructor,
+                credits: credits
             },
         })
         return res.status(201).json({
