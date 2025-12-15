@@ -1,5 +1,5 @@
-const handleFileUpload = async ({ idToken, file, folder, description, title, resourceType, courseCode }) => {
-    if (!file || !folder || !title) {
+export const getFilePath = async ({ idToken, file, folder }) => {
+    if (!folder || !file || !idToken) {
         console.error("Missing required parameters to fetch signed URL");
         return;
     }
@@ -22,6 +22,7 @@ const handleFileUpload = async ({ idToken, file, folder, description, title, res
             return;
         }
         const data = await response.json();
+        console.log(data);
         const { signedUrl, filePath } = data;
         const gcsResponse = await fetch(signedUrl, {
             method: 'PUT',
@@ -33,24 +34,7 @@ const handleFileUpload = async ({ idToken, file, folder, description, title, res
         if(!gcsResponse.ok){
             throw new Error('Upload To Cloud Failed');
         }
-        const uploadToDB = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/${folder}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${idToken}`
-            },
-            body: JSON.stringify({
-                title: title, 
-                description: description, 
-                filePath: filePath,
-                resourceType: resourceType,
-                courseCode: courseCode
-            })
-        })
-        if(!uploadToDB.ok){
-            throw new Error('Upload to DB failed');
-            return;
-        }
+        return { filePath };
     } catch (error) {
         console.log(error);
         return;

@@ -1,10 +1,7 @@
-import React from 'react'
-
 const ManageResources = () => {
+
   return (
-    <div>
-      ManageResources
-    </div>
+    <div>Manage Resources</div>
   )
 }
 

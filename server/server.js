@@ -8,6 +8,7 @@ import courseRoutes from './routes/course.js'
 import signedURLRoutes from './routes/signedURL.js'
 import announcementRoutes from './routes/announcement.js'
 import profileRoutes from './routes/profile.js'
+import userRoutes from './routes/user.js'
 import resourceRoutes from './routes/resource.js'
 import { checkAuth } from './middlewares/checkAuth.js'
 
@@ -17,7 +18,7 @@ const app = express();
 const PORT = process.env.PORT || 5000
 
 app.use(cors({
-  origin: '*',
+  origin: ["http://localhost:5173", "https://academic-council-portal.vercel.app"],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
@@ -41,6 +42,7 @@ app.use('/api/v1', checkAuth, signedURLRoutes);
 app.use('/api/v1', checkAuth, announcementRoutes);
 app.use('/api/v1', checkAuth, profileRoutes);
 app.use('/api/v1', checkAuth, resourceRoutes);
+app.use('/api/v1', checkAuth, userRoutes);
 
 server.listen(PORT, () => {
   console.log(`Server is running on PORT: ${PORT}`);
