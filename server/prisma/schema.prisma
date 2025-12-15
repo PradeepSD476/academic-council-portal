@@ -18,7 +18,7 @@ model User {
   photoURL            String?
   program             Program?
   role                Role           @default(SUPER_ADMIN)
-  rollNo              String?
+  rollNo              String?     
   postedAnnouncements Announcement[]
   uploadedResources   Resource[]
 }

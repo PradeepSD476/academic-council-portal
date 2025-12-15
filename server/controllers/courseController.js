@@ -18,7 +18,6 @@ export const getMyCourses = async (req, res) => {
                 message: "Academic Year is invalid."
             });
         }
-        console.log(user);
         const courses = await prisma.course.findMany({
             where: {
                 academicYear: currentAcademicYear,
@@ -97,5 +96,94 @@ export const addCourse = async (req, res) => {
     } catch (err) {
         console.log("Error....", err);
         return res.status(500).json({ error: 'Failed to add course...' });
+    }
+}
+
+export const deleteCourse = async (req, res) => {
+    const courseId = req.params.id;
+    if (!courseId) {
+        return res.status(400).json({
+            success: false,
+            error: "BadRequest",
+            message: "Course ID is required."
+        })
+    }
+    try {
+        const course = await prisma.course.findUnique({
+            where: {
+                id: parseInt(courseId),
+            }
+        })
+        if (!course) {
+            return res.status(404).json({
+                success: false,
+                error: "NotFound",
+                message: "Course not found."
+            })
+        }
+        const deleteCourse = await prisma.course.delete({
+            where: {
+                id: parseInt(courseId),
+            }
+        })
+        return res.status(200).json({
+            success: true,
+            message: "Content deleted successfully."
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            error: "ServerError",
+            message: "Unable to delete course due to a server error. Please try again."
+        })
+    }
+}
+
+export const editCourse = async (req, res) => {
+    const courseId = req.params.id;
+    const updates = req.body;
+    if (!courseId) {
+        return res.status(400).json({
+            success: false,
+            error: "BadRequest",
+            message: "Course ID is required."
+        })
+    }
+    if (!updates) {
+        return res.status(400).json({
+            success: false,
+            error: "BadRequest",
+            message: "No update fields provided."
+        })
+    }
+    try {
+        const course = await prisma.course.findUnique({
+            where: {
+                id: parseInt(courseId),
+            }
+        })
+        if (!course) {
+            return res.status(404).json({
+                success: false,
+                error: "NotFound",
+                message: "Announcement not found."
+            })
+        }
+        const updateCourse = await prisma.course.update({
+            where: {
+                id: parseInt(courseId),
+            },
+            data: updates
+        })
+        return res.status(201).json({
+            success: true,
+            message: "Course updated successfully."
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            error: "ServerError",
+            message: "Unable to Update Course due to a server error. Please try again."
+        })
     }
 }
