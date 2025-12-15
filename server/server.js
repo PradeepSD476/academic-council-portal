@@ -10,6 +10,7 @@ import announcementRoutes from './routes/announcement.js'
 import profileRoutes from './routes/profile.js'
 import userRoutes from './routes/user.js'
 import resourceRoutes from './routes/resource.js'
+import dashboardRoutes from './routes/dashboard.js'
 import { checkAuth } from './middlewares/checkAuth.js'
 
 dotenv.config();
@@ -43,6 +44,7 @@ app.use('/api/v1', checkAuth, announcementRoutes);
 app.use('/api/v1', checkAuth, profileRoutes);
 app.use('/api/v1', checkAuth, resourceRoutes);
 app.use('/api/v1', checkAuth, userRoutes);
+app.use('/api/v1', checkAuth, dashboardRoutes);
 
 server.listen(PORT, () => {
   console.log(`Server is running on PORT: ${PORT}`);

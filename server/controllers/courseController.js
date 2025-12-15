@@ -2,15 +2,15 @@ import prisma from '../config/db.js';
 
 export const getMyCourses = async (req, res) => {
     const user = req.user;
-    
+
     try {
         const currentMonth = new Date().getMonth();
         const currentCalendarYear = new Date().getFullYear();
         const academicYearStart = (currentMonth >= 6) ? currentCalendarYear : currentCalendarYear - 1;
         const currentAcademicYear = academicYearStart - user.admissionYear + 1;
 
-        
-        
+
+
         if (currentAcademicYear < 1) {
             return res.status(422).json({
                 success: false,
@@ -45,6 +45,46 @@ export const getMyCourses = async (req, res) => {
             data: courses,
         })
     } catch (error) {
+        return res.status(500).json({
+            success: false,
+            error: "Internal Server Error",
+            message: "Something went wrong. Please try again later."
+        })
+    }
+}
+
+export const getAllCourses = async (req, res) => {
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit);
+    if (!page || !limit) {
+        return res.status(400).json({
+            success: false,
+            error: "Bad Request",
+            message: "Pagination parameters 'page' and 'limit' are required."
+        })
+    }
+    if (page < 1 || limit < 1) {
+        return res.status(422).json({
+            success: false,
+            error: "Unprocessable Entity",
+            message: "Pagination parameters must be positive integers. 'page' and 'limit' must be 1 or greater."
+        })
+    }
+    try {
+        const courses = await prisma.course.findMany({
+            skip: (page - 1) * limit,
+            take: limit,
+            orderBy: {
+                updatedAt: 'desc'
+            }
+        })
+        return res.status(200).json({
+            success: true,
+            message: "Data fetched Successfully",
+            data: courses,
+        })
+    } catch (error) {
+        console.log(error);
         return res.status(500).json({
             success: false,
             error: "Internal Server Error",
@@ -90,7 +130,7 @@ export const addCourse = async (req, res) => {
         return res.status(201).json({
             success: true,
             message: "Course Added Successfully..",
-            addedCourse: addedCourse
+            data: addedCourse
         })
 
     } catch (err) {
