@@ -56,44 +56,42 @@ export const getResources = async (req, res) => {
 export const getAllResources = async (req, res) => {
     const page = parseInt(req.query.page);
     const limit = parseInt(req.query.limit);
+    
+    const bucketName = process.env.GCS_BUCKET_NAME; 
+
     if (!page || !limit) {
-        return res.status(400).json({
-            success: false,
-            error: "Bad Request",
-            message: "Pagination parameters 'page' and 'limit' are required."
-        })
+        return res.status(400).json({ success: false, message: "Pagination required." });
     }
-    if (page < 1 || limit < 1) {
-        return res.status(422).json({
-            success: false,
-            error: "Unprocessable Entity",
-            message: "Pagination parameters must be positive integers. 'page' and 'limit' must be 1 or greater."
-        })
-    }
+
     try {
         const results = await prisma.resource.findMany({
             skip: (page - 1) * limit,
             take: limit,
-            orderBy: {
-                updatedAt: 'desc'
+            orderBy: { updatedAt: 'desc' },
+            include: {
+                course: {
+                    select: { courseCode: true }
+                }
             }
-        })
+        });
+
         const resultWithUrls = results.map(result => ({
             ...result,
             fileURL: `https://storage.googleapis.com/${bucketName}/${result.filePath}`
-        }))
+        }));
+
         return res.status(200).json({
             success: true,
             message: "Data fetched Successfully",
             data: resultWithUrls,
-        })
+        });
+
     } catch (error) {
-        console.log(error);
+        console.log("Error fetching resources:", error);
         return res.status(500).json({
             success: false,
-            error: "Internal Server Error",
-            message: "Something went wrong. Please try again later."
-        })
+            message: "Something went wrong."
+        });
     }
 }
 
