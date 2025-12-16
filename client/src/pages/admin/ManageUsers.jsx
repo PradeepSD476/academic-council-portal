@@ -21,7 +21,7 @@ const ManageUsers = () => {
       const user = auth.currentUser;
       const token = user ? await user.getIdToken() : localStorage.getItem('token');
 
-      const response = await axios.get(`http://localhost:5000/api/v1/users?page=${page}&limit=${limit}`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/users?page=${page}&limit=${limit}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -53,7 +53,7 @@ const ManageUsers = () => {
       const user = auth.currentUser;
       const token = user ? await user.getIdToken() : localStorage.getItem('token');
 
-      await axios.patch(`http://localhost:5000/api/v1/users/${userId}?newRole=${newRole}`, {}, {
+      await axios.patch(`${import.meta.env.VITE_API_URL}/api/v1/users/${userId}?newRole=${newRole}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

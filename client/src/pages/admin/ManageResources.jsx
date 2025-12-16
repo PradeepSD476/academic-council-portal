@@ -31,7 +31,7 @@ const ManageResources = () => {
         const user = auth.currentUser;
         const token = user ? await user.getIdToken() : localStorage.getItem('token');
 
-        const response = await axios.get('http://localhost:5000/api/v1/courses?limit=100', {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/courses?limit=100`, {
             headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -50,7 +50,7 @@ const ManageResources = () => {
       const user = auth.currentUser;
       const token = user ? await user.getIdToken() : localStorage.getItem('token');
 
-      const response = await axios.get(`http://localhost:5000/api/v1/resources/all?page=${page}&limit=${limit}`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/resources/all?page=${page}&limit=${limit}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -87,7 +87,7 @@ const ManageResources = () => {
         
         delete editPayload.courseCode; 
 
-        await axios.patch(`http://localhost:5000/api/v1/resources/${currentId}`, editPayload, {
+        await axios.patch(`${import.meta.env.VITE_API_URL}/api/v1/resources/${currentId}`, editPayload, {
             headers: { Authorization: `Bearer ${token}` }
         });
         alert("Resource Updated Successfully!");
@@ -100,7 +100,7 @@ const ManageResources = () => {
         
         delete addPayload.courseId;
 
-        await axios.post('http://localhost:5000/api/v1/resources', addPayload, {
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/v1/resources`, addPayload, {
             headers: { Authorization: `Bearer ${token}` }
         });
         alert("Resource Created Successfully!");
@@ -121,7 +121,7 @@ const ManageResources = () => {
       const user = auth.currentUser;
       const token = user ? await user.getIdToken() : localStorage.getItem('token');
 
-      await axios.delete(`http://localhost:5000/api/v1/resources/${id}`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/v1/resources/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchResources();

@@ -22,7 +22,7 @@ const AdminDashboard = () => {
         const user = auth.currentUser;
         const token = user ? await user.getIdToken() : localStorage.getItem('token');
 
-        const response = await axios.get('http://localhost:5000/api/v1/dashboard/admin', {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/admin`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         

@@ -57,7 +57,7 @@ const ManageCourses = () => {
       const token = await getAuthToken();
       const searchParam = debouncedSearch ? `&search=${encodeURIComponent(debouncedSearch)}` : '';
       const response = await axios.get(
-        `http://localhost:5000/api/v1/courses?page=${page}&limit=${limit}${searchParam}`,
+        `${import.meta.env.VITE_API_URL}/api/v1/courses?page=${page}&limit=${limit}${searchParam}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -99,7 +99,7 @@ const ManageCourses = () => {
 
     try {
       const token = await getAuthToken();
-      await axios.delete(`http://localhost:5000/api/v1/courses/${id}`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/v1/courses/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert("Course deleted successfully");
@@ -123,12 +123,12 @@ const ManageCourses = () => {
       };
 
       if (modalMode === 'add') {
-        await axios.post('http://localhost:5000/api/v1/courses', payload, {
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/v1/courses`, payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
         alert("Course Added Successfully!");
       } else {
-        await axios.patch(`http://localhost:5000/api/v1/courses/${selectedCourseId}`, payload, {
+        await axios.patch(`${import.meta.env.VITE_API_URL}/api/v1/courses/${selectedCourseId}`, payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
         alert("Course Updated Successfully!");
