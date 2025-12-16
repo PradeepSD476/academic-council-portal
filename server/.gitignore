@@ -1,7 +1,10 @@
+# Dependency directories
+node_modules/
+dist/
+
+# Environment variables
 .env
-node_modules
 
-/generated/prisma
-
-firebase-service-account-key.json
+# Secrets (Add these specific lines)
 academic-council-portal-gcs.json
+firebase-service-account-key.json

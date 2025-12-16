@@ -52,44 +52,59 @@ export const getMyCourses = async (req, res) => {
         })
     }
 }
-
+//updated the fn to enable search funtionality
 export const getAllCourses = async (req, res) => {
-    const page = parseInt(req.query.page);
-    const limit = parseInt(req.query.limit);
-    if (!page || !limit) {
-        return res.status(400).json({
-            success: false,
-            error: "Bad Request",
-            message: "Pagination parameters 'page' and 'limit' are required."
-        })
-    }
+    const page = parseInt(req.query.page) || 1; 
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || ""; 
+
     if (page < 1 || limit < 1) {
         return res.status(422).json({
             success: false,
             error: "Unprocessable Entity",
-            message: "Pagination parameters must be positive integers. 'page' and 'limit' must be 1 or greater."
-        })
+            message: "Pagination parameters must be positive integers."
+        });
     }
+
     try {
+        const whereClause = search ? {
+            OR: [
+                { name: { contains: search, mode: 'insensitive' } }, 
+                { courseCode: { contains: search, mode: 'insensitive' } },
+                { instructor: { contains: search, mode: 'insensitive' } } 
+            ]
+        } : {};
+
+        const totalCourses = await prisma.course.count({ where: whereClause });
+
         const courses = await prisma.course.findMany({
+            where: whereClause, 
             skip: (page - 1) * limit,
             take: limit,
             orderBy: {
                 updatedAt: 'desc'
             }
-        })
+        });
+
         return res.status(200).json({
             success: true,
             message: "Data fetched Successfully",
             data: courses,
-        })
+            pagination: {
+                total: totalCourses,
+                page: page,
+                limit: limit,
+                totalPages: Math.ceil(totalCourses / limit)
+            }
+        });
+
     } catch (error) {
         console.log(error);
         return res.status(500).json({
             success: false,
             error: "Internal Server Error",
             message: "Something went wrong. Please try again later."
-        })
+        });
     }
 }
 
@@ -220,6 +235,7 @@ export const editCourse = async (req, res) => {
             message: "Course updated successfully."
         })
     } catch (error) {
+        console.error("🔥 HERE IS THE ERROR:", error);
         return res.status(500).json({
             success: false,
             error: "ServerError",
