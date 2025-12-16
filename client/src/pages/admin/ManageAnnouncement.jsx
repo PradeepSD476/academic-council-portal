@@ -30,7 +30,7 @@ const ManageAnnouncement = () => {
       const user = auth.currentUser;
       const token = user ? await user.getIdToken() : localStorage.getItem('token');
 
-      const response = await axios.get(`http://localhost:5000/api/v1/announcements?page=${page}&limit=${limit}`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/announcements?page=${page}&limit=${limit}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -64,13 +64,13 @@ const ManageAnnouncement = () => {
 
       if (editMode) {
 
-        await axios.patch(`http://localhost:5000/api/v1/announcements/${currentId}`, apiPayload, {
+        await axios.patch(`${import.meta.env.VITE_API_URL}/api/v1/announcements/${currentId}`, apiPayload, {
             headers: { Authorization: `Bearer ${token}` }
         });
         alert("Announcement Updated Successfully!");
       } else {
       
-        await axios.post('http://localhost:5000/api/v1/announcements', apiPayload, {
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/v1/announcements`, apiPayload, {
             headers: { Authorization: `Bearer ${token}` }
         });
         alert("Announcement Created Successfully!");
@@ -91,7 +91,7 @@ const ManageAnnouncement = () => {
       const user = auth.currentUser;
       const token = user ? await user.getIdToken() : localStorage.getItem('token');
 
-      await axios.delete(`http://localhost:5000/api/v1/announcements/${id}`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/v1/announcements/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
