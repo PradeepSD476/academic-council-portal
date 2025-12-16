@@ -6,13 +6,6 @@ export const dashboardData = async (req, res) => {
         const resourceCount = await prisma.resource.count();
         const announcementCount = await prisma.announcement.count();
 
-        if(!userCount || !courseCount || !resourceCount || !announcementCount){
-            return res.status(404).json({
-                success: false,
-                error: "NotFound",
-                message: "Data not found."
-            })
-        }
         const countData = { userCount, courseCount, resourceCount, announcementCount }
         return res.status(200).json({
             success: true,
