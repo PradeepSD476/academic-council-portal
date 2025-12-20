@@ -193,53 +193,39 @@ export const deleteCourse = async (req, res) => {
         })
     }
 }
-
 export const editCourse = async (req, res) => {
     const courseId = req.params.id;
-    const updates = req.body;
+    const { allowedBranches, credits, academicYear, ...otherUpdates } = req.body;
+
     if (!courseId) {
-        return res.status(400).json({
-            success: false,
-            error: "BadRequest",
-            message: "Course ID is required."
-        })
+        return res.status(400).json({ success: false, message: "Course ID is required." });
     }
-    if (!updates) {
-        return res.status(400).json({
-            success: false,
-            error: "BadRequest",
-            message: "No update fields provided."
-        })
-    }
+
     try {
-        const course = await prisma.course.findUnique({
-            where: {
-                id: parseInt(courseId),
-            }
-        })
-        if (!course) {
-            return res.status(404).json({
-                success: false,
-                error: "NotFound",
-                message: "Announcement not found."
-            })
+        const dataToUpdate = { ...otherUpdates };
+
+        if (allowedBranches) {
+            dataToUpdate.allowedBranch = allowedBranches;
         }
+
+        if (credits) dataToUpdate.credits = parseFloat(credits);
+        if (academicYear) dataToUpdate.academicYear = parseInt(academicYear);
+
         const updateCourse = await prisma.course.update({
-            where: {
-                id: parseInt(courseId),
-            },
-            data: updates
-        })
-        return res.status(201).json({
+            where: { id: parseInt(courseId) },
+            data: dataToUpdate
+        });
+
+        return res.status(200).json({
             success: true,
-            message: "Course updated successfully."
-        })
+            message: "Course updated successfully.",
+            data: updateCourse
+        });
     } catch (error) {
-        console.error("🔥 HERE IS THE ERROR:", error);
+        console.error("🔥 Update Error:", error);
         return res.status(500).json({
-            success: false,
-            error: "ServerError",
-            message: "Unable to Update Course due to a server error. Please try again."
-        })
+            success: false, 
+            message: "Server error. Check if the Course ID exists."
+        });
     }
 }

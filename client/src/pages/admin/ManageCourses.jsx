@@ -29,7 +29,7 @@ const ManageCourses = () => {
     instructor: '',
     program: '',
     academicYear: '',
-    allowedBranch: ''
+    allowedBranches: ''
   };
   const [formData, setFormData] = useState(initialFormState);
 
@@ -89,7 +89,7 @@ const ManageCourses = () => {
       instructor: course.instructor || '',
       program: course.program || '',
       academicYear: course.academicYear || '',
-      allowedBranch: Array.isArray(course.allowedBranch) ? course.allowedBranch.join(', ') : course.allowedBranch || ''
+      allowedBranches: Array.isArray(course.allowedBranches) ? course.allowedBranches.join(', ') : course.allowedBranches || ''
     });
     setIsModalOpen(true);
   };
@@ -119,7 +119,7 @@ const ManageCourses = () => {
         ...formData,
         credits: parseInt(formData.credits),
         academicYear: parseInt(formData.academicYear),
-        allowedBranch: formData.allowedBranch.split(',').map(b => b.trim()).filter(b => b !== '')
+        allowedBranches: formData.allowedBranches.split(',').map(b => b.trim()).filter(b => b !== '')
       };
 
       if (modalMode === 'add') {
@@ -216,7 +216,7 @@ const ManageCourses = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
                         {/* Join the array with a comma and space */}
-                        {course.allowedBranch ? course.allowedBranch.join(', ') : 'All'}
+                        {course.allowedBranches ? course.allowedBranches.join(', ') : 'All'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{course.credits}</td>
@@ -310,7 +310,7 @@ const ManageCourses = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Allowed Branches *</label>
-                <input required name="allowedBranch" value={formData.allowedBranch} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. CSE, EEE, ME (Comma separated)" />
+                <input required name="allowedBranches" value={formData.allowedBranches} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. CSE, EEE, ME (Comma separated)" />
                 <p className="text-xs text-gray-500 mt-1">Separate multiple branches with commas</p>
               </div>
 
