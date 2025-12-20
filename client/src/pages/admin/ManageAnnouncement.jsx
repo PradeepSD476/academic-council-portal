@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Megaphone, Plus, Edit2, Trash2, X, Loader2, ExternalLink, User } from 'lucide-react';
+import { Megaphone, Plus, Edit2, Trash2, X, Loader2, ExternalLink, User, UploadCloud } from 'lucide-react';
 import { getAuth } from 'firebase/auth'; 
+import { getFilePath } from '../../lib/getFilePath'; // Import your GCS utility
 
 const ManageAnnouncement = () => {
   const [announcements, setAnnouncements] = useState([]);
@@ -10,9 +11,12 @@ const ManageAnnouncement = () => {
   const limit = 10;
   const [hasMore, setHasMore] = useState(true);
 
+  // Modal and Upload states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [currentId, setCurrentId] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const initialFormState = {
     title: '',
@@ -21,11 +25,9 @@ const ManageAnnouncement = () => {
   };
   const [formData, setFormData] = useState(initialFormState);
 
-
   const fetchAnnouncements = async () => {
     setLoading(true);
     try {
-      // 1. Get Token
       const auth = getAuth();
       const user = auth.currentUser;
       const token = user ? await user.getIdToken() : localStorage.getItem('token');
@@ -48,28 +50,46 @@ const ManageAnnouncement = () => {
   useEffect(() => {
     fetchAnnouncements();
   }, [page]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsUploading(true);
     
-    const apiPayload = {
-        title: formData.title,
-        description: formData.description,
-        filePath: formData.filePath
-    };
-
     try {
       const auth = getAuth();
       const user = auth.currentUser;
       const token = user ? await user.getIdToken() : localStorage.getItem('token');
 
-      if (editMode) {
+      let finalFilePath = formData.filePath;
 
+      // 1. Handle File Upload to GCS if a new file is selected
+      if (selectedFile) {
+        const uploadResult = await getFilePath({ 
+          idToken: token, 
+          file: selectedFile, 
+          folder: 'announcements' 
+        });
+        
+        if (uploadResult?.filePath) {
+          finalFilePath = uploadResult.filePath;
+        } else {
+          throw new Error("File upload to GCS failed.");
+        }
+      }
+
+      // 2. Prepare API Payload
+      const apiPayload = {
+          title: formData.title,
+          description: formData.description,
+          filePath: finalFilePath
+      };
+
+      if (editMode) {
         await axios.patch(`${import.meta.env.VITE_API_URL}/api/v1/announcements/${currentId}`, apiPayload, {
             headers: { Authorization: `Bearer ${token}` }
         });
         alert("Announcement Updated Successfully!");
       } else {
-      
         await axios.post(`${import.meta.env.VITE_API_URL}/api/v1/announcements`, apiPayload, {
             headers: { Authorization: `Bearer ${token}` }
         });
@@ -80,7 +100,9 @@ const ManageAnnouncement = () => {
       fetchAnnouncements(); 
     } catch (error) {
       console.error("Operation failed:", error);
-      alert(error.response?.data?.message || "Operation failed. Check your permissions.");
+      alert(error.response?.data?.message || error.message || "Operation failed.");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -118,6 +140,7 @@ const ManageAnnouncement = () => {
     setEditMode(false);
     setCurrentId(null);
     setFormData(initialFormState);
+    setSelectedFile(null);
   };
 
   const handleChange = (e) => {
@@ -165,22 +188,16 @@ const ManageAnnouncement = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {announcements.map((item) => (
                   <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                    
-                    {/* Title & Description */}
                     <td className="px-6 py-4">
                       <div className="text-sm font-bold text-gray-900">{item.title}</div>
                       <div className="text-xs text-gray-500 truncate max-w-xs mt-1">{item.description}</div>
                     </td>
-
-                    {/* Posted By (From nested include in backend) */}
                     <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center text-sm text-gray-600">
                             <User size={14} className="mr-1.5 text-gray-400" />
                             {item.uploadedBy?.displayName || "Admin"}
                         </div>
                     </td>
-
-                    {/* Attachment Link */}
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                         {item.fileURL && item.filePath ? (
                             <a href={item.fileURL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-blue-600 hover:underline">
@@ -190,13 +207,9 @@ const ManageAnnouncement = () => {
                             <span className="text-gray-400 text-xs">No Attachment</span>
                         )}
                     </td>
-
-                    {/* Date */}
                     <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">
                         {new Date(item.updatedAt).toLocaleDateString()}
                     </td>
-
-                    {/* Actions */}
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button onClick={() => openEditModal(item)} className="text-blue-600 hover:text-blue-900 mr-4">
                         <Edit2 className="w-4 h-4" />
@@ -205,7 +218,6 @@ const ManageAnnouncement = () => {
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
-
                   </tr>
                 ))}
               </tbody>
@@ -280,32 +292,51 @@ const ManageAnnouncement = () => {
                 />
               </div>
 
+              {/* File Upload Section */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Attachment Path (Optional)</label>
-                <input 
-                  type="text" 
-                  name="filePath" 
-                  value={formData.filePath} 
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                  placeholder="e.g., announcements/schedule.pdf"
-                />
-                <p className="text-xs text-gray-400 mt-1">Enter the path to the file in Google Cloud Storage.</p>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Attachment</label>
+                <div className="relative group">
+                  <input 
+                    type="file" 
+                    onChange={(e) => setSelectedFile(e.target.files[0])}
+                    className="block w-full text-xs text-gray-500
+                      file:mr-4 file:py-2 file:px-4
+                      file:rounded-md file:border-0
+                      file:text-xs file:font-semibold
+                      file:bg-blue-50 file:text-blue-700
+                      hover:file:bg-blue-100 cursor-pointer"
+                  />
+                  {editMode && !selectedFile && formData.filePath && (
+                    <p className="text-[10px] text-gray-400 mt-1 truncate">Current: {formData.filePath.split('/').pop()}</p>
+                  )}
+                </div>
               </div>
 
               <div className="pt-4 flex justify-end gap-3">
                 <button 
                   type="button" 
                   onClick={closeModal}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                  disabled={isUploading}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit" 
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm"
+                  disabled={isUploading}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm disabled:opacity-50 flex items-center gap-2"
                 >
-                  {editMode ? 'Update' : 'Post Announcement'}
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <UploadCloud size={16} />
+                      {editMode ? 'Update' : 'Post Announcement'}
+                    </>
+                  )}
                 </button>
               </div>
 
@@ -313,7 +344,6 @@ const ManageAnnouncement = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };

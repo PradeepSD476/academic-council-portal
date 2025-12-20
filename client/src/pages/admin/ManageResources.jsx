@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { FileText, Plus, Edit2, Trash2, X, Loader2, ExternalLink } from 'lucide-react';
+import { FileText, Plus, Edit2, Trash2, X, Loader2, ExternalLink, UploadCloud } from 'lucide-react';
 import { getAuth } from 'firebase/auth'; 
+import { getFilePath } from '../../lib/getFilePath'; // Import your GCS utility
 
 const ManageResources = () => {
   const [resources, setResources] = useState([]);
@@ -11,9 +12,12 @@ const ManageResources = () => {
   const limit = 10;
   const [hasMore, setHasMore] = useState(true);
 
+  // Modal and Upload states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [currentId, setCurrentId] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const initialFormState = {
     title: '',
@@ -24,22 +28,22 @@ const ManageResources = () => {
   };
   const [formData, setFormData] = useState(initialFormState);
 
-
+  // --- Data Fetching ---
   const fetchAllCourses = async () => {
     try {
-        const auth = getAuth();
-        const user = auth.currentUser;
-        const token = user ? await user.getIdToken() : localStorage.getItem('token');
+      const auth = getAuth();
+      const user = auth.currentUser;
+      const token = user ? await user.getIdToken() : localStorage.getItem('token');
 
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/courses?limit=100`, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/courses?limit=100`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-        if (response.data && response.data.data) {
-            setCourses(response.data.data);
-        }
+      if (response.data && response.data.data) {
+        setCourses(response.data.data);
+      }
     } catch (error) {
-        console.error("Failed to fetch courses list:", error);
+      console.error("Failed to fetch courses list:", error);
     }
   };
 
@@ -70,38 +74,60 @@ const ManageResources = () => {
     fetchAllCourses(); 
   }, [page]);
 
+  // --- Handlers ---
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsUploading(true);
     
-    const auth = getAuth();
-    const user = auth.currentUser;
-    const token = user ? await user.getIdToken() : localStorage.getItem('token');
-    const selectedCourse = courses.find(c => c.id === parseInt(formData.courseId));
-
     try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+      const token = user ? await user.getIdToken() : localStorage.getItem('token');
+      
+      let finalFilePath = formData.filePath;
+
+      // 1. Handle File Upload to GCS if a new file is selected
+      if (selectedFile) {
+        const uploadResult = await getFilePath({ 
+          idToken: token, 
+          file: selectedFile, 
+          folder: 'resources' 
+        });
+        
+        if (uploadResult?.filePath) {
+          finalFilePath = uploadResult.filePath;
+        } else {
+          throw new Error("File upload to GCS failed.");
+        }
+      }
+
+      // 2. Prepare API Payload
+      const selectedCourse = courses.find(c => c.id === parseInt(formData.courseId));
+      
       if (editMode) {
         const editPayload = {
-            ...formData,
-            courseId: parseInt(formData.courseId) 
+          ...formData,
+          filePath: finalFilePath,
+          courseId: parseInt(formData.courseId) 
         };
-        
+        // Clean payload for backend consistency
         delete editPayload.courseCode; 
 
         await axios.patch(`${import.meta.env.VITE_API_URL}/api/v1/resources/${currentId}`, editPayload, {
-            headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` }
         });
         alert("Resource Updated Successfully!");
-
       } else {
         const addPayload = {
-            ...formData,
-            courseCode: selectedCourse ? selectedCourse.courseCode : '', 
+          ...formData,
+          filePath: finalFilePath,
+          courseCode: selectedCourse ? selectedCourse.courseCode : '', 
         };
-        
+        // Prisma uses courseId or courseCode; adjust based on your controller logic
         delete addPayload.courseId;
 
         await axios.post(`${import.meta.env.VITE_API_URL}/api/v1/resources`, addPayload, {
-            headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` }
         });
         alert("Resource Created Successfully!");
       }
@@ -110,7 +136,9 @@ const ManageResources = () => {
       fetchResources();
     } catch (error) {
       console.error("Operation failed:", error);
-      alert(error.response?.data?.message || "Operation failed");
+      alert(error.response?.data?.message || error.message || "Operation failed");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -118,8 +146,7 @@ const ManageResources = () => {
     if (!window.confirm("Are you sure you want to delete this resource?")) return;
     try {
       const auth = getAuth();
-      const user = auth.currentUser;
-      const token = user ? await user.getIdToken() : localStorage.getItem('token');
+      const token = await auth.currentUser.getIdToken();
 
       await axios.delete(`${import.meta.env.VITE_API_URL}/api/v1/resources/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -136,7 +163,7 @@ const ManageResources = () => {
     setCurrentId(resource.id);
     setFormData({
       title: resource.title,
-      description: resource.description,
+      description: resource.description || '',
       filePath: resource.filePath,
       resourceType: resource.resourceType,
       courseId: resource.courseId || resource.course?.id || '', 
@@ -148,6 +175,7 @@ const ManageResources = () => {
     setIsModalOpen(false);
     setEditMode(false);
     setFormData(initialFormState);
+    setSelectedFile(null);
   };
 
   const handleChange = (e) => {
@@ -171,6 +199,7 @@ const ManageResources = () => {
         </button>
       </div>
 
+      {/* --- Table Section --- */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         {loading && resources.length === 0 ? (
            <div className="flex items-center justify-center h-64">
@@ -246,6 +275,7 @@ const ManageResources = () => {
         </div>
       </div>
 
+      {/* --- Modal Section --- */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
@@ -304,19 +334,26 @@ const ManageResources = () => {
                       <option value="PYQ">PYQ</option>
                       <option value="BOOK">Book</option>
                       <option value="SLIDES">Slides</option>
+                      <option value="LAB_MANUAL">Lab Manual</option>
                     </select>
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">File Path (GCS)</label>
-                    <input 
-                      type="text" 
-                      name="filePath" 
-                      required
-                      value={formData.filePath} 
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      placeholder="folder/filename.pdf"
-                    />
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Upload File</label>
+                    <div className="relative group">
+                      <input 
+                        type="file" 
+                        onChange={(e) => setSelectedFile(e.target.files[0])}
+                        className="block w-full text-xs text-gray-500
+                          file:mr-4 file:py-2 file:px-4
+                          file:rounded-md file:border-0
+                          file:text-xs file:font-semibold
+                          file:bg-blue-50 file:text-blue-700
+                          hover:file:bg-blue-100 cursor-pointer"
+                      />
+                      {editMode && !selectedFile && (
+                        <p className="text-[10px] text-gray-400 mt-1 truncate">Current: {formData.filePath.split('/').pop()}</p>
+                      )}
+                    </div>
                 </div>
               </div>
 
@@ -335,15 +372,27 @@ const ManageResources = () => {
                 <button 
                   type="button" 
                   onClick={closeModal}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                  disabled={isUploading}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit" 
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm"
+                  disabled={isUploading}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm disabled:opacity-50 flex items-center gap-2"
                 >
-                  {editMode ? 'Update Resource' : 'Create Resource'}
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <UploadCloud size={16} />
+                      {editMode ? 'Update Resource' : 'Create Resource'}
+                    </>
+                  )}
                 </button>
               </div>
 
@@ -351,7 +400,6 @@ const ManageResources = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };

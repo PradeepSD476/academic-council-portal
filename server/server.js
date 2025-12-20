@@ -19,8 +19,11 @@ const app = express();
 const PORT = process.env.PORT || 5000
 
 app.use(cors({
-  origin: ["http://localhost:5174", "https://academic-council-portal.vercel.app"],
-  methods: ['GET', 'POST', 'PUT','PATCH','DELETE'],
+  origin: [
+    process.env.CLIENT_URL, 
+    "https://academic-council-portal.vercel.app"
+  ],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   credentials: true
 }));
 
