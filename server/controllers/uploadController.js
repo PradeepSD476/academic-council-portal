@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 const signedURL = async (req, res) => {
     try {
         const { filename, contentType, folder } = req.body;
+        console.log(req.body);
         if (!filename || !contentType) {
             return res.status(400).json({ success: false, message: 'Missing filename or contentType.' });
         }
