@@ -15,7 +15,6 @@ const login = async (req, res) => {
   try {
     const decodedToken = await admin.auth().verifyIdToken(idToken);
     const { name, picture, email } = decodedToken;
-    console.log(idToken);
     const user = await prisma.user.upsert({
       where: {
         email: email,

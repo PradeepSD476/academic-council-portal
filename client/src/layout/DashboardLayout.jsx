@@ -12,17 +12,17 @@ export default function DashboardLayout() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const isAdmin = user?.role === "SUPER_ADMIN";
-    const isStudent = user?.role === "student";
+    const isAdmin = (user?.role === "SUPER_ADMIN") || (user?.role === "ANNOUNCEMENT_ADMIN") || (user?.role === "RESOURCE_ADMIN");
+    const isSTUDENT = user?.role === "STUDENT";
     const [open, setOpen] = useState(false);
-    const [viewRole, setViewRole] = useState("student");
+    const [viewRole, setViewRole] = useState("STUDENT");
 
     useEffect(() => {
         if (isAdmin) {
             if (location.pathname.startsWith("/admin")) {
                 setViewRole("admin");
             } else {
-                setViewRole("student");
+                setViewRole("STUDENT");
             }
         }
     }, [location.pathname]);
@@ -63,11 +63,11 @@ export default function DashboardLayout() {
                     {isAdmin && (
                         <button
                             onClick={() => {
-                                if (viewRole === "student") {
+                                if (viewRole === "STUDENT") {
                                     setViewRole("admin");
                                     navigate("/admin/dashboard");
                                 } else {
-                                    setViewRole("student");
+                                    setViewRole("STUDENT");
                                     navigate("/dashboard/courses");
                                 }
                             }}
@@ -95,8 +95,8 @@ export default function DashboardLayout() {
                                 {isAdmin
                                     ? viewRole === "admin"
                                         ? "Admin"
-                                        : "Student"
-                                    : "Student"}
+                                        : "STUDENT"
+                                    : "STUDENT"}
                             </p>
 
 
@@ -108,7 +108,7 @@ export default function DashboardLayout() {
                 <nav className="flex-1 px-4 space-y-1 text-lg">
 
                     {/* STUDENT MENU */}
-                    {(isStudent || (isAdmin && viewRole === "student")) && (
+                    {(isSTUDENT || (isAdmin && viewRole === "STUDENT")) && (
                         <>
                             <SidebarItem to="/dashboard/courses" icon={<BookOpen size={18} />} label="My Courses" />
                             <SidebarItem to="/dashboard/announcements" icon={<Bell size={18} />} label="Announcements" />

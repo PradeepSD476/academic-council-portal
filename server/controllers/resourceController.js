@@ -119,7 +119,6 @@ export const addResource = async (req, res) => {
                 message: "Course not found."
             })
         }
-
         const resource = await prisma.resource.create({
             data: {
                 title: title,
