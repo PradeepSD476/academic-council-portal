@@ -11,6 +11,7 @@ const signedURL = async (req, res) => {
         
         const uniqueSuffix = uuidv4();
         const destination = `${folder}/${uniqueSuffix}_${filename}`; 
+        console.log(destination);
 
         const options = {
             version: 'v4', 
@@ -28,6 +29,7 @@ const signedURL = async (req, res) => {
         });
 
     } catch (error) {
+        console.log(error);
         res.status(500).json({ success: false, message: 'Could not generate upload URL.' });
     }
 }
