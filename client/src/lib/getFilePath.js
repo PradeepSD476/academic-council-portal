@@ -17,6 +17,7 @@ export const getFilePath = async ({ idToken, file, folder }) => {
             }),
             credentials: 'include'
         })
+        console.log(response);
         if(!response.ok){
             console.error(response.error);
             return;
