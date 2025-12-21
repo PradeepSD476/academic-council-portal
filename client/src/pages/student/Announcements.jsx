@@ -1,5 +1,5 @@
 import { useEffect, useState, useContext } from "react";
-import { Bell, User2, Calendar, AlertCircle, FileDown } from "lucide-react";
+import { Bell, User2, Calendar, AlertCircle, FileDown, ExternalLink } from "lucide-react";
 import AuthContext from "../../context/auth/authContext";
 
 export default function Announcements() {
@@ -20,7 +20,9 @@ export default function Announcements() {
       const token = await firebaseUser?.getIdToken();
 
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/v1/announcements?page=${page}&limit=${limit}`,
+        `${
+          import.meta.env.VITE_API_URL
+        }/api/v1/announcements?page=${page}&limit=${limit}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -78,7 +80,6 @@ export default function Announcements() {
 
   return (
     <div className="p-4 md:p-6">
-
       {/* ---------- PAGE HEADER ---------- */}
       <div className="flex items-center gap-3 mb-4">
         <div className="bg-blue-600 p-3 rounded-xl shadow-md">
@@ -104,21 +105,21 @@ export default function Announcements() {
 
       {/* ---------- LIST ---------- */}
       <div className="space-y-6 mt-6">
-  {announcements.map((a) => (
-    <div
-      key={a.id}
-      className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition"
-    >
-      {/* -------- TITLE + PRIORITY + ALERT ICON -------- */}
-      <div className="flex items-start justify-between w-full">
-        <div className="flex items-center gap-3">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {a.title}
-          </h2>
+        {announcements.map((a) => (
+          <div
+            key={a.id}
+            className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition"
+          >
+            {/* -------- TITLE + PRIORITY + ALERT ICON -------- */}
+            <div className="flex items-start justify-between w-full">
+              <div className="flex items-center gap-3">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {a.title}
+                </h2>
 
-          {/* Priority badge EXACT UI */}
-          <span
-            className={`
+                {/* Priority badge EXACT UI */}
+                {/* <span
+                  className={`
               px-3 py-1 rounded-full text-xs font-semibold
               ${
                 a.priority === "HIGH"
@@ -128,46 +129,59 @@ export default function Announcements() {
                   : "bg-blue-100 text-blue-600"
               }
             `}
-          >
-            {a.priority}
-          </span>
-        </div>
+                >
+                  {a.priority}
+                </span> */}
+              </div>
 
-        {/* Right-side alert icon for HIGH priority */}
-        {a.priority === "HIGH" && (
-          <AlertCircle size={20} className="text-red-600" />
-        )}
+              {/* Right-side alert icon for HIGH priority */}
+              <div className="px-6 py-1 whitespace-nowrap text-sm">
+                {a.fileURL && a.filePath ? (
+                  <a
+                    href={a.fileURL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-blue-600 hover:underline"
+                  >
+                    View File <ExternalLink size={14} />
+                  </a>
+                ) : (
+                  <span className="text-gray-400 text-xs">No Attachment</span>
+                )}
+              </div>
+              {/* {a.priority === "HIGH" && (
+                <AlertCircle size={20} className="text-red-600" />
+              )} */}
+            </div>
+
+            {/* -------- DESCRIPTION -------- */}
+            <p className="text-gray-700 text-sm mt-3 leading-relaxed">
+              {a.description}
+            </p>
+
+            {/* -------- FOOTER (department + date) -------- */}
+            <div className="flex items-center gap-8 mt-5 text-sm text-gray-600">
+              {/* Uploaded By */}
+              <div className="flex items-center gap-2">
+                <User2 size={16} className="text-gray-500" />
+                <span>{a.uploadedBy?.displayName || "Academic Office"}</span>
+              </div>
+
+              {/* Date */}
+              <div className="flex items-center gap-2">
+                <Calendar size={16} className="text-gray-500" />
+                <span>{formatDate(a.updatedAt)}</span>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
-
-      {/* -------- DESCRIPTION -------- */}
-      <p className="text-gray-700 text-sm mt-3 leading-relaxed">
-        {a.description}
-      </p>
-
-      {/* -------- FOOTER (department + date) -------- */}
-      <div className="flex items-center gap-8 mt-5 text-sm text-gray-600">
-
-        {/* Uploaded By */}
-        <div className="flex items-center gap-2">
-          <User2 size={16} className="text-gray-500" />
-          <span>{a.uploadedBy?.displayName || "Academic Office"}</span>
-        </div>
-
-        {/* Date */}
-        <div className="flex items-center gap-2">
-          <Calendar size={16} className="text-gray-500" />
-          <span>{formatDate(a.updatedAt)}</span>
-        </div>
-
-      </div>
-    </div>
-  ))}
-</div>
-
 
       {/* ---------- PAGINATION ---------- */}
       <div className="flex justify-between items-center mt-8 text-sm text-gray-600">
-        <p>Showing {announcements.length} of {limit} announcements</p>
+        <p>
+          Showing {announcements.length} of {limit} announcements
+        </p>
 
         <div className="flex items-center gap-2">
           <button
@@ -194,7 +208,6 @@ export default function Announcements() {
           </button>
         </div>
       </div>
-
     </div>
   );
 }

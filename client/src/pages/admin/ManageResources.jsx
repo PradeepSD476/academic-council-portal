@@ -93,7 +93,6 @@ const ManageResources = () => {
           file: selectedFile, 
           folder: 'resources' 
         });
-        
         if (uploadResult?.filePath) {
           finalFilePath = uploadResult.filePath;
         } else {
