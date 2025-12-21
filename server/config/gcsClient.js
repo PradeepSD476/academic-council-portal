@@ -6,7 +6,7 @@ import path from 'path';
 
 const storage = new Storage({
   projectId: process.env.GCS_PROJECT_ID,
-  keyFilename: process.env.KEYFILENAME || path.join(__dirname, 'academic-council-portal-gcs.json')
+  keyFilename: process.env.KEYFILENAME
 });
 
 const bucketName = process.env.GCS_BUCKET_NAME;
