@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React from "react";
 import Login from "./pages/Login/page.jsx";
 import VerifyRoll from "./pages/Login/VerifyRoll.jsx";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -19,11 +19,11 @@ import ManageUsers from "./pages/admin/ManageUsers.jsx";
 import ManageResources from "./pages/admin/ManageResources.jsx";
 import ManageAnnouncement from "./pages/admin/ManageAnnouncement.jsx";
 import { Toaster } from "react-hot-toast";
-import ProtectedRoute from "./components/ProtectedRoute.jsx"
-
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import ChooseResource from "./pages/student/ChooseResource.jsx";
+import CourseResources from "./pages/student/courseResources.jsx";
 
 const AppRoutes = () => {
-  const { user } = useContext(AuthContext);
 
   return (
     <Routes>
@@ -39,12 +39,23 @@ const AppRoutes = () => {
       <Route
         path="/dashboard"
         element={
-          <ProtectedRoute roles={["STUDENT", "SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "RESOURCE_ADMIN"]}>
+          <ProtectedRoute
+            roles={[
+              "STUDENT",
+              "SUPER_ADMIN",
+              "ANNOUNCEMENT_ADMIN",
+              "RESOURCE_ADMIN",
+            ]}
+          >
             <DashboardLayout />
           </ProtectedRoute>
         }
       >
-        <Route path="courses" element={<MyCourses />} />
+        <Route path="courses" element={<MyCourses />} >
+          <Route path=":id" element={<ChooseResource/>}>
+            <Route path=":key" element={<CourseResources/>}/>
+          </Route>
+        </Route>
         <Route path="announcements" element={<Announcements />} />
       </Route>
 
@@ -52,29 +63,50 @@ const AppRoutes = () => {
       <Route
         path="/admin"
         element={
-          <ProtectedRoute roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "RESOURCE_ADMIN"]}>
+          <ProtectedRoute
+            roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "RESOURCE_ADMIN"]}
+          >
             <DashboardLayout />
           </ProtectedRoute>
         }
       >
         <Route path="dashboard" element={<AdminDashboard />} />
-        <Route path="manage-courses" element={<ProtectedRoute roles={["SUPER_ADMIN", "RESOURCE_ADMIN"]}>
-            <ManageCourses />
-          </ProtectedRoute>} />
-        <Route path="manage-users" element={<ProtectedRoute roles={["SUPER_ADMIN"]}>
-            <ManageUsers />
-          </ProtectedRoute>} />
-        <Route path="manage-resources" element={<ProtectedRoute roles={["SUPER_ADMIN", "RESOURCE_ADMIN"]}>
-            <ManageResources />
-          </ProtectedRoute>} />
-        <Route path="manage-announcements" element={<ProtectedRoute roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN"]}>
-            <ManageAnnouncement />
-          </ProtectedRoute>} />
+        <Route
+          path="manage-courses"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "RESOURCE_ADMIN"]}>
+              <ManageCourses />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="manage-users"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN"]}>
+              <ManageUsers />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="manage-resources"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "RESOURCE_ADMIN"]}>
+              <ManageResources />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="manage-announcements"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN"]}>
+              <ManageAnnouncement />
+            </ProtectedRoute>
+          }
+        />
       </Route>
     </Routes>
   );
 };
-
 
 const App = () => {
   return (
