@@ -117,7 +117,7 @@ const ManageCourses = () => {
 
       const payload = {
         ...formData,
-        credits: parseInt(formData.credits),
+        credits: parseFloat(formData.credits),
         academicYear: parseInt(formData.academicYear),
         allowedBranches: formData.allowedBranches.split(',').map(b => b.trim()).filter(b => b !== '')
       };
@@ -293,7 +293,7 @@ const ManageCourses = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Credits *</label>
-                  <input required type="number" name="credits" value={formData.credits} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. 4" />
+                  <input required type="number" step="any" name="credits" value={formData.credits} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. 4" />
                 </div>
               </div>
 
