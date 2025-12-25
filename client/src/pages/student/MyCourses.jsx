@@ -1,4 +1,5 @@
 import { useEffect, useState, useContext } from "react";
+import { Link, Outlet, useParams } from "react-router-dom";
 import AuthContext from "../../context/auth/authContext";
 import { BookOpen, Search, User2 } from "lucide-react";
 
@@ -9,6 +10,10 @@ export default function MyCourses() {
   const [filtered, setFiltered] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+
+  const { id } = useParams();
+
+  
 
   useEffect(() => {
     fetchMyCourses();
@@ -52,27 +57,25 @@ export default function MyCourses() {
       )
     );
   }, [search, courses]);
+  
+  if(id){
+    return <Outlet/>
+  }
 
   return (
     <div className="p-4 md:p-6">
-
       <h1 className="text-2xl md:text-3xl font-semibold text-gray-900">
         My Courses
       </h1>
 
       <p className="text-gray-600 mt-1 text-sm">
         Courses available for{" "}
-        <span className="font-medium text-gray-800">
-          {user?.branchName}
-        </span>{" "}
+        <span className="font-medium text-gray-800">{user?.branchName}</span>{" "}
         branch
       </p>
 
       <div className="relative mt-6 mb-6">
-        <Search
-          className="absolute left-4 top-3.5 text-gray-400"
-          size={20}
-        />
+        <Search className="absolute left-4 top-3.5 text-gray-400" size={20} />
 
         <input
           type="text"
@@ -89,7 +92,7 @@ export default function MyCourses() {
           Loading courses...
         </div>
       )}
-      
+
       {/* if no course  */}
       {!loading && filtered.length === 0 && (
         <div className="flex flex-col items-center justify-center py-24 text-gray-500">
@@ -98,7 +101,6 @@ export default function MyCourses() {
         </div>
       )}
 
-      
       <div
         className="
         grid gap-6 mt-4
@@ -106,18 +108,23 @@ export default function MyCourses() {
       "
       >
         {filtered.map((course) => (
-          <CourseCard key={course.id} course={course} />
+          <Link
+            key={course.id}
+            to={`/dashboard/courses/${course.id}`}
+            className="block"
+          >
+            <CourseCard course={course} />
+          </Link>
         ))}
       </div>
     </div>
   );
 }
 
-// course card 
+// course card
 function CourseCard({ course }) {
   return (
     <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition border border-gray-100">
-      
       <div className="flex items-center justify-between mb-3">
         <div className="bg-blue-50 p-3 rounded-lg shadow-sm">
           <BookOpen className="text-blue-600" size={24} />

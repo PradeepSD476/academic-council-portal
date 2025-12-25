@@ -52,7 +52,44 @@ export const getMyCourses = async (req, res) => {
         })
     }
 }
-//updated the fn to enable search funtionality
+
+export const getCourse = async (req, res) => {
+    const courseId = req.params.id;
+    if (!courseId) {
+        return res.status(400).json({
+            success: false,
+            error: "BadRequest",
+            message: "Course ID is required."
+        })
+    }
+    try {
+        const course = await prisma.course.findUnique({
+            where: {
+                id: parseInt(courseId),
+            }
+        })
+        if (!course) {
+            return res.status(404).json({
+                success: false,
+                error: "NotFound",
+                message: "Course not found."
+            })
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Data fetched successfully.",
+            data: course
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            error: "ServerError",
+            message: "Unable to delete course due to a server error. Please try again."
+        })
+    }
+}
+
+
 export const getAllCourses = async (req, res) => {
     const page = parseInt(req.query.page) || 1; 
     const limit = parseInt(req.query.limit) || 10;
@@ -193,6 +230,7 @@ export const deleteCourse = async (req, res) => {
         })
     }
 }
+
 export const editCourse = async (req, res) => {
     const courseId = req.params.id;
     const { allowedBranches, credits, academicYear, ...otherUpdates } = req.body;

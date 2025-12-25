@@ -18,7 +18,7 @@ model User {
   photoURL            String?
   program             Program?
   role                Role           @default(SUPER_ADMIN)
-  rollNo              String?     
+  rollNo              String?
   postedAnnouncements Announcement[]
   uploadedResources   Resource[]
 }
@@ -83,9 +83,22 @@ enum ResourceType {
   NOTES
   PYQ
   TUTORIAL
-  LAB_ASSIGNMENT
-  LAB_MANUAL
-  BOOK
-  LECTURE_SLIDE
   ASSIGNMENT
+  LECTURE_SLIDE
+  BOOK
+  LAB_MANUAL
+  LAB_ASSIGNMENT
+  PROJECT
+  SYLLABUS
+  QUESTION_BANK
+  REFERENCE_MATERIAL
+  PRESENTATION
+  VIDEO_LECTURE
+  SOFTWARE
+  DATASET
+  READING_MATERIAL
+  CASE_STUDY
+  EXAM_NOTICE
+  TIME_TABLE
+  OTHER
 }
