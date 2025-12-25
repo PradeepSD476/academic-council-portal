@@ -50,9 +50,7 @@ function Navbar() {
             ))}
           </div>
 
-          {/*LOGIN / PROFILE*/}
           <div className="hidden md:flex items-center">
-
             {!isAuthenticated && (
               <Link
                 to="/login"
@@ -70,7 +68,6 @@ function Navbar() {
                   className="h-12 w-12 rounded-full cursor-pointer border-2 border-blue-500"
                 />
 
-                {/* Dropdown menu */}
                 {dropdown && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border">
                     <button
@@ -116,7 +113,6 @@ function Navbar() {
             className="md:hidden bg-white shadow-lg border-t border-gray-200"
           >
             <ul className="px-4 pt-4 pb-6 space-y-3">
-
               {menuItems.map((item) => (
                 <li key={item.name}>
                   <Link
@@ -133,7 +129,6 @@ function Navbar() {
                 </li>
               ))}
 
-              {/* Mobile Login / Profile */}
               {!isAuthenticated && (
                 <li>
                   <Link
@@ -146,26 +141,40 @@ function Navbar() {
                 </li>
               )}
 
-              {/* Mobile Profile + Logout */}
               {isAuthenticated && (
-                <div className="mt-4 border-t pt-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={user?.photoURL || "/default-avatar.png"}
-                      className="h-10 w-10 rounded-full"
-                    />
-                    <p className="font-medium">{user?.displayName}</p>
-                  </div>
+                <div className="mt-4 border-t pt-4 space-y-3">
+                  <li>
+                    <button
+                      onClick={() => {
+                        navigate("/dashboard/courses");
+                        setIsOpen(false);
+                      }}
+                      className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-800 hover:text-blue-700 hover:bg-gray-50"
+                    >
+                      Dashboard
+                    </button>
+                  </li>
 
-                  <button
-                    onClick={() => {
-                      logout();
-                      setIsOpen(false);
-                    }}
-                    className="text-red-600 text-xl"
-                  >
-                    <FiLogOut />
-                  </button>
+                  <div className="flex items-center justify-between px-3">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={user?.photoURL || "/default-avatar.png"}
+                        className="h-10 w-10 rounded-full border border-gray-200"
+                        alt="profile"
+                      />
+                      <p className="font-medium text-gray-700">{user?.displayName}</p>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        logout();
+                        setIsOpen(false);
+                      }}
+                      className="text-red-600 p-2 hover:bg-red-50 rounded-full transition-colors"
+                    >
+                      <FiLogOut size={20} />
+                    </button>
+                  </div>
                 </div>
               )}
             </ul>
