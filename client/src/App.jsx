@@ -5,7 +5,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./components/layout/navbar.jsx";
 import Footer from "./components/layout/footer.jsx";
 import Home from "./pages/Home/page.jsx";
-import Contact from "./pages/Contact/page.jsx";
+import Team from "./pages/Team/page.jsx";
 import WingPage from "./pages/Wing/page.jsx";
 import Wings from "./pages/Wings/page.jsx";
 import AuthState from "./context/auth/authState.jsx";
@@ -29,7 +29,7 @@ const AppRoutes = () => {
     <Routes>
       {/* public route  */}
       <Route path="/" element={<Home />} />
-      <Route path="/contact-us" element={<Contact />} />
+      <Route path="/team" element={<Team />} />
       <Route path="/wing/:wingId" element={<WingPage />} />
       <Route path="/wings" element={<Wings />} />
       <Route path="/login" element={<Login />} />
