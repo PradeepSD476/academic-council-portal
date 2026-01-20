@@ -1,4 +1,4 @@
-### academic-council-portal  
+### academic-council-portal  IIT PATNA
 
 ### Steps to setup the linux environment and clone this repo on your local machine  
 _we will be using wsl (windows subsystem for linux) to ensure that we have consistent development environment_  
