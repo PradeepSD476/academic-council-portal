@@ -23,14 +23,5 @@ dist-ssr
 *.sln
 *.sw?
 
-.env
-.env.local
-.env.*.local
-.env.test.local
-.env.production.local
-.env.staging.local
-.env.development.local
-.env.production
-
 node_modules
 
