@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_DATABASE_URL")
+}
+
+model User {
+  id                  Int            @id @default(autoincrement())
+  email               String         @unique
+  password            String         @default("xyz")
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  admissionYear       Int?
+  branchName          String?
+  displayName         String?
+  photoURL            String?
+  program             Program?
+  role                Role           @default(STUDENT)
+  rollNo              String?
+  postedAnnouncements Announcement[]
+  uploadedResources   Resource[]
+}
+
+model Verification {
+  id         Int      @id @default(autoincrement())
+  email      String   
+  otpHash    String
+  type       VerificationType
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  expiringAt DateTime
+
+  @@index([email])
+  @@index([expiringAt])
+}
+
+model Course {
+  id            Int        @id @default(autoincrement())
+  courseCode    String     @unique
+  name          String
+  description   String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  academicYear  Int
+  allowedBranch String[]
+  program       Program
+  credits       Decimal    @db.Decimal
+  instructor    String
+  resources     Resource[]
+}
+
+model Resource {
+  id           Int          @id @default(autoincrement())
+  title        String
+  description  String?
+  filePath     String
+  resourceType ResourceType
+  uploadedById Int?
+  courseId     Int?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  course       Course?      @relation(fields: [courseId], references: [id])
+  uploadedBy   User?        @relation(fields: [uploadedById], references: [id])
+}
+
+model Announcement {
+  id             Int      @id @default(autoincrement())
+  title          String
+  description    String?
+  isPinned       Boolean  @default(false)
+  isFileAttached Boolean  @default(false)
+  filePath       String?
+  uploadedById   Int?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  uploadedBy     User?    @relation(fields: [uploadedById], references: [id])
+}
+
+enum Role {
+  STUDENT
+  RESOURCE_ADMIN
+  ANNOUNCEMENT_ADMIN
+  SUPER_ADMIN
+}
+
+enum VerificationType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+  LOGIN_OTP
+}
+
+enum Program {
+  MTECH
+  BTECH
+  PHD
+  MSC
+}
+
+enum ResourceType {
+  NOTES
+  PYQ
+  TUTORIAL
+  ASSIGNMENT
+  LECTURE_SLIDE
+  BOOK
+  LAB_MANUAL
+  LAB_ASSIGNMENT
+  PROJECT
+  SYLLABUS
+  QUESTION_BANK
+  REFERENCE_MATERIAL
+  PRESENTATION
+  VIDEO_LECTURE
+  SOFTWARE
+  DATASET
+  READING_MATERIAL
+  CASE_STUDY
+  EXAM_NOTICE
+  TIME_TABLE
+  OTHER
+}
