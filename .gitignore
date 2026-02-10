@@ -1,0 +1,8 @@
+client-acc/.env/*
+client-acc/.env
+
+server-acc/.env
+
+nginx-acc/
+
+certs-acc/
