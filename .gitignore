@@ -6,3 +6,7 @@ server-acc/.env
 nginx-acc/
 
 certs-acc/
+
+nginx-acc
+
+certs-acc
