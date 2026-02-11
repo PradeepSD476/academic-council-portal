@@ -1,0 +1,17 @@
+name: Deploy on Institute VM
+
+on:
+  push:
+    branches:
+      - main  
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Deploy latest changes
+        run: |
+          cd /home/iitp/Academic-Council-Portal
+          git pull origin main
+          docker-compose up -d --build
