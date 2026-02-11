@@ -120,7 +120,7 @@ const App = () => {
             <Navbar />
 
             <main className="flex-grow pt-16">
-              <Toaster />
+              <Toaster position="top-right" />
               <AppRoutes />
             </main>
 

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Megaphone, Plus, Edit2, Trash2, X, Loader2, ExternalLink, User, UploadCloud } from 'lucide-react';
 import { getFilePath } from '../../lib/getFilePath'; // Import your GCS utility
+import toast from 'react-hot-toast';
 
 const ManageAnnouncement = () => {
   const [announcements, setAnnouncements] = useState([]);
@@ -33,10 +34,12 @@ const ManageAnnouncement = () => {
       });
 
       if (response.data && response.data.data) {
+        toast.success("Announcement Fetched.")
         setAnnouncements(response.data.data);
         setHasMore(response.data.data.length === limit);
       }
     } catch (error) {
+      toast.error("Failed to get announcements.")
       console.error("Failed to fetch announcements:", error);
     } finally {
       setLoading(false);
@@ -79,36 +82,36 @@ const ManageAnnouncement = () => {
         await axios.patch(`${import.meta.env.VITE_API_URL}/api/v1/announcements/${currentId}`, apiPayload, {
             withCredentials: true
         });
-        alert("Announcement Updated Successfully!");
+        toast.success("Announcement Updated Successfully!");
       } else {
         await axios.post(`${import.meta.env.VITE_API_URL}/api/v1/announcements`, apiPayload, {
             withCredentials: true
         });
-        alert("Announcement Created Successfully!");
+        toast.success("Announcement Created Successfully!");
       }
       
       closeModal();
       fetchAnnouncements(); 
     } catch (error) {
       console.error("Operation failed:", error);
-      alert(error.response?.data?.message || error.message || "Operation failed.");
+      toast.error("Operation failed.");
     } finally {
       setIsUploading(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this announcement?")) return;
     try {
 
       await axios.delete(`${import.meta.env.VITE_API_URL}/api/v1/announcements/${id}`, {
         withCredentials: true
       });
+      toast.success("Announcement Deleted.")
       
       fetchAnnouncements(); 
     } catch (error) {
       console.error("Delete failed:", error);
-      alert("Failed to delete announcement.");
+      toast.error("Failed to delete.");
     }
   };
 

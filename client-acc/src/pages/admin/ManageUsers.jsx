@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Users, Shield, ChevronLeft, ChevronRight, Loader2, CheckCircle } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const ManageUsers = () => {
   const [users, setUsers] = useState([]);
@@ -22,6 +23,7 @@ const ManageUsers = () => {
       });
 
       if (response.data && response.data.data) {
+        toast.success("fetched Users data.")
         setUsers(response.data.data);
   
         if (response.data.data.length < limit) {
@@ -31,6 +33,7 @@ const ManageUsers = () => {
         }
       }
     } catch (error) {
+      toast.error("unable to fetch users.")
       console.error("Failed to fetch users:", error);
 
     } finally {
@@ -56,7 +59,7 @@ const ManageUsers = () => {
 
     } catch (error) {
       console.error("Failed to update role:", error);
-      alert(error.response?.data?.message || "Failed to update role");
+      toast.error("Failed to update role");
     } finally {
       setUpdatingId(null);
     }

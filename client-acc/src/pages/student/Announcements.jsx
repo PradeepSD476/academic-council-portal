@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Bell, User2, Calendar, AlertCircle, FileDown, ExternalLink } from "lucide-react";
 import AuthContext from "../../context/auth/authContext";
+import toast from "react-hot-toast";
 
 export default function Announcements() {
 
@@ -27,10 +28,10 @@ export default function Announcements() {
       );
 
       const data = await res.json();
-      console.log("Announcements:", data);
 
       if (data.success) {
         // pinned announcements first
+        toast.success("Fetched announcements.")
         const sorted = [
           ...data.data.filter((a) => a.isPinned),
           ...data.data.filter((a) => !a.isPinned),
@@ -39,6 +40,7 @@ export default function Announcements() {
         setAnnouncements(sorted);
       }
     } catch (error) {
+      toast.error("unable to fetch announcements")
       console.log("Error fetching announcements:", error);
     }
 
