@@ -3,6 +3,19 @@ const details = {
   description: "Our team is a group of highly dedicated people working unanimously towards the goal of a seamless and doubtless academic experience for everyone.",
   team: [
     {
+      wingname: "Undergraduate Representative",
+      wingcolor: "#9BC9FF",
+      wingpeople: [{
+        name: "Yashraj Singh",
+        subtitle: "UGR",
+        description: "B.Tech. Chemical and Biochemical Engineering | Roll No: XXXXXX",
+        phone: "91 XXXXXXXXXX",
+        email: "",
+        linkedin: "",
+        profile: "/yashraj.jpeg"
+      },]
+    },
+    {
       wingname: "Web, Media and Publicity Wing",
       wingcolor: "#FFDD80",
       wingpeople: [
@@ -22,7 +35,7 @@ const details = {
           phone: "91 9522515129",
           email: "sagitrapradeep2006@gmail.com",
           linkedin: "https://www.linkedin.com/in/pradeep-sagitra-213890323/",
-          profile: `/sp.pfp.jpg`
+          profile: `/pradeep.jpeg`
         },
         {
           name: "Saad Manda",

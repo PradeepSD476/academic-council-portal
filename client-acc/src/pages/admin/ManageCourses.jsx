@@ -4,6 +4,7 @@ import {
   Plus, Search, Edit2, Trash2, ChevronLeft, ChevronRight,
   BookOpen, X, Save, AlertTriangle
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const ManageCourses = () => {
   const [courses, setCourses] = useState([]);
@@ -58,6 +59,7 @@ const ManageCourses = () => {
       setCourses(fetchedCourses);
       setHasMore(fetchedCourses.length >= limit);
     } catch (error) {
+      toast.error("failed to fetch courses.")
       console.error("Failed to fetch courses:", error);
     } finally {
       setLoading(false);
@@ -88,17 +90,16 @@ const ManageCourses = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this course? This action cannot be undone.")) return;
 
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL}/api/v1/courses/${id}`, {
         withCredentials: true
       });
-      alert("Course deleted successfully");
+      toast.success("Course deleted successfully");
       fetchCourses();
     } catch (error) {
       console.error("Delete failed:", error);
-      alert("Failed to delete course. Check console for details.");
+      toast.error("Failed to delete.");
     }
   };
 
@@ -117,19 +118,19 @@ const ManageCourses = () => {
         await axios.post(`${import.meta.env.VITE_API_URL}/api/v1/courses`, payload, {
           withCredentials: true
         });
-        alert("Course Added Successfully!");
+        toast.success("Course Added Successfully!");
       } else {
         await axios.patch(`${import.meta.env.VITE_API_URL}/api/v1/courses/${selectedCourseId}`, payload, {
           withCredentials: true
         });
-        alert("Course Updated Successfully!");
+        toast.success("Course Updated Successfully!");
       }
 
       setIsModalOpen(false);
       fetchCourses(); // Refresh
     } catch (error) {
       console.error("Operation failed:", error.response?.data || error);
-      alert(error.response?.data?.message || "Operation failed. Check inputs.");
+      toast.error("Operation failed. Check inputs.");
     }
   };
 
@@ -291,17 +292,17 @@ const ManageCourses = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Program *</label>
-                  <input required name="program" value={formData.program} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. BTech" />
+                  <input required name="program" value={formData.program} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. BTECH" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Academic Year (Sem) *</label>
-                  <input required type="number" name="academicYear" value={formData.academicYear} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. 2025" />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Academic Year (i.e. 1) *</label>
+                  <input required type="number" name="academicYear" value={formData.academicYear} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. 1 for 1st year" />
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Allowed Branches *</label>
-                <input required name="allowedBranches" value={formData.allowedBranches} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. CSE, EEE, ME (Comma separated)" />
+                <input required name="allowedBranches" value={formData.allowedBranches} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. CS, EE, ME (Comma separated)" />
                 <p className="text-xs text-gray-500 mt-1">Separate multiple branches with commas</p>
               </div>
 

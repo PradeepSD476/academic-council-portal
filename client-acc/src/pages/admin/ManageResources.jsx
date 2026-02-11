@@ -11,6 +11,7 @@ import {
   ExternalLink,
   UploadCloud,
 } from "lucide-react"; // Import your GCS utility
+import toast from "react-hot-toast";
 
 const ManageResources = () => {
   const [resources, setResources] = useState([]);
@@ -69,10 +70,12 @@ const ManageResources = () => {
       );
 
       if (response.data && response.data.data) {
+        toast.success("Resources Fetched.")
         setResources(response.data.data);
         setHasMore(response.data.data.length === limit);
       }
     } catch (error) {
+      toast.error("failed to fetch resources.")
       console.error("Failed to fetch resources:", error);
     } finally {
       setLoading(false);
@@ -98,10 +101,10 @@ const ManageResources = () => {
           file: selectedFile,
           folder: "resources",
         });
-        console.log(uploadResult)
         if (uploadResult?.filePath) {
           finalFilePath = uploadResult.filePath;
         } else {
+          alert.error("failed to upload")
           throw new Error("File upload to GCS failed.");
         }
       }
@@ -127,7 +130,7 @@ const ManageResources = () => {
             withCredentials: true
           }
         );
-        alert("Resource Updated Successfully!");
+        toast.success("Resource Updated Successfully!");
       } else {
         const addPayload = {
           ...formData,
@@ -144,16 +147,14 @@ const ManageResources = () => {
             withCredentials: true
           }
         );
-        alert("Resource Created Successfully!");
+        toast.success("Resource Created Successfully!");
       }
 
       closeModal();
       fetchResources();
     } catch (error) {
       console.error("Operation failed:", error);
-      alert(
-        error.response?.data?.message || error.message || "Operation failed"
-      );
+      toast.error("Operation failed");
     } finally {
       setIsUploading(false);
     }
@@ -173,7 +174,7 @@ const ManageResources = () => {
       fetchResources();
     } catch (error) {
       console.error("Delete failed:", error);
-      alert("Failed to delete resource");
+      toast.error("Failed to delete resource");
     }
   };
 

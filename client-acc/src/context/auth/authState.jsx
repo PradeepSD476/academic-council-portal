@@ -2,6 +2,7 @@ import { useState } from "react";
 import AuthContext from "./authContext";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const AuthState = ({ children }) => {
     const [user, setUser] = useState(null);
@@ -49,8 +50,9 @@ const AuthState = ({ children }) => {
             if (response.ok) {
                 setUser(data.data);
                 console.table(data.data)
-                window.alert(data.message)
+                toast.success("logged In")
             } else {
+                toast.error("Unable to login, Please try again later.")
                 throw new Error(data.message);
             }
         } catch (err) {
@@ -77,12 +79,13 @@ const AuthState = ({ children }) => {
             const data = await response.json();
 
             if (!response.ok) {
+                toast.success("registered successfully, please login now.")
                 throw new Error(data.message);
             }
-
-            window.alert(data.message);
+            
             navigate('/login')
         } catch (err) {
+            toast.error("unable to register, please try again later.")
             console.error(err.message);
         } finally {
             setLoading(false);
@@ -99,7 +102,9 @@ const AuthState = ({ children }) => {
                 { withCredentials: true }
             );
             setUser(null);
+            toast.success("user logged out.")
         } catch (err) {
+            toast.error("Unable to logout, Please try again later.")
             console.error(err);
         } finally {
             setLoading(false);

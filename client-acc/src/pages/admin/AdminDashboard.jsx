@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom'; 
 import { Users, BookOpen, FileText, Megaphone, TrendingUp } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const AdminDashboard = () => {
   const navigate = useNavigate(); 
@@ -22,9 +23,11 @@ const AdminDashboard = () => {
         });
         
         if (response.data && response.data.data) {
+          toast.success("Dashboard stats fetched successfully.")
           setStats(response.data.data);
         }
       } catch (error) {
+        toast.error("Failed to fetch Dashboard stats")
         console.error("Failed to fetch dashboard stats:", error);
       } finally {
         setLoading(false);

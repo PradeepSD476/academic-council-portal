@@ -1,3 +1,4 @@
+import toast from "react-hot-toast";
 export const getFilePath = async ({ file, folder }) => {
     if (!folder || !file ) {
         console.error("Missing required parameters to fetch signed URL");
@@ -16,13 +17,11 @@ export const getFilePath = async ({ file, folder }) => {
             }),
             credentials: 'include'
         })
-        console.log(response);
         if(!response.ok){
             console.error(response.error);
             return;
         }
         const data = await response.json();
-        console.log(data);
         const { signedUrl, filePath } = data;
         const minioResponse = await fetch(signedUrl, {
             method: 'PUT',
@@ -32,6 +31,7 @@ export const getFilePath = async ({ file, folder }) => {
             body: file
         })
         if(!minioResponse.ok){
+            toast.error("Failed to upload.")
             throw new Error('Upload To MINIO Failed');
         }
         return { filePath };
