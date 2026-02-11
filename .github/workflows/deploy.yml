@@ -14,4 +14,4 @@ jobs:
         run: |
           cd /home/iitp/Academic-Council-Portal
           git pull origin main
-          docker compose up -d --build
+          docker-compose up -d --build
