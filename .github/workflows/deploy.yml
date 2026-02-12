@@ -25,4 +25,7 @@ jobs:
           git pull origin main
           ssh -T git@github.com
 
-          docker-compose up -d --build
+          sudo docker-compose up -d --build
+          cd /client-acc
+          npm install
+          npm run build

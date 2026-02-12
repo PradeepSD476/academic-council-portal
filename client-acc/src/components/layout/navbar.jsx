@@ -67,7 +67,7 @@ function Navbar() {
               ) : (
                 <div className="relative">
                   <img
-                    src={'/pradeeppp.jpeg'}
+                    src={'/sp.pfp.jpg'}
                     onClick={() => setDropdown((prev) => !prev)}
                     className="h-12 w-12 rounded-full cursor-pointer border-2 border-blue-500 object-cover"
                     alt="profile"
