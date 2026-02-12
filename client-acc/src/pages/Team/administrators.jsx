@@ -3,35 +3,34 @@ const details = {
   description: "The leadership team dedicated to maintaining academic standards, managing resources, and fostering an environment of excellence for both UG and PG scholars.",
   team: [
     {
-      wingname: "The Dean's Office",
+      wingname: "Associate Dean",
       wingcolor: "#E2E8F0", // A professional slate/grey color
       wingpeople: [
         {
-          name: "Dr. Aranya Sharma",
-          subtitle: "Associate Dean (Academic UG)",
-          description: "Overseeing undergraduate curriculum, admissions, and academic progress for all B.Tech and B.Sc programs.",
-          phone: "+91 12345 67890",
-          email: "adean_ug@institution.ac.in",
-          linkedin: "dr-aranya-sharma",
-          profile: "https://api.dicebear.com/7.x/avataaars/svg?seed=Aranya"
+          name: "Dr. Subrata Hait",
+          subtitle: "Associate Dean (PG), Academic",
+          phone: " 06115 - 233101 / 233102",
+          email: "adeanacademic_pg[at]iitp.ac.in",
+          profile: "/subrata.jpg"
         },
         {
-          name: "Prof. Rajesh Kumar",
-          subtitle: "Associate Dean (Academic PG)",
-          description: "Responsible for postgraduate research standards, PhD oversight, and Master's degree coordination across all departments.",
-          phone: "+91 98765 43210",
-          email: "adean_pg@institution.ac.in",
-          linkedin: "rajesh-kumar-pg",
-          profile: "https://api.dicebear.com/7.x/avataaars/svg?seed=Rajesh"
-        },
+          name: "Dr. Sushant Kumar",
+          subtitle: "Associate Dean (UG), Academic",
+          phone: " 06115 - 233101 / 233102",
+          email: "adeanacademic_ug[at] iitp.ac.in",
+          profile: "/sushant.jpeg"
+        }
+      ]
+    },
+    {
+      wingname: "PIC",
+      wingcolor: "#E2E8F0", // A professional slate/grey color
+      wingpeople: [
         {
-          name: "Dr. Vikram Seth",
-          subtitle: "Associate Dean (Resources)",
-          description: "Managing institutional infrastructure, academic funding allocation, and laboratory resource optimization.",
-          phone: "+91 11223 34455",
-          email: "adean_res@institution.ac.in",
-          linkedin: "vikram-seth-resources",
-          profile: "https://api.dicebear.com/7.x/avataaars/svg?seed=Vikram"
+          name: "Dr. Kuldip Singh Patel",
+          subtitle: "PIC Central Exam, Time Table and Class Room",
+          email: "pic_class[at]iitp.ac.in",
+          profile: "/kuldip.jpg"
         }
       ]
     }

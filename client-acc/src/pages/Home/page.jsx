@@ -38,7 +38,7 @@ const Home = () => {
             here to assist you in achieving your goals.
           </p>
           <Link
-            to="/about"
+            to="/wings"
             className="inline-flex items-center gap-2 px-6 py-3 bg-gray-800 hover:bg-gray-900 text-white font-semibold rounded-3xl shadow-md transition duration-300"
           >
             Explore

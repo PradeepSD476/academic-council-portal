@@ -3,7 +3,7 @@ const details = {
   description: "Our team is a group of highly dedicated people working unanimously towards the goal of a seamless and doubtless academic experience for everyone.",
   team: [
     {
-      wingname: "Undergraduate Representative",
+      wingname: "Coordinators",
       wingcolor: "#9BC9FF",
       wingpeople: [{
         name: "Yashraj Singh",
@@ -13,6 +13,15 @@ const details = {
         email: "",
         linkedin: "",
         profile: "/yashraj.jpeg"
+      },
+    {
+        name: "XXXXX",
+        subtitle: "PGR",
+        description: "xxxxxxx | Roll No: XXXXXX",
+        phone: "91 XXXXXXXXXX",
+        email: "",
+        linkedin: "",
+        profile: "/sp.pfp.jpg"
       },]
     },
     {
@@ -35,7 +44,7 @@ const details = {
           phone: "91 9522515129",
           email: "sagitrapradeep2006@gmail.com",
           linkedin: "https://www.linkedin.com/in/pradeep-sagitra-213890323/",
-          profile: `/pradeep.jpeg`
+          profile: `/pradeepsd.jpeg`
         },
         {
           name: "Saad Manda",

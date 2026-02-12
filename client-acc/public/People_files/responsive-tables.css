@@ -1,0 +1,32 @@
+/***************************************************************
+# Copyright (C) 2014 by web-eau.net  	   	   	   	   	   	   	   	   	 
+# Homepage   : www.web-eau.net	   	   	   	   	   	   		 
+# Author     : Daniel	    		   	   	   	   	   	   	   	 
+# Email      : daniel@web-eau.net 	   	   	   	   	   	   	     
+# Version    : 1.0.0                      	   	    	   	   		 
+# License    : http://www.gnu.org/copyleft/gpl.html GNU/GPL          
+****************************************************************/
+
+/* Mobile */
+
+@media only screen and (max-width: 40em) 
+
+	{ 
+
+		.responsive { display: block; position: relative; width: 100%; }
+		.responsive thead { display: block; float: left; }
+		.responsive tbody { display: block; width: auto; position: relative; overflow-x: auto; white-space: nowrap; }
+		.responsive thead tr { display: block; }
+		.responsive th { display: block; }
+		.responsive tbody tr { display: inline-block; vertical-align: top; }
+		.responsive td { display: block; min-height: 1.25em; }
+
+/* sort out borders */
+
+		.rt th { border-bottom: 0; }
+		.rt td { border-left: 0; border-right: 0; border-bottom: 0; }
+		.rt tbody tr { border-right: 1px solid #babcbf; }
+		.rt th:last-child,
+		.rt td:last-child { border-bottom: 1px solid #babcbf; }
+		
+	}

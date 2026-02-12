@@ -13,73 +13,53 @@ import ResourcesPage from "./ResourcesPage";
 
 export const wingHeroData = {
   "academic-mentorship": {
-    title: "Academic Mentorship Wing",
+    title: "Academic Wing",
     subtitle: "Guiding Students Towards Academic Excellence",
     description:
-      "The Academic Mentorship Wing provides structured mentorship to help students excel in academics, manage stress, and develop strong study habits.",
+      "Develop and regularly update academic resources (Notes,Slides,Manuals,Reports),Publish reviews and guides,Promote awareness of policies,and analyze existing practices to recommened meaningful improvements.",
     image: "/images/academic_mentorship.png",
-    buttonText: "Meet Our Mentors",
-    buttonLink: "/wing/academic-mentorship/team",
+    buttonText: "Meet Our Team",
+    buttonLink: "/team",
   },
 
   "career-development": {
     title: "Career Development Wing",
     subtitle: "Shaping Your Career Path with Confidence",
     description:
-      "Our mission is to empower students with essential skills for professional success through resume workshops, mock interviews, and career talks.",
+      "Career guidance, Skill-building Workshops,Internship preparation,Placement training programs,Mentorship and Networking Opportunities with alumni and professionals.",
     image: "/images/career_development.png",
-    buttonText: "Explore Programs",
-    buttonLink: "/wing/career-development/events",
+    buttonText: "Meet Our Team",
+    buttonLink: "/team",
   },
 
   "research": {
-    title: "Research and Development Wing",
+    title: "Research Wing",
     subtitle: "Igniting Curiosity, Inspiring Innovation",
     description:
-      "We foster a strong research culture by connecting students with professors, facilitating research projects, and organizing symposiums.",
+      "Enhance student involvement in Academic and Industrial Research,conduct workshops,provide research mentorships,Facilitate departments in organizing industrial or lab visits.",
     image: "/images/research.png",
-    buttonText: "Join Our Research Initiatives",
-    buttonLink: "/wing/research/projects",
+    buttonText: "Meet Our Team",
+    buttonLink: "/team",
   },
 
-  "placement": {
-    title: "Placement Cell",
+  "finance": {
+    title: "Finance Wing",
     subtitle: "Bridging Talent with Opportunities",
     description:
-      "We guide students through placement drives, organize skill-building sessions, and help them secure top roles at leading companies worldwide.",
+      "Bring Strategic Sponsorships,Manage Finance efficiently for smooth conduct of events under ACC",
     image: "/images/placement.png",
-    buttonText: "View Placement Stats",
-    buttonLink: "/wing/placement/stats",
-  },
-
-  "internship": {
-    title: "Internship Cell",
-    subtitle: "Your Gateway to Real-World Experience",
-    description:
-      "The Internship Cell helps students secure internships across industries, ensuring early exposure to real-world problem-solving and work culture.",
-    image: "/images/internship.png",
-    buttonText: "Find Internships",
-    buttonLink: "/wing/internship/openings",
-  },
-
-  "alumni": {
-    title: "Alumni Relations Wing",
-    subtitle: "Connecting Past, Present, and Future",
-    description:
-      "We build bridges between current students and alumni through mentorship programs, reunions, and professional networking opportunities.",
-    image: "/images/alumni.png",
-    buttonText: "Connect with Alumni",
-    buttonLink: "/wing/alumni/network",
+    buttonText: "Meet Our Team",
+    buttonLink: "/team",
   },
 
   "pr": {
-    title: "Public Relations & Outreach Wing",
+    title: "Web,Media and Publicity Wing",
     subtitle: "Building Bridges Beyond Campus",
     description:
-      "From handling media relations to event coverage, the PR & Outreach Wing ensures IIT Patna’s achievements reach the world.",
+      "Develop and maintain the online presence of IIT Patna and the Academic and Career Council through the ACC website and social media platforms,manage communication and outreachs,promote events,workshops, and initiatives, and create engaging content such as campus story videos,lab highlights,and research facility,updates to ensure strong visibility and engagement.",
     image: "/images/pr.png",
-    buttonText: "View Campaigns",
-    buttonLink: "/wing/pr/campaigns",
+    buttonText: "Meet Our Team",
+    buttonLink: "/team",
   },
 };
 
@@ -115,7 +95,7 @@ const WingPage = () => {
             {heroData.description}
           </p>
           <Link
-            to="/about"
+            to={heroData.buttonLink}
             className="inline-flex items-center gap-2 px-6 py-3 bg-gray-800 hover:bg-gray-900 text-white font-semibold rounded-3xl shadow-md transition duration-300"
           >
             {heroData.buttonText}

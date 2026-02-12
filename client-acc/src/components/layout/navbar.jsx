@@ -67,7 +67,7 @@ function Navbar() {
               ) : (
                 <div className="relative">
                   <img
-                    src={'/sp.pfp.jpg'}
+                    src={'/pradeeppp.jpeg'}
                     onClick={() => setDropdown((prev) => !prev)}
                     className="h-12 w-12 rounded-full cursor-pointer border-2 border-blue-500 object-cover"
                     alt="profile"
@@ -89,6 +89,7 @@ function Navbar() {
                         >
                           Dashboard
                         </button>
+                        
                         <button
                           onClick={logout}
                           className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors border-t"
