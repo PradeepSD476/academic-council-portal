@@ -12,6 +12,10 @@ jobs:
     steps:
       - name: Deploy latest changes
         run: |
+          whoami
+          echo $HOME
+          ls -al ~/.ssh
+
           cd /home/iitp/Academic-Council-Portal
           git pull origin main
           docker-compose up -d --build
