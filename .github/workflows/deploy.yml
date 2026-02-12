@@ -17,5 +17,8 @@ jobs:
           ls -al ~/.ssh
 
           cd /home/iitp/Academic-Council-Portal
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_ed25519
+
           git pull origin main
           docker-compose up -d --build
