@@ -1,0 +1,7 @@
+.tContainer {
+	overflow: hidden;
+}
+
+div.scrollshow {
+	overflow-y: scroll;
+}

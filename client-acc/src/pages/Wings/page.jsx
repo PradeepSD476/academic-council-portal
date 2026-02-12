@@ -12,13 +12,11 @@ import {
 } from 'react-icons/fa';
 
 const wingsData = [
-  { id: 1, name: "Academic Mentorship Wing", link: "/wing/academic-mentorship", icon: FaBook },
+  { id: 1, name: "Academic Wing", link: "/wing/academic-mentorship", icon: FaBook },
   { id: 2, name: "Career Development Wing", link: "/wing/career-development", icon: FaBriefcase },
-  { id: 3, name: "Research and Development Wing", link: "/wing/research", icon: FaFlask },
-  { id: 4, name: "Placement Cell", link: "/wing/placement", icon: FaGraduationCap },
-  { id: 5, name: "Internship Cell", link: "/wing/internship", icon: FaLaptopCode },
-  { id: 6, name: "Alumni Relations Wing", link: "/wing/alumni", icon: FaUsers },
-  { id: 7, name: "Public Relations & Outreach Wing", link: "/wing/pr", icon: FaBullhorn },
+  { id: 3, name: "Research Wing", link: "/wing/research", icon: FaFlask },
+  { id: 4, name: "Finance Wing", link: "/wing/finance", icon: FaGraduationCap },
+  { id: 5, name: "Web,Media and Publicity Wing", link: "/wing/pr", icon: FaBullhorn },
 ];
 
 const colors = [

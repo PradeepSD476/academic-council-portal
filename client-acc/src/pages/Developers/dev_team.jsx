@@ -13,7 +13,7 @@ const details = {
           phone: "91 9522515129",
           email: "sagitrapradeep2006@gmail.com",
           linkedin: "https://www.linkedin.com/in/pradeep-sagitra-213890323/",
-          profile: `/pradeep.jpeg`
+          profile: `/pradeepsd.jpeg`
         },
         {
           name: "Tanishq Sangwan",
