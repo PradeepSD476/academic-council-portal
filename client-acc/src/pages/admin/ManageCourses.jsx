@@ -43,6 +43,16 @@ const ManageCourses = () => {
     { value: "MC", label: "MC" },
     { value: "CE", label: "CE" },
     { value: "MM", label: "MM" },
+    { value: "PH", label: "PH" },
+    { value: "CM", label: "CM" },
+    { value: "VL", label: "VL" },
+    { value: "PC", label: "PC" },
+    { value: "ST", label: "ST" },
+    { value: "GT", label: "GT" },
+    { value: "ES", label: "ES" },
+    { value: "ME", label: "ME" },
+    { value: "CT", label: "CT" },
+    { value: "EC", label: "EC" },
   ]
 
 
