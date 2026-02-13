@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 
-import teamDetails from "./acc_team.jsx";
+import adminDetails from "./administrators.jsx";
 
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -133,8 +133,8 @@ const PersonCard = ({ person, color }) => {
   );
 };
 
-const AccTeam = () => {
-  const currentData = teamDetails;
+const AdminTeam = () => {
+  const currentData = adminDetails;
 
   return (
     <div className="mt-6 bg-gray-50 min-h-screen">

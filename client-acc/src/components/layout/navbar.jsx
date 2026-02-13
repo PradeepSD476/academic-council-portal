@@ -18,7 +18,8 @@ function Navbar() {
   const menuItems = [
     { name: "Home", path: "/" },
     { name: "Wings", path: "/wings" },
-    { name: "The Team", path: "/team" },
+    { name: "ACC Team", path: "/team" },
+    { name: "Academic Administrators", path: "/admin-team"}
   ];
 
   const handleLogout = async () => {
