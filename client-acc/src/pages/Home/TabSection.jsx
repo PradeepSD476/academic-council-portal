@@ -1,24 +1,27 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import hero from "/hero.png";
 
 const tabData = {
   academics: {
     title: "Academics",
     text: "Our Academic Wing provides guidance on course selection, academic planning, and study strategies to help students achieve excellence in their coursework. From peer mentoring to subject-specific workshops, we ensure that every student receives the right academic support at the right time.",
     color: "#FFDD80",
+    image: "/academic-tab.webp",
   },
   workshops: {
     title: "Workshops",
     text: "We conduct hands-on workshops and expert sessions designed to enhance students’ technical, analytical, and communication skills. These sessions bridge the gap between academic learning and practical implementation, preparing students for professional success.",
     color: "#C8BBFF",
+    image: "/workshop-tab.JPEG",
   },
   research: {
     title: "Research & Internships",
     text: "Our Research & Internship Wing assists students in exploring research opportunities, internships, and collaborations. From proposal drafting to publication support, we aim to nurture a strong research culture at IIT Patna.",
     color: "#A7E8BD",
+    image: "/research-tab.jpeg",
   },
 };
+
 
 const TabSection = () => {
   const [activeTab, setActiveTab] = useState("academics");
@@ -37,11 +40,10 @@ const TabSection = () => {
             <button
               key={key}
               onClick={() => setActiveTab(key)}
-              className={`whitespace-nowrap pb-2 text-base sm:text-lg font-medium transition-all ${
-                activeTab === key
+              className={`whitespace-nowrap pb-2 text-base sm:text-lg font-medium transition-all ${activeTab === key
                   ? "border-b-4 border-blue-600 text-blue-700"
                   : "text-gray-600 hover:text-black"
-              }`}
+                }`}
             >
               {tabData[key].title}
             </button>
@@ -67,10 +69,11 @@ const TabSection = () => {
 
           <div className="md:w-1/2 flex justify-center">
             <img
-              src={hero}
+              src={tabData[activeTab].image}
               alt={tabData[activeTab].title}
-              className="w-3/4 sm:w-full max-w-xs sm:max-w-md md:max-w-lg object-contain"
+              className="w-3/4 sm:w-full max-w-xs sm:max-w-md md:max-w-lg object-contain transition-all duration-500"
             />
+
           </div>
         </motion.div>
       </motion.section>
