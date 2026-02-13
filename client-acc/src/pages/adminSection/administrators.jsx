@@ -10,14 +10,14 @@ const details = {
           name: "Dr. Subrata Hait",
           subtitle: "Associate Dean (PG), Academic",
           phone: " 06115 - 233101 / 233102",
-          email: "adeanacademic_pg[at]iitp.ac.in",
+          email: "adeanacademic_pg@iitp.ac.in",
           profile: "/subrata.jpg"
         },
         {
           name: "Dr. Sushant Kumar",
           subtitle: "Associate Dean (UG), Academic",
           phone: " 06115 - 233101 / 233102",
-          email: "adeanacademic_ug[at] iitp.ac.in",
+          email: "adeanacademic_ug@iitp.ac.in",
           profile: "/sushant.jpeg"
         }
       ]
@@ -29,7 +29,7 @@ const details = {
         {
           name: "Dr. Kuldip Singh Patel",
           subtitle: "PIC Central Exam, Time Table and Class Room",
-          email: "pic_class[at]iitp.ac.in",
+          email: "pic_class@iitp.ac.in",
           profile: "/kuldip.jpg"
         }
       ]
@@ -56,7 +56,7 @@ const details = {
           name: "Mr. Ahmad Nishat",
           subtitle: "Junior Technical Superintendent",
           phone: "06115 - 233698",
-          email: "anishat[at]iitp.ac.in",
+          email: "anishat@iitp.ac.in",
           profile: "/ahmadnishat.jpg"
         },
         {
@@ -84,7 +84,7 @@ const details = {
           name: "Mr. Sunil Kumar",
           subtitle: "Staff In-charge (M. Sc. Affairs)",
           phone: "06115-233773",
-          email: "acadmsc[at]iitp.ac.in",
+          email: "acadmsc@iitp.ac.in",
           profile: "/sunilkumar.jpg"
         },
         {
