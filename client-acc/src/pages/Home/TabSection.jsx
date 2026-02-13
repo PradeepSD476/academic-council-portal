@@ -6,7 +6,7 @@ const tabData = {
     title: "Academics",
     text: "Our Academic Wing provides guidance on course selection, academic planning, and study strategies to help students achieve excellence in their coursework. From peer mentoring to subject-specific workshops, we ensure that every student receives the right academic support at the right time.",
     color: "#FFDD80",
-    image: "/academic-tab.webp",
+    image: "/academics-tab.webp",
   },
   workshops: {
     title: "Workshops",
