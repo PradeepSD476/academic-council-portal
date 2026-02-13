@@ -134,6 +134,15 @@ const details = {
           email: "",
           linkedin: "",
           profile: "https://lh3.googleusercontent.com/d/1R8QLUrJ877IrSPW8HBwXRzVzD6SIPgnP=w1000"
+        },
+        {
+          name: "Manish Bera",
+          subtitle: "Associate",
+          description: "Electronics & Communication | Roll No: 2402VL03",
+          phone: "91 6290749863",
+          email: "",
+          linkedin: "",
+          profile: "/manish.jpeg"
         }
       ]
     },
