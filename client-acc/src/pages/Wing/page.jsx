@@ -68,7 +68,7 @@ export const wingHeroData = {
 const WingPage = () => {
   const { wingId } = useParams();
   const heroData = wingHeroData[wingId]
-  if(!heroData){
+  if (!heroData) {
     return <div className="mt-10 text-center text-2xl font-bold">Wing Not Found</div>
   }
   const [activeTab, setActiveTab] = useState("academics");
@@ -117,16 +117,18 @@ const WingPage = () => {
         </motion.div>
       </motion.section>
 
-      {/* Past Events Section */}
-      <PastEvents />
-      {/* Resources Page */}
-      <ResourcesPage />
-      {/* Resources Section */}
-      {/* <SuccessStories /> */}
+      {wingId !== "pr" && wingId !== "finance" && (
+        <>
+          <PastEvents />
+          <ResourcesPage />
+          {/* <SuccessStories /> */}
+        </>
+      )}
+
 
       <FAQs />
     </div>
   );
 };
 
-export default  WingPage;
+export default WingPage;
