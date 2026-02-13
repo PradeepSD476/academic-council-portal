@@ -11,7 +11,7 @@ const faqData = [
   {
     question: "What wings exist under the ACC?",
     answer:
-      "There are seven wings under ACC including Academic Mentorship, Career Development, Research & Development, Placement Cell, Internship Cell, Alumni Relations, and Public Relations & Outreach.",
+      "There are five wings under ACC including Academic, Career Development, Research, Finance and Web, Media and Publicity Wing",
   },
   {
     question: "Who can I contact for career guidance?",
