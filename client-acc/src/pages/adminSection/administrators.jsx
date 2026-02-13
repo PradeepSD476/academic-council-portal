@@ -29,7 +29,7 @@ const details = {
         {
           name: "Dr. Kuldip Singh Patel",
           subtitle: "PIC Central Exam, Time Table and Class Room",
-          email: "pic_class@iitp.ac.in",
+          email: "pic_cetc@iitp.ac.in",
           profile: "/kuldip.jpg"
         }
       ]
