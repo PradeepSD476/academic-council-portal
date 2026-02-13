@@ -25,7 +25,24 @@ const ResourcesData = {
                 heading: "Platform Features",
                 link: "/dashboard/courses",
                 icon: FaBook
+            },
+            {
+                id: 2,
+                title: "Student Mentorship Program",
+                logo: "/mentorship.jpeg",
+                description:
+                    "The Student Mentorship Program is designed to provide personalized academic and personal guidance to students throughout the year. Each student is assigned a mentor and co-mentor who conduct regular meetings, monitor progress, and offer support in academics, career planning, and overall well-being. The program fosters a supportive ecosystem where students can openly discuss challenges and receive consistent guidance.",
+                items: [
+                    "Assigned mentor and co-mentor for every student",
+                    "Regular one-on-one mentorship meetings",
+                    "Academic and career guidance support",
+                    "Continuous monitoring and personal development assistance"
+                ],
+                heading: "Program Highlights",
+                link: "https://docs.google.com/presentation/d/1EXlE3ZdNMAF92tO7y6vgL3YrjIqiC_nw/edit?usp=drive_link&ouid=105099264644522248634&rtpof=true&sd=true",
+                icon: FaBook
             }
+
 
         ]
     },
@@ -34,7 +51,7 @@ const ResourcesData = {
         subtitle: "Seminars and workshops to boost professional skills, resume building, and networking prowess.",
         events: [
             {
-                id: 2,
+                id: 3,
                 title: "Online Session: Robotics Reality",
                 logo: "/robotics-reality.png", // upload first image with this name
                 description:
@@ -49,7 +66,7 @@ const ResourcesData = {
                 icon: FaBriefcase
             },
             {
-                id: 3,
+                id: 4,
                 title: "Online Session: AI Unleashed",
                 logo: "/ai-unleashed.png", // upload second image with this name
                 description:
@@ -71,7 +88,7 @@ const ResourcesData = {
         subtitle: "Showcasing student research and fostering a culture of academic inquiry and innovation.",
         events: [
             {
-                id: 3,
+                id: 5,
                 title: "Grad School Application Guidance Session",
                 logo: "/hero.png",
                 description:
@@ -95,7 +112,7 @@ const ResourcesData = {
         subtitle: "Targeted workshops and resources to ensure student success in final placement drives.",
         events: [
             {
-                id: 4,
+                id: 6,
                 title: "Placement Prep Workshop",
                 logo: "/hero.png",
                 description: "Intensive training to prepare students for technical interviews, aptitude tests, and group discussions.",
@@ -111,7 +128,7 @@ const ResourcesData = {
         subtitle: "Orientation and guidance for securing valuable summer and winter industrial training experiences.",
         events: [
             {
-                id: 5,
+                id: 7,
                 title: "Internship Orientation",
                 logo: "/hero.png",
                 description: "An introductory session to understand the process, timeline, and expectations for internships.",
@@ -127,7 +144,7 @@ const ResourcesData = {
         subtitle: "Connecting current students with distinguished alumni for mentorship and professional guidance.",
         events: [
             {
-                id: 6,
+                id: 8,
                 title: "Alumni Meet 2024",
                 logo: "/hero.png",
                 description: "A formal gathering to network and learn from the professional journeys of our successful alumni.",
