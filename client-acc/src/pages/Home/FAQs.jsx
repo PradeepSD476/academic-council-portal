@@ -4,11 +4,6 @@ import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 
 const faqData = [
   {
-    question: "How can I join the Academic & Career Council?",
-    answer:
-      "You can join the ACC by participating in our recruitment drives and submitting an application through the official student portal. Selection is based on merit and interest in academic and career initiatives.",
-  },
-  {
     question: "What wings exist under the ACC?",
     answer:
       "There are five wings under ACC including Academic, Career Development, Research, Finance and Web, Media and Publicity Wing",
@@ -16,7 +11,7 @@ const faqData = [
   {
     question: "Who can I contact for career guidance?",
     answer:
-      "You can contact the Career Development Wing through email or by visiting our office during office hours. They provide personalized guidance for all students.",
+      "We have Student Mentorship Program for this purpose, you can reach out to your mentors and co-mentors.",
   },
   {
     question: "Does ACC provide research opportunities?",
