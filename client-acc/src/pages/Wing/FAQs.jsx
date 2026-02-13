@@ -11,7 +11,7 @@ export const faqsData = {
     },
     {
       question: "Where to download transcript?",
-      answer: "Moodle Profile → Miscellaneous → My Certificates."
+      answer: "Dashboard >> All Courses >> 202X Batch >> PQR Branch >> PQR Branch >> Top Right block drawer >> Icon(Orange) >> My Total Credits"
     },
     {
       question: "Missing or wrong grade in transcript?",
