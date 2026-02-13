@@ -78,7 +78,7 @@ const details = {
           subtitle: "Staff In-charge (M. Tech. Affairs)",
           phone: "06115 - 233240",
           email: "acadmtech@iitp.ac.in",
-          profile: "/pallavi.jpg"
+          profile: "/pallavi.jpeg"
         },
         {
           name: "Mr. Sunil Kumar",
