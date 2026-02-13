@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./components/layout/navbar.jsx";
 import Footer from "./components/layout/footer.jsx";
 import Home from "./pages/Home/page.jsx";
-import Team from "./pages/Team/page.jsx";
+import AccTeam from "./pages/Team/page.jsx";
 import WingPage from "./pages/Wing/page.jsx";
 import Wings from "./pages/Wings/page.jsx";
 import AuthState from "./context/auth/authState.jsx";
@@ -23,6 +23,7 @@ import CourseResources from "./pages/student/courseResources.jsx";
 import SignIn from "./pages/Login/page.jsx";
 import SignUp from "./pages/Signup/page.jsx";
 import DevTeam from "./pages/Developers/page.jsx";
+import AdminTeam from "./pages/adminSection/page.jsx"
 
 const AppRoutes = () => {
 
@@ -30,8 +31,9 @@ const AppRoutes = () => {
     <Routes>
       {/* public route  */}
       <Route path="/" element={<Home />} />
-      <Route path="/team" element={<Team />} />
+      <Route path="/team" element={<AccTeam />} />
       <Route path="/devs" element={<DevTeam />} />
+      <Route path="/administrators" element={<AdminTeam />} />
       <Route path="/wing/:wingId" element={<WingPage />} />
       <Route path="/wings" element={<Wings />} />
       <Route path="/login" element={<SignIn />} />
