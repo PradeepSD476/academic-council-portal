@@ -30,6 +30,29 @@ const details = {
       },]
     },
     {
+      wingname: "ACC Secretaries",
+      wingcolor: "#9BC9FF",
+      wingpeople: [
+    {
+        name: "Bhoodev Mishra",
+        subtitle: "Junior Year ACC Sec.",
+        description: "Mechanical Engineering | Roll No: 2302MT05",
+        phone: "91 9129359974",
+        email: "bhoodev_2302mt05@iitp.ac.in",
+        linkedin: "",
+        profile: "/bhoodevmishra.jpeg"
+      },
+    {
+        name: "Ankita Kumari",
+        subtitle: "Sophomore Year ACC Sec.",
+        description: "Comp. Science & Eng. | Roll No: 2401CS07",
+        phone: "91 7667628596",
+        email: "ankita_2401cs07@iitp.ac.in",
+        linkedin: "",
+        profile: "/ankitakumari.png"
+      }]
+    },
+    {
       wingname: "Web, Media and Publicity Wing",
       wingcolor: "#FFDD80",
       wingpeople: [
