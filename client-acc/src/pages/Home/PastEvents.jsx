@@ -1,90 +1,139 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { FaArrowRight } from "react-icons/fa";
 
-//to be replaced with actual one
 const events = [
-    {
-        id: 1,
-        title: "Career Connect",
-        logo: "/hero.png",
-        description:
-            "The Academics and Career Council organized CAREER CONNECT, a three-day event for all undergraduate and postgraduate students, from 5th to 7th April 2024.",
-        items: ["Debugging the software role", "Stock Trading Competition", "Ideation-Insomnia", "Product Paradigm"],
-        heading: "Events",
-        link: "/events/career-connect",
-    },
-    {
-        id: 2,
-        title: "National Students Research Convention",
-        logo: "/hero.png",
-        description:
-            "The 5th National Students' Research Convention 2023 (NSRC '23) took place from 3-5 March 2023, with the theme 'MedTech and Healthcare: The Welfare of Humanity'.",
-        items: ["Biomechanics & Biophysics", "Medical imaging", "Medical instrumentations", "Medical sensing & Implant"],
-        heading: "Competition Themes",
-        link: "/events/nsrc",
-    },
-    {
-        id: 3,
-        title: "Institute Research Symposium",
-        logo: "/hero.png",
-        description:
-            "Academics and Career Council organised IRS where PG and UG students of IIT Kanpur showcased their research to the larger community.",
-        items: ["Prof. Rajiv Mishra", "Prof. Rahul Mishra", "Prof. Arijit Mondal", "Prof. Joydeep Mondal"],
-        heading: "Professors",
-        link: "/events/irs",
-    },
+  {
+    id: 1,
+    title: "Yearbook & Graduation Fest",
+    logo: "/yearbook.jpeg",
+    description:
+      "Yearbook is an annual flagship event organized for every graduating batch of IIT Patna. The celebration includes inter-branch sports competitions, cultural performances, and memorable activities that bring the entire batch together one final time. A specially curated yearbook capturing four years of memories is distributed to all graduating students.",
+    items: [
+      "Inter-branch sports competitions",
+      "Cultural performances and celebrations",
+      "Batch-wide engagement activities",
+      "Official graduation yearbook distribution"
+    ],
+    heading: "Event Highlights",
+    link: "/events/yearbook",
+  },
+  {
+    id: 2,
+    title: "InvisionX",
+    logo: "/invisionx.jpeg",
+    description:
+      "InvisionX was an inspiring conclave that witnessed enthusiastic student participation and engaging discussions. Students interacted directly with industry leaders, asked insightful questions, and gained clarity on career pathways. The event fostered meaningful industry–academia interaction and created a vibrant space for dialogue and learning.",
+    items: [
+      "Engaging panel discussions",
+      "Industry–academia interaction",
+      "Live Q&A with industry leaders"
+    ],
+    heading: "Event Highlights",
+    link: "/events/invisionx",
+  },
+  {
+    id: 3,
+    title: "Research Scholars’ Day (RSD)",
+    logo: "/rsd.jpeg",
+    description:
+      "Research Scholars’ Day (RSD) is an initiative by IIT Patna research scholars to make research more accessible and impactful. The event bridges academic research with real-world applications, allowing scholars to collaborate with prominent scientists and present their work through short talks and poster presentations.",
+    items: [
+      "Poster Presentations to eminent dignitaries",
+      "3-Minute Research Talks",
+      "Publication in RSD IIT Patna booklet",
+      "Cultural closing evening (SPICMACAY program)"
+    ],
+    heading: "Event Highlights",
+    link: "/events/research-symposium",
+  }
 ];
 
 const PastEvents = () => {
-    return (
-        <section className="max-w-7xl mx-auto px-6 py-16">
-            <div className="text-center mb-16">
-                <motion.span
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="text-lg text-white py-1 font-semibold uppercase tracking-widest bg-linear-to-r from-blue-700 to-blue-500 px-6 rounded-2xl"
-                >
-                    Past Events
-                </motion.span>
+  const [expanded, setExpanded] = useState(null);
 
-                <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-gray-900 mb-2">Celebrating Excellence</h2>
-                <p className="text-gray-600 max-w-2xl mx-auto">
-                    Highlighted events hosted by the Academic and Career Council at IIT Patna
+  const toggleReadMore = (id) => {
+    setExpanded(expanded === id ? null : id);
+  };
+
+  return (
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      
+      {/* Header */}
+      <div className="text-center mb-14">
+        <span className="text-sm sm:text-base text-white font-semibold uppercase tracking-widest bg-gradient-to-r from-blue-700 to-blue-500 px-6 py-2 rounded-full inline-block">
+          Past Events
+        </span>
+
+        <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-gray-900 my-4">
+          Celebrating Excellence
+        </h2>
+
+        <p className="text-gray-600 max-w-2xl mx-auto text-sm sm:text-base">
+          Highlighted events hosted by the Academic and Career Council at IIT Patna
+        </p>
+      </div>
+
+      {/* Event Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        {events.map((event, index) => {
+          const isExpanded = expanded === event.id;
+          const shortDescription =
+            event.description.length > 160
+              ? event.description.slice(0, 160) + "..."
+              : event.description;
+
+          return (
+            <motion.div
+              key={event.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.15, duration: 0.6 }}
+              className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 flex flex-col"
+            >
+              {/* Image - Half Card */}
+              <div className="h-48 sm:h-52 md:h-56 overflow-hidden">
+                <img
+                  src={event.logo}
+                  alt={event.title}
+                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                />
+              </div>
+
+              {/* Content */}
+              <div className="p-6 flex flex-col flex-grow">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3">
+                  {event.title}
+                </h3>
+
+                <p className="text-gray-600 text-sm sm:text-base leading-relaxed mb-3">
+                  {isExpanded ? event.description : shortDescription}
                 </p>
-            </div>
 
-            {/* Event Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {events.map((event, index) => (
-                    <motion.div
-                        key={event.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.2, duration: 0.6 }}
-                        className="bg-[#C8BBFF] rounded-2xl shadow-lg p-6 flex flex-col justify-between hover:shadow-xl transition-shadow"
-                    >
-                       
-                        <img
-                            src={event.logo}
-                            alt={event.title}
-                            className="w-24 h-24 object-contain mb-4 mx-auto"
-                        />
-                        <h3 className="text-xl font-semibold text-gray-900 mb-4 text-center">{event.title}</h3>
-                        <p className="text-gray-600 text-sm mb-4">{event.description}</p>
-                        <h4 className="text-md font-medium text-gray-800 mb-2">{event.heading}</h4>
+                {event.description.length > 160 && (
+                  <button
+                    onClick={() => toggleReadMore(event.id)}
+                    className="text-blue-600 text-sm font-medium mb-4 hover:underline self-start"
+                  >
+                    {isExpanded ? "Show Less" : "Read More"}
+                  </button>
+                )}
 
-                        <ul className="list-disc list-inside text-gray-700 mb-4 text-sm space-y-1">
-                            {event.items.map((item, idx) => (
-                                <li key={idx}>{item}</li>
-                            ))}
-                        </ul>
-                    </motion.div>
-                ))}
-            </div>
-        </section>
-    );
+                <h4 className="text-sm sm:text-base font-medium text-gray-800 mb-2">
+                  {event.heading}
+                </h4>
+
+                <ul className="list-disc list-inside text-gray-700 text-sm space-y-1 mt-auto">
+                  {event.items.map((item, idx) => (
+                    <li key={idx}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+    </section>
+  );
 };
 
 export default PastEvents;
