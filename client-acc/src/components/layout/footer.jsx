@@ -41,11 +41,10 @@ function Footer() {
             </h1>
             <ul className="space-y-2 text-gray-300 text-center">
               <li><Link to="/" className="hover:text-white transition">Home</Link></li>
-              <li><Link to="/academics" className="hover:text-white transition">Academics</Link></li>
-              <li><Link to="/research" className="hover:text-white transition">Research</Link></li>
+              <li><a href="https://academics.iitp.ac.in" target="_blank" className="hover:text-white transition">Academics</a></li>
+              <li><a href="https://www.iitp.ac.in/research/research-projects-and-resources" target="_blank" className="hover:text-white transition">Research</a></li>
               <li><Link to="/wings" className="hover:text-white transition">Wings</Link></li>
-              <li><Link to="/resources" className="hover:text-white transition">Resources</Link></li>
-              <li><Link to="/about" className="hover:text-white transition">About Us</Link></li>
+              <li><Link to="/dashboard/courses" className="hover:text-white transition">Resources</Link></li>
             </ul>
           </div>
 
@@ -56,8 +55,7 @@ function Footer() {
             <ul className="space-y-2 text-gray-300 text-center">
               <li><Link to="/team" className="hover:text-white transition">Team</Link></li>
               <li><Link to="/devs" className="hover:text-white transition">Developers</Link></li>
-              <li><Link to="/events" className="hover:text-white transition">Events</Link></li>
-              <li><Link to="/about" className="hover:text-white transition">About Us</Link></li>
+              <li><Link to="/" className="hover:text-white transition">About Us</Link></li>
             </ul>
           </div>
         </div>

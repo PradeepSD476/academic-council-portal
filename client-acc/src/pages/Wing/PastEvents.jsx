@@ -138,13 +138,6 @@ const PastEvents = () => {
                                 <li key={idx}>{item}</li>
                             ))}
                         </ul>
-
-                        <a
-                            href={event.link}
-                            className="inline-flex items-center text-blue-600 font-medium hover:text-blue-800 transition-colors"
-                        >
-                            Explore More <FaArrowRight className="ml-1" />
-                        </a>
                     </motion.div>
                 ))}
             </div>

@@ -10,26 +10,41 @@ import "swiper/css/pagination";
 const successStories = [
   {
     id: 1,
-    name: "John Doe",
-    company: "Tech Solutions Inc.",
-    address: ["New York, USA"],
-    message:"Working here helped me grow professionally and gave me the confidence to lead projects.",
+    name: "Manvendra Singh",
+    title: "B.Tech, Electrical and Electronics Engineering, IIT Patna",
+    achievement: "AIR 112, UPSC Engineering Services Examination (ESE) 2025",
+    message:
+      "Diagnosed with cerebral palsy at six months of age, Manvendra Singh overcame significant physical challenges through resilience and determination. He cleared JEE in his first attempt, graduated from IIT Patna in Electrical and Electronics Engineering, and went on to secure AIR 112 in ESE 2025. His journey stands as a powerful reminder that adversity can be transformed into distinction through hard work and self-belief.",
   },
   {
     id: 2,
-    name: "Jane Smith",
-    company: "Innovate Labs",
-    address: ["San Francisco, USA"],
-    message:"I learned invaluable skills and connected with amazing mentors who guided my career.",
+    name: "Abhay Kumar",
+    title: "Chemical and Biochemical Engineering, IIT Patna",
+    achievement:
+      "AIR 66 (GATE 2024), AIR 14 (GATE 2025 – Chemical Engineering), Placed at BPCL",
+    message:
+      "Abhay Kumar cracked GATE twice, securing AIR 66 in 2024 and an exceptional AIR 14 in GATE 2025 (Chemical Engineering). Alongside his academic excellence, he earned an on-campus placement at Bharat Petroleum Corporation Limited (BPCL). His journey reflects perseverance and the pursuit of excellence in both academics and professional growth.",
   },
   {
     id: 3,
-    name: "Alex Johnson",
-    company: "Global Tech Corp.",
-    address: ["Seattle, USA"],
-    message: "The experience and exposure I gained here helped me land my dream role.",
+    name: "Dr. Pranjali Sharma",
+    title:
+      "B.Tech (Chemical Science and Technology), IIT Patna, 2018",
+    achievement: "Assistant Professor at IIT Roorkee",
+    message:
+      "After completing her undergraduate studies at IIT Patna, Dr. Pranjali Sharma pursued advanced research and built a strong academic profile, leading to her appointment as an Assistant Professor at IIT Roorkee. Her journey reflects dedication to research, teaching, and academic excellence at premier institutions.",
+  },
+  {
+    id: 4,
+    name: "Pavan Teja Machavarapu",
+    title:
+      "Alumnus, IIT Patna | MS in Data Science, University of Cincinnati",
+    achievement: "Co-Founder, Autosure.ai",
+    message:
+      "After graduating from IIT Patna, Pavan Teja Machavarapu pursued a Master’s in Data Science at the University of Cincinnati. He is currently the Co-Founder of Autosure.ai, leading data-driven product development and innovation. His journey showcases a blend of global academics and entrepreneurship.",
   },
 ];
+
 
 const SuccessStories = () => {
   return (
@@ -88,7 +103,7 @@ const SuccessStories = () => {
                       {story.company}
                     </p>
                     <p className="text-gray-500 text-sm">
-                      {story.address.join(", ")}
+                      {story.achievement}
                     </p>
                   </div>
                   <div className=" border-t border-gray-400"></div>

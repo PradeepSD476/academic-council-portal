@@ -122,7 +122,7 @@ const WingPage = () => {
       {/* Resources Page */}
       <ResourcesPage />
       {/* Resources Section */}
-      <SuccessStories />
+      {/* <SuccessStories /> */}
 
       <FAQs />
     </div>

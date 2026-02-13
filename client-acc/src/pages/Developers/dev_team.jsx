@@ -3,6 +3,21 @@ const details = {
   description: "Our development team is a group of dedicated individuals working collaboratively to design, build, and maintain reliable systems that ensure a smooth and dependable academic experience for everyone.",
   team: [
     {
+      wingname: "Coordinator",
+      wingcolor: "#FFDD80",
+      wingpeople: [
+        {
+          name: "Yash Raj",
+          subtitle: "Coordinator",
+          description: "B.Tech. Chemical and Biochemical Engineering | Roll No: 2201CB66",
+          phone: "91 8789866763",
+          email: "2201cb66_yash@iitp.ac.in",
+          linkedin: "https://www.linkedin.com/in/yash-raj22?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app",
+          profile: `/yashraj.jpeg`
+        }
+      ]
+    },
+    {
       wingname: "Developers",
       wingcolor: "#FFDD80",
       wingpeople: [

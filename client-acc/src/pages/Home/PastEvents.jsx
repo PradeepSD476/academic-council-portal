@@ -30,7 +30,7 @@ const events = [
         logo: "/hero.png",
         description:
             "Academics and Career Council organised IRS where PG and UG students of IIT Kanpur showcased their research to the larger community.",
-        items: ["Prof. Rajiv Mishra", "Prof. Rahu Mishra", "Prof. Arijit Mondal", "Prof. Joydeep Mondal"],
+        items: ["Prof. Rajiv Mishra", "Prof. Rahul Mishra", "Prof. Arijit Mondal", "Prof. Joydeep Mondal"],
         heading: "Professors",
         link: "/events/irs",
     },
@@ -80,13 +80,6 @@ const PastEvents = () => {
                                 <li key={idx}>{item}</li>
                             ))}
                         </ul>
-
-                        <a
-                            href={event.link}
-                            className="inline-flex items-center text-blue-600 font-medium hover:text-blue-800 transition-colors"
-                        >
-                            Explore More <FaArrowRight className="ml-1" />
-                        </a>
                     </motion.div>
                 ))}
             </div>
