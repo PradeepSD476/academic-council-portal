@@ -3,25 +3,30 @@ const details = {
   description: "Our team is a group of highly dedicated people working unanimously towards the goal of a seamless and doubtless academic experience for everyone.",
   team: [
     {
-      wingname: "Coordinators",
+      wingname: "undergraduate representative",
       wingcolor: "#9BC9FF",
       wingpeople: [{
-        name: "Yashraj Singh",
+        name: "Yash Raj",
         subtitle: "UGR",
-        description: "B.Tech. Chemical and Biochemical Engineering | Roll No: XXXXXX",
-        phone: "91 XXXXXXXXXX",
-        email: "",
-        linkedin: "",
+        description: "B.Tech. Chemical and Biochemical Engineering | Roll No: 2201CB66",
+        phone: "91 8789866763",
+        email: "ugr@iitp.ac.in",
+        linkedin: "https://www.linkedin.com/in/yash-raj22?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app",
         profile: "/yashraj.jpeg"
-      },
+      },]
+    },
     {
-        name: "XXXXX",
+      wingname: "postgraduate representative",
+      wingcolor: "#9BC9FF",
+      wingpeople: [
+    {
+        name: "Nikhil Kumar",
         subtitle: "PGR",
-        description: "xxxxxxx | Roll No: XXXXXX",
-        phone: "91 XXXXXXXXXX",
-        email: "",
+        description: "Mechanical Engineering | Roll No: 2221ME15",
+        phone: "91 9891530514",
+        email: "nikhil_2221me15@iitp.ac.in",
         linkedin: "",
-        profile: "/sp.pfp.jpg"
+        profile: "/nikhilpgr.jpeg"
       },]
     },
     {
@@ -136,6 +141,24 @@ const details = {
       wingname: "Career Development Wing",
       wingcolor: "#9BC9FF",
       wingpeople: [
+        {
+          name: "Dinker Anand",
+          subtitle: "Head",
+          description: "Chemical Science & Technology | Roll No: 2301CT09",
+          phone: "91 6200464099",
+          email: "dinker_2301ct09@iitp.ac.in",
+          linkedin: "",
+          profile: "/dinkar.jpeg"
+        },
+        {
+          name: "Kanishk Desai",
+          subtitle: "Associate",
+          description: "Electrical Engineering | Roll No: 2401ME59",
+          phone: "91 6352020828",
+          email: "",
+          linkedin: "",
+          profile: "/kanishk.jpeg"
+        },
         {
           name: "Yash Mayur Modi",
           subtitle: "Associate",
