@@ -188,4 +188,4 @@ const AccTeam = () => {
   );
 };
 
-export default DevTeam;
+export default AccTeam;

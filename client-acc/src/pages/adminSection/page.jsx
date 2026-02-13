@@ -188,4 +188,4 @@ const AdminTeam = () => {
   );
 };
 
-export default DevTeam;
+export default AdminTeam;
