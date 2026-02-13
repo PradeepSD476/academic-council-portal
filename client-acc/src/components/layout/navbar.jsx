@@ -19,7 +19,7 @@ function Navbar() {
     { name: "Home", path: "/" },
     { name: "Wings", path: "/wings" },
     { name: "ACC Team", path: "/team" },
-    { name: "Academic Administrators", path: "/admin-team"}
+    { name: "Academic Administrators", path: "/administrators" }
   ];
 
   const handleLogout = async () => {
@@ -32,16 +32,17 @@ function Navbar() {
     <nav className="bg-white shadow-md fixed w-full z-50">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 sm:h-20">
-          <div className="flex flex-1 items-center space-x-3">
+          <div className="flex items-center space-x-3 shrink-0">
             <Link to="/" className="flex items-center">
               <img src={logo} alt="logo" className="h-12 sm:h-16 w-auto" />
-              <p className="ml-2 font-semibold text-md md:text-lg sm:text-xl whitespace-nowrap">
+              <p className="ml-2 font-semibold text-sm md:text-lg lg:text-xl whitespace-nowrap hidden sm:block">
                 Academic & Career Council
               </p>
+
             </Link>
           </div>
 
-          <div className="hidden lg:flex justify-center items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-6">
             {menuItems.map((item) => (
               <Link
                 key={item.name}
@@ -56,7 +57,7 @@ function Navbar() {
             ))}
           </div>
 
-          <div className="flex flex-1 justify-end items-center">
+          <div className="flex justify-end items-center shrink-0">
             <div className="hidden md:flex items-center">
               {!isAuthenticated ? (
                 <Link
@@ -90,7 +91,7 @@ function Navbar() {
                         >
                           Dashboard
                         </button>
-                        
+
                         <button
                           onClick={logout}
                           className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors border-t"
