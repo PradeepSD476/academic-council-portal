@@ -7,19 +7,26 @@ import { FaBook, FaBriefcase, FaFlask, FaGraduationCap, FaLaptopCode, FaUsers, F
 // Enhanced Data Structure for a more dynamic and formal look
 const ResourcesData = {
     "academic-mentorship": {
-        wingTitle: "Academic Mentorship Events",
-        subtitle: "Key events focused on guidance, study plans, and mentorship sessions.",
+        wingTitle: "Academic Support",
+        subtitle: "Key Resources focused on guidance and study.",
         events: [
             {
                 id: 1,
-                title: "Mentorship Workshop",
+                title: "ACC Academic Resources Portal",
                 logo: "/hero.png",
-                description: "A comprehensive workshop connecting mentees with experienced mentors for personalized academic guidance.",
-                items: ["Guidance sessions", "Study plan creation", "Exam tips and strategies"],
-                heading: "Key Activities",
-                link: "/events/mentorship-workshop",
+                description:
+                    "The ACC Academic Resources Portal (acc.iitp.ac.in) serves as a centralized platform for curated academic materials and student support resources. It provides access to organized notes, slides, manuals, reports, and structured study content across courses. The portal is designed to simplify academic preparation and ensure students have reliable, accessible learning resources at one place.",
+                items: [
+                    "Curated notes, slides, and course materials",
+                    "Previous year resources and academic guides",
+                    "Structured support for semester preparation",
+                    "Centralized access to academic documentation"
+                ],
+                heading: "Platform Features",
+                link: "/dashboard/courses",
                 icon: FaBook
             }
+
         ]
     },
     "career-development": {
@@ -28,15 +35,36 @@ const ResourcesData = {
         events: [
             {
                 id: 2,
-                title: "Career Guidance Seminar",
-                logo: "/hero.png",
-                description: "Seminar on diverse career paths, internship opportunities, and essential skill-building for the future.",
-                items: ["Resume building sessions", "Mock interviews with experts", "Strategic networking techniques"],
-                heading: "Event Highlights",
-                link: "/events/career-guidance",
+                title: "Online Session: Robotics Reality",
+                logo: "/robotics-reality.png", // upload first image with this name
+                description:
+                    "An interactive online session featuring Suganth Ravichandran (IIT Patna’22 | Engineer, Adverb | ex-Chegg Inc.) sharing practical insights into careers in Robotics and Mechanical Core domains. The session explored how academic knowledge translates into real-world industrial production and challenges.",
+                items: [
+                    "Career insights in Robotics & Core Engineering",
+                    "Industry–academia perspective",
+                    "Live Q&A with IITP alumnus"
+                ],
+                heading: "Session Highlights",
+                link: "/wing/career-development",
+                icon: FaBriefcase
+            },
+            {
+                id: 3,
+                title: "Online Session: AI Unleashed",
+                logo: "/ai-unleashed.png", // upload second image with this name
+                description:
+                    "A dynamic online session featuring Amish Mittal (IIT Patna’22 | Co-Founder & CTO, Saturn Labs | ex-Microsoft Research Fellow) discussing career pathways in AI, research, and entrepreneurship. The session provided clarity on opportunities spanning research labs, industry roles, and startup ecosystems.",
+                items: [
+                    "Careers in AI & Research",
+                    "Entrepreneurship insights",
+                    "Industry and startup exposure"
+                ],
+                heading: "Session Highlights",
+                link: "/wing/career-development",
                 icon: FaBriefcase
             }
         ]
+
     },
     "research": {
         wingTitle: "Research & Innovation",
@@ -44,14 +72,22 @@ const ResourcesData = {
         events: [
             {
                 id: 3,
-                title: "Research Symposium",
+                title: "Grad School Application Guidance Session",
                 logo: "/hero.png",
-                description: "An annual event where students present their original research to the academic and industrial community.",
-                items: ["Poster presentations", "Peer paper reviews", "Expert feedback and Q&A"],
-                heading: "Symposium Sessions",
-                link: "/events/research-symposium",
+                description:
+                    "The Research Community hosted an online session on 31st May 2025 to guide students through the graduate school application process — from selecting suitable programs to crafting strong Statements of Purpose (SOPs). The session was led by seniors from the 2021–25 batch, a cohort that particularly excelled in ML research. Students gained practical insights directly from those who recently navigated the application journey.",
+                items: [
+                    "Choosing the right graduate programs",
+                    "SOP writing strategies and application tips",
+                    "Insights from ML-focused research seniors (2021–25 batch)",
+                    "Live interaction and Q&A session"
+                ],
+                heading: "Session Highlights",
+                link: "https://docs.google.com/presentation/d/1ktPAdUFjdCj0gFZSuTw0eVHR-pygmH_Or5FrzcAvwjg/edit",
                 icon: FaFlask
             }
+
+
         ]
     },
     "placement": {
@@ -101,22 +137,6 @@ const ResourcesData = {
                 icon: FaUsers
             }
         ]
-    },
-    "pr": {
-        wingTitle: "Public Relations & Outreach",
-        subtitle: "Activities dedicated to enhancing the council's public image and community engagement efforts.",
-        events: [
-            {
-                id: 7,
-                title: "PR & Outreach Campaign",
-                logo: "/hero.png",
-                description: "Involvement in various public relations and outreach activities to promote the council's mission.",
-                items: ["Media management strategies", "Event promotion planning", "Community initiative execution"],
-                heading: "Campaign Activities",
-                link: "/events/pr-campaign",
-                icon: FaBullhorn
-            }
-        ]
     }
 };
 
@@ -164,7 +184,7 @@ const ResourcesPage = () => {
                         <div className="mb-4 text-center">
                             <event.icon className="w-10 h-10 text-blue-600 mx-auto" />
                         </div>
-                        
+
                         {/* <img // Kept the image but it's often better to use the icon for this formal style
                             src={event.logo}
                             alt={event.title}
@@ -172,7 +192,7 @@ const ResourcesPage = () => {
                         /> */}
                         <h3 className="text-xl font-bold text-gray-900 mb-3 text-center tracking-tight">{event.title}</h3>
                         <p className="text-gray-600 text-base mb-6 text-center">{event.description}</p>
-                        
+
                         <div className="mt-auto"> {/* Pushes the content to the bottom */}
                             <h4 className="text-md font-semibold uppercase text-blue-700 mb-3 border-b border-indigo-100 pb-1">{event.heading}</h4>
 

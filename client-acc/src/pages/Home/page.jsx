@@ -15,50 +15,51 @@ const Home = () => {
 
   return (
     <div className="mt-6 bg-gray-50">
-      {/* Hero Section */}
       <motion.section
-        initial={{ opacity: 0, y: -30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="bg-gray-100 px-8 md:px-16 py-20 flex flex-col md:flex-row items-center justify-between gap-10"
-      >
-        <motion.div
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8 }}
-          className="md:w-1/2 space-y-6 text-center md:text-left"
-        >
-          <h1 className="text-4xl md:text-5xl font-bold text-black leading-tight">
-            ACADEMICS AND <br /> CAREER COUNCIL, IIT PATNA
-          </h1>
-          <p className="text-gray-700 text-lg leading-relaxed">
-            Under the Student's Gymkhana, we are dedicated to empowering
-            students with all their academic, research, and career needs.
-            Whether you are an undergraduate or postgraduate student, we are
-            here to assist you in achieving your goals.
-          </p>
-          <Link
-            to="/wings"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gray-800 hover:bg-gray-900 text-white font-semibold rounded-3xl shadow-md transition duration-300"
-          >
-            Explore
-            <FaArrowRight className="text-white text-sm mt-0.5" />
-          </Link>
-        </motion.div>
+  initial={{ opacity: 0, y: -30 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.8 }}
+  className="relative w-full min-h-[90vh] flex items-center justify-center px-6 md:px-16"
+>
+  {/* Background Image */}
+  <div
+    className="absolute inset-0 bg-cover bg-center"
+    style={{ backgroundImage: "url('/Home.webp')" }}
+  />
 
-        <motion.div
-          initial={{ opacity: 0, x: 30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8 }}
-          className="md:w-1/2 flex justify-center"
-        >
-          <img
-            src={hero}
-            alt="hero"
-            className="w-full max-w-md md:max-w-lg object-contain"
-          />
-        </motion.div>
-      </motion.section>
+  {/* Dark Overlay */}
+  <div className="absolute inset-0 bg-black/60" />
+
+  {/* Content */}
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.9 }}
+    className="relative z-10 max-w-4xl text-center space-y-6"
+  >
+    <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-white leading-tight">
+      ACADEMICS AND <br className="hidden sm:block" /> CAREER COUNCIL
+      <br />
+      IIT PATNA
+    </h1>
+
+    <p className="text-gray-200 text-sm sm:text-lg md:text-xl leading-relaxed max-w-3xl mx-auto">
+      Under the Student's Gymkhana, we are dedicated to empowering students
+      with all their academic, research, and career needs. Whether you are
+      an undergraduate or postgraduate student, we are here to assist you
+      in achieving your goals.
+    </p>
+
+    <Link
+      to="/wings"
+      className="inline-flex items-center gap-2 px-8 py-3 bg-white text-black font-semibold rounded-full shadow-lg hover:bg-gray-200 transition duration-300"
+    >
+      Explore
+      <FaArrowRight className="text-sm mt-0.5" />
+    </Link>
+  </motion.div>
+</motion.section>
+
 
       <Wings/>
 
