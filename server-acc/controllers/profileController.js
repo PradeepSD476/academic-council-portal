@@ -1,13 +1,19 @@
 import prisma from '../config/db.js';
 import { parseRollNumber } from "../utils/extractDetails.js";
 
+function isValidRollNumber(roll) {
+    roll = roll.toUpperCase(); 
+    const pattern = /^[0-9]{4}[A-Z]{2}[0-9]{2}$/;
+    return pattern.test(roll);
+}
+
 export const updateProfile = async (req, res) => {
     const { rollNumber } = req.body;
-    if (!rollNumber) {
+    if (!rollNumber || !isValidRollNumber(rollNumber)) {
         return res.status(400).json({
             success: false,
             error: "Bad Request",
-            message: "Roll Number is required."
+            message: "Valid Roll Number is required."
         })
     }
     const user = req.user;
