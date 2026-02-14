@@ -104,7 +104,7 @@ const ManageResources = () => {
         if (uploadResult?.filePath) {
           finalFilePath = uploadResult.filePath;
         } else {
-          alert.error("failed to upload")
+          toast.error("failed to upload")
           throw new Error("File upload to GCS failed.");
         }
       }
@@ -161,8 +161,6 @@ const ManageResources = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this resource?"))
-      return;
     try {
 
       await axios.delete(

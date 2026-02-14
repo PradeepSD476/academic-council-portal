@@ -79,13 +79,14 @@ const AuthState = ({ children }) => {
             const data = await response.json();
 
             if (!response.ok) {
-                toast.success("registered successfully, please login now.")
                 throw new Error(data.message);
+            }else{
+                toast.success("registered successfully, please login now.")
             }
             
             navigate('/login')
         } catch (err) {
-            toast.error("unable to register, please try again later.")
+            toast.error("unable to register, check your credentials or please try again later.")
             console.error(err.message);
         } finally {
             setLoading(false);

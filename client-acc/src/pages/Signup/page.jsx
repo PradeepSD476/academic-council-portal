@@ -2,9 +2,10 @@ import React, { useContext, useState } from "react";
 import AuthContext from "../../context/auth/authContext";
 import { Mail, Lock, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 function SignUp() {
-    const { register } = useContext(AuthContext);
+    const { register, loading } = useContext(AuthContext);
     const navigate = useNavigate();
 
     const [displayName, setDisplayName] = useState("");
@@ -14,12 +15,15 @@ function SignUp() {
 
     const [otp, setOtp] = useState("");
     const [otpSent, setOtpSent] = useState(false);
+    const [otpLoading, setOtpLoading] = useState(false);
+
 
     const handleSendOTP = async () => {
         if (!email.endsWith("@iitp.ac.in")) {
             alert("Please use your IIT Patna email address");
             return;
         }
+        setOtpLoading(true);
         try {
             const res = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/auth/send-otp`, {
                 method: "POST",
@@ -37,16 +41,18 @@ function SignUp() {
             }
 
             setOtpSent(true);
-            alert("OTP sent to your email");
+            toast.success("OTP sent to your email.");
 
         } catch (err) {
-            alert(err.message);
+            toast.error("Please Try Again Later.");
+        } finally {
+            setOtpLoading(false);
         }
     };
 
     const handleSubmit = () => {
         if (!otpSent || !otp) {
-            alert("Please verify your email using OTP");
+            toast.error("Please verify your email using OTP");
             return;
         }
 
@@ -107,11 +113,42 @@ function SignUp() {
                         <button
                             type="button"
                             onClick={handleSendOTP}
-                            disabled={!email || otpSent}
-                            className="ml-2 text-sm font-medium text-blue-600 hover:underline disabled:text-gray-400"
+                            disabled={!email || otpSent || otpLoading}
+                            className="ml-2 flex items-center gap-2 text-sm font-medium 
+  text-blue-600 hover:underline 
+  disabled:text-gray-400 disabled:cursor-not-allowed"
                         >
-                            {otpSent ? "OTP Sent" : "Send OTP"}
+                            {otpLoading ? (
+                                <>
+                                    <svg
+                                        className="w-4 h-4 animate-spin"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <circle
+                                            className="opacity-25"
+                                            cx="12"
+                                            cy="12"
+                                            r="10"
+                                            stroke="currentColor"
+                                            strokeWidth="4"
+                                        ></circle>
+                                        <path
+                                            className="opacity-75"
+                                            fill="currentColor"
+                                            d="M4 12a8 8 0 018-8v8H4z"
+                                        ></path>
+                                    </svg>
+                                    Sending...
+                                </>
+                            ) : otpSent ? (
+                                "OTP Sent"
+                            ) : (
+                                "Send OTP"
+                            )}
                         </button>
+
                     </div>
                 </div>
 
@@ -166,10 +203,41 @@ function SignUp() {
                 {/* Submit */}
                 <button
                     onClick={handleSubmit}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg mt-6 text-lg font-medium transition"
+                    disabled={loading}
+                    className={`w-full flex justify-center items-center gap-2 
+  bg-blue-600 hover:bg-blue-700 
+  disabled:bg-blue-400 disabled:cursor-not-allowed
+  text-white py-3 rounded-lg mt-6 text-lg font-medium transition`}
                 >
-                    Sign Up
+                    {loading ? (
+                        <>
+                            <svg
+                                className="w-5 h-5 animate-spin"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                            >
+                                <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                ></circle>
+                                <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8v8H4z"
+                                ></path>
+                            </svg>
+                            Signing Up...
+                        </>
+                    ) : (
+                        "Sign Up"
+                    )}
                 </button>
+
 
                 <p className="mt-4 text-sm text-gray-500">
                     Already have an account?{" "}

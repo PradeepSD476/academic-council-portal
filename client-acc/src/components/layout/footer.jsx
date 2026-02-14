@@ -20,7 +20,7 @@ function Footer() {
 
           <p className="text-gray-300 mb-4 leading-relaxed text-justify">
             The Academic & Career Council (ACC) of IIT Patna is a student body under
-            the Student Gymkhana that fosters academic excellence, research,
+            the students' Gymkhana that fosters academic excellence, research,
             and career development for students through various initiatives
             and events.
           </p>

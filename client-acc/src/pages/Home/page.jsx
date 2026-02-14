@@ -44,7 +44,7 @@ const Home = () => {
     </h1>
 
     <p className="text-gray-200 text-sm sm:text-lg md:text-xl leading-relaxed max-w-3xl mx-auto">
-      Under the Student's Gymkhana, we are dedicated to empowering students
+      Under the Students' Gymkhana, we are dedicated to empowering students
       with all their academic, research, and career needs. Whether you are
       an undergraduate or postgraduate student, we are here to assist you
       in achieving your goals.

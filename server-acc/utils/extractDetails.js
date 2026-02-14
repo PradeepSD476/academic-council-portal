@@ -11,6 +11,13 @@ export const parseRollNumber = (rollNo) => {
   
   const admissionYear = 2000 + parseInt(yearCode);
 
+  const programs = {
+    '01': "BTECH",
+    '02': "BTECH+MTECH",
+    "03": "BTECH+MBA",
+    "11": "MTECH"
+  }
+
   const program = 'BTECH';
   const branchName = branchCode;
 
