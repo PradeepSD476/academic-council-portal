@@ -21,3 +21,39 @@ export const dashboardData = async (req, res) => {
         })
     }
 }
+
+export const resourceCount = async (req, res) => {
+    const courseId = req.params.id;
+    try {
+        const counts = await prisma.resource.groupBy({
+            by: ['resourceType'],
+            _count: {
+                _all: true,
+            },
+            where: {
+                courseId: parseInt(courseId)
+            }
+        });
+
+        const countMap = counts.reduce((acc, item) => {
+            acc[item.resourceType] = item._count._all;
+            return acc;
+        }, {});
+
+        console.log("countMap", countMap);
+
+
+        return res.status(200).json({
+            success: true,
+            message: "Data fetched Successfully...",
+            data: countMap
+        })
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            success: false,
+            error: "Internal Server Error",
+            message: "Something went wrong. Please try again later."
+        })
+    }
+}
