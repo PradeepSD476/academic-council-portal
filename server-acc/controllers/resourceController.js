@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 import prisma from '../config/db.js';
 import { getPublicUrl } from '../utils/signedUrl.js';
+import sendResourceUpdateMail from '../utils/mail/sendResourceUpdate.js';
 
 export const getResources = async (req, res) => {
     const page = parseInt(req.query.page);

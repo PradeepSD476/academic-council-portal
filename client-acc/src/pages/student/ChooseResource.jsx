@@ -8,11 +8,35 @@ import { useState } from "react";
 export default function ChooseResource() {
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [counts, setCounts] = useState({});
   const { id, key } = useParams();
 
   useEffect(() => {
     fetchCourse();
   }, [id]);
+
+  useEffect(() => {
+    fetchResourceCount();
+
+  }, [id])
+
+
+  const fetchResourceCount = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/v1/dashboard/public/resource-count/${id}`,
+        {
+          withCredentials: true,
+        }
+      );
+      if (response.data && response.data.data) {
+        setCounts(response.data.data);
+        console.log(response.data.data)
+      }
+    } catch (error) {
+      console.error("Failed to fetch resource count:", error);
+    }
+  }
 
   const fetchCourse = async () => {
     setLoading(true);
@@ -95,10 +119,10 @@ export default function ChooseResource() {
               key={key}
               to={`${key}`}
               className={`
-                rounded-xl p-6 border transition
-                bg-${color}-50 border-${color}-100
-                hover:shadow-md hover:border-${color}-300
-              `}
+        rounded-xl p-6 border transition
+        bg-${color}-50 border-${color}-100
+        hover:shadow-md hover:border-${color}-300
+      `}
             >
               <div className="flex items-start justify-between">
                 <Icon className={`text-${color}-600`} size={28} />
@@ -107,9 +131,14 @@ export default function ChooseResource() {
               <h3 className={`mt-4 text-${color}-700 font-semibold`}>
                 {label}
               </h3>
+
+              <p className={`text-sm mt-1 text-${color}-600`}>
+                {counts[key] ?? 0} resources
+              </p>
             </Link>
           ))}
         </div>
+
       </div>
     </div>
   );
