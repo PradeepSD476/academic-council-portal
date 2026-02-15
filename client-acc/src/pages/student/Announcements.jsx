@@ -39,7 +39,6 @@ export default function Announcements() {
         ];
 
         setAnnouncements(sorted);
-        setHasMore(response.data.data.length > limit);
       }
     } catch (error) {
       toast.error("unable to fetch announcements")
@@ -202,7 +201,6 @@ export default function Announcements() {
 
           <button
             onClick={() => setPage((p) => p + 1)}
-            disabled={!hasMore}
             className="px-3 py-1.5 rounded-lg border hover:bg-gray-100"
           >
             &gt;
