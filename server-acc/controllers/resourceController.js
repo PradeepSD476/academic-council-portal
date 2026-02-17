@@ -3,6 +3,7 @@ dotenv.config();
 import prisma from '../config/db.js';
 import { getPublicUrl } from '../utils/signedUrl.js';
 import sendResourceUpdateMail from '../utils/mail/sendResourceUpdate.js';
+import notifyOnResourceUpdate from '../utils/mail/sendResourceUpdate.js';
 
 export const getResources = async (req, res) => {
     const page = parseInt(req.query.page);
@@ -150,12 +151,15 @@ export const addResource = async (req, res) => {
             }
         })
 
+        await notifyOnResourceUpdate({ resourceType, resourceTitle: title, courseCode: course.courseCode, displayName: user.displayName, allowedBranches: course.allowedBranch, academicYear: course.academicYear })
+
         return res.status(201).json({
             success: true,
             message: "Successfully Created Resource.",
             data: resource
         })
     } catch (error) {
+        console.log(error)
         return res.status(500).json({
             success: false,
             error: "ServerError",
