@@ -203,10 +203,7 @@ export const sendEmailVerification = async (req, res) => {
     });
   }
 
-  const chars =
-    "ABCDEFGHJKLMNPQRSTUVWXYZ" +
-    "abcdefghijkmnopqrstuvwxyz" +
-    "23456789";
+  const chars = "23456789";
 
   const length = 6;
   const bytes = crypto.randomBytes(length);
