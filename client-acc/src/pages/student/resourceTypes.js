@@ -13,11 +13,11 @@ import {
 } from "lucide-react";
 
 export const RESOURCE_TYPES = [
+  { key: "LECTURE_SLIDE", label: "Lecture Slides", icon: FileText, color: "blue" },
   { key: "NOTES", label: "Lecture Notes", icon: FileText, color: "blue" },
   { key: "PYQ", label: "Previous Year Questions", icon: FileText, color: "blue" },
   { key: "TUTORIAL", label: "Tutorials", icon: FileText, color: "blue" },
   { key: "ASSIGNMENT", label: "Assignments", icon: FileText, color: "blue" },
-  { key: "LECTURE_SLIDE", label: "Lecture Slides", icon: FileText, color: "blue" },
   { key: "BOOK", label: "Reference Books", icon: FileText, color: "blue" },
   { key: "LAB_MANUAL", label: "Lab Manual", icon: FileText, color: "blue" },
   { key: "LAB_ASSIGNMENT", label: "Lab Assignments", icon: FileText, color: "blue" },
