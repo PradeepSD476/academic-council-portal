@@ -11,17 +11,17 @@ const prefix = {
 	EE: 'ee',
 	EC: 'ec',
 	VL: 'ec',
-	PC: 'ee',
+	PC: 'eepc',
 	CE: 'ce',
-	ST: 'ce',
-	GT: 'ce',
+	ST: 'cest',
+	GT: 'cegt',
 	CB: 'cb',
 	CT: 'ct',
 	PH: 'ph',
 	ME: 'me',
 	ES: 'es',
 	CM: 'ec',
-	MT: 'me'
+	MT: 'memt'
 }
 
 
