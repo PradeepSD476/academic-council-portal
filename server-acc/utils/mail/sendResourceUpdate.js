@@ -11,7 +11,7 @@ const prefix = {
 	EE: 'ee',
 	EC: 'ec',
 	VL: 'ec',
-	PC: 'ee',
+	PC: 'eepc',
 	CE: 'ce',
 	ST: 'cest',
 	GT: 'cegt',
@@ -21,7 +21,7 @@ const prefix = {
 	ME: 'me',
 	ES: 'es',
 	CM: 'ec',
-	MT: 'me'
+	MT: 'memt'
 }
 
 
