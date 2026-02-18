@@ -10,7 +10,7 @@ const prefix = {
 	MC: 'mc',
 	EE: 'ee',
 	EC: 'ec',
-	VL: 'ec',
+	VL: 'eevl',
 	PC: 'eepc',
 	CE: 'ce',
 	ST: 'cest',
@@ -26,15 +26,15 @@ const prefix = {
 
 
 const getEmailReciever = ({ allowedBranches, academicYear }) => {
-	const allExist = allowedBranches && allowedBranches.length === allBranches.length && allBranches.every(branch => allowedBranches.includes(branch));
+	// const allExist = allowedBranches && allowedBranches.length === allBranches.length && allBranches.every(branch => allowedBranches.includes(branch));
 
 	const currentYear = new Date().getFullYear() - 2000;
 	const currentMonth = new Date().getMonth();
 	const domain = '@iitp.ac.in';
 	const admissionYear = (currentMonth > 6)? currentYear - parseInt(academicYear) + 1 : currentYear - parseInt(academicYear);
-	if(allExist){
-		return [`btech${admissionYear}${domain}`];
-	}
+	// if(allExist){
+	// 	return [`btech${admissionYear}${domain}`];
+	// }
 	const prefixes = new Set();
 	allowedBranches.forEach((branch) => { prefixes.add(prefix[branch]) });
 	const result = []
