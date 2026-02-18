@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken"
 import bcrypt, { hash } from "bcryptjs";
 import crypto from 'crypto';
 import sendOTP from '../utils/mail/sendOTP.js';
+import { checkEmailValidity } from '../utils/checkValidEmail.js';
 
 export const Login = async (req, res) => {
   const { email, password } = req.body;
@@ -100,14 +101,6 @@ export const Register = async (req, res) => {
     })
   }
 
-  if (!email.endsWith('@iitp.ac.in')) {
-    return res.status(400).json({
-      success: false,
-      error: "BadRequest",
-      message: "Invalid Email, Please use email ending with @iitp.ac.in..."
-    })
-  }
-
   const hashedPassword = await bcrypt.hash(password, 10);
 
   try {
@@ -188,48 +181,72 @@ export const sendEmailVerification = async (req, res) => {
     })
   }
 
-  const verification = await prisma.verification.findFirst({
-    where: {
-      email: email,
-      type: type,
-      expiringAt: { gt: new Date() }
+  try {
+    if (!checkEmailValidity(email)) {
+      return res.status(400).json({
+        success: false,
+        error: 'NOT_ALLOWED',
+        message: 'Restricted for use of IITP Students Only.'
+      })
     }
-  })
-  if (verification) {
-    return res.status(409).json({
+
+    const verification = await prisma.verification.findFirst({
+      where: {
+        email: email,
+        type: type,
+        expiringAt: { gt: new Date() }
+      }
+    })
+    if (verification) {
+      return res.status(409).json({
+        success: false,
+        error: "OTP_ALREADY_SENT",
+        message: "An OTP has already been sent. Please wait before requesting a new one."
+      });
+    }
+
+    const chars = "23456789";
+
+    const length = 6;
+    const bytes = crypto.randomBytes(length);
+    let otp = "";
+
+    for (let i = 0; i < length; i++) {
+      otp += chars[bytes[i] % chars.length];
+    }
+
+    const hashedOTP = await bcrypt.hash(otp, 10);
+
+    const localPart = email.split('@')[0];
+    const name = localPart.split('_')[0];
+
+    await sendOTP({ to: email, name: name, otp: otp })
+
+    const newVerification = await prisma.verification.create({
+      data: {
+        email: email,
+        type: type,
+        expiringAt: new Date(Date.now() + 5 * 60 * 1000),
+        otpHash: hashedOTP,
+      }
+    })
+    return res.status(200).json({
+      success: true,
+      message: "OTP Sent Successfully..."
+    })
+  } catch (error) {
+    console.log(error);
+
+    if (error.code === 'NOT_ORG_MEMBER') {
+      return res.status(403).json({
+        success: false,
+        error: "Only IITP Students Are Allowed."
+      })
+    }
+
+    return res.status(500).json({
       success: false,
-      error: "OTP_ALREADY_SENT",
-      message: "An OTP has already been sent. Please wait before requesting a new one."
-    });
+      error: "Internal Server Error."
+    })
   }
-
-  const chars = "23456789";
-
-  const length = 6;
-  const bytes = crypto.randomBytes(length);
-  let otp = "";
-
-  for (let i = 0; i < length; i++) {
-    otp += chars[bytes[i] % chars.length];
-  }
-
-  const hashedOTP = await bcrypt.hash(otp, 10);
-
-  const localPart = email.split('@')[0];
-  const name = localPart.split('_')[0];
-
-  await sendOTP({ to: email, name: name, otp: otp })
-
-  const newVerification = await prisma.verification.create({
-    data: {
-      email: email,
-      type: type,
-      expiringAt: new Date(Date.now() + 5 * 60 * 1000),
-      otpHash: hashedOTP,
-    }
-  })
-  return res.status(200).json({
-    success: true,
-    message: "OTP Sent Successfully..."
-  })
 }

@@ -20,7 +20,7 @@ function SignUp() {
 
     const handleSendOTP = async () => {
         if (!email.endsWith("@iitp.ac.in")) {
-            alert("Please use your IIT Patna email address");
+            toast.error("Please use college email id");
             return;
         }
         setOtpLoading(true);
@@ -36,15 +36,14 @@ function SignUp() {
 
             const data = await res.json();
 
-            if (!res.ok) {
-                throw new Error(data.message || "Failed to send OTP");
+            if (!data.success) {
+                toast.error(data.error);
+            }else{
+                setOtpSent(true);
+                toast.success("OTP sent to your email.");
             }
-
-            setOtpSent(true);
-            toast.success("OTP sent to your email.");
-
         } catch (err) {
-            toast.error("Please Try Again Later.");
+            toast.error("Please try again later.");
         } finally {
             setOtpLoading(false);
         }
