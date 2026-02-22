@@ -151,7 +151,7 @@ export const addResource = async (req, res) => {
             }
         })
 
-        await notifyOnResourceUpdate({ resourceType, resourceTitle: title, courseCode: course.courseCode, displayName: user.displayName, allowedBranches: course.allowedBranch, academicYear: course.academicYear })
+        notifyOnResourceUpdate({ resourceType, resourceTitle: title, courseCode: course.courseCode, displayName: user.displayName, allowedBranches: course.allowedBranch, academicYear: course.academicYear })
 
         return res.status(201).json({
             success: true,

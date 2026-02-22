@@ -35,7 +35,7 @@ export const getMyCourses = async (req, res) => {
                 credits: true,
             },
             orderBy: {
-                courseCode: 'asc',
+                name: 'asc',
             },
         })
 
@@ -119,7 +119,7 @@ export const getAllCourses = async (req, res) => {
             skip: (page - 1) * limit,
             take: limit,
             orderBy: {
-                updatedAt: 'desc'
+                courseCode: 'asc'
             }
         });
 
