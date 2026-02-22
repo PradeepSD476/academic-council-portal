@@ -49,7 +49,7 @@ export default async function notifyOnResourceUpdate({ resourceType, resourceTit
 		const recievers = await getEmailReciever({ allowedBranches, academicYear });
 		for (const val of recievers) {
 			try {
-				await sendResourceUpdateMail({ to: val.email, resourceType, resourceTitle, courseCode, displayName: val.displayName })
+				await sendResourceUpdateMail({ to: val.email, resourceType, resourceTitle, courseCode, displayName })
 				await sleep(300);
 			} catch (mailErr) {
 				console.error(mailErr)
