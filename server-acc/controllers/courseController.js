@@ -92,7 +92,7 @@ export const getCourse = async (req, res) => {
 
 export const getAllCourses = async (req, res) => {
     const page = parseInt(req.query.page) || 1; 
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 100;
     const search = req.query.search || ""; 
 
     if (page < 1 || limit < 1) {
@@ -260,7 +260,7 @@ export const editCourse = async (req, res) => {
             data: updateCourse
         });
     } catch (error) {
-        console.error("🔥 Update Error:", error);
+        console.error("Update Error:", error);
         return res.status(500).json({
             success: false, 
             message: "Server error. Check if the Course ID exists."
