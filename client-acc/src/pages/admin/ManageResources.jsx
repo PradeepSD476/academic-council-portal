@@ -61,8 +61,7 @@ const ManageResources = () => {
     try {
 
       const response = await axios.get(
-        `${
-          import.meta.env.VITE_API_URL
+        `${import.meta.env.VITE_API_URL
         }/api/v1/resources/all?page=${page}&limit=${limit}`,
         {
           withCredentials: true
@@ -135,7 +134,7 @@ const ManageResources = () => {
         const addPayload = {
           ...formData,
           filePath: finalFilePath,
-          courseCode: selectedCourse ? selectedCourse.courseCode : "",
+          courseCode: selectedCourse ? selectedCourse.courseCode : ""
         };
         // Prisma uses courseId or courseCode; adjust based on your controller logic
         delete addPayload.courseId;
@@ -264,13 +263,12 @@ const ManageResources = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                        ${
-                          res.resourceType === "PYQ"
+                        ${res.resourceType === "PYQ"
                             ? "bg-purple-100 text-purple-800"
                             : res.resourceType === "NOTES"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
+                              ? "bg-green-100 text-green-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
                       >
                         {res.resourceType}
                       </span>

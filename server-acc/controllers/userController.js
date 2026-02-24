@@ -21,9 +21,14 @@ export const getUsers = async (req, res) => {
         const results = await prisma.user.findMany({
             skip: (page - 1) * limit,
             take: limit,
-            orderBy: {
-                branchName: 'asc'
-            },
+            orderBy: [
+                {
+                    branchName: 'asc'
+                },
+                {
+                    id: 'asc'
+                }
+            ],
         })
         return res.status(200).json({
             success: true,
