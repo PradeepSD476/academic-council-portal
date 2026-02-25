@@ -20,6 +20,7 @@ const ManageResources = () => {
   const [page, setPage] = useState(1);
   const limit = 10;
   const [hasMore, setHasMore] = useState(true);
+  const [notifyUsers, setNotifyUsers] = useState(true);
 
   // Modal and Upload states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,10 +33,11 @@ const ManageResources = () => {
     title: "",
     description: "",
     filePath: "",
-    resourceType: "NOTES",
+    resourceType: "LECTURE_SLIDE",
     courseId: "",
   };
   const [formData, setFormData] = useState(initialFormState);
+
 
   // --- Data Fetching ---
   const fetchAllCourses = async () => {
@@ -134,7 +136,8 @@ const ManageResources = () => {
         const addPayload = {
           ...formData,
           filePath: finalFilePath,
-          courseCode: selectedCourse ? selectedCourse.courseCode : ""
+          courseCode: selectedCourse ? selectedCourse.courseCode : "",
+          notifyUsers: notifyUsers
         };
         // Prisma uses courseId or courseCode; adjust based on your controller logic
         delete addPayload.courseId;
@@ -390,11 +393,11 @@ const ManageResources = () => {
                     onChange={handleChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   >
+                    <option value="LECTURE_SLIDE">Lecture Slides</option>
                     <option value="NOTES">Handwritten Notes</option>
                     <option value="PYQ">Previous Year Questions</option>
                     <option value="TUTORIAL">Tutorial Sheets</option>
                     <option value="ASSIGNMENT">Assignments</option>
-                    <option value="LECTURE_SLIDE">Lecture Slides</option>
                     <option value="BOOK">Reference Books</option>
                     <option value="LAB_MANUAL">Lab Manual</option>
                     <option value="LAB_ASSIGNMENT">Lab Assignments</option>
@@ -449,6 +452,20 @@ const ManageResources = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
                 />
               </div>
+
+              {!editMode && (
+                <div className="flex align-items-center">
+                  <input
+                    type="checkbox"
+                    id="notifyUsers"
+                    checked={notifyUsers}
+                    onChange={(e) => setNotifyUsers(e.target.checked)}
+                  />
+                  <label htmlFor="notifyUsers" className="ml-2">
+                    Notify Students
+                  </label>
+                </div>
+              )}
 
               <div className="pt-4 flex justify-end gap-3">
                 <button
