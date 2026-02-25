@@ -116,7 +116,7 @@ export const getAllResources = async (req, res) => {
 }
 
 export const addResource = async (req, res) => {
-    const { title, description, filePath, resourceType, courseCode } = req.body;
+    const { title, description, filePath, resourceType, courseCode, notifyUsers } = req.body;
     const user = req.user;
     if (!title || !filePath || !resourceType || !courseCode) {
         return res.status(400).json({
@@ -150,7 +150,10 @@ export const addResource = async (req, res) => {
             }
         })
 
-        notifyOnResourceUpdate({ resourceType, resourceTitle: title, courseCode: course.courseCode, displayName: user.displayName, allowedBranches: course.allowedBranch, academicYear: course.academicYear });
+        if(notifyUsers){
+            notifyOnResourceUpdate({ resourceType, resourceTitle: title, courseCode: course.courseCode, displayName: user.displayName, allowedBranches: course.allowedBranch, academicYear: course.academicYear });
+        }
+        
 
         return res.status(201).json({
             success: true,
