@@ -82,15 +82,27 @@ function Navbar() {
                         exit={{ opacity: 0, y: 10 }}
                         className="absolute right-0 mt-3 w-48 bg-white rounded-xl shadow-xl border overflow-hidden"
                       >
-                        <button
-                          onClick={() => {
-                            navigate("/dashboard/courses");
-                            setDropdown(false);
-                          }}
-                          className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors"
-                        >
-                          Dashboard
-                        </button>
+                        {user?.role !== "FACULTY" ? (
+                          <button
+                            onClick={() => {
+                              navigate("/dashboard/courses");
+                              setDropdown(false);
+                            }}
+                            className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors"
+                          >
+                            Dashboard
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              navigate("/admin/dashboard");
+                              setDropdown(false);
+                            }}
+                            className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors"
+                          >
+                            Dashboard
+                          </button>
+                        )}
 
                         <button
                           onClick={logout}

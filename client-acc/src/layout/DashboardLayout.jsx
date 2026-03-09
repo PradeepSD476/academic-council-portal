@@ -11,14 +11,20 @@ export default function DashboardLayout() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const isAdmin = (user?.role === "SUPER_ADMIN") || (user?.role === "ANNOUNCEMENT_ADMIN") || (user?.role === "RESOURCE_ADMIN");
+    const isAdmin = (user?.role === "SUPER_ADMIN") || (user?.role === "FACULTY") || (user?.role === "ANNOUNCEMENT_ADMIN") || (user?.role === "RESOURCE_ADMIN");
     const isSTUDENT = user?.role === "STUDENT";
+    const isFaculty = user?.role === "FACULTY";
     
     const [open, setOpen] = useState(false);
     const [viewRole, setViewRole] = useState("STUDENT");
 
     useEffect(() => {
         if (window.innerWidth < 768) setOpen(false);
+
+        if(isFaculty){
+            setViewRole("admin");
+            return;
+        }
         
         if (isAdmin) {
             if (location.pathname.startsWith("/admin")) {
@@ -27,7 +33,7 @@ export default function DashboardLayout() {
                 setViewRole("STUDENT");
             }
         }
-    }, [location.pathname, isAdmin]);
+    }, [location.pathname, isAdmin, isFaculty]);
 
     return (
         <div className="flex h-screen bg-white overflow-hidden relative mt-[0.5rem]">
@@ -68,7 +74,7 @@ export default function DashboardLayout() {
                 </div>
 
                 <div className="relative bg-blue-50/50 rounded-xl mx-4 p-5 my-6 border border-blue-100/50">
-                    {isAdmin && (
+                    {isAdmin && !isFaculty && (
                         <button
                             onClick={() => {
                                 const target = viewRole === "STUDENT" ? "/admin/dashboard" : "/dashboard/courses";

@@ -2,7 +2,7 @@ export const checkAnnouncementAdmin = async (req, res, next) => {
     const user = req.user;
     try {
         const role = user.role;
-        const allowedRoles = ['ANNOUNCEMENT_ADMIN', 'SUPER_ADMIN']
+        const allowedRoles = ['ANNOUNCEMENT_ADMIN', 'SUPER_ADMIN', 'FACULTY']
         if(allowedRoles.includes(role)){
             next();
         }
