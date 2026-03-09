@@ -4,7 +4,7 @@ export const checkResourceAdmin = async (req, res, next) => {
         console.log("CHECKPOINT", user)
         const role = user.role;
         console.log("CHECKPOINT", role)
-        const allowedRoles = ['RESOURCE_ADMIN', 'SUPER_ADMIN']
+        const allowedRoles = ['RESOURCE_ADMIN', 'SUPER_ADMIN', 'FACULTY']
         if(allowedRoles.includes(role)){
             next();
         }

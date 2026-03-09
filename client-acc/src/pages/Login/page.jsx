@@ -12,8 +12,14 @@ function SignIn() {
 
   useEffect(() => {
     if (user) {
-      if (!user.rollNo) navigate("/login-with-roll");
-      else navigate("/dashboard/courses");
+      if (!user.rollNo && user?.role !== 'FACULTY') navigate("/login-with-roll");
+      else {
+        if(user?.role !== 'FACULTY'){
+          navigate("/dashboard/courses")
+        }else{
+          navigate("/admin/dashboard")
+        }
+      };
     }
   }, [user, navigate]);
 

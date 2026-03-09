@@ -84,6 +84,7 @@ enum Role {
   RESOURCE_ADMIN
   ANNOUNCEMENT_ADMIN
   SUPER_ADMIN
+  FACULTY
 }
 
 enum VerificationType {

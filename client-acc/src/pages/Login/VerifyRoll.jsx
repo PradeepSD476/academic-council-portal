@@ -18,7 +18,11 @@ function VerifyRoll() {
     }
 
     if (!loading && user?.rollNo) {
-      navigate("/dashboard/courses");
+      if(user?.role !== "FACULTY"){
+        navigate("/dashboard/courses");
+      }else{
+        navigate("/admin/dashboard")
+      }
     }
   }, [user, loading, navigate]);
 
