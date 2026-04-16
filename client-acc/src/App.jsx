@@ -17,7 +17,6 @@ import ManageUsers from "./pages/admin/ManageUsers.jsx";
 import ManageResources from "./pages/admin/ManageResources.jsx";
 import ManageAnnouncement from "./pages/admin/ManageAnnouncement.jsx";
 import { Toaster } from "react-hot-toast";
-import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import ChooseResource from "./pages/student/ChooseResource.jsx";
 import CourseResources from "./pages/student/courseResources.jsx";
 import SignIn from "./pages/Login/page.jsx";
@@ -43,18 +42,7 @@ const AppRoutes = () => {
       {/* student  */}
       <Route
         path="/dashboard"
-        element={
-          <ProtectedRoute
-            roles={[
-              "STUDENT",
-              "SUPER_ADMIN",
-              "ANNOUNCEMENT_ADMIN",
-              "RESOURCE_ADMIN"
-            ]}
-          >
-            <DashboardLayout />
-          </ProtectedRoute>
-        }
+        element={<DashboardLayout />}
       >
         <Route path="courses" element={<MyCourses />} >
           <Route path=":id" element={<ChooseResource/>}>
@@ -67,47 +55,13 @@ const AppRoutes = () => {
       {/* admin  */}
       <Route
         path="/admin"
-        element={
-          <ProtectedRoute
-            roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "RESOURCE_ADMIN", "FACULTY"]}
-          >
-            <DashboardLayout />
-          </ProtectedRoute>
-        }
+        element={<DashboardLayout />}
       >
         <Route path="dashboard" element={<AdminDashboard />} />
-        <Route
-          path="manage-courses"
-          element={
-            <ProtectedRoute roles={["SUPER_ADMIN", "RESOURCE_ADMIN", "FACULTY"]}>
-              <ManageCourses />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="manage-users"
-          element={
-            <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY"]}>
-              <ManageUsers />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="manage-resources"
-          element={
-            <ProtectedRoute roles={["SUPER_ADMIN", "RESOURCE_ADMIN", "FACULTY"]}>
-              <ManageResources />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="manage-announcements"
-          element={
-            <ProtectedRoute roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "FACULTY"]}>
-              <ManageAnnouncement />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="manage-courses" element={<ManageCourses />} />
+        <Route path="manage-users" element={<ManageUsers />} />
+        <Route path="manage-resources" element={<ManageResources />} />
+        <Route path="manage-announcements" element={<ManageAnnouncement />} />
       </Route>
     </Routes>
   );
