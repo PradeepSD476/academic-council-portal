@@ -23,6 +23,7 @@ import SignIn from "./pages/Login/page.jsx";
 import SignUp from "./pages/Signup/page.jsx";
 import DevTeam from "./pages/Developers/page.jsx";
 import AdminTeam from "./pages/adminSection/page.jsx"
+import ManagePost from "./pages/admin/ManagePost.jsx";
 
 const AppRoutes = () => {
 
@@ -62,6 +63,7 @@ const AppRoutes = () => {
         <Route path="manage-users" element={<ManageUsers />} />
         <Route path="manage-resources" element={<ManageResources />} />
         <Route path="manage-announcements" element={<ManageAnnouncement />} />
+        <Route path="manage-posts" element={<ManagePost/>}/>
       </Route>
     </Routes>
   );
