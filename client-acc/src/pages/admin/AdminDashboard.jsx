@@ -5,8 +5,6 @@ import { Users, BookOpen, FileText, Megaphone, TrendingUp } from "lucide-react";
 import toast from "react-hot-toast";
 
 const AdminDashboard = () => {
-  const navigate = useNavigate();
-
   const [stats, setStats] = useState({
     userCount: 0,
     courseCount: 0,
@@ -108,35 +106,18 @@ const AdminDashboard = () => {
           <h3 className="font-semibold text-gray-800 mb-4">Quick Actions</h3>
           <div className="space-y-3">
             {/* 3. Updated Buttons with Navigation */}
-            <button
-              onClick={() => navigate("/admin/manage-announcements")}
-              className="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm text-gray-700 transition-colors"
-            >
-              + Create New Announcement
-            </button>
+ 
+            <AddQuickAction title="+ Create New Announcement" navigateTo="/admin/manage-announcements"/>
 
-            <button
-              onClick={() => navigate("/admin/manage-users")}
-              className="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm text-gray-700 transition-colors"
-            >
-              + Add New User
-            </button>
+            <AddQuickAction title="+ Add New User" navigateTo="/admin/manage-users"/>
 
-            <button
-              onClick={() => navigate("/admin/manage-courses")}
-              className="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm text-gray-700 transition-colors"
-            >
-              Manage Course Content
-            </button>
+            <AddQuickAction title="Manage Course Content" navigateTo="/admin/manage-courses"/>
 
-            <button
-              onClick={() => navigate("/admin/manage-posts")}
-              className="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm text-gray-700 transition-colors"
-            >
-              Manage Posts
-            </button>
+            <AddQuickAction title="Manage Posts" navigateTo="/admin/manage-posts"/>
+
           </div>
         </div>
+        
       </div>
     </div>
   );
@@ -162,4 +143,15 @@ const StatCard = ({ title, count, icon, color, loading }) => {
   );
 };
 
+const AddQuickAction = ({ title, navigateTo }) => {
+  const navigate=useNavigate();
+  return (
+    <button
+      onClick={() => navigate(navigateTo)}
+      className="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm text-gray-700 transition-colors"
+    >
+      {title}
+    </button>
+  );
+};
 export default AdminDashboard;
