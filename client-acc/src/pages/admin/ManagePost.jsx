@@ -1,14 +1,23 @@
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Edit2, FileText, Trash2 } from "lucide-react";
 import mockData from "./mock-post.json";
+import { useNavigate } from "react-router-dom";
+import { deletePost } from "../../lib/Post_Functions";
 
 const PAGE_SIZE = 10;
 
 const stripHtml = (value = "") => value.replace(/<[^>]*>/g, "").trim();
 
 const ManagePost = () => {
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const posts = useMemo(() => mockData?.data || [], []);
+
+  const openEditorForId = (postId) => {
+    navigate("/admin/editor", { state: { postId } });
+  };
+
+  
 
   const totalPages = Math.max(1, Math.ceil(posts.length / PAGE_SIZE));
 
@@ -39,8 +48,11 @@ const ManagePost = () => {
             <span className="font-semibold text-gray-800">{posts.length}</span>
           </div>
 
-          <button className="bg-blue-700 px-4 py-2 text-white rounded-lg cursor-pointer "
-                  onClick={()=>{openEditor()}}  
+          <button
+            className="bg-blue-700 px-4 py-2 text-white rounded-lg cursor-pointer "
+            onClick={() => {
+              openEditorForId(-1);
+            }}
           >+ New Post</button>
         </div>
       </div>
@@ -133,7 +145,9 @@ const ManagePost = () => {
                             type="button"
                             className="text-blue-600 hover:text-blue-800 transition-colors"
                             aria-label={`Edit ${item.title}`}
-                            onClick={()=>{editPost(item)}}
+                            onClick={() => {
+                              openEditorForId(item.id);
+                            }}
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
@@ -141,7 +155,9 @@ const ManagePost = () => {
                             type="button"
                             className="text-red-600 hover:text-red-800 transition-colors"
                             aria-label={`Delete ${item.title}`}
-                            onClick={()=>{deletePost(item)}}
+                            onClick={() => {
+                              deletePost(item.id);
+                            }}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -200,20 +216,9 @@ const ManagePost = () => {
           </div>
         </div>
       </div>
+      
     </div>
   );
 };
-
-const openEditor = ()=>{
-    
-}
-
-const editPost = (post)=>{
-    return post;
-}
-
-const deletePost = (post)=>{
-    return post;
-}
 
 export default ManagePost;

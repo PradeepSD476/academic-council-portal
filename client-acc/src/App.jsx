@@ -24,6 +24,7 @@ import SignUp from "./pages/Signup/page.jsx";
 import DevTeam from "./pages/Developers/page.jsx";
 import AdminTeam from "./pages/adminSection/page.jsx"
 import ManagePost from "./pages/admin/ManagePost.jsx";
+import AdminPostEditor from "./components/Editor.jsx";
 
 const AppRoutes = () => {
 
@@ -64,6 +65,7 @@ const AppRoutes = () => {
         <Route path="manage-resources" element={<ManageResources />} />
         <Route path="manage-announcements" element={<ManageAnnouncement />} />
         <Route path="manage-posts" element={<ManagePost/>}/>
+        <Route path="editor" element={<AdminPostEditor/>}/>
       </Route>
     </Routes>
   );
