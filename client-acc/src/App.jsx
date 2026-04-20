@@ -51,7 +51,7 @@ const AppRoutes = () => {
         <Route path="announcements" element={<Announcements />} />
       </Route>
 
-      {/* admin  */}
+      {/* admin */}
       <Route
         path="/admin"
         element={
