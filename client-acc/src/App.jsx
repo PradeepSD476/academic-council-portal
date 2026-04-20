@@ -24,6 +24,7 @@ import SignIn from "./pages/Login/page.jsx";
 import SignUp from "./pages/Signup/page.jsx";
 import DevTeam from "./pages/Developers/page.jsx";
 import AdminTeam from "./pages/adminSection/page.jsx"
+import CareerVault from "./pages/CareerVaultuser/index.jsx";
 
 const AppRoutes = () => {
 
@@ -39,6 +40,7 @@ const AppRoutes = () => {
       <Route path="/login" element={<SignIn />} />
       <Route path="/register" element={<SignUp />} />
       <Route path="/login-with-roll" element={<VerifyRoll />} />
+      <Route path="/career-vault" element={<CareerVault />} />
 
       {/* student  */}
       <Route
@@ -62,6 +64,7 @@ const AppRoutes = () => {
           </Route>
         </Route>
         <Route path="announcements" element={<Announcements />} />
+        <Route path="career-vault" element={<CareerVault />} />
       </Route>
 
       {/* admin  */}
