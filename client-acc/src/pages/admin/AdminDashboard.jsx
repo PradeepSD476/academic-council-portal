@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { Users, BookOpen, FileText, Megaphone, TrendingUp } from "lucide-react";
-import toast from "react-hot-toast";
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; 
+import { Users, BookOpen, FileText, Megaphone, TrendingUp } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
