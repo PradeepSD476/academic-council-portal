@@ -1,5 +1,5 @@
 export const checkResourceAdmin = async (req, res, next) => {
-     const user = req.user;
+    const user = req.user;
     try {
         console.log("CHECKPOINT", user)
         const role = user.role;
