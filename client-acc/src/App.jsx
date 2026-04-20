@@ -42,6 +42,24 @@ const AppRoutes = () => {
       <Route path="/login-with-roll" element={<VerifyRoll />} />
 
       {/* student  */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute
+            roles={[
+              "STUDENT",
+              "SUPER_ADMIN",
+              "ANNOUNCEMENT_ADMIN",
+              "RESOURCE_ADMIN",
+            ]}
+          >
+            <DashboardLayout />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="courses" element={<MyCourses />} />
+      <Route path=":id" element={<ChooseResource />} />
+      <Route path=":key" element={<CourseResources />} />
       <Route path="/dashboard" element={<DashboardLayout />}>
         <Route path="courses" element={<MyCourses />}>
           <Route path=":id" element={<ChooseResource />}>
