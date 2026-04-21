@@ -22,15 +22,65 @@ model User {
   rollNo              String?
   postedAnnouncements Announcement[]
   uploadedResources   Resource[]
+  experiences         Experience[]
+  comments            Comment[] @relation("CommentBy")
+  likes               Like[]
+}
+
+model Experience {
+  id             Int            @id @default(autoincrement())
+  title          String
+  description    String        @db.Text
+  experienceType ExperienceType
+  status         ContentStatus
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  uploadedById   Int
+  uploadedBy     User           @relation(fields: [uploadedById], references: [id])
+
+  comments Comment[]
+  likes    Like[]
+}
+
+model Comment {
+  id        Int        @id @default(autoincrement())
+  content   String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  postId    Int?
+  post      Experience? @relation(fields: [postId], references: [id])
+  userId    Int
+  user      User       @relation("CommentBy", fields: [userId], references: [id])
+  parentId  Int?
+  parent    Comment?   @relation("ParentComment", fields: [parentId], references: [id])
+  rootId    Int
+  replies  Comment[]  @relation("ParentComment")
+
+  @@index([postId])
+  @@index([rootId])
+  @@index([parentId])
+  @@index([postId, rootId])
+}
+
+model Like {
+  id        Int        @id @default(autoincrement())
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  postId    Int?
+  post      Experience? @relation(fields: [postId], references: [id])
+  userId    Int
+  user      User       @relation(fields: [userId], references: [id])
+
+  @@index([postId])
 }
 
 model Verification {
-  id         Int      @id @default(autoincrement())
-  email      String   
+  id         Int              @id @default(autoincrement())
+  email      String
   otpHash    String
   type       VerificationType
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
   expiringAt DateTime
 
   @@index([email])
@@ -98,6 +148,17 @@ enum Program {
   BTECH
   PHD
   MSC
+}
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum ExperienceType {
+  INTERNSHIP
+  PLACEMENT
+  STARTUP
 }
 
 enum ResourceType {
