@@ -23,11 +23,12 @@ import CourseResources from "./pages/student/courseResources.jsx";
 import SignIn from "./pages/Login/page.jsx";
 import SignUp from "./pages/Signup/page.jsx";
 import DevTeam from "./pages/Developers/page.jsx";
-import AdminTeam from "./pages/adminSection/page.jsx"
+import AdminTeam from "./pages/adminSection/page.jsx";
 import CareerVault from "./pages/CareerVaultuser/index.jsx";
+import ManagePost from "./pages/admin/ManagePost.jsx";
+import AdminPostEditor from "./components/Editor.jsx";
 
 const AppRoutes = () => {
-
   return (
     <Routes>
       {/* public route  */}
@@ -51,16 +52,16 @@ const AppRoutes = () => {
               "STUDENT",
               "SUPER_ADMIN",
               "ANNOUNCEMENT_ADMIN",
-              "RESOURCE_ADMIN"
+              "RESOURCE_ADMIN",
             ]}
           >
             <DashboardLayout />
           </ProtectedRoute>
         }
       >
-        <Route path="courses" element={<MyCourses />} >
-          <Route path=":id" element={<ChooseResource/>}>
-            <Route path=":key" element={<CourseResources/>}/>
+        <Route path="courses" element={<MyCourses />}>
+          <Route path=":id" element={<ChooseResource />}>
+            <Route path=":key" element={<CourseResources />} />
           </Route>
         </Route>
         <Route path="announcements" element={<Announcements />} />
@@ -72,7 +73,12 @@ const AppRoutes = () => {
         path="/admin"
         element={
           <ProtectedRoute
-            roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "RESOURCE_ADMIN", "FACULTY"]}
+            roles={[
+              "SUPER_ADMIN",
+              "ANNOUNCEMENT_ADMIN",
+              "RESOURCE_ADMIN",
+              "FACULTY",
+            ]}
           >
             <DashboardLayout />
           </ProtectedRoute>
@@ -82,7 +88,9 @@ const AppRoutes = () => {
         <Route
           path="manage-courses"
           element={
-            <ProtectedRoute roles={["SUPER_ADMIN", "RESOURCE_ADMIN", "FACULTY"]}>
+            <ProtectedRoute
+              roles={["SUPER_ADMIN", "RESOURCE_ADMIN", "FACULTY"]}
+            >
               <ManageCourses />
             </ProtectedRoute>
           }
@@ -98,7 +106,9 @@ const AppRoutes = () => {
         <Route
           path="manage-resources"
           element={
-            <ProtectedRoute roles={["SUPER_ADMIN", "RESOURCE_ADMIN", "FACULTY"]}>
+            <ProtectedRoute
+              roles={["SUPER_ADMIN", "RESOURCE_ADMIN", "FACULTY"]}
+            >
               <ManageResources />
             </ProtectedRoute>
           }
@@ -106,11 +116,17 @@ const AppRoutes = () => {
         <Route
           path="manage-announcements"
           element={
-            <ProtectedRoute roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "FACULTY"]}>
+            <ProtectedRoute
+              roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "FACULTY"]}
+            >
               <ManageAnnouncement />
             </ProtectedRoute>
           }
         />
+
+        {/* post routes */}
+        <Route path="manage-posts" element={<ManagePost />} />
+        <Route path="editor" element={<AdminPostEditor />} />
       </Route>
     </Routes>
   );
@@ -124,7 +140,7 @@ const App = () => {
           <div className="flex flex-col min-h-screen">
             <Navbar />
 
-            <main className="flex-grow pt-16">
+            <main className="grow pt-16">
               <Toaster position="top-right" />
               <AppRoutes />
             </main>

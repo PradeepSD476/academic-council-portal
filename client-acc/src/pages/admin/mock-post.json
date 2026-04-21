@@ -1,0 +1,430 @@
+{
+  "success": true,
+  "message": "Posts fetched successfully",
+  "data": [
+    {
+      "id": 101,
+      "title": "Google SDE Interview Experience",
+      "description": "<p>Had 2 DSA <b>rounds...</b></p>",
+      "experienceType": "INTERVIEW",
+      "status": "PUBLISHED",
+      "uploadedById": 1,
+      "updatedAt": "2026-04-16T10:00:00Z",
+
+      "uploadedBy": {
+        "id": 1,
+        "displayName": "Pradeep",
+        "email": "pradeep@iitp.ac.in"
+      },
+
+      "_count": {
+        "likes": 23,
+        "comments": 12
+      },
+
+      "hasLiked": true
+    },
+    {
+      "id": 102,
+      "title": "Amazon OA Experience",
+      "description": "<p>OA had 2 coding...</p>",
+      "experienceType": "INTERVIEW",
+      "status": "PUBLISHED",
+      "uploadedById": 2,
+      "updatedAt": "2026-04-15T09:00:00Z",
+
+      "uploadedBy": {
+        "id": 2,
+        "displayName": "Rahul",
+        "email": "rahul@iitp.ac.in"
+      },
+
+      "_count": {
+        "likes": 15,
+        "comments": 5
+      },
+
+      "hasLiked": false
+    },
+    {
+      "id": 103,
+      "title": "Microsoft Internship Journey",
+      "description": "<p>Applied through referral and completed a systems round.</p>",
+      "experienceType": "INTERVIEW",
+      "status": "PUBLISHED",
+      "uploadedById": 3,
+      "updatedAt": "2026-04-14T08:30:00Z",
+      "uploadedBy": {
+        "id": 3,
+        "displayName": "Aman",
+        "email": "aman@iitp.ac.in"
+      },
+      "_count": {
+        "likes": 18,
+        "comments": 7
+      },
+      "hasLiked": true
+    },
+    {
+      "id": 104,
+      "title": "Adobe Off-Campus Preparation",
+      "description": "<p>Focused on DSA, OOPs, and project discussion.</p>",
+      "experienceType": "INTERVIEW",
+      "status": "PUBLISHED",
+      "uploadedById": 4,
+      "updatedAt": "2026-04-13T11:20:00Z",
+      "uploadedBy": {
+        "id": 4,
+        "displayName": "Sneha",
+        "email": "sneha@iitp.ac.in"
+      },
+      "_count": {
+        "likes": 12,
+        "comments": 3
+      },
+      "hasLiked": false
+    },
+    {
+      "id": 105,
+      "title": "Goldman Sachs SDE Insights",
+      "description": "<p>Two coding rounds and one design discussion.</p>",
+      "experienceType": "INTERVIEW",
+      "status": "PUBLISHED",
+      "uploadedById": 5,
+      "updatedAt": "2026-04-12T14:10:00Z",
+      "uploadedBy": {
+        "id": 5,
+        "displayName": "Karan",
+        "email": "karan@iitp.ac.in"
+      },
+      "_count": {
+        "likes": 20,
+        "comments": 9
+      },
+      "hasLiked": true
+    },
+    {
+      "id": 106,
+      "title": "Uber OA Experience",
+      "description": "<p>OA focused on arrays, graphs, and optimization.</p>",
+      "experienceType": "INTERVIEW",
+      "status": "PUBLISHED",
+      "uploadedById": 6,
+      "updatedAt": "2026-04-11T10:45:00Z",
+      "uploadedBy": {
+        "id": 6,
+        "displayName": "Ritika",
+        "email": "ritika@iitp.ac.in"
+      },
+      "_count": {
+        "likes": 9,
+        "comments": 2
+      },
+      "hasLiked": false
+    },
+    {
+      "id": 107,
+      "title": "Oracle Internship Interview",
+      "description": "<p>HR round was conversational and project oriented.</p>",
+      "experienceType": "INTERVIEW",
+      "status": "PUBLISHED",
+      "uploadedById": 7,
+      "updatedAt": "2026-04-10T16:00:00Z",
+      "uploadedBy": {
+        "id": 7,
+        "displayName": "Divya",
+        "email": "divya@iitp.ac.in"
+      },
+      "_count": {
+        "likes": 14,
+        "comments": 4
+      },
+      "hasLiked": true
+    },
+    {
+      "id": 108,
+      "title": "TCS CodeVita Preparation",
+      "description": "<p>Practice recursion, trees, and dynamic programming.</p>",
+      "experienceType": "GUIDE",
+      "status": "PUBLISHED",
+      "uploadedById": 8,
+      "updatedAt": "2026-04-09T09:25:00Z",
+      "uploadedBy": {
+        "id": 8,
+        "displayName": "Rahul",
+        "email": "rahul2@iitp.ac.in"
+      },
+      "_count": {
+        "likes": 8,
+        "comments": 1
+      },
+      "hasLiked": false
+    },
+    {
+      "id": 109,
+      "title": "Qualcomm Interview Notes",
+      "description": "<p>Core CS, OS, and embedded basics were important.</p>",
+      "experienceType": "INTERVIEW",
+      "status": "PUBLISHED",
+      "uploadedById": 9,
+      "updatedAt": "2026-04-08T13:40:00Z",
+      "uploadedBy": {
+        "id": 9,
+        "displayName": "Nikhil",
+        "email": "nikhil@iitp.ac.in"
+      },
+      "_count": {
+        "likes": 16,
+        "comments": 6
+      },
+      "hasLiked": true
+    },
+    {
+      "id": 110,
+      "title": "Cisco OA Breakdown",
+      "description": "<p>Speed matters more than perfect code in the first pass.</p>",
+      "experienceType": "INTERVIEW",
+      "status": "PUBLISHED",
+      "uploadedById": 10,
+      "updatedAt": "2026-04-07T12:05:00Z",
+      "uploadedBy": {
+        "id": 10,
+        "displayName": "Meera",
+        "email": "meera@iitp.ac.in"
+      },
+      "_count": {
+        "likes": 11,
+        "comments": 5
+      },
+      "hasLiked": false
+    },
+    {
+      "id": 111,
+      "title": "Atlassian Interview Timeline",
+      "description": "<p>Three rounds with one behavioral discussion.</p>",
+      "experienceType": "INTERVIEW",
+      "status": "PUBLISHED",
+      "uploadedById": 11,
+      "updatedAt": "2026-04-06T15:15:00Z",
+      "uploadedBy": {
+        "id": 11,
+        "displayName": "Arjun",
+        "email": "arjun@iitp.ac.in"
+      },
+      "_count": {
+        "likes": 19,
+        "comments": 8
+      },
+      "hasLiked": true
+    },
+    {
+      "id": 112,
+      "title": "Flipkart SDE Journey",
+      "description": "<p>Focus on product sense and scaling questions.</p>",
+      "experienceType": "INTERVIEW",
+      "status": "PUBLISHED",
+      "uploadedById": 12,
+      "updatedAt": "2026-04-05T08:50:00Z",
+      "uploadedBy": {
+        "id": 12,
+        "displayName": "Priya",
+        "email": "priya@iitp.ac.in"
+      },
+      "_count": {
+        "likes": 10,
+        "comments": 3
+      },
+      "hasLiked": false
+    },
+    {
+      "id": 113,
+      "title": "Paytm Interview Practice",
+      "description": "<p>Brush up on SQL, arrays, and system design basics.</p>",
+      "experienceType": "GUIDE",
+      "status": "PUBLISHED",
+      "uploadedById": 13,
+      "updatedAt": "2026-04-04T10:10:00Z",
+      "uploadedBy": {
+        "id": 13,
+        "displayName": "Rohan",
+        "email": "rohan@iitp.ac.in"
+      },
+      "_count": {
+        "likes": 7,
+        "comments": 2
+      },
+      "hasLiked": true
+    },
+    {
+      "id": 114,
+      "title": "Walmart Labs Experience",
+      "description": "<p>Two technical rounds and one culture fit round.</p>",
+      "experienceType": "INTERVIEW",
+      "status": "PUBLISHED",
+      "uploadedById": 14,
+      "updatedAt": "2026-04-03T14:00:00Z",
+      "uploadedBy": {
+        "id": 14,
+        "displayName": "Isha",
+        "email": "isha@iitp.ac.in"
+      },
+      "_count": {
+        "likes": 13,
+        "comments": 4
+      },
+      "hasLiked": false
+    },
+    {
+      "id": 115,
+      "title": "Samsung Interview Review",
+      "description": "<p>Questions were centered on core CS fundamentals.</p>",
+      "experienceType": "INTERVIEW",
+      "status": "PUBLISHED",
+      "uploadedById": 15,
+      "updatedAt": "2026-04-02T11:35:00Z",
+      "uploadedBy": {
+        "id": 15,
+        "displayName": "Akhil",
+        "email": "akhil@iitp.ac.in"
+      },
+      "_count": {
+        "likes": 17,
+        "comments": 6
+      },
+      "hasLiked": true
+    },
+    {
+      "id": 116,
+      "title": "NVIDIA Internship Learnings",
+      "description": "<p>Projects, GPU basics, and problem solving all helped.</p>",
+      "experienceType": "INTERNSHIP",
+      "status": "PUBLISHED",
+      "uploadedById": 16,
+      "updatedAt": "2026-04-01T09:15:00Z",
+      "uploadedBy": {
+        "id": 16,
+        "displayName": "Tanya",
+        "email": "tanya@iitp.ac.in"
+      },
+      "_count": {
+        "likes": 21,
+        "comments": 10
+      },
+      "hasLiked": false
+    },
+    {
+      "id": 117,
+      "title": "Deutsche Bank OA Summary",
+      "description": "<p>Timed practice with clean explanations matters.</p>",
+      "experienceType": "INTERVIEW",
+      "status": "PUBLISHED",
+      "uploadedById": 17,
+      "updatedAt": "2026-03-31T12:30:00Z",
+      "uploadedBy": {
+        "id": 17,
+        "displayName": "Saurabh",
+        "email": "saurabh@iitp.ac.in"
+      },
+      "_count": {
+        "likes": 6,
+        "comments": 1
+      },
+      "hasLiked": true
+    },
+    {
+      "id": 118,
+      "title": "Morgan Stanley Interview Prep",
+      "description": "<p>Be ready to explain every project on your resume.</p>",
+      "experienceType": "GUIDE",
+      "status": "PUBLISHED",
+      "uploadedById": 18,
+      "updatedAt": "2026-03-30T16:20:00Z",
+      "uploadedBy": {
+        "id": 18,
+        "displayName": "Anjali",
+        "email": "anjali@iitp.ac.in"
+      },
+      "_count": {
+        "likes": 9,
+        "comments": 3
+      },
+      "hasLiked": false
+    },
+    {
+      "id": 119,
+      "title": "Zomato Interview Experience",
+      "description": "<p>System design and product thinking were key.</p>",
+      "experienceType": "INTERVIEW",
+      "status": "PUBLISHED",
+      "uploadedById": 19,
+      "updatedAt": "2026-03-29T10:40:00Z",
+      "uploadedBy": {
+        "id": 19,
+        "displayName": "Vivek",
+        "email": "vivek@iitp.ac.in"
+      },
+      "_count": {
+        "likes": 22,
+        "comments": 11
+      },
+      "hasLiked": true
+    },
+    {
+      "id": 120,
+      "title": "Intuit Interview Notes",
+      "description": "<p>Stay calm and keep communication clear in every round.</p>",
+      "experienceType": "INTERVIEW",
+      "status": "PUBLISHED",
+      "uploadedById": 20,
+      "updatedAt": "2026-03-28T13:55:00Z",
+      "uploadedBy": {
+        "id": 20,
+        "displayName": "Neha",
+        "email": "neha@iitp.ac.in"
+      },
+      "_count": {
+        "likes": 15,
+        "comments": 4
+      },
+      "hasLiked": false
+    },
+    {
+      "id": 121,
+      "title": "Intel Internship Review",
+      "description": "<p>Use strong fundamentals and clear project stories.</p>",
+      "experienceType": "INTERNSHIP",
+      "status": "PUBLISHED",
+      "uploadedById": 21,
+      "updatedAt": "2026-03-27T09:05:00Z",
+      "uploadedBy": {
+        "id": 21,
+        "displayName": "Mohit",
+        "email": "mohit@iitp.ac.in"
+      },
+      "_count": {
+        "likes": 13,
+        "comments": 2
+      },
+      "hasLiked": true
+    },
+    {
+      "id": 122,
+      "title": "PayPal Interview Journey",
+      "description": "<p>Focus on backend design and API clarity.</p>",
+      "experienceType": "INTERVIEW",
+      "status": "PUBLISHED",
+      "uploadedById": 22,
+      "updatedAt": "2026-03-26T11:50:00Z",
+      "uploadedBy": {
+        "id": 22,
+        "displayName": "Kriti",
+        "email": "kriti@iitp.ac.in"
+      },
+      "_count": {
+        "likes": 18,
+        "comments": 7
+      },
+      "hasLiked": false
+    }
+  ]
+}
