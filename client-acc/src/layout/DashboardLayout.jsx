@@ -109,7 +109,7 @@ export default function DashboardLayout() {
                             <p className="px-4 text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-widest">Main Menu</p>
                             <SidebarItem to="/dashboard/courses" icon={<Layers size={18} />} label="My Courses" />
                             <SidebarItem to="/dashboard/announcements" icon={<Bell size={18} />} label="Announcements" />
-                            <SidebarItem to="/career-vault" icon={<Briefcase size={18} />} label="Career Vault" />
+                            <SidebarItem to="/dashboard/career-vault" icon={<Briefcase size={18} />} label="Career Vault" />
                         </>
                     )}
 
@@ -121,7 +121,7 @@ export default function DashboardLayout() {
                             <SidebarItem to="/admin/manage-users" icon={<Users size={18} />} label="Users" />
                             <SidebarItem to="/admin/manage-resources" icon={<Settings size={18} />} label="Resources" />
                             <SidebarItem to="/admin/manage-announcements" icon={<Bell size={18} />} label="Announcements" />
-                            <SidebarItem to="/career-vault" icon={<Briefcase size={18} />} label="Career Vault" />
+                            <SidebarItem to="/admin/career-vault" icon={<Briefcase size={18} />} label="Career Vault" />
                         </>
                     )}
                 </nav>
