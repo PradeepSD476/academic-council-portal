@@ -25,6 +25,52 @@ main {
     .paragraphs {
         @apply font-hanuman;
     }
+
+  .rich-editor {
+    @apply rounded-b-xl bg-transparent text-sm leading-7 text-gray-800 outline-none;
+  }
+
+  .rich-editor:empty::before {
+    content: attr(data-placeholder);
+    @apply text-gray-400;
+  }
+
+  .rich-editor h1 {
+    @apply mb-3 text-3xl font-bold text-gray-900;
+  }
+
+  .rich-editor h2 {
+    @apply mb-3 text-2xl font-bold text-gray-900;
+  }
+
+  .rich-editor h3 {
+    @apply mb-2 text-xl font-semibold text-gray-900;
+  }
+
+  .rich-editor p {
+    @apply mb-3;
+  }
+
+  .rich-editor ul,
+  .rich-editor ol {
+    @apply mb-3 ml-6 list-disc space-y-1;
+  }
+
+  .rich-editor ol {
+    @apply list-decimal;
+  }
+
+  .rich-editor blockquote {
+    @apply mb-3 border-l-4 border-blue-200 bg-blue-50 px-4 py-2 italic text-gray-700;
+  }
+
+  .rich-editor code {
+    @apply rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[0.9em] text-gray-900;
+  }
+
+  .rich-editor a {
+    @apply text-blue-600 underline decoration-blue-300 underline-offset-2;
+  }
 }
 
 
