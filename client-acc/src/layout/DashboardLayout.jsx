@@ -121,7 +121,7 @@ export default function DashboardLayout() {
                             <SidebarItem to="/admin/manage-users" icon={<Users size={18} />} label="Users" />
                             <SidebarItem to="/admin/manage-resources" icon={<Settings size={18} />} label="Resources" />
                             <SidebarItem to="/admin/manage-announcements" icon={<Bell size={18} />} label="Announcements" />
-                            <SidebarItem to="/admin/career-vault" icon={<Briefcase size={18} />} label="Career Vault" />
+                            <SidebarItem to="/admin/manage-posts" icon={<Briefcase size={18} />} label="Career Vault" />
                         </>
                     )}
                 </nav>

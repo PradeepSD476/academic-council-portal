@@ -21,7 +21,7 @@ export const getAllPosts = async (req, res) => {
                     where: {
                         parentId: null,
                     },
-                    skip: (commentOffset - 1)*commentLimit,
+                    skip: (commentOffset - 1) * commentLimit,
                     take: commentLimit,
                     orderBy: {
                         updatedAt: 'desc'
@@ -30,8 +30,8 @@ export const getAllPosts = async (req, res) => {
                         replies: true,
                     }
                 },
-                _like_count: {
-                    select: { likes : true },
+                _count: {
+                    select: { likes: true },
                 }
             }
         })
@@ -114,7 +114,7 @@ export const addpost = async (req, res) => {
 }
 
 export const deletePost = async (req, res) => {
-    const postId = req.params.id;
+    const postId = parseInt(req.params.id);
     if (!postId) {
         return res.status(400).json({
             success: false,
@@ -135,7 +135,7 @@ export const deletePost = async (req, res) => {
                 message: "post not found."
             })
         }
-        const deletePost = await prisma.experience.delete({
+        await prisma.experience.delete({
             where: {
                 id: parseInt(postId),
             }
@@ -155,7 +155,7 @@ export const deletePost = async (req, res) => {
 
 export const editPost = async (req, res) => {
     const postId = req.params.id;
-    const updates = req.body;
+    const {updates} = req.body;
     if (!postId) {
         return res.status(400).json({
             success: false,
@@ -183,7 +183,7 @@ export const editPost = async (req, res) => {
                 message: "post not found."
             })
         }
-        const updatePost = await prisma.experience.update({
+        const updatedPost = await prisma.experience.update({
             where: {
                 id: parseInt(postId),
             },
@@ -192,7 +192,7 @@ export const editPost = async (req, res) => {
         return res.status(201).json({
             success: true,
             message: "post updated successfully.",
-            data: updatePost
+            data: updatedPost
         })
     } catch (error) {
         return res.status(500).json({
@@ -257,6 +257,12 @@ export const addComment = async (req, res) => {
                     message: "comment not found."
                 })
             }
+            if (parentId !== comment.rootId) {
+                return res.status(400).json({
+                    success: false,
+                    message: "You can't reply to this comment."
+                })
+            }
             await prisma.comment.create({
                 data: {
                     content: content,
@@ -283,7 +289,7 @@ export const addComment = async (req, res) => {
 }
 
 export const deleteComment = async (req, res) => {
-    const commentId = req.params.id;
+    const commentId = parseInt(req.params.id);
     try {
         await prisma.comment.delete({
             where: {
@@ -305,8 +311,8 @@ export const deleteComment = async (req, res) => {
     }
 }
 
-export const likePost = async (req, res) => {
-    const postId = req.params.id;
+export const togglePostLike = async (req, res) => {
+    const postId = parseInt(req.params.id);
     const userId = req.user.id;
     if (!postId) {
         return res.status(400).json({
@@ -327,6 +333,26 @@ export const likePost = async (req, res) => {
                 success: false,
                 error: "NotFound",
                 message: "post not found."
+            })
+        }
+        const isLiked = await prisma.like.findUnique({
+            where: {
+                userId_postId: {
+                    postId: postId,
+                    userId: userId,
+                }
+            }
+        })
+
+        if (isLiked) {
+            await prisma.like.delete({
+                where: {
+                    id: isLiked.id,
+                }
+            })
+            return res.status(200).json({
+                success: true,
+                message: "Like Removed.",
             })
         }
 

@@ -18,6 +18,7 @@ const ManagePost = () => {
   };
 
   
+  
 
   const totalPages = Math.max(1, Math.ceil(posts.length / PAGE_SIZE));
 
