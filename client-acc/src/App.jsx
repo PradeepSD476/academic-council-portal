@@ -41,7 +41,6 @@ const AppRoutes = () => {
       <Route path="/login" element={<SignIn />} />
       <Route path="/register" element={<SignUp />} />
       <Route path="/login-with-roll" element={<VerifyRoll />} />
-      <Route path="/career-vault" element={<CareerVault />} />
 
       {/* student  */}
       <Route
