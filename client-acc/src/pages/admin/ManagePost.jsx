@@ -109,7 +109,7 @@ const ManagePost = () => {
                         <div className="text-sm font-bold text-gray-900">
                           {item.title}
                         </div>
-                        <div className="text-xs text-gray-500 truncate max-w-xs mt-1">
+                        <div className="text-xs text-gray-500 truncate max-w-xs mt-1 overflow-clip">
                           {stripHtml(item.description)}
                         </div>
                       </td>
