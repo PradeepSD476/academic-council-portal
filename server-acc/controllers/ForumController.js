@@ -6,9 +6,6 @@ export const getAllPosts = async (req, res) => {
     const page = parseInt(req.query.page);
     const limit = parseInt(req.query.limit);
 
-    const commentOffset = parseInt(req.query.commentOffset);
-    const commentLimit = parseInt(req.query.commentLimit);
-
     try {
         const result = await prisma.experience.findMany({
             skip: (page - 1) * limit,
@@ -17,21 +14,9 @@ export const getAllPosts = async (req, res) => {
                 updatedAt: 'desc'
             },
             include: {
-                comments: {
-                    where: {
-                        parentId: null,
-                    },
-                    skip: (commentOffset - 1) * commentLimit,
-                    take: commentLimit,
-                    orderBy: {
-                        updatedAt: 'desc'
-                    },
-                    include: {
-                        replies: true,
-                    }
-                },
                 _count: {
                     select: { likes: true },
+                    select: { comments: true }
                 }
             }
         })
@@ -51,30 +36,30 @@ export const getAllPosts = async (req, res) => {
     }
 }
 
-export const getMyPosts = async (req, res) => {
-    const userId = req.user.id;
+// export const getMyPosts = async (req, res) => {
+//     const userId = req.user.id;
 
-    try {
-        const result = await prisma.experience.findMany({
-            where: {
-                uploadedById: userId,
-            }
-        })
+//     try {
+//         const result = await prisma.experience.findMany({
+//             where: {
+//                 uploadedById: userId,
+//             }
+//         })
 
-        return res.status(200).json({
-            success: true,
-            message: "Data Fetched Successfully",
-            data: result,
-        })
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({
-            success: false,
-            error: "Internal Server Error",
-            message: "Something went wrong. Please try again later."
-        })
-    }
-}
+//         return res.status(200).json({
+//             success: true,
+//             message: "Data Fetched Successfully",
+//             data: result,
+//         })
+//     } catch (error) {
+//         console.log(error);
+//         return res.status(500).json({
+//             success: false,
+//             error: "Internal Server Error",
+//             message: "Something went wrong. Please try again later."
+//         })
+//     }
+// }
 
 
 export const addpost = async (req, res) => {
@@ -155,7 +140,7 @@ export const deletePost = async (req, res) => {
 
 export const editPost = async (req, res) => {
     const postId = req.params.id;
-    const {updates} = req.body;
+    const updates = req.body;
     if (!postId) {
         return res.status(400).json({
             success: false,
@@ -284,6 +269,81 @@ export const addComment = async (req, res) => {
             success: false,
             error: "ServerError",
             message: "Unable to comment due to a server error. Please try again."
+        })
+    }
+}
+
+export const getComments = async (req, res) => {
+    const postId = parseInt(req.params.id);
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit);
+    const parentId = parseInt(req.query.parentId);
+
+    if (!postId) {
+        return res.status(400).json({
+            success: false,
+            message: "Bad Request, Missing Required Fields."
+        })
+    }
+
+    try {
+        const post = await prisma.experience.findUnique({
+            where: {
+                id: postId,
+            }
+        });
+
+        if (!post) {
+            return res.status(404).json({
+                success: false,
+                message: "Post not Found."
+            })
+        }
+
+        if (parentId) {
+            const replies = await prisma.comment.findMany({
+                where: {
+                    parentId: parentId,
+                },
+                orderBy: {
+                    updatedAt: "desc"
+                }
+            })
+            
+            return res.status(200).json({
+                success: true,
+                message: "Replies fetched successfully",
+                data: replies,
+            })
+
+        }
+
+        const comments = await prisma.comment.findMany({
+            skip: (page - 1) * limit,
+            take: limit,
+            where: {
+                postId: postId,
+            },
+            orderBy: {
+                updatedAt: "desc"
+            },
+            include: {
+                _count: {
+                    select: { replies: true }
+                }
+            }
+        })
+
+        return res.status(200).json({
+            success: true,
+            message: "Comments fetched successfully.",
+            data: comments,
+        })
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error."
         })
     }
 }

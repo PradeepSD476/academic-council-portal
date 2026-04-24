@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom'; 
-import { Users, BookOpen, FileText, Megaphone, TrendingUp } from 'lucide-react';
+import { Users, BookOpen, FileText, Megaphone, TrendingUp, Activity } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const AdminDashboard = () => {
@@ -10,6 +10,7 @@ const AdminDashboard = () => {
     courseCount: 0,
     resourceCount: 0,
     announcementCount: 0,
+    liveUserCount: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -87,6 +88,13 @@ const AdminDashboard = () => {
           count={stats.announcementCount}
           icon={<Megaphone size={24} />}
           color="bg-rose-500"
+          loading={loading}
+        />
+        <StatCard
+          title="Online Users"
+          count={stats.liveUserCount}
+          icon={<Activity size={24} />}
+          color="bg-amber-500"
           loading={loading}
         />
       </div>
