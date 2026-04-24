@@ -33,6 +33,14 @@ export const checkAuth = async (req, res, next) => {
                 message: "No user account found for the provided token."
             })
         }
+        await prisma.user.update({
+            where:{
+                id: user.id,
+            },
+            data: {
+                lastseen: new Date(),
+            }
+        })
         req.user = user;
         next();
     } catch (error) {

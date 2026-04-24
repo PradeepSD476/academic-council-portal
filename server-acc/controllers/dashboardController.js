@@ -5,8 +5,15 @@ export const dashboardData = async (req, res) => {
         const courseCount = await prisma.course.count();
         const resourceCount = await prisma.resource.count();
         const announcementCount = await prisma.announcement.count();
+        const liveUserCount = await prisma.user.count({
+            where: {
+                lastseen: {
+                    gt: new Date(Date.now() - 60*1000)
+                }
+            }
+        })
 
-        const countData = { userCount, courseCount, resourceCount, announcementCount }
+        const countData = { userCount, courseCount, resourceCount, announcementCount, liveUserCount }
         return res.status(200).json({
             success: true,
             message: "Data fetched Successfully...",

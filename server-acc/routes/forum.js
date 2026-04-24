@@ -1,7 +1,7 @@
 import express from 'express';
 import { checkAnnouncementAdmin } from '../middlewares/checkAnnouncementAdmin.js';
 import { checkAuth } from '../middlewares/checkAuth.js';
-import { addComment, addpost, deleteComment, deletePost, editPost, getAllPosts, getMyPosts, togglePostLike } from '../controllers/ForumController.js';
+import { addComment, addpost, deleteComment, deletePost, editPost, getAllPosts, togglePostLike } from '../controllers/ForumController.js';
 
 const router = express.Router();
 
@@ -11,7 +11,7 @@ router.get('/posts', checkAuth, getAllPosts);
 router.delete('/posts/:id', checkAuth, checkAnnouncementAdmin, deletePost);
 router.delete('/posts/comments/:id', checkAuth, checkAnnouncementAdmin, deleteComment);
 router.post('/posts/comments', checkAuth, checkAnnouncementAdmin, addComment);
-router.get('/posts/my', checkAuth, getMyPosts);
+// router.get('/posts/my', checkAuth, getMyPosts);
 router.post('/posts/toggle-like/:id', checkAuth, togglePostLike)
 
 export default router;
