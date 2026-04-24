@@ -11,10 +11,18 @@ const stripHtml = (value = "") => value.replace(/<[^>]*>/g, "").trim();
 const ManagePost = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
-  const posts = useMemo(() => mockData?.data || [], []);
+  const [posts, setPosts] = useState(() => mockData?.data || []);
 
   const openEditorForId = (postId) => {
     navigate("/admin/editor", { state: { postId } });
+  };
+
+  const handleDeletePost = async (postId) => {
+    const response = await deletePost(postId);
+
+    if (response?.success) {
+      setPosts((prev) => prev.filter((item) => item.id !== postId));
+    }
   };
 
   
@@ -157,7 +165,7 @@ const ManagePost = () => {
                             className="text-red-600 hover:text-red-800 transition-colors"
                             aria-label={`Delete ${item.title}`}
                             onClick={() => {
-                              deletePost(item.id);
+                              void handleDeletePost(item.id);
                             }}
                           >
                             <Trash2 className="w-4 h-4" />
