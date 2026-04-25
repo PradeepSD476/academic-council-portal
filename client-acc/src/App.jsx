@@ -46,16 +46,16 @@ const AppRoutes = () => {
       <Route
         path="/dashboard"
         element={
-          // <ProtectedRoute
-          //   roles={[
-          //     "STUDENT",
-          //     "SUPER_ADMIN",
-          //     "ANNOUNCEMENT_ADMIN",
-          //     "RESOURCE_ADMIN",
-          //   ]}
-          // >
+          <ProtectedRoute
+            roles={[
+              "STUDENT",
+              "SUPER_ADMIN",
+              "ANNOUNCEMENT_ADMIN",
+              "RESOURCE_ADMIN",
+            ]}
+          >
             <DashboardLayout />
-          // </ProtectedRoute>
+          </ProtectedRoute>
         }
       >
         <Route path="courses" element={<MyCourses />}>
@@ -71,75 +71,75 @@ const AppRoutes = () => {
       <Route
         path="/admin"
         element={
-          // <ProtectedRoute
-          //   roles={[
-          //     "SUPER_ADMIN",
-          //     "ANNOUNCEMENT_ADMIN",
-          //     "RESOURCE_ADMIN",
-          //     "FACULTY",
-          //   ]}
-          // >
+          <ProtectedRoute
+            roles={[
+              "SUPER_ADMIN",
+              "ANNOUNCEMENT_ADMIN",
+              "RESOURCE_ADMIN",
+              "FACULTY",
+            ]}
+          >
             <DashboardLayout />
-          // </ProtectedRoute>
+           </ProtectedRoute>
         }
       >
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route
           path="manage-courses"
           element={
-            // <ProtectedRoute
-            //   roles={["SUPER_ADMIN", "RESOURCE_ADMIN", "FACULTY"]}
-            // >
+            <ProtectedRoute
+              roles={["SUPER_ADMIN", "RESOURCE_ADMIN", "FACULTY"]}
+            >
               <ManageCourses />
-            // </ProtectedRoute>
+            </ProtectedRoute>
           }
         />
         <Route
           path="manage-users"
           element={
-            // <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY"]}>
+            <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY"]}>
               <ManageUsers />
-            // </ProtectedRoute>
+            </ProtectedRoute>
           }
         />
         <Route
           path="manage-resources"
           element={
-            // <ProtectedRoute
-            //   roles={["SUPER_ADMIN", "RESOURCE_ADMIN", "FACULTY"]}
-            // >
+            <ProtectedRoute
+              roles={["SUPER_ADMIN", "RESOURCE_ADMIN", "FACULTY"]}
+            >
               <ManageResources />
-            // </ProtectedRoute>
+            </ProtectedRoute>
           }
         />
         <Route
           path="manage-announcements"
           element={
-            // <ProtectedRoute
-            //   roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "FACULTY"]}
-            // >
+            <ProtectedRoute
+              roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "FACULTY"]}
+            >
               <ManageAnnouncement />
-            // </ProtectedRoute>
+             </ProtectedRoute>
           }
         />
         <Route
           path="manage-posts"
           element={
-            // <ProtectedRoute
-            //   roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "FACULTY"]}
-            // >
+            <ProtectedRoute
+              roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "FACULTY"]}
+            >
               <ManagePost />
-            // </ProtectedRoute>
+            </ProtectedRoute>
           }
         />
         <Route
           path="editor"
           element={
-            // <ProtectedRoute
-            //   roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "FACULTY"]}
-            // >
+            <ProtectedRoute
+              roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "FACULTY"]}
+            >
               <AdminPostEditor />
-            // </ProtectedRoute>
+            </ProtectedRoute>
           }
         />
       </Route>

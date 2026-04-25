@@ -11,9 +11,9 @@ export default function DashboardLayout() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const isAdmin =  (user?.role === "SUPER_ADMIN") || (user?.role === "FACULTY") || (user?.role === "ANNOUNCEMENT_ADMIN") || (user?.role === "RESOURCE_ADMIN") || (true);
-    const isSTUDENT = user?.role === "STUDENT" || (true);
-    const isFaculty = user?.role === "FACULTY" || (true);
+    const isAdmin =  (user?.role === "SUPER_ADMIN") || (user?.role === "FACULTY") || (user?.role === "ANNOUNCEMENT_ADMIN") || (user?.role === "RESOURCE_ADMIN") ;
+    const isSTUDENT = user?.role === "STUDENT" ;
+    const isFaculty = user?.role === "FACULTY" ;
     
     const [open, setOpen] = useState(false);
     const [viewRole, setViewRole] = useState("STUDENT");
