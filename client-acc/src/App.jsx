@@ -80,7 +80,7 @@ const AppRoutes = () => {
             ]}
           >
             <DashboardLayout />
-          </ProtectedRoute>
+           </ProtectedRoute>
         }
       >
         <Route path="dashboard" element={<AdminDashboard />} />
@@ -119,7 +119,7 @@ const AppRoutes = () => {
               roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "FACULTY"]}
             >
               <ManageAnnouncement />
-            </ProtectedRoute>
+             </ProtectedRoute>
           }
         />
         <Route
