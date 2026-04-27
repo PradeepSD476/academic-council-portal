@@ -142,19 +142,12 @@ export const deletePost = async (req, res) => {
 
 export const editPost = async (req, res) => {
     const postId = req.params.id;
-    const updates = req.body;
+    const { title, description, experienceType, status } = req.body;
     if (!postId) {
         return res.status(400).json({
             success: false,
             error: "BadRequest",
             message: "Post ID is required."
-        })
-    }
-    if (!updates) {
-        return res.status(400).json({
-            success: false,
-            error: "BadRequest",
-            message: "No update fields provided."
         })
     }
     try {
@@ -174,7 +167,12 @@ export const editPost = async (req, res) => {
             where: {
                 id: parseInt(postId),
             },
-            data: updates
+            data: {
+                title,
+                description,
+                experienceType,
+                status
+            }
         })
         return res.status(201).json({
             success: true,
@@ -182,6 +180,7 @@ export const editPost = async (req, res) => {
             data: updatedPost
         })
     } catch (error) {
+        console.error(error)
         return res.status(500).json({
             success: false,
             error: "ServerError",
