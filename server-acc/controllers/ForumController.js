@@ -14,6 +14,9 @@ export const getAllPosts = async (req, res) => {
                 updatedAt: 'desc'
             },
             include: {
+                uploadedBy: {
+                    select: { id: true, displayName: true }
+                },
                 _count: {
                     select: { likes: true, comments: true },
                 }
@@ -305,7 +308,12 @@ export const getComments = async (req, res) => {
                     parentId: parentId,
                 },
                 orderBy: {
-                    updatedAt: "desc"
+                    updatedAt: "asc"
+                },
+                include: {
+                    user: {
+                        select: { id: true, displayName: true }
+                    }
                 }
             })
             
@@ -322,11 +330,15 @@ export const getComments = async (req, res) => {
             take: limit,
             where: {
                 postId: postId,
+                parentId: null,
             },
             orderBy: {
                 updatedAt: "desc"
             },
             include: {
+                user: {
+                    select: { id: true, displayName: true }
+                },
                 _count: {
                     select: { replies: true }
                 }
@@ -349,11 +361,39 @@ export const getComments = async (req, res) => {
 
 export const deleteComment = async (req, res) => {
     const commentId = parseInt(req.params.id);
+    const userId = req.user.id;
+
+    if (!commentId) {
+        return res.status(400).json({
+            success: false,
+            error: "BadRequest",
+            message: "Comment ID is required."
+        })
+    }
+
     try {
+        const comment = await prisma.comment.findUnique({
+            where: { id: commentId }
+        });
+
+        if (!comment) {
+            return res.status(404).json({
+                success: false,
+                error: "NotFound",
+                message: "Comment not found."
+            })
+        }
+
+        if (comment.userId !== userId) {
+            return res.status(403).json({
+                success: false,
+                error: "Forbidden",
+                message: "You can only delete your own comments."
+            })
+        }
+
         await prisma.comment.delete({
-            where: {
-                id: commentId
-            }
+            where: { id: commentId }
         })
 
         return res.status(200).json({
@@ -365,7 +405,7 @@ export const deleteComment = async (req, res) => {
         return res.status(500).json({
             success: false,
             error: "ServerError",
-            message: "Unable to comment due to a server error. Please try again."
+            message: "Unable to delete comment due to a server error. Please try again."
         })
     }
 }
