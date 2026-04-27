@@ -18,7 +18,12 @@ const CareerVault = () => {
     try {
       const response = await forumApi.getPosts();
       if (response.data.success) {
-        setExperiences(response.data.data);
+        // Map uploadedBy.displayName -> authorName for display
+        const mapped = response.data.data.map((p) => ({
+          ...p,
+          authorName: p.uploadedBy?.displayName || p.authorName || "Unknown",
+        }));
+        setExperiences(mapped);
       }
     } catch (error) {
       console.error("Error fetching posts:", error);
@@ -224,6 +229,7 @@ const CareerVault = () => {
 
                           <CommentSection
                             experience={exp}
+                            currentUserId={currentUserId}
                             currentUserName={currentUserName}
                             onCommentAdd={handleCommentAdd}
                             onReplyAdd={handleReplyAdd}

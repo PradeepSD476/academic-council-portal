@@ -15,4 +15,6 @@ export const forumApi = {
   // Comments
   addComment: (data) => api.post('/posts/comments', data),
   deleteComment: (id) => api.delete(`/posts/comments/${id}`),
+  getComments: (postId, page = 1, limit = 10, parentId = null) =>
+    api.get(`/posts/${postId}/comments`, { params: { page, limit, ...(parentId ? { parentId } : {}) } }),
 };

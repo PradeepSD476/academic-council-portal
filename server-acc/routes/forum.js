@@ -9,7 +9,7 @@ router.post('/posts', checkAuth, checkAnnouncementAdmin, addpost);
 router.patch('/posts/:id', checkAuth, checkAnnouncementAdmin, editPost);
 router.get('/posts', checkAuth, getAllPosts);
 router.delete('/posts/:id', checkAuth, checkAnnouncementAdmin, deletePost);
-router.delete('/posts/comments/:id', checkAuth, checkAnnouncementAdmin, deleteComment);
+router.delete('/posts/comments/:id', checkAuth, deleteComment);
 router.post('/posts/comments', checkAuth, addComment);
 router.get('/posts/:id/comments', checkAuth, getComments);
 // router.get('/posts/my', checkAuth, getMyPosts);
