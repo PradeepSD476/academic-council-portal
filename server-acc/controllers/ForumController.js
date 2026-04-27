@@ -15,8 +15,7 @@ export const getAllPosts = async (req, res) => {
             },
             include: {
                 _count: {
-                    select: { likes: true },
-                    select: { comments: true }
+                    select: { likes: true, comments: true },
                 }
             }
         })

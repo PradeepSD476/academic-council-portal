@@ -9,7 +9,7 @@ const api = axios.create({
 
 export const forumApi = {
   // Posts
-  getPosts: () => api.get('/posts'),
+  getPosts: () => api.get('/posts?page=1&limit=10'),
   toggleLike: (id) => api.post(`/posts/toggle-like/${id}`),
 
   // Comments
