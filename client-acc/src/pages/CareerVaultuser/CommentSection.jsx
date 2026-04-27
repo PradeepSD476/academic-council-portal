@@ -40,7 +40,7 @@ const CommentSection = ({ experience, currentUserName, onCommentAdd, onReplyAdd,
     <div className="bg-gray-50 rounded-lg p-4">
       {/* Existing Comments List */}
       <div className="space-y-4 mb-4">
-        {experience.comments.map((comment) => (
+        {experience.comments?.map((comment) => (
           <div key={comment.id} className="text-sm bg-white p-3 rounded-lg border border-gray-100 shadow-sm flex flex-col gap-2">
             <div className="flex justify-between items-start">
               <span className="font-bold text-gray-800">{comment.userName}</span>
@@ -55,7 +55,7 @@ const CommentSection = ({ experience, currentUserName, onCommentAdd, onReplyAdd,
               <button onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)} className="text-xs font-semibold text-gray-500 hover:text-blue-600 flex items-center gap-1 transition-colors">
                 <MessageCircle size={14} /> {replyingTo === comment.id ? "Cancel" : "Reply"}
               </button>
-              {comment.userName === currentUserName && (
+              {comment?.userName === currentUserName && (
                 <button onClick={() => onCommentDelete(experience.id, comment.id)} className="text-xs font-semibold text-red-500 hover:text-red-700 flex items-center gap-1 transition-colors">
                   <Trash2 size={14} /> Delete
                 </button>
@@ -63,7 +63,7 @@ const CommentSection = ({ experience, currentUserName, onCommentAdd, onReplyAdd,
             </div>
 
             {/* Nested Replies */}
-            {comment.replies && comment.replies.length > 0 && (
+            {comment?.replies && comment?.replies?.length > 0 && (
               <div className="mt-3 space-y-3 pl-4 border-l-2 border-gray-100 pb-1">
                 {(expandedReplies[comment.id] ? comment.replies : comment.replies.slice(0, 2)).map((reply) => (
                   <div key={reply.id} className="bg-gray-50 p-3 rounded border border-gray-100">
@@ -85,7 +85,7 @@ const CommentSection = ({ experience, currentUserName, onCommentAdd, onReplyAdd,
                 ))}
 
                 {/* Show More/Fewer Replies Button */}
-                {comment.replies.length > 2 && (
+                {comment?.replies.length > 2 && (
                   <button 
                     onClick={() => toggleRepliesExpansion(comment.id)} 
                     className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors mt-2 block"
@@ -97,7 +97,7 @@ const CommentSection = ({ experience, currentUserName, onCommentAdd, onReplyAdd,
             )}
 
             {/* Inline Reply Editor */}
-            {replyingTo === comment.id && (
+            {replyingTo === comment?.id && (
               <div className="mt-3">
                 <NativeRichTextEditor
                   value={replyInputs[comment.id]}
@@ -116,12 +116,12 @@ const CommentSection = ({ experience, currentUserName, onCommentAdd, onReplyAdd,
           </div>
         ))}
         
-        {experience.comments.length === 0 && (
+        {experience.comments?.length === 0 && (
           <p className="text-sm text-gray-400 text-center py-4">No comments yet. Be the first to start the discussion!</p>
         )}
         
         {/* Pagination Stub */}
-        {experience.commentsCount > experience.comments.length && (
+        {experience.commentsCount > experience.comments?.length && (
            <div className="flex justify-center mt-2">
              <button onClick={loadMoreComments} disabled={isLoadingMoreComments} className="text-xs font-semibold text-blue-600 hover:text-blue-800 py-2 border border-blue-100 hover:bg-blue-50 px-4 rounded-full transition-colors flex items-center gap-2">
                {isLoadingMoreComments ? "Loading..." : "Load More Comments"}

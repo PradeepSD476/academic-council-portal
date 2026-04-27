@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, ChevronDown, ChevronUp, MessageSquare } from "lucide-react";
+import { Heart, ChevronDown, ChevronUp, MessageSquare, ArrowBigUp } from "lucide-react";
 import toast from "react-hot-toast";
 import AuthContext from "../../context/auth/authContext";
 import CommentSection from "./CommentSection";
@@ -176,32 +176,23 @@ const CareerVault = () => {
                     <div className="flex items-center gap-6 text-gray-500">
                       <button
                         onClick={() => toggleLike(exp.id)}
-                        className={`flex items-center gap-1.5 transition-colors ${
-                          exp.likedBy?.includes(currentUserId)
+                        className={`flex items-center gap-1.5 transition-colors ${exp.likedBy?.includes(currentUserId)
                             ? "text-pink-600"
                             : "hover:text-pink-600"
-                        }`}
+                          }`}
                       >
-                        <Heart
+                        <ArrowBigUp
                           size={18}
-                          fill={
-                            exp.likedBy?.includes(currentUserId)
-                              ? "currentColor"
-                              : "none"
-                          }
-                          strokeWidth={
-                            exp.likedBy?.includes(currentUserId) ? 0 : 2
-                          }
                         />
                         <span className="font-medium text-sm">
-                          {exp.likes} Likes
+                          {exp._count.likes}
                         </span>
                       </button>
 
                       <div className="flex items-center gap-1.5 text-gray-500">
                         <MessageSquare size={18} />
                         <span className="font-medium text-sm">
-                          {exp.commentsCount || 0} Comments
+                          {exp._count.comments || 0} Comments
                         </span>
                       </div>
 
