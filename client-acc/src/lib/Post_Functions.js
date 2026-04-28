@@ -1,4 +1,3 @@
-import mockData from "../pages/admin/mock-post.json";
 import toast from "react-hot-toast";
 
 /**
@@ -15,22 +14,77 @@ import toast from "react-hot-toast";
  *
  */
 
-//Still To be Done.
-export const getRoutedPost = (postId) => {
-  // Finds a post by id from the mock post data for editor routing.
+export const getRoutedPost = async (postId) => {
+  // Finds a post by id from the backend Experience data for editor routing.
   const numericPostId = Number(postId);
 
   if (Number.isNaN(numericPostId) || numericPostId === -1) {
     return null;
   }
 
-  return (
-    (mockData?.data || []).find((item) => item.id === numericPostId) || null
-  );
+  const response = await getAllPosts();
+  return (response?.data || []).find((item) => item.id === numericPostId) || null;
+};
+
+export const getAllPosts = async () => {
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/v1/posts?page=1&limit=1000`,
+      {
+        method: "GET",
+        credentials: "include",
+      },
+    );
+
+    let data = {};
+    try {
+      data = await response.json();
+    } catch {
+      data = {};
+    }
+
+    const message = data?.message || "Something went wrong while fetching posts.";
+
+    if (response.ok && data?.success) {
+      return data;
+    }
+
+    if (
+      response.status === 400 ||
+      response.status === 401 ||
+      response.status === 403 ||
+      response.status === 500
+    ) {
+      toast.error(message);
+      return { success: false, message, data: [] };
+    }
+
+    toast.error(message);
+    return { success: false, message, data: [] };
+  } catch {
+    const fallback = {
+      success: false,
+      error: "NetworkError",
+      message: "Unable to fetch posts due to a network error. Please try again.",
+      data: [],
+    };
+    toast.error(fallback.message);
+    return fallback;
+  }
 };
 
 const createPost = async (formData) => {
   try {
+    if (!formData?.title) {
+      const fallback = {
+        success: false,
+        error: "ValidationError",
+        message: "Title is required to create a post.",
+      };
+      toast.error(fallback.message);
+      return fallback;
+    }
+
     const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/posts`, {
       method: "POST",
       credentials: "include",
@@ -50,27 +104,6 @@ const createPost = async (formData) => {
     const message = data?.message || "Something went wrong while creating the post.";
 
     if (response.status === 201 && data?.success) {
-      if (Array.isArray(mockData?.data)) {
-        const createdPost = data?.data || {};
-        const nextId = Math.max(0, ...mockData.data.map((item) => Number(item.id) || 0)) + 1;
-
-        mockData.data = [
-          {
-            ...createdPost,
-            id: createdPost?.id ?? nextId,
-            title: createdPost?.title ?? formData?.title ?? "",
-            description:
-              createdPost?.description ?? formData?.description ?? formData?.content ?? "",
-            experienceType: createdPost?.experienceType ?? formData?.experienceType,
-            status: createdPost?.status ?? formData?.status,
-            updatedAt: createdPost?.updatedAt ?? new Date().toISOString(),
-            _count: createdPost?._count ?? { likes: 0, comments: 0 },
-            hasLiked: createdPost?.hasLiked ?? false,
-          },
-          ...mockData.data,
-        ];
-      }
-
       toast.success(message);
       return data;
     }
@@ -95,10 +128,20 @@ const createPost = async (formData) => {
 
 const updatePost = async (postId, formData) => {
   try {
+    if (!formData?.title) {
+      const fallback = {
+        success: false,
+        error: "ValidationError",
+        message: "Title is required to update a post.",
+      };
+      toast.error(fallback.message);
+      return fallback;
+    }
+
     const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/posts/${postId}`, {
       method: "PATCH",
       credentials: "include",
-      body: JSON.stringify({ updates: formData }),
+      body: JSON.stringify(formData),
       headers: {
         "Content-Type": "application/json",
       },
@@ -114,33 +157,6 @@ const updatePost = async (postId, formData) => {
     const message = data?.message || "Something went wrong while updating the post.";
 
     if (response.status === 201 && data?.success) {
-      if (Array.isArray(mockData?.data)) {
-        const numericPostId = Number(postId);
-        const updatedPost = data?.data || {};
-
-        mockData.data = mockData.data.map((item) => {
-          if (item.id !== numericPostId) {
-            return item;
-          }
-
-          return {
-            ...item,
-            ...updatedPost,
-            id: numericPostId,
-            title: updatedPost?.title ?? formData?.title ?? item.title,
-            description:
-              updatedPost?.description ??
-              formData?.description ??
-              formData?.content ??
-              item.description,
-            experienceType:
-              updatedPost?.experienceType ?? formData?.experienceType ?? item.experienceType,
-            status: updatedPost?.status ?? formData?.status ?? item.status,
-            updatedAt: updatedPost?.updatedAt ?? new Date().toISOString(),
-          };
-        });
-      }
-
       toast.success(message);
       return data;
     }
@@ -199,10 +215,6 @@ export const deletePost = async (postId) => {
     const message = data?.message || "Something went wrong while deleting the post.";
 
     if (response.status === 200 && data?.success) {
-      const numericPostId = Number(postId);
-      if (!Number.isNaN(numericPostId) && Array.isArray(mockData?.data)) {
-        mockData.data = mockData.data.filter((item) => item.id !== numericPostId);
-      }
       toast.success(message);
       return data;
     }

@@ -24,6 +24,30 @@ import {
 
 const normalizeHtml = (value) => value?.trim() || "";
 
+const preserveHeadingBold = (value = "") => {
+  if (!value) {
+    return "";
+  }
+
+  const parser = new DOMParser();
+  const document = parser.parseFromString(value, "text/html");
+
+  document.querySelectorAll("h1").forEach((heading) => {
+    if (heading.querySelector("b, strong")) {
+      return;
+    }
+
+    const boldWrapper = document.createElement("strong");
+    while (heading.firstChild) {
+      boldWrapper.appendChild(heading.firstChild);
+    }
+
+    heading.appendChild(boldWrapper);
+  });
+
+  return document.body.innerHTML.trim();
+};
+
 const escapeHtml = (value) =>
   value
     .replaceAll("&", "&amp;")
@@ -38,11 +62,37 @@ const AdminPostEditor = () => {
   const id = location.state?.postId ?? -1;
   const editorRef = useRef(null);
 
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [isLoadingPost, setIsLoadingPost] = useState(Number(id) !== -1);
 
-  
-  const routedPost = getRoutedPost(id);
+  useEffect(() => {
+    let isMounted = true;
 
-  const selectedPost = routedPost;
+    const loadSelectedPost = async () => {
+      if (Number(id) === -1) {
+        setSelectedPost(null);
+        setIsLoadingPost(false);
+        return;
+      }
+
+      setIsLoadingPost(true);
+      const routedPost = await getRoutedPost(id);
+
+      if (!isMounted) {
+        return;
+      }
+
+      setSelectedPost(routedPost);
+      setIsLoadingPost(false);
+    };
+
+    void loadSelectedPost();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id]);
+
   const normalizedType = selectedPost?.experienceType || selectedPost?.type;
 
   const defaultExperienceType = EXPERIENCE_TYPE_VALUES.includes(normalizedType)
@@ -76,13 +126,24 @@ const AdminPostEditor = () => {
     }
   }, [formData.description]);
 
+  if (isLoadingPost) {
+    return (
+      <div className="p-6 h-[calc(100vh-7.5rem)] bg-gray-50 flex items-center justify-center">
+        <p className="text-sm text-gray-500">Loading post...</p>
+      </div>
+    );
+  }
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const getPreservedEditorHtml = () =>
+    preserveHeadingBold(editorRef.current?.innerHTML || formData.description || "");
+
   const handleEditorInput = () => {
-    const nextValue = editorRef.current?.innerHTML || "";
+    const nextValue = getPreservedEditorHtml();
     setFormData((prev) => ({ ...prev, description: nextValue }));
   };
 
@@ -131,26 +192,36 @@ const AdminPostEditor = () => {
     navigate("/admin/manage-posts");
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
+    const preservedDescription = getPreservedEditorHtml();
     const payload = {
       ...formData,
-      content: formData.description,
-      description: formData.description,
+      content: preservedDescription,
+      description: preservedDescription,
       status: "PUBLISHED",
     };
 
-    publishPost(Number(id), payload);
+    const response = await publishPost(Number(id), payload);
+
+    if (response?.success) {
+      navigate("/admin/manage-posts");
+    }
   };
 
-  const handleSaveDraft = () => {
+  const handleSaveDraft = async () => {
+    const preservedDescription = getPreservedEditorHtml();
     const payload = {
       ...formData,
-      content: formData.description,
-      description: formData.description,
+      content: preservedDescription,
+      description: preservedDescription,
       status: "DRAFT",
     };
 
-    saveDraft(Number(id), payload);
+    const response = await saveDraft(Number(id), payload);
+
+    if (response?.success) {
+      navigate("/admin/manage-posts");
+    }
   };
 
   return (

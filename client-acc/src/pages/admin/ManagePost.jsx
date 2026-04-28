@@ -1,8 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Edit2, FileText, Trash2 } from "lucide-react";
-import mockData from "./mock-post.json";
 import { useNavigate } from "react-router-dom";
-import { deletePost } from "../../lib/Post_Functions";
+import { deletePost, getAllPosts } from "../../lib/Post_Functions";
 
 const PAGE_SIZE = 10;
 
@@ -11,7 +10,30 @@ const stripHtml = (value = "") => value.replace(/<[^>]*>/g, "").trim();
 const ManagePost = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
-  const [posts, setPosts] = useState(() => mockData?.data || []);
+  const [posts, setPosts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadPosts = async () => {
+      setIsLoading(true);
+      const response = await getAllPosts();
+
+      if (!isMounted) {
+        return;
+      }
+
+      setPosts(Array.isArray(response?.data) ? response.data : []);
+      setIsLoading(false);
+    };
+
+    void loadPosts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const openEditorForId = (postId) => {
     navigate("/admin/editor", { state: { postId } });
@@ -100,10 +122,10 @@ const ManagePost = () => {
                 {currentPosts.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={7}
                       className="px-6 py-12 text-center text-sm text-gray-500"
                     >
-                      No posts found.
+                      {isLoading ? "Loading posts..." : "No posts found."}
                     </td>
                   </tr>
                 ) : (
