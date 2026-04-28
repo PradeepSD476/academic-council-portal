@@ -55,7 +55,7 @@ const AppRoutes = () => {
             ]}
           >
             <DashboardLayout />
-          </ProtectedRoute>
+           </ProtectedRoute>
         }
       >
         <Route path="courses" element={<MyCourses />}>
@@ -80,7 +80,7 @@ const AppRoutes = () => {
             ]}
           >
             <DashboardLayout />
-           </ProtectedRoute>
+            </ProtectedRoute>
         }
       >
         <Route path="dashboard" element={<AdminDashboard />} />
@@ -91,7 +91,7 @@ const AppRoutes = () => {
               roles={["SUPER_ADMIN", "RESOURCE_ADMIN", "FACULTY"]}
             >
               <ManageCourses />
-            </ProtectedRoute>
+             </ProtectedRoute>
           }
         />
         <Route
@@ -99,7 +99,7 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY"]}>
               <ManageUsers />
-            </ProtectedRoute>
+             </ProtectedRoute>
           }
         />
         <Route
@@ -109,7 +109,7 @@ const AppRoutes = () => {
               roles={["SUPER_ADMIN", "RESOURCE_ADMIN", "FACULTY"]}
             >
               <ManageResources />
-            </ProtectedRoute>
+             </ProtectedRoute>
           }
         />
         <Route
@@ -119,7 +119,7 @@ const AppRoutes = () => {
               roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "FACULTY"]}
             >
               <ManageAnnouncement />
-             </ProtectedRoute>
+            </ProtectedRoute>
           }
         />
         <Route
