@@ -11,6 +11,8 @@ const ManagePost = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [posts, setPosts] = useState([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -18,13 +20,15 @@ const ManagePost = () => {
 
     const loadPosts = async () => {
       setIsLoading(true);
-      const response = await getAllPosts();
+      const response = await getAllPosts(page, PAGE_SIZE);
 
       if (!isMounted) {
         return;
       }
 
       setPosts(Array.isArray(response?.data) ? response.data : []);
+      setTotalPages(response?.pagination?.totalPages || 1);
+      setTotalResults(response?.pagination?.total || 0);
       setIsLoading(false);
     };
 
@@ -33,7 +37,7 @@ const ManagePost = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [page]);
 
   const openEditorForId = (postId) => {
     navigate("/admin/editor", { state: { postId } });
@@ -50,15 +54,8 @@ const ManagePost = () => {
   
   
 
-  const totalPages = Math.max(1, Math.ceil(posts.length / PAGE_SIZE));
-
-  const currentPosts = useMemo(() => {
-    const start = (page - 1) * PAGE_SIZE;
-    return posts.slice(start, start + PAGE_SIZE);
-  }, [posts, page]);
-
-  const startItem = posts.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-  const endItem = Math.min(page * PAGE_SIZE, posts.length);
+  const startItem = totalResults === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+  const endItem = Math.min(page * PAGE_SIZE, totalResults);
 
   return (
     <div className="p-6 h-[calc(100vh-7.5rem)] bg-gray-50 flex flex-col overflow-hidden">
@@ -119,7 +116,7 @@ const ManagePost = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {currentPosts.length === 0 ? (
+                {posts.length === 0 ? (
                   <tr>
                     <td
                       colSpan={7}
@@ -129,7 +126,7 @@ const ManagePost = () => {
                     </td>
                   </tr>
                 ) : (
-                  currentPosts.map((item) => (
+                  posts.map((item) => (
                     <tr
                       key={item.id}
                       className="hover:bg-gray-50 transition-colors"
@@ -207,7 +204,7 @@ const ManagePost = () => {
         <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-gray-200 bg-gray-50 flex-none">
           {/*Page Number*/}
           <p className="text-xs text-gray-600">
-            Showing {startItem} to {endItem} of {posts.length}
+            Showing {startItem} to {endItem} of {totalResults}
           </p>
 
           <div className="flex items-center gap-1">

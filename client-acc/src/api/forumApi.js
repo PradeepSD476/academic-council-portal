@@ -8,13 +8,24 @@ const api = axios.create({
 });
 
 export const forumApi = {
-  // Posts
-  getPosts: () => api.get('/posts?page=1&limit=10'),
+  // Posts - public (only PUBLISHED)
+  getPosts: (page = 1, limit = 10) => api.get(`/posts?page=${page}&limit=${limit}`),
+
+  // Posts - admin (ALL statuses: DRAFT + PUBLISHED)
+  getAllPostsAdmin: (page = 1, limit = 10) => api.get(`/posts/all?page=${page}&limit=${limit}`),
+
+  // Public submission - always saved as DRAFT for admin review
+  submitPost: (data) => api.post('/posts/submit', data),
+
+  deletePost: (id) => api.delete(`/posts/${id}`),
+
   toggleLike: (id) => api.post(`/posts/toggle-like/${id}`),
 
   // Comments
   addComment: (data) => api.post('/posts/comments', data),
+  
   deleteComment: (id) => api.delete(`/posts/comments/${id}`),
+
   getComments: (postId, page = 1, limit = 10, parentId = null) =>
     api.get(`/posts/${postId}/comments`, { params: { page, limit, ...(parentId ? { parentId } : {}) } }),
 };
