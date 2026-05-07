@@ -2,31 +2,47 @@ import dotenv from 'dotenv';
 dotenv.config();
 import prisma from '../config/db.js';
 
+// Public endpoint: returns posts by status (default: PUBLISHED) with server-side pagination
 export const getAllPosts = async (req, res) => {
-    const page = parseInt(req.query.page);
-    const limit = parseInt(req.query.limit);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const status = req.query.status || 'PUBLISHED';
+
+    const whereClause = status === 'ALL' ? {} : { status: status };
 
     try {
-        const result = await prisma.experience.findMany({
-            skip: (page - 1) * limit,
-            take: limit,
-            orderBy: {
-                updatedAt: 'desc'
-            },
-            include: {
-                uploadedBy: {
-                    select: { id: true, displayName: true }
+        const [result, total] = await Promise.all([
+            prisma.experience.findMany({
+                skip: (page - 1) * limit,
+                take: limit,
+                where: whereClause,
+                orderBy: {
+                    updatedAt: 'desc'
                 },
-                _count: {
-                    select: { likes: true, comments: true },
+                include: {
+                    uploadedBy: {
+                        select: { id: true, displayName: true }
+                    },
+                    _count: {
+                        select: { likes: true, comments: true },
+                    }
                 }
-            }
-        })
+            }),
+            prisma.experience.count({
+                where: whereClause
+            })
+        ]);
 
         return res.status(200).json({
             success: true,
             message: "Data fetched Successfully",
             data: result,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
         })
     } catch (error) {
         console.log(error);
@@ -37,6 +53,8 @@ export const getAllPosts = async (req, res) => {
         })
     }
 }
+
+
 
 // export const getMyPosts = async (req, res) => {
 //     const userId = req.user.id;
@@ -102,6 +120,8 @@ export const addpost = async (req, res) => {
 
 export const deletePost = async (req, res) => {
     const postId = parseInt(req.params.id);
+    const user = req.user;
+
     if (!postId) {
         return res.status(400).json({
             success: false,
@@ -109,29 +129,36 @@ export const deletePost = async (req, res) => {
             message: "Post ID is required."
         })
     }
+
     try {
         const post = await prisma.experience.findUnique({
             where: {
-                id: parseInt(postId),
+                id: postId,
             }
         })
+
         if (!post) {
             return res.status(404).json({
                 success: false,
                 error: "NotFound",
-                message: "post not found."
+                message: "Post not found."
             })
         }
+
+
+
         await prisma.experience.delete({
             where: {
-                id: parseInt(postId),
+                id: postId,
             }
         })
+
         return res.status(200).json({
             success: true,
-            message: "Content deleted successfully."
+            message: "Post deleted successfully."
         })
     } catch (error) {
+        console.log(error);
         return res.status(500).json({
             success: false,
             error: "ServerError",

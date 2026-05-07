@@ -26,10 +26,10 @@ export const getRoutedPost = async (postId) => {
   return (response?.data || []).find((item) => item.id === numericPostId) || null;
 };
 
-export const getAllPosts = async () => {
+export const getAllPosts = async (page = 1, limit = 10) => {
   try {
     const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/v1/posts?page=1&limit=1000`,
+      `${import.meta.env.VITE_API_URL}/api/v1/posts?page=${page}&limit=${limit}&status=ALL`,
       {
         method: "GET",
         credentials: "include",
@@ -56,22 +56,24 @@ export const getAllPosts = async () => {
       response.status === 500
     ) {
       toast.error(message);
-      return { success: false, message, data: [] };
+      return { success: false, message, data: [], pagination: { total: 0, totalPages: 0 } };
     }
 
     toast.error(message);
-    return { success: false, message, data: [] };
+    return { success: false, message, data: [], pagination: { total: 0, totalPages: 0 } };
   } catch {
     const fallback = {
       success: false,
       error: "NetworkError",
       message: "Unable to fetch posts due to a network error. Please try again.",
       data: [],
+      pagination: { total: 0, totalPages: 0 }
     };
     toast.error(fallback.message);
     return fallback;
   }
 };
+
 
 const createPost = async (formData) => {
   try {

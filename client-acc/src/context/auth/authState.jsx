@@ -32,6 +32,7 @@ const AuthState = ({ children }) => {
         fetchMe();
     }, []);
 
+
     const login = async (email, password) => {
         setLoading(true);
         try {

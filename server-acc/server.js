@@ -16,7 +16,12 @@ import { checkAuth } from './middlewares/checkAuth.js'
 import forumRoutes from './routes/forum.js'
 
 dotenv.config();
-await ensureBucket();
+
+try {
+  await ensureBucket();
+} catch (error) {
+  console.warn("Minio bucket initialization failed. Running without Minio.", error.message);
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000
