@@ -5,14 +5,20 @@ import { addComment, addpost, deleteComment, deletePost, editPost, getAllPosts, 
 
 const router = express.Router();
 
+// Admin: create/edit/delete posts (requires admin role)
 router.post('/posts', checkAuth, checkAnnouncementAdmin, addpost);
 router.patch('/posts/:id', checkAuth, checkAnnouncementAdmin, editPost);
-router.get('/posts', checkAuth, getAllPosts);
 router.delete('/posts/:id', checkAuth, checkAnnouncementAdmin, deletePost);
+
+
+
+// Public: only PUBLISHED posts shown on homepage / career vault
+router.get('/posts', checkAuth, getAllPosts);
+
+// Comments & likes
 router.delete('/posts/comments/:id', checkAuth, deleteComment);
 router.post('/posts/comments', checkAuth, addComment);
 router.get('/posts/:id/comments', checkAuth, getComments);
-// router.get('/posts/my', checkAuth, getMyPosts);
-router.post('/posts/toggle-like/:id', checkAuth, togglePostLike)
+router.post('/posts/toggle-like/:id', checkAuth, togglePostLike);
 
 export default router;

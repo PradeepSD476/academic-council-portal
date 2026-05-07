@@ -29,7 +29,7 @@ export const getRoutedPost = async (postId) => {
 export const getAllPosts = async (page = 1, limit = 10) => {
   try {
     const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/v1/posts/all?page=${page}&limit=${limit}`,
+      `${import.meta.env.VITE_API_URL}/api/v1/posts?page=${page}&limit=${limit}&status=ALL`,
       {
         method: "GET",
         credentials: "include",

@@ -82,17 +82,7 @@ function Navbar() {
                         exit={{ opacity: 0, y: 10 }}
                         className="absolute right-0 mt-3 w-48 bg-white rounded-xl shadow-xl border overflow-hidden"
                       >
-                        {["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "RESOURCE_ADMIN", "FACULTY"].includes(user?.role) ? (
-                          <button
-                            onClick={() => {
-                              navigate("/admin/dashboard");
-                              setDropdown(false);
-                            }}
-                            className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors"
-                          >
-                            Admin Dashboard
-                          </button>
-                        ) : (
+                        {user?.role !== "FACULTY" ? (
                           <button
                             onClick={() => {
                               navigate("/dashboard/courses");
@@ -100,7 +90,17 @@ function Navbar() {
                             }}
                             className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors"
                           >
-                            Student Dashboard
+                            Dashboard
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              navigate("/admin/dashboard");
+                              setDropdown(false);
+                            }}
+                            className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors"
+                          >
+                            Dashboard
                           </button>
                         )}
 
@@ -168,14 +168,7 @@ function Navbar() {
               ) : (
                 <div className="space-y-4 pt-2">
                   <button
-                    onClick={() => { 
-                      if (["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "RESOURCE_ADMIN", "FACULTY"].includes(user?.role)) {
-                        navigate("/admin/dashboard"); 
-                      } else {
-                        navigate("/dashboard/courses"); 
-                      }
-                      setIsOpen(false); 
-                    }}
+                    onClick={() => { navigate("/dashboard/courses"); setIsOpen(false); }}
                     className="block w-full text-left py-2 text-lg font-semibold text-gray-800"
                   >
                     Dashboard

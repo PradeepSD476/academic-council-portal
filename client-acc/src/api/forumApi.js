@@ -9,13 +9,7 @@ const api = axios.create({
 
 export const forumApi = {
   // Posts - public (only PUBLISHED)
-  getPosts: (page = 1, limit = 10) => api.get(`/posts?page=${page}&limit=${limit}`),
-
-  // Posts - admin (ALL statuses: DRAFT + PUBLISHED)
-  getAllPostsAdmin: (page = 1, limit = 10) => api.get(`/posts/all?page=${page}&limit=${limit}`),
-
-  // Public submission - always saved as DRAFT for admin review
-  submitPost: (data) => api.post('/posts/submit', data),
+  getPosts: (page = 1, limit = 10, status = 'ALL') => api.get(`/posts?page=${page}&limit=${limit}&status=${status}`),
 
   deletePost: (id) => api.delete(`/posts/${id}`),
 

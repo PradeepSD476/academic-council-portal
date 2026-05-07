@@ -8,14 +8,14 @@ export const getAllPosts = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const status = req.query.status || 'PUBLISHED';
 
+    const whereClause = status === 'ALL' ? {} : { status: status };
+
     try {
         const [result, total] = await Promise.all([
             prisma.experience.findMany({
                 skip: (page - 1) * limit,
                 take: limit,
-                where: {
-                    status: status
-                },
+                where: whereClause,
                 orderBy: {
                     updatedAt: 'desc'
                 },
@@ -29,7 +29,7 @@ export const getAllPosts = async (req, res) => {
                 }
             }),
             prisma.experience.count({
-                where: { status: status }
+                where: whereClause
             })
         ]);
 
@@ -54,98 +54,7 @@ export const getAllPosts = async (req, res) => {
     }
 }
 
-// Admin endpoint: returns ALL posts regardless of status with server-side pagination
-export const getAllPostsAdmin = async (req, res) => {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
 
-    try {
-        const [result, total] = await Promise.all([
-            prisma.experience.findMany({
-                skip: (page - 1) * limit,
-                take: limit,
-                orderBy: {
-                    updatedAt: 'desc'
-                },
-                include: {
-                    uploadedBy: {
-                        select: { id: true, displayName: true }
-                    },
-                    _count: {
-                        select: { likes: true, comments: true },
-                    }
-                }
-            }),
-            prisma.experience.count()
-        ]);
-
-        return res.status(200).json({
-            success: true,
-            message: "Data fetched Successfully",
-            data: result,
-            pagination: {
-                total,
-                page,
-                limit,
-                totalPages: Math.ceil(total / limit)
-            }
-        })
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({
-            success: false,
-            error: "Internal Server Error",
-            message: "Something went wrong. Please try again later."
-        })
-    }
-}
-
-// Public submission: any logged-in user can submit; always saved as DRAFT
-export const submitPublicPost = async (req, res) => {
-    const { title, description, experienceType } = req.body;
-    const user = req.user;
-
-    if (!title || !description) {
-        return res.status(400).json({
-            success: false,
-            error: "BadRequest",
-            message: "Validation failed. Title and description are required."
-        })
-    }
-
-    if (!experienceType || !['INTERNSHIP', 'PLACEMENT', 'STARTUP'].includes(experienceType)) {
-        return res.status(400).json({
-            success: false,
-            error: "BadRequest",
-            message: "A valid experience type (INTERNSHIP, PLACEMENT, STARTUP) is required."
-        })
-    }
-
-    try {
-        const experience = await prisma.experience.create({
-            data: {
-                title,
-                description,
-                status: 'DRAFT',   // always DRAFT for public submissions
-                experienceType,
-                uploadedById: user.id
-            }
-        })
-
-        return res.status(201).json({
-            success: true,
-            message: "Your post has been submitted for review. It will be visible once an admin approves it.",
-            data: experience
-        })
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({
-            success: false,
-            error: "ServerError",
-            message: "Unable to submit post due to a server error. Please try again."
-        })
-    }
-}
 
 // export const getMyPosts = async (req, res) => {
 //     const userId = req.user.id;
@@ -236,17 +145,7 @@ export const deletePost = async (req, res) => {
             })
         }
 
-        // Allow deletion if user is the author OR is an admin
-        const isAdmin = ['SUPER_ADMIN', 'ANNOUNCEMENT_ADMIN', 'FACULTY'].includes(user.role);
-        const isAuthor = post.uploadedById === user.id;
 
-        if (!isAdmin && !isAuthor) {
-            return res.status(403).json({
-                success: false,
-                error: "Forbidden",
-                message: "You do not have permission to delete this post."
-            })
-        }
 
         await prisma.experience.delete({
             where: {
