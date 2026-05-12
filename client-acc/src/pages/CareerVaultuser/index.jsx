@@ -29,7 +29,7 @@ const CreatePostModal = ({ onClose, onSubmitted }) => {
 
     setSubmitting(true);
     try {
-      await forumApi.submitPost({ title: title.trim(), description, experienceType });
+      await forumApi.submitPost({ title: title.trim(), description, experienceType, status: "DRAFT" });
       toast.success("Post submitted! It will appear publicly after admin review.");
       onSubmitted();
       onClose();

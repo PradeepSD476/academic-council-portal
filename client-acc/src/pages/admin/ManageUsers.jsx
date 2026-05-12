@@ -12,7 +12,7 @@ const ManageUsers = () => {
   const limit = 10;
   const [hasMore, setHasMore] = useState(true);
 
-  const roles = ['STUDENT', 'ANNOUNCEMENT_ADMIN', 'RESOURCE_ADMIN', 'SUPER_ADMIN', 'FACULTY'];
+  const roles = ['STUDENT', 'CAREER_ADMIN', 'ANNOUNCEMENT_ADMIN', 'RESOURCE_ADMIN', 'SUPER_ADMIN', 'FACULTY'];
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -186,7 +186,8 @@ const RoleBadge = ({ role }) => {
     'ANNOUNCEMENT_ADMIN': 'bg-blue-100 text-blue-800 border-blue-200',
     'RESOURCE_ADMIN': 'bg-amber-100 text-amber-800 border-amber-200',
     'STUDENT': 'bg-green-100 text-green-800 border-green-200',
-    'FACULTY': 'bg-red-100 text-red-800 border-red-200'
+    'FACULTY': 'bg-red-100 text-red-800 border-red-200',
+    'CAREER_ADMIN': 'bg-blue-100 text-blue-800 border-blue-200'
   };
 
   const style = colors[role] || 'bg-gray-100 text-gray-800 border-gray-200';

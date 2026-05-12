@@ -9,7 +9,7 @@ const api = axios.create({
 
 export const forumApi = {
   // Posts - public (only PUBLISHED)
-  getPosts: (page = 1, limit = 10, status = 'ALL') => api.get(`/posts?page=${page}&limit=${limit}&status=${status}`),
+  getPosts: (page = 1, limit = 10, status = 'PUBLISHED') => api.get(`/posts?page=${page}&limit=${limit}&status=${status}`),
 
   deletePost: (id) => api.delete(`/posts/${id}`),
 
@@ -17,6 +17,8 @@ export const forumApi = {
 
   // Comments
   addComment: (data) => api.post('/posts/comments', data),
+
+  submitPost: (data) => api.post('/posts', data),
   
   deleteComment: (id) => api.delete(`/posts/comments/${id}`),
 
