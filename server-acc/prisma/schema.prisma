@@ -137,6 +137,7 @@ enum Role {
   ANNOUNCEMENT_ADMIN
   SUPER_ADMIN
   FACULTY
+  CAREER_ADMIN
 }
 
 enum VerificationType {
