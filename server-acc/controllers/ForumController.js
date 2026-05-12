@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import prisma from '../config/db.js';
+import notifyOnNewPost from '../utils/mail/sendExperiencePost.js';
 
 // Public endpoint: returns posts by status (default: PUBLISHED) with server-side pagination
 export const getAllPosts = async (req, res) => {
@@ -103,6 +104,8 @@ export const addpost = async (req, res) => {
             }
         })
 
+        
+
         return res.status(201).json({
             success: true,
             message: "Successfully Created Post.",
@@ -145,8 +148,6 @@ export const deletePost = async (req, res) => {
             })
         }
 
-
-
         await prisma.experience.delete({
             where: {
                 id: postId,
@@ -169,6 +170,7 @@ export const deletePost = async (req, res) => {
 
 export const editPost = async (req, res) => {
     const postId = req.params.id;
+    const user = req.user;
     const { title, description, experienceType, status } = req.body;
     if (!postId) {
         return res.status(400).json({
@@ -201,6 +203,11 @@ export const editPost = async (req, res) => {
                 status
             }
         })
+
+        if(status === "PUBLISHED"){
+            notifyOnNewPost({ displayName: user.displayName, experienceTitle: title, experienceType: experienceType })
+        }
+
         return res.status(201).json({
             success: true,
             message: "post updated successfully.",
