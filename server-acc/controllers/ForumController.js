@@ -24,6 +24,9 @@ export const getAllPosts = async (req, res) => {
                     uploadedBy: {
                         select: { id: true, displayName: true }
                     },
+                    likes: {
+                        select: { userId: true }
+                    },
                     _count: {
                         select: { likes: true, comments: true },
                     }
@@ -467,45 +470,45 @@ export const togglePostLike = async (req, res) => {
                 message: "post not found."
             })
         }
-        const isLiked = await prisma.like.findUnique({
-            where: {
-                userId_postId: {
-                    postId: postId,
-                    userId: userId,
-                }
-            }
-        })
-
-        if (isLiked) {
-            await prisma.like.delete({
+        const count = await prisma.$transaction(async (tx) => {
+            const isLiked = await tx.like.findUnique({
                 where: {
-                    id: isLiked.id,
+                    userId_postId: {
+                        postId: postId,
+                        userId: userId,
+                    }
                 }
-            })
-            return res.status(200).json({
-                success: true,
-                message: "Like Removed.",
-            })
-        }
+            });
 
-        await prisma.like.create({
-            data: {
-                postId: postId,
-                userId: userId,
+            if (isLiked) {
+                await tx.like.delete({
+                    where: { id: isLiked.id }
+                });
+            } else {
+                await tx.like.create({
+                    data: {
+                        postId: postId,
+                        userId: userId,
+                    }
+                });
             }
-        })
+
+            // Return the updated like count
+            return tx.like.count({ where: { postId: postId } });
+        });
 
         return res.status(200).json({
             success: true,
-            message: "Like added."
-        })
+            message: "Like toggled.",
+            likesCount: count
+        });
 
     } catch (error) {
         console.log(error);
         return res.status(500).json({
             success: false,
             error: "ServerError",
-            message: "Unable to comment due to a server error. Please try again."
-        })
+            message: "Unable to toggle like due to a server error. Please try again."
+        });
     }
 }
