@@ -11,7 +11,8 @@ export default function DashboardLayout() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const isAdmin =  (user?.role === "SUPER_ADMIN") || (user?.role === "FACULTY") || (user?.role === "ANNOUNCEMENT_ADMIN") || (user?.role === "RESOURCE_ADMIN") ;
+    const isAdmin =  (user?.role === "SUPER_ADMIN") || (user?.role === "FACULTY") || (user?.role === "ANNOUNCEMENT_ADMIN") || (user?.role === "RESOURCE_ADMIN") || (user?.role === "CAREER_ADMIN") ;
+    const isCareerAdmin = user?.role === "CAREER_ADMIN" ;
     const isSTUDENT = user?.role === "STUDENT" ;
     const isFaculty = user?.role === "FACULTY" ;
     
@@ -33,7 +34,7 @@ export default function DashboardLayout() {
                 setViewRole("STUDENT");
             }
         }
-    }, [location.pathname, isAdmin, isFaculty]);
+    }, [location.pathname, isAdmin, isFaculty,isCareerAdmin]);
 
     return (
         <div className="flex h-screen bg-white overflow-hidden relative mt-[0.5rem]">
@@ -74,10 +75,10 @@ export default function DashboardLayout() {
                 </div>
 
                 <div className="relative bg-blue-50/50 rounded-xl mx-4 p-5 my-6 border border-blue-100/50">
-                    {isAdmin && !isFaculty && (
+                    {(isAdmin || isCareerAdmin) && !isFaculty && (
                         <button
                             onClick={() => {
-                                const target = viewRole === "STUDENT" ? "/admin/dashboard" : "/dashboard/courses";
+                                const target = (viewRole === "STUDENT") ? (isCareerAdmin ? "/admin/manage-posts" : "/admin/dashboard") : "/dashboard/courses";
                                 setViewRole(viewRole === "STUDENT" ? "admin" : "STUDENT");
                                 navigate(target);
                             }}
@@ -104,7 +105,7 @@ export default function DashboardLayout() {
                 </div>
 
                 <nav className="flex-1 px-4 space-y-1 overflow-y-auto custom-scrollbar">
-                    {(isSTUDENT || (isAdmin && viewRole === "STUDENT")) && (
+                    {(isSTUDENT || ((isAdmin || isCareerAdmin) && viewRole === "STUDENT")) && (
                         <>
                             <p className="px-4 text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-widest">Main Menu</p>
                             <SidebarItem to="/dashboard/courses" icon={<Layers size={18} />} label="My Courses" />
@@ -113,7 +114,7 @@ export default function DashboardLayout() {
                         </>
                     )}
 
-                    {isAdmin && viewRole === "admin" && (
+                    {isAdmin && !isCareerAdmin && viewRole === "admin" && (
                         <>
                             <p className="px-4 text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-widest">Admin Tools</p>
                             <SidebarItem to="/admin/dashboard" icon={<Layers size={18} />} label="Overview" />
@@ -121,6 +122,13 @@ export default function DashboardLayout() {
                             <SidebarItem to="/admin/manage-users" icon={<Users size={18} />} label="Users" />
                             <SidebarItem to="/admin/manage-resources" icon={<Settings size={18} />} label="Resources" />
                             <SidebarItem to="/admin/manage-announcements" icon={<Bell size={18} />} label="Announcements" />
+                            <SidebarItem to="/admin/manage-posts" icon={<Briefcase size={18} />} label="Career Vault" />
+                        </>
+                    )}
+
+                    {isAdmin && isCareerAdmin && viewRole === "admin" && (
+                        <>
+                            <p className="px-4 text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-widest">Career Admin Tools</p>
                             <SidebarItem to="/admin/manage-posts" icon={<Briefcase size={18} />} label="Career Vault" />
                         </>
                     )}
