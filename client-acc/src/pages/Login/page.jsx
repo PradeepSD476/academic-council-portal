@@ -14,12 +14,12 @@ function SignIn() {
     if (user) {
       if (!user.rollNo && user?.role !== 'FACULTY') navigate("/login-with-roll");
       else {
-        if(user?.role !== 'FACULTY'){
-          navigate("/dashboard/courses")
-        }else{
-          navigate("/admin/dashboard")
+        if (user?.role !== 'FACULTY') {
+          navigate("/dashboard/courses");
+        } else {
+          navigate("/admin/dashboard");
         }
-      };
+      }
     }
   }, [user, navigate]);
 

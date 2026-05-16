@@ -52,6 +52,7 @@ const AppRoutes = () => {
               "SUPER_ADMIN",
               "ANNOUNCEMENT_ADMIN",
               "RESOURCE_ADMIN",
+              "CAREER_ADMIN",
             ]}
           >
             <DashboardLayout />
@@ -77,13 +78,23 @@ const AppRoutes = () => {
               "ANNOUNCEMENT_ADMIN",
               "RESOURCE_ADMIN",
               "FACULTY",
+                "CAREER_ADMIN",
             ]}
           >
             <DashboardLayout />
             </ProtectedRoute>
         }
       >
-        <Route path="dashboard" element={<AdminDashboard />} />
+        <Route
+          path="dashboard"
+          element={
+            <ProtectedRoute
+              roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "RESOURCE_ADMIN", "FACULTY"]}
+            >
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="manage-courses"
           element={
@@ -126,7 +137,7 @@ const AppRoutes = () => {
           path="manage-posts"
           element={
             <ProtectedRoute
-              roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "FACULTY"]}
+              roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "FACULTY", "CAREER_ADMIN"]}
             >
               <ManagePost />
             </ProtectedRoute>
@@ -136,7 +147,7 @@ const AppRoutes = () => {
           path="editor"
           element={
             <ProtectedRoute
-              roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "FACULTY"]}
+              roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "FACULTY", "CAREER_ADMIN"]}
             >
               <AdminPostEditor />
             </ProtectedRoute>
