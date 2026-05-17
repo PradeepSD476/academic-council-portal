@@ -248,6 +248,7 @@ const CareerVault = () => {
   const { user } = useContext(AuthContext);
   const [experiences, setExperiences] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
+  const [expandedComments, setExpandedComments] = useState({});
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -339,13 +340,18 @@ const CareerVault = () => {
 
   // FEATURE 2: Comments click → expand + smooth scroll
   const handleCommentsClick = (id) => {
-    setExpandedId(id);
-    setTimeout(() => {
-      const el = commentSectionRefs.current[id];
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
+    setExpandedComments((prev) => {
+      const isNowExpanded = !prev[id];
+      if (isNowExpanded) {
+        setTimeout(() => {
+          const el = commentSectionRefs.current[id];
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          }
+        }, 150);
       }
-    }, 150);
+      return { ...prev, [id]: isNowExpanded };
+    });
   };
 
   const handleDeletePost = async (id) => {
@@ -538,7 +544,15 @@ const CareerVault = () => {
                       </button>
 
                       <button
-                        onClick={() => setExpandedId(exp.id)}
+                        onClick={() => {
+                          setExpandedComments((prev) => ({ ...prev, [exp.id]: true }));
+                          setTimeout(() => {
+                            const el = commentSectionRefs.current[exp.id];
+                            if (el) {
+                              el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                            }
+                          }, 150);
+                        }}
                         className="text-sm font-medium border border-gray-300 px-3 py-1.5 rounded-md hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors"
                       >
                         Share your thought
@@ -547,7 +561,7 @@ const CareerVault = () => {
                   </div>
 
                   {/* FEATURE 3: Compact comment preview (visible when collapsed) */}
-                  {!isExpanded && (
+                  {!expandedComments[exp.id] && (
                     <div className="border-t border-gray-50 bg-gray-50/60 pt-3">
                       <CommentPreview
                         postId={exp.id}
@@ -557,7 +571,7 @@ const CareerVault = () => {
                     </div>
                   )}
 
-                  {/* Expanded post body + full comment section */}
+                  {/* Expanded post body */}
                   <AnimatePresence>
                     {isExpanded && (
                       <motion.div
@@ -569,27 +583,42 @@ const CareerVault = () => {
                       >
                         <div className="px-5 pb-5 border-t border-gray-100 mt-4 pt-4">
                           <div
-                            className="text-gray-700 pb-4 leading-relaxed quill-content border-b border-gray-100 mb-6"
+                            className="text-gray-700 leading-relaxed quill-content"
                             dangerouslySetInnerHTML={{
                               __html: exp.content || exp.description,
                             }}
                           />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
-                          {/* FEATURE 2: Scroll anchor */}
+                  {/* Expanded full comment section */}
+                  <AnimatePresence>
+                    {expandedComments[exp.id] && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-4 pb-4 pt-2 bg-gray-50/40 rounded-b-lg border-t border-gray-100">
                           <div
                             ref={(el) => { commentSectionRefs.current[exp.id] = el; }}
                             id={`comment-section-${exp.id}`}
-                          />
-
-                          <CommentSection
-                            experience={exp}
-                            currentUserId={currentUserId}
-                            currentUserName={currentUserName}
-                            onCommentAdd={handleCommentAdd}
-                            onReplyAdd={handleReplyAdd}
-                            onCommentDelete={handleCommentDelete}
-                            onReplyDelete={handleReplyDelete}
-                          />
+                            className="max-h-[28rem] overflow-y-auto pr-2 custom-scrollbar bg-white border border-gray-200 rounded-xl shadow-sm p-4 mt-2"
+                          >
+                            <CommentSection
+                              experience={exp}
+                              currentUserId={currentUserId}
+                              currentUserName={currentUserName}
+                              onCommentAdd={handleCommentAdd}
+                              onReplyAdd={handleReplyAdd}
+                              onCommentDelete={handleCommentDelete}
+                              onReplyDelete={handleReplyDelete}
+                            />
+                          </div>
                         </div>
                       </motion.div>
                     )}
