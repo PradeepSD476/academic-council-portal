@@ -1,6 +1,9 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, ChevronDown, ChevronUp, MessageSquare, ArrowBigUp, PenSquare, X, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ChevronDown, ChevronUp, MessageSquare, ArrowBigUp,
+  PenSquare, X, Trash2, ChevronLeft, ChevronRight, MessageCircle,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import AuthContext from "../../context/auth/authContext";
 import CommentSection from "./CommentSection";
@@ -112,7 +115,7 @@ const CreatePostModal = ({ onClose, onSubmitted }) => {
               </select>
             </div>
 
-            {/* Rich Text Editor (same as comment editor) */}
+            {/* Rich Text Editor */}
             <div className="flex flex-col gap-1.5 flex-1">
               <label className="text-sm font-semibold text-gray-700">
                 Your Story <span className="text-red-500">*</span>
@@ -156,20 +159,111 @@ const CreatePostModal = ({ onClose, onSubmitted }) => {
   );
 };
 
+// ─── FEATURE 3: Compact Comment Preview ──────────────────────────────────────
+const CommentPreview = ({ postId, commentCount, onViewAll }) => {
+  const [previews, setPreviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const res = await forumApi.getComments(postId, 1, 2);
+        if (!cancelled && res.data.success) {
+          setPreviews(
+            res.data.data.map((c) => ({
+              id: c.id,
+              userName: c.user?.displayName || "Unknown",
+              text: c.content,
+            }))
+          );
+        }
+      } catch {
+        // silently fail – preview is non-critical
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [postId]);
+
+  const stripHtml = (html) => html?.replace(/<[^>]*>/g, "") || "";
+
+  if (loading) {
+    return (
+      <div className="px-5 pb-3">
+        <div className="animate-pulse flex gap-2 items-center">
+          <div className="h-2 bg-gray-200 rounded w-24" />
+          <div className="h-2 bg-gray-200 rounded w-40" />
+        </div>
+      </div>
+    );
+  }
+
+  if (previews.length === 0) {
+    return (
+      <div className="px-5 pb-4">
+        <p className="text-xs text-gray-400 italic">No comments yet. Be the first!</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="px-5 pb-4 space-y-2">
+      {previews.map((c) => (
+        <div
+          key={c.id}
+          className="flex items-start gap-2 group cursor-pointer"
+          onClick={onViewAll}
+          title="Click to view all comments"
+        >
+          <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600 uppercase">
+            {c.userName?.[0] || "?"}
+          </div>
+          <div className="flex-1 min-w-0">
+            <span className="text-xs font-semibold text-gray-700 mr-1.5">{c.userName}</span>
+            <span className="text-xs text-gray-500 truncate block leading-snug">
+              {stripHtml(c.text).slice(0, 120)}{stripHtml(c.text).length > 120 ? "…" : ""}
+            </span>
+          </div>
+        </div>
+      ))}
+
+      {commentCount > 2 && (
+        <button
+          onClick={onViewAll}
+          className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors mt-1 flex items-center gap-1"
+        >
+          <MessageCircle size={12} />
+          View all {commentCount} comments
+        </button>
+      )}
+    </div>
+  );
+};
+
 // ─── Main CareerVault Page ────────────────────────────────────────────────────
 const CareerVault = () => {
   const { user } = useContext(AuthContext);
   const [experiences, setExperiences] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
+  const [expandedComments, setExpandedComments] = useState({});
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
 
+  // FEATURE 1: spam prevention ref for in-flight like requests
+  const likePendingRef = useRef({});
+
+  // FEATURE 2: refs for comment sections (keyed by post id) for smooth scroll
+  const commentSectionRefs = useRef({});
+
   const currentUserId = user?.id;
   const currentUserName = user?.displayName || "Student";
 
-  const fetchPosts = async (targetPage = page) => {
+  const fetchPosts = useCallback(async (targetPage = page) => {
     setIsLoading(true);
     try {
       const response = await forumApi.getPosts(targetPage, 10);
@@ -177,6 +271,9 @@ const CareerVault = () => {
         const mapped = response.data.data.map((p) => ({
           ...p,
           authorName: p.uploadedBy?.displayName || p.authorName || "Unknown",
+          likes: p._count?.likes ?? 0,
+          // Map array of like objects to array of userIds for local liked state
+          likedBy: p.likes?.map((l) => l.userId) || [],
         }));
         setExperiences(mapped);
         setTotalPages(response.data.pagination.totalPages);
@@ -188,7 +285,7 @@ const CareerVault = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchPosts(page);
@@ -198,30 +295,63 @@ const CareerVault = () => {
     setExpandedId(expandedId === id ? null : id);
   };
 
+  // FEATURE 1: Optimistic upvote with spam prevention + rollback
   const toggleLike = async (id) => {
-    setExperiences((prev) =>
-      prev.map((exp) => {
-        if (exp.id === id) {
-          const hasLiked = exp.likedBy?.includes(currentUserId);
-          return {
-            ...exp,
-            likes: hasLiked ? exp.likes - 1 : exp.likes + 1,
-            likedBy: hasLiked
-              ? exp.likedBy.filter((uid) => uid !== currentUserId)
-              : [...(exp.likedBy || []), currentUserId],
-          };
-        }
-        return exp;
-      })
-    );
+    if (likePendingRef.current[id]) return;
+    likePendingRef.current[id] = true;
+
+    let previousExperiences;
+
+    // Optimistically update UI immediately
+    setExperiences((prev) => {
+      previousExperiences = prev;
+      return prev.map((exp) => {
+        if (exp.id !== id) return exp;
+        const hasLiked = exp.likedBy?.includes(currentUserId);
+        return {
+          ...exp,
+          likes: hasLiked ? exp.likes - 1 : exp.likes + 1,
+          likedBy: hasLiked
+            ? exp.likedBy.filter((uid) => uid !== currentUserId)
+            : [...(exp.likedBy || []), currentUserId],
+        };
+      });
+    });
 
     try {
-      await forumApi.toggleLike(id);
-      // fetchPosts(); // Removed redundant fetch to prevent jumpiness; state already updated optimismtically
+      const res = await forumApi.toggleLike(id);
+      // Sync with authoritative count from server
+      if (res.data.success) {
+        setExperiences((prev) =>
+          prev.map((exp) =>
+            exp.id === id ? { ...exp, likes: res.data.likesCount } : exp
+          )
+        );
+      }
     } catch (err) {
       console.error("Like failed:", err);
-      fetchPosts();
+      // Rollback to previous state on failure
+      setExperiences(previousExperiences);
+      toast.error("Failed to update vote. Please try again.");
+    } finally {
+      likePendingRef.current[id] = false;
     }
+  };
+
+  // FEATURE 2: Comments click → expand + smooth scroll
+  const handleCommentsClick = (id) => {
+    setExpandedComments((prev) => {
+      const isNowExpanded = !prev[id];
+      if (isNowExpanded) {
+        setTimeout(() => {
+          const el = commentSectionRefs.current[id];
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          }
+        }, 150);
+      }
+      return { ...prev, [id]: isNowExpanded };
+    });
   };
 
   const handleDeletePost = async (id) => {
@@ -281,7 +411,6 @@ const CareerVault = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      {/* Create Post Modal */}
       {showCreateModal && (
         <CreatePostModal
           onClose={() => setShowCreateModal(false)}
@@ -301,7 +430,6 @@ const CareerVault = () => {
             </p>
           </div>
 
-          {/* ── Create Post Button ── */}
           <motion.button
             id="create-post-btn"
             whileHover={{ scale: 1.04 }}
@@ -318,6 +446,9 @@ const CareerVault = () => {
           <AnimatePresence>
             {experiences?.map((exp) => {
               const isExpanded = expandedId === exp.id;
+              // FEATURE 1: derive local liked state
+              const hasLiked = exp.likedBy?.includes(currentUserId);
+              const commentCount = exp._count?.comments ?? 0;
 
               return (
                 <motion.div
@@ -328,6 +459,7 @@ const CareerVault = () => {
                   className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
                 >
                   <div className="p-5 hover:bg-gray-50 transition-colors">
+                    {/* Post Header */}
                     <div
                       className="flex justify-between items-start cursor-pointer group"
                       onClick={() => toggleExpand(exp.id)}
@@ -342,9 +474,7 @@ const CareerVault = () => {
                           </span>
                           <span>•</span>
                           <span>
-                            {new Date(
-                              exp.date || exp.createdAt
-                            ).toLocaleDateString()}
+                            {new Date(exp.date || exp.createdAt).toLocaleDateString()}
                           </span>
                         </div>
                       </div>
@@ -374,30 +504,55 @@ const CareerVault = () => {
                       </div>
                     </div>
 
+                    {/* Action Row */}
                     <div className="flex items-center gap-6 text-gray-500">
+
+                      {/* FEATURE 1: Upvote button — optimistic + filled state */}
                       <button
+                        id={`upvote-btn-${exp.id}`}
                         onClick={() => toggleLike(exp.id)}
-                        className={`flex items-center gap-1.5 transition-colors ${
-                          exp.likedBy?.includes(currentUserId)
-                            ? "text-pink-600"
-                            : "hover:text-pink-600"
+                        disabled={!!likePendingRef.current[exp.id]}
+                        aria-pressed={hasLiked}
+                        aria-label={hasLiked ? "Remove upvote" : "Upvote"}
+                        className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 transition-all duration-150 select-none ${
+                          hasLiked
+                            ? "bg-pink-100 text-pink-600 font-semibold"
+                            : "hover:bg-pink-50 hover:text-pink-600"
                         }`}
                       >
-                        <ArrowBigUp size={18} />
+                        <ArrowBigUp
+                          size={20}
+                          strokeWidth={hasLiked ? 0 : 1.5}
+                          fill={hasLiked ? "currentColor" : "none"}
+                          className={`transition-transform duration-150 ${hasLiked ? "scale-110" : ""}`}
+                        />
+                        {/* FEATURE 1: Use local optimistic count */}
+                        <span className="font-medium text-sm">{exp.likes ?? 0}</span>
+                      </button>
+
+                      {/* FEATURE 2: Clickable comment count → scrolls to comments */}
+                      <button
+                        id={`comments-btn-${exp.id}`}
+                        onClick={() => handleCommentsClick(exp.id)}
+                        className="flex items-center gap-1.5 text-gray-500 hover:text-blue-600 transition-colors"
+                        aria-label={`View ${commentCount} comments`}
+                      >
+                        <MessageSquare size={18} />
                         <span className="font-medium text-sm">
-                          {exp._count.likes}
+                          {commentCount} Comment{commentCount !== 1 ? "s" : ""}
                         </span>
                       </button>
 
-                      <div className="flex items-center gap-1.5 text-gray-500">
-                        <MessageSquare size={18} />
-                        <span className="font-medium text-sm">
-                          {exp._count.comments || 0} Comments
-                        </span>
-                      </div>
-
                       <button
-                        onClick={() => setExpandedId(exp.id)}
+                        onClick={() => {
+                          setExpandedComments((prev) => ({ ...prev, [exp.id]: true }));
+                          setTimeout(() => {
+                            const el = commentSectionRefs.current[exp.id];
+                            if (el) {
+                              el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                            }
+                          }, 150);
+                        }}
                         className="text-sm font-medium border border-gray-300 px-3 py-1.5 rounded-md hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors"
                       >
                         Share your thought
@@ -405,6 +560,18 @@ const CareerVault = () => {
                     </div>
                   </div>
 
+                  {/* FEATURE 3: Compact comment preview (visible when collapsed) */}
+                  {!expandedComments[exp.id] && (
+                    <div className="border-t border-gray-50 bg-gray-50/60 pt-3">
+                      <CommentPreview
+                        postId={exp.id}
+                        commentCount={commentCount}
+                        onViewAll={() => handleCommentsClick(exp.id)}
+                      />
+                    </div>
+                  )}
+
+                  {/* Expanded post body */}
                   <AnimatePresence>
                     {isExpanded && (
                       <motion.div
@@ -416,21 +583,42 @@ const CareerVault = () => {
                       >
                         <div className="px-5 pb-5 border-t border-gray-100 mt-4 pt-4">
                           <div
-                            className="text-gray-700 pb-4 leading-relaxed quill-content border-b border-gray-100 mb-6"
+                            className="text-gray-700 leading-relaxed quill-content"
                             dangerouslySetInnerHTML={{
                               __html: exp.content || exp.description,
                             }}
                           />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
-                          <CommentSection
-                            experience={exp}
-                            currentUserId={currentUserId}
-                            currentUserName={currentUserName}
-                            onCommentAdd={handleCommentAdd}
-                            onReplyAdd={handleReplyAdd}
-                            onCommentDelete={handleCommentDelete}
-                            onReplyDelete={handleReplyDelete}
-                          />
+                  {/* Expanded full comment section */}
+                  <AnimatePresence>
+                    {expandedComments[exp.id] && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-4 pb-4 pt-2 bg-gray-50/40 rounded-b-lg border-t border-gray-100">
+                          <div
+                            ref={(el) => { commentSectionRefs.current[exp.id] = el; }}
+                            id={`comment-section-${exp.id}`}
+                            className="max-h-[28rem] overflow-y-auto pr-2 custom-scrollbar bg-white border border-gray-200 rounded-xl shadow-sm p-4 mt-2"
+                          >
+                            <CommentSection
+                              experience={exp}
+                              currentUserId={currentUserId}
+                              currentUserName={currentUserName}
+                              onCommentAdd={handleCommentAdd}
+                              onReplyAdd={handleReplyAdd}
+                              onCommentDelete={handleCommentDelete}
+                              onReplyDelete={handleReplyDelete}
+                            />
+                          </div>
                         </div>
                       </motion.div>
                     )}
