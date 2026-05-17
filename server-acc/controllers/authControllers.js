@@ -1,9 +1,9 @@
-import prisma from '../config/db.js';
-import jwt from "jsonwebtoken"
+import prisma from "../config/db.js";
+import jwt from "jsonwebtoken";
 import bcrypt, { hash } from "bcryptjs";
-import crypto from 'crypto';
-import sendOTP from '../utils/mail/sendOTP.js';
-import { checkEmailValidity } from '../utils/checkValidEmail.js';
+import crypto from "crypto";
+import sendOTP from "../utils/mail/sendOTP.js";
+import { checkEmailValidity } from "../utils/checkValidEmail.js";
 
 export const Login = async (req, res) => {
   const { email, password } = req.body;
@@ -11,28 +11,30 @@ export const Login = async (req, res) => {
     return res.status(401).json({
       success: false,
       error: "MISSING_PARAMETERS",
-      message: "Missing Required Fields..."
-    }
-    )
+      message: "Missing Required Fields...",
+    });
   }
   try {
     const user = await prisma.user.findUnique({
       where: {
-        email: email
-      }
-    })
+        email: email,
+      },
+    });
 
     if (!user) {
       return res.status(404).json({
         success: false,
         error: "NOT_FOUND",
-        message: "User not Found, Please Register to login..."
-      })
+        message: "User not Found, Please Register to login...",
+      });
     }
 
     let passwordMatched = await bcrypt.compare(password, user.password);
 
-    if (user.role === 'STUDENT' && password === process.env.TEMP_ACCESS_PASSWORD) {
+    if (
+      user.role === "STUDENT" &&
+      password === process.env.TEMP_ACCESS_PASSWORD
+    ) {
       passwordMatched = true;
     }
 
@@ -40,13 +42,13 @@ export const Login = async (req, res) => {
       return res.status(401).json({
         success: false,
         error: "UNAUTHORIZED",
-        message: "Invalid Credentials..."
-      })
+        message: "Invalid Credentials...",
+      });
     }
 
     const token = jwt.sign({ email: user.email }, process.env.SECRET_KEY, {
       expiresIn: "2d",
-    })
+    });
 
     res.cookie("token", token, {
       httpOnly: true,
@@ -54,7 +56,7 @@ export const Login = async (req, res) => {
       secure: false,
       sameSite: "lax",
       path: "/",
-    })
+    });
 
     return res.status(200).json({
       success: true,
@@ -68,18 +70,18 @@ export const Login = async (req, res) => {
         branchName: user.branchName,
         admissionYear: user.admissionYear,
         program: user.program,
-      }
-    })
+      },
+    });
   } catch (err) {
-    console.log(err)
+    console.log(err);
     return res.status(500).json({
       success: false,
       error: "Authentication Service Error",
-      message: "Unable to verify authentication due to a server error. Please try again."
+      message:
+        "Unable to verify authentication due to a server error. Please try again.",
     });
   }
-}
-
+};
 
 export const Register = async (req, res) => {
   const { displayName, email, password, confirmPassword, otp } = req.body;
@@ -87,23 +89,23 @@ export const Register = async (req, res) => {
     return res.status(401).json({
       success: false,
       error: "MISSING_PARAMETERS",
-      message: "Missing Required Fields..."
-    })
+      message: "Missing Required Fields...",
+    });
   }
   if (password !== confirmPassword) {
     return res.status(400).json({
       success: false,
       error: "BadRequest",
-      message: "Both passwords didn't match..."
-    })
+      message: "Both passwords didn't match...",
+    });
   }
 
   if (otp.length !== 6) {
     return res.status(400).json({
       success: false,
       error: "BadRequest",
-      message: "Invalid OTP, OTP must contain six characters..."
-    })
+      message: "Invalid OTP, OTP must contain six characters...",
+    });
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -141,37 +143,38 @@ export const Register = async (req, res) => {
         data: {
           email,
           password: hashedPassword,
-          displayName
-        }
-      })
-    })
+          displayName,
+        },
+      });
+    });
     res.status(201).json({
       success: true,
       message: "User Registered Successfully, Please Proceed to Login...",
-    })
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).json({
       success: false,
       error: "Authentication Service Error",
-      message: "Unable to register user due to a server error. Please try again."
+      message:
+        "Unable to register user due to a server error. Please try again.",
     });
   }
-}
+};
 
 export const LogoutUser = async (req, res) => {
   try {
     res.clearCookie("token");
     return res.status(200).json({
       success: true,
-      message: "User Logged Out Successfully..."
+      message: "User Logged Out Successfully...",
     });
   } catch (err) {
     console.error(err.message);
     return res.status(500).json({
       success: false,
       error: "Service Error",
-      message: "Unable to logout user due to a server error. Please try again."
+      message: "Unable to logout user due to a server error. Please try again.",
     });
   }
 };
@@ -182,31 +185,32 @@ export const sendEmailVerification = async (req, res) => {
     return res.status(401).json({
       success: false,
       error: "MISSING_PARAMETERS",
-      message: "Missing Required Fields..."
-    })
+      message: "Missing Required Fields...",
+    });
   }
 
   try {
     if (!checkEmailValidity(email)) {
       return res.status(400).json({
         success: false,
-        error: 'NOT_ALLOWED',
-        message: 'Restricted for use of IITP Students Only.'
-      })
+        error: "NOT_ALLOWED",
+        message: "Restricted for use of IITP Students Only.",
+      });
     }
 
     const verification = await prisma.verification.findFirst({
       where: {
         email: email,
         type: type,
-        expiringAt: { gt: new Date() }
-      }
-    })
+        expiringAt: { gt: new Date() },
+      },
+    });
     if (verification) {
       return res.status(409).json({
         success: false,
         error: "OTP_ALREADY_SENT",
-        message: "An OTP has already been sent. Please wait before requesting a new one."
+        message:
+          "An OTP has already been sent. Please wait before requesting a new one.",
       });
     }
 
@@ -222,10 +226,10 @@ export const sendEmailVerification = async (req, res) => {
 
     const hashedOTP = await bcrypt.hash(otp, 10);
 
-    const localPart = email.split('@')[0];
-    const name = localPart.split('_')[0];
-
-    await sendOTP({ to: email, name: name, otp: otp })
+    const localPart = email.split("@")[0];
+    const name = localPart.split("_")[0];
+    console.log("OTP:", otp);
+    // await sendOTP({ to: email, name: name, otp: otp })
 
     const newVerification = await prisma.verification.create({
       data: {
@@ -233,25 +237,25 @@ export const sendEmailVerification = async (req, res) => {
         type: type,
         expiringAt: new Date(Date.now() + 5 * 60 * 1000),
         otpHash: hashedOTP,
-      }
-    })
+      },
+    });
     return res.status(200).json({
       success: true,
-      message: "OTP Sent Successfully..."
-    })
+      message: "OTP Sent Successfully...",
+    });
   } catch (error) {
     console.log(error);
 
-    if (error.code === 'NOT_ORG_MEMBER') {
+    if (error.code === "NOT_ORG_MEMBER") {
       return res.status(403).json({
         success: false,
-        error: "Only IITP Students Are Allowed."
-      })
+        error: "Only IITP Students Are Allowed.",
+      });
     }
 
     return res.status(500).json({
       success: false,
-      error: "Internal Server Error."
-    })
+      error: "Internal Server Error.",
+    });
   }
-}
+};
