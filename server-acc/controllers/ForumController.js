@@ -2,6 +2,8 @@ import dotenv from 'dotenv';
 dotenv.config();
 import prisma from '../config/db.js';
 import notifyOnNewPost from '../utils/mail/sendExperiencePost.js';
+import sendCommentNotification from '../utils/mail/sendCommentNotification.js';
+import sendReplyNotification from '../utils/mail/sendReplyNotification.js';
 
 // Public endpoint: returns posts by status (default: PUBLISHED) with server-side pagination
 export const getAllPosts = async (req, res) => {
@@ -242,6 +244,9 @@ export const addComment = async (req, res) => {
         const post = await prisma.experience.findUnique({
             where: {
                 id: postId
+            },
+            include:{
+                uploadedBy:true
             }
         })
         if (!post) {
@@ -267,10 +272,19 @@ export const addComment = async (req, res) => {
                     data: { rootId: comment.id }
                 })
             });
+            await sendCommentNotification({
+                to: post.uploadedBy.email,
+                postAuthorName: post.uploadedBy.displayName,
+                commenterName: user.displayName,
+                postTitle: post.title,
+            });
         } else {
             const comment = await prisma.comment.findUnique({
                 where: {
                     id: parentId
+                },
+                include:{
+                    user:true
                 }
             })
             if (!comment) {
@@ -295,6 +309,12 @@ export const addComment = async (req, res) => {
                     rootId: parentId,
                 }
             })
+            await sendReplyNotification({
+                to: comment.user.email,
+                commentAuthorName: comment.user.displayName,
+                replierName: user.displayName,
+                postTitle: post.title,
+            });
         }
 
         return res.status(201).json({
