@@ -6,7 +6,7 @@ export const getMyCourses = async (req, res) => {
     try {
         const currentMonth = new Date().getMonth();
         const currentCalendarYear = new Date().getFullYear();
-        const academicYearStart = (currentMonth >= 6) ? currentCalendarYear : currentCalendarYear - 1;
+        const academicYearStart = (currentMonth >= 5) ? currentCalendarYear : currentCalendarYear - 1;
         const currentAcademicYear = academicYearStart - user.admissionYear + 1;
 
 

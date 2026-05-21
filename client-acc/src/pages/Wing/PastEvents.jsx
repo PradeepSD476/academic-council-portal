@@ -10,7 +10,7 @@ const PastEventsData = {
       {
       id: 1,
       title: "Yearbook Event",
-      logo: "/yearbook.jpeg",
+      logo: "/yearbook.PNG",
       description:
         "Yearbook is an annual flagship event organized for every graduating batch of IIT Patna. The celebration includes inter-branch sports competitions, vibrant cultural events, and memorable activities that bring together the entire batch one last time. As a cherished keepsake, a specially curated yearbook capturing four years of memories is distributed to all graduating students.",
       items: [

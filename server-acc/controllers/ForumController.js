@@ -188,7 +188,12 @@ export const editPost = async (req, res) => {
         const post = await prisma.experience.findUnique({
             where: {
                 id: parseInt(postId),
-            }
+            },
+            include: {
+                    uploadedBy: {
+                        select: { id: true, displayName: true }
+                    },
+            },
         })
         if (!post) {
             return res.status(404).json({
@@ -210,7 +215,7 @@ export const editPost = async (req, res) => {
         })
 
         if(status === "PUBLISHED"){
-            notifyOnNewPost({ displayName: user.displayName, experienceTitle: title, experienceType: experienceType })
+            notifyOnNewPost({ displayName: post.uploadedBy.displayName, experienceTitle: title, experienceType: experienceType })
         }
 
         return res.status(201).json({
