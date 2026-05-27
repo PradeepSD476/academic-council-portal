@@ -27,6 +27,7 @@ import AdminTeam from "./pages/adminSection/page.jsx";
 import CareerVault from "./pages/CareerVaultuser/index.jsx";
 import ManagePost from "./pages/admin/ManagePost.jsx";
 import AdminPostEditor from "./components/Editor.jsx";
+import FAQPage from "./pages/FAQ/page.jsx";
 
 const AppRoutes = () => {
   return (
@@ -38,6 +39,7 @@ const AppRoutes = () => {
       <Route path="/administrators" element={<AdminTeam />} />
       <Route path="/wing/:wingId" element={<WingPage />} />
       <Route path="/wings" element={<Wings />} />
+      <Route path="/faq" element={<FAQPage />} />
       <Route path="/login" element={<SignIn />} />
       <Route path="/register" element={<SignUp />} />
       <Route path="/login-with-roll" element={<VerifyRoll />} />
