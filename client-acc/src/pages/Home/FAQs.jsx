@@ -1,24 +1,12 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { FaChevronDown, FaChevronUp, FaArrowRight } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
-const faqData = [
-  {
-    question: "What wings exist under the ACC?",
-    answer:
-      "There are five wings under ACC including Academic, Career Development, Research, Finance and Web, Media and Publicity Wing",
-  },
-  {
-    question: "Who can I contact for career guidance?",
-    answer:
-      "We have Student Mentorship Program for this purpose, you can reach out to your mentors and co-mentors.",
-  },
-  {
-    question: "Does ACC provide research opportunities?",
-    answer:
-      "Yes! Our Research & Development Wing helps students find research projects, internships, and collaborations with faculty and external organizations.",
-  },
-];
+import faqDataFull from "../../data/faq.json";
+
+// Filter out 3 FAQs for the homepage, e.g. from ACC category
+const faqData = faqDataFull.filter(faq => faq.category === "ACC").slice(0, 3);
 
 const FAQs = () => {
   const [activeIndex, setActiveIndex] = useState(null);
@@ -69,6 +57,20 @@ const FAQs = () => {
             </AnimatePresence>
           </motion.div>
         ))}
+      </div>
+
+      {/* See All FAQs Button */}
+      <div className="flex justify-center mt-10">
+        <Link to="/faq">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.97 }}
+            className="inline-flex items-center gap-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold px-8 py-3.5 rounded-2xl shadow-lg hover:shadow-xl transition-shadow text-sm"
+          >
+            See All FAQs
+            <FaArrowRight className="text-xs" />
+          </motion.button>
+        </Link>
       </div>
     </div>
   );
