@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { FaChevronDown, FaChevronUp, FaArrowRight } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const faqData = [
   {
@@ -69,6 +70,20 @@ const FAQs = () => {
             </AnimatePresence>
           </motion.div>
         ))}
+      </div>
+
+      {/* See All FAQs Button */}
+      <div className="flex justify-center mt-10">
+        <Link to="/faq">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.97 }}
+            className="inline-flex items-center gap-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold px-8 py-3.5 rounded-2xl shadow-lg hover:shadow-xl transition-shadow text-sm"
+          >
+            See All FAQs
+            <FaArrowRight className="text-xs" />
+          </motion.button>
+        </Link>
       </div>
     </div>
   );

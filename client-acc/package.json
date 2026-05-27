@@ -15,6 +15,7 @@
     "axios": "^1.13.2",
     "firebase": "^12.4.0",
     "framer-motion": "^12.23.24",
+    "fuse.js": "^7.3.0",
     "lucide-react": "^0.559.0",
     "postcss": "^8.5.6",
     "primereact": "^10.9.7",
