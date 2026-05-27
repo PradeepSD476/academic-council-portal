@@ -3,23 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FaChevronDown, FaChevronUp, FaArrowRight } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
-const faqData = [
-  {
-    question: "What wings exist under the ACC?",
-    answer:
-      "There are five wings under ACC including Academic, Career Development, Research, Finance and Web, Media and Publicity Wing",
-  },
-  {
-    question: "Who can I contact for career guidance?",
-    answer:
-      "We have Student Mentorship Program for this purpose, you can reach out to your mentors and co-mentors.",
-  },
-  {
-    question: "Does ACC provide research opportunities?",
-    answer:
-      "Yes! Our Research & Development Wing helps students find research projects, internships, and collaborations with faculty and external organizations.",
-  },
-];
+import faqDataFull from "../../data/faq.json";
+
+// Filter out 3 FAQs for the homepage, e.g. from ACC category
+const faqData = faqDataFull.filter(faq => faq.category === "ACC").slice(0, 3);
 
 const FAQs = () => {
   const [activeIndex, setActiveIndex] = useState(null);
