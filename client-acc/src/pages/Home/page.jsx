@@ -8,6 +8,7 @@ import FAQs from "./FAQs";
 import PastEvents from "./PastEvents";
 import SuccessStories from "./SuccessStories";
 import TabSection from "./TabSection";
+import ChatbotButton from "../../components/chatbot/ChatbotButton";
 
 
 const Home = () => {
@@ -134,6 +135,7 @@ const Home = () => {
       <SuccessStories/>
 
       <FAQs/>
+      <ChatbotButton />
     </div>
   );
 };
