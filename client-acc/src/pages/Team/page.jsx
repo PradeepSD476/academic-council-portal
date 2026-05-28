@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
+import { FiPhone, FiMail, FiLinkedin } from "react-icons/fi"; 
 
 import teamDetails from "./acc_team.jsx";
 
@@ -97,13 +98,13 @@ const PersonCard = ({ person, color }) => {
             <ul className="space-y-2.5">
               {person.phone && (
                 <li className="flex items-center space-x-3">
-                  <span className="text-xl w-5 text-center">📞</span>
+                  <span className="text-xl w-5 text-center flex justify-center items-center"><FiPhone size={16} /></span>
                   <span className="text-sm text-gray-700">{person.phone}</span>
                 </li>
               )}
               {person.email && (
                 <li className="flex items-center space-x-3">
-                  <span className="text-xl w-5 text-center">✉️</span>
+                  <span className="text-xl w-5 text-center flex justify-center items-center"><FiMail size={16} /></span>
                   <a
                     href={`mailto:${person.email}`}
                     className="text-sm text-gray-700 hover:underline truncate"
@@ -114,9 +115,9 @@ const PersonCard = ({ person, color }) => {
               )}
               {person.linkedin && (
                 <li className="flex items-center space-x-3">
-                  <span className="text-xl w-5 text-center">🔗</span>
+                  <span className="text-xl w-5 text-center flex justify-center items-center"><FiLinkedin size={16} /></span>
                   <a
-                    href={`https://www.linkedin.com/in/${person.linkedin}`}
+                    href={person.linkedin.startsWith('http') ? person.linkedin : `https://www.linkedin.com/in/${person.linkedin}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm text-gray-700 hover:underline"
@@ -135,14 +136,24 @@ const PersonCard = ({ person, color }) => {
 
 const AccTeam = () => {
   const currentData = teamDetails;
+  const [selectedYear, setSelectedYear] = useState("2026");
+
+  // This fallback object maps both lowercase and uppercase variants to ensure clean looping
+  const rawWings = currentData[selectedYear] || [];
+  const wings = rawWings.map(w => ({
+    wingname: w.wingname || w.WingName,
+    wingcolor: w.wingcolor || w.WingColor,
+    wingpeople: w.wingpeople || w.WingPeople || []
+  }));
 
   return (
     <div className="mt-6 bg-gray-50 min-h-screen">
       <section className="max-w-7xl mx-auto px-6 py-16">
 
         {/* Header */}
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
           <motion.section
+            key={`header-${selectedYear}`}
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
@@ -152,36 +163,60 @@ const AccTeam = () => {
             <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-4">
               {currentData.title}
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto mb-6">
               {currentData.description}
             </p>
+            <div className="inline-flex p-1 bg-gray-200/80 rounded-full border border-gray-300/30">
+              {["2025", "2026"].map((year) => (
+                <button
+                  key={year}
+                  type="button"
+                  onClick={() => setSelectedYear(year)}
+                  className={`px-5 py-1.5 rounded-full text-sm font-bold transition-all ${
+                    selectedYear === year ? "bg-white text-gray-950 shadow-sm" : "text-gray-500"
+                  }`}
+                >
+                  {year}
+                </button>
+              ))}
+            </div>
           </motion.section>
         </AnimatePresence>
 
         {/* Team */}
-        {(currentData.team || []).map((wing) => (
-          <div key={wing.wingname} className="mb-20">
-            <h3 className="text-2xl md:text-3xl font-extrabold text-gray-800 mb-10 text-center uppercase tracking-widest">
-              {wing.wingname}
-            </h3>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`wings-${selectedYear}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {wings.map((wing) => (
+              <div key={wing.wingname} className="mb-20">
+                <h3 className="text-2xl md:text-3xl font-extrabold text-gray-800 mb-10 text-center uppercase tracking-widest">
+                  {wing.wingname}
+                </h3>
 
-            <motion.div
-              className="flex flex-wrap justify-center gap-10"
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.1 }}
-            >
-              {(wing.wingpeople || []).map((person, index) => (
-                <PersonCard
-                  key={`${person.name}-${index}`}
-                  person={person}
-                  color={wing.wingcolor}
-                />
-              ))}
-            </motion.div>
-          </div>
-        ))}
+                <motion.div
+                  className="flex flex-wrap justify-center gap-10"
+                  variants={containerVariants}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, amount: 0.1 }}
+                >
+                  {wing.wingpeople.map((person, index) => (
+                    <PersonCard
+                      key={`${person.name}-${index}`}
+                      person={person}
+                      color={wing.wingcolor}
+                    />
+                  ))}
+                </motion.div>
+              </div>
+            ))}
+          </motion.div>
+        </AnimatePresence>
 
       </section>
     </div>
