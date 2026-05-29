@@ -196,7 +196,6 @@ const AdminPostEditor = () => {
     const preservedDescription = getPreservedEditorHtml();
     const payload = {
       ...formData,
-      content: preservedDescription,
       description: preservedDescription,
       status: "PUBLISHED",
     };
@@ -212,7 +211,6 @@ const AdminPostEditor = () => {
     const preservedDescription = getPreservedEditorHtml();
     const payload = {
       ...formData,
-      content: preservedDescription,
       description: preservedDescription,
       status: "DRAFT",
     };

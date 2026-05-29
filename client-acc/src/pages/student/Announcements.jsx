@@ -17,6 +17,7 @@ export default function Announcements() {
 
   // ---------------- FETCH ANNOUNCEMENTS ----------------
   const fetchAnnouncements = async () => {
+    setLoading(true);
     try {
 
       const res = await fetch(
@@ -39,10 +40,12 @@ export default function Announcements() {
         ];
 
         setAnnouncements(sorted);
+        setHasMore(data.data.length === limit);
       }
     } catch (error) {
       toast.error("unable to fetch announcements")
       console.log("Error fetching announcements:", error);
+      setHasMore(false);
     }
 
     setLoading(false);
@@ -201,6 +204,7 @@ export default function Announcements() {
 
           <button
             onClick={() => setPage((p) => p + 1)}
+            disabled={!hasMore}
             className="px-3 py-1.5 rounded-lg border hover:bg-gray-100"
           >
             &gt;
