@@ -83,7 +83,7 @@ function Navbar() {
           <div className="flex justify-end items-center shrink-0">
             <div className="hidden md:flex items-center">
               {!isAuthenticated ? (
-                /* ΓöÇΓöÇ Login Button ΓöÇΓöÇ */
+                /* Login Button */
                 <Link
                   to="/login"
                   className="px-6 py-2 text-lg bg-blue-600 rounded-full text-white hover:bg-blue-700 transition shadow-sm"
@@ -91,7 +91,7 @@ function Navbar() {
                   Login
                 </Link>
               ) : (
-                /* ΓöÇΓöÇ Student Dashboard CTA ΓöÇΓöÇ */
+                /* Student Dashboard CTA */
                 <div className="relative" ref={dropdownRef}>
                   {/* Main Dashboard button */}
                   <button
@@ -118,7 +118,7 @@ function Navbar() {
 
                     {/* Dashboard text */}
                     <span className="hidden sm:inline leading-none font-bold text-white/90">
-                      Dashboard
+                      · Dashboard
                     </span>
 
                     {/* Chevron */}
@@ -200,7 +200,7 @@ function Navbar() {
         </div>
       </div>
 
-      {/* ΓöÇΓöÇ Mobile Drawer ΓöÇΓöÇ */}
+      {/* Mobile Drawer */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -230,7 +230,7 @@ function Navbar() {
               <hr className="my-2 border-gray-100" />
 
               {!isAuthenticated ? (
-                /* Mobile ΓÇô Login */
+                /* Mobile – Login */
                 <li>
                   <Link
                     to="/login"
@@ -241,7 +241,7 @@ function Navbar() {
                   </Link>
                 </li>
               ) : (
-                /* Mobile ΓÇô Dashboard CTA */
+                /* Mobile – Dashboard CTA */
                 <li>
                   <div className="space-y-3 pt-1">
                     {/* User pill */}
