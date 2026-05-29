@@ -122,6 +122,7 @@ model Announcement {
   id             Int      @id @default(autoincrement())
   title          String
   description    String?
+  type           String   @default("GENERAL")
   isPinned       Boolean  @default(false)
   isFileAttached Boolean  @default(false)
   filePath       String?

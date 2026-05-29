@@ -4,6 +4,15 @@ import { Megaphone, Plus, Edit2, Trash2, X, Loader2, ExternalLink, User, UploadC
 import { getFilePath } from '../../lib/getFilePath'; // Import your GCS utility
 import toast from 'react-hot-toast';
 
+const ANNOUNCEMENT_TYPE_OPTIONS = [
+  "GENERAL",
+  "ACADEMICS",
+  "FEST",
+  "PLACEMENTS",
+  "RESEARCH",
+  "CAREER",
+];
+
 const ManageAnnouncement = () => {
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,6 +30,7 @@ const ManageAnnouncement = () => {
   const initialFormState = {
     title: '',
     description: '',
+    type: 'GENERAL',
     filePath: '',
   };
   const [formData, setFormData] = useState(initialFormState);
@@ -75,6 +85,7 @@ const ManageAnnouncement = () => {
       const apiPayload = {
           title: formData.title,
           description: formData.description,
+          type: formData.type,
           filePath: finalFilePath
       };
 
@@ -121,6 +132,7 @@ const ManageAnnouncement = () => {
     setFormData({
       title: announcement.title,
       description: announcement.description,
+      type: announcement.type || 'GENERAL',
       filePath: announcement.filePath || '',
     });
     setIsModalOpen(true);
@@ -170,6 +182,7 @@ const ManageAnnouncement = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title & Description</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Posted By</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Attachment</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
@@ -182,6 +195,11 @@ const ManageAnnouncement = () => {
                     <td className="px-6 py-4">
                       <div className="text-sm font-bold text-gray-900">{item.title}</div>
                       <div className="text-xs text-gray-500 truncate max-w-xs mt-1">{item.description}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 border border-blue-100">
+                        {item.type || "GENERAL"}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center text-sm text-gray-600">
@@ -281,6 +299,22 @@ const ManageAnnouncement = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
                   placeholder="Enter the full details here..."
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <select
+                  name="type"
+                  value={formData.type}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                >
+                  {ANNOUNCEMENT_TYPE_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* File Upload Section */}

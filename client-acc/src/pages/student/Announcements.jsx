@@ -17,6 +17,7 @@ export default function Announcements() {
 
   // ---------------- FETCH ANNOUNCEMENTS ----------------
   const fetchAnnouncements = async () => {
+    setLoading(true);
     try {
 
       const res = await fetch(
@@ -39,10 +40,12 @@ export default function Announcements() {
         ];
 
         setAnnouncements(sorted);
+        setHasMore(data.data.length === limit);
       }
     } catch (error) {
       toast.error("unable to fetch announcements")
       console.log("Error fetching announcements:", error);
+      setHasMore(false);
     }
 
     setLoading(false);
@@ -115,6 +118,10 @@ export default function Announcements() {
                 <h2 className="text-lg font-semibold text-gray-900">
                   {a.title}
                 </h2>
+
+                <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 border border-blue-100">
+                  {a.type || "GENERAL"}
+                </span>
 
                 {/* Priority badge EXACT UI */}
                 {/* <span
@@ -201,6 +208,7 @@ export default function Announcements() {
 
           <button
             onClick={() => setPage((p) => p + 1)}
+            disabled={!hasMore}
             className="px-3 py-1.5 rounded-lg border hover:bg-gray-100"
           >
             &gt;
