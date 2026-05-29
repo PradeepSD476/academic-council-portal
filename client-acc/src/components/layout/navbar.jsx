@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FiMenu, FiX, FiLogOut, FiGrid, FiChevronDown, FiUser } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
-import logo from9 "/logo.png";
+import logo from "/logo.png";
 import AuthContext from "../../context/auth/authContext";
 
 function Navbar() {
