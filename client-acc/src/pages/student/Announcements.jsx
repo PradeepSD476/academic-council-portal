@@ -119,6 +119,10 @@ export default function Announcements() {
                   {a.title}
                 </h2>
 
+                <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 border border-blue-100">
+                  {a.type || "GENERAL"}
+                </span>
+
                 {/* Priority badge EXACT UI */}
                 {/* <span
                   className={`

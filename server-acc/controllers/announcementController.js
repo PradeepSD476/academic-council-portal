@@ -62,7 +62,7 @@ export const getAnnouncements = async (req, res) => {
 }
 
 export const addAnnouncement = async (req, res) => {
-    const { title, description, filePath } = req.body;
+    const { title, description, filePath, type } = req.body;
     if (!title || !description) {
         return res.status(400).json({
             success: false,
@@ -76,6 +76,7 @@ export const addAnnouncement = async (req, res) => {
             data: {
                 title: title,
                 description: description,
+                type: typeof type === "string" && type.trim() ? type.trim().toUpperCase() : "GENERAL",
                 filePath: filePath || null,
                 isFileAttached: !!filePath,
                 uploadedById: user.id
@@ -155,6 +156,17 @@ export const editAnnouncement = async (req, res) => {
         })
     }
     try {
+        //Added this part to check if updates has "type" attribute if not add GENERAl otherwise it remains same
+        const sanitizedUpdates = { ...updates };
+        if (Object.prototype.hasOwnProperty.call(sanitizedUpdates, "type")) {
+            sanitizedUpdates.type = typeof sanitizedUpdates.type === "string" && sanitizedUpdates.type.trim()
+                ? sanitizedUpdates.type.trim().toUpperCase()
+                : "GENERAL";
+        }
+        if (Object.prototype.hasOwnProperty.call(sanitizedUpdates, "filePath")) {
+            sanitizedUpdates.isFileAttached = !!sanitizedUpdates.filePath;
+        }
+        
         const announcement = await prisma.announcement.findUnique({
             where: {
                 id: parseInt(announcementId),
@@ -171,7 +183,7 @@ export const editAnnouncement = async (req, res) => {
             where: {
                 id: parseInt(announcementId),
             },
-            data: updates
+            data: sanitizedUpdates
         })
         return res.status(201).json({
             success: true,
