@@ -81,7 +81,7 @@ const details = {
           phone: "91 9405239249",
           email: "",
           linkedin: "",
-          profile: "https://lh3.googleusercontent.com/d/1UhdmTVoVCdPdJke8jvttoT_5vVMd0YNa=w1000"
+          profile: "saad.jpg"
         },
         {
           name: "Himanshu Daya",
@@ -243,7 +243,7 @@ const details = {
           subtitle: "Junior Year Acc Sec.",
           description: "AI & Data Science | Roll No: 2401AI33",
           phone: "91 9522515129",
-          email: "sagitrapradeep2006@gmail.com",
+          email: "acc_ug@iitp.ac.in",
           linkedin: "https://www.linkedin.com/in/pradeep-sagitra-213890323/",
           profile: `/pradeepsd.jpeg`
       },
