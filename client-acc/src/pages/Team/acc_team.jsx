@@ -428,7 +428,7 @@ const details = {
         phone: "91 9773873964",
         email: "parth_2501CS09@iitp.ac.in",
         linkedin: "",
-        profile: "/parth.jpeg"
+        profile: "/parth2.jpeg"
       },
        {
         name: "Nirvair Singh",
