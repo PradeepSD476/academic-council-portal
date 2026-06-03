@@ -22,6 +22,19 @@ import {
   saveDraft,
 } from "../lib/Post_Functions";
 
+const DOMAIN_OPTIONS = [
+  { value: "CS", label: "CS" },
+  { value: "ME", label: "ME" },
+  { value: "ECE", label: "ECE" },
+  { value: "EE", label: "EE" },
+  { value: "Quant", label: "Quant" },
+  { value: "Civil", label: "Civil" },
+  { value: "Chemical", label: "Chemical" },
+  { value: "Consulting", label: "Consulting" },
+  { value: "Product", label: "Product" },
+  { value: "Other", label: "Other" }
+];
+
 const normalizeHtml = (value) => value?.trim() || "";
 
 const preserveHeadingBold = (value = "") => {
@@ -104,6 +117,7 @@ const AdminPostEditor = () => {
     title: selectedPost?.title || "",
     description: selectedPost?.description || selectedPost?.content || "",
     experienceType: defaultExperienceType,
+    domain: selectedPost?.domain || "Other",
   });
 
   const isNewPost = Number(id) === -1 || !selectedPost;
@@ -113,6 +127,7 @@ const AdminPostEditor = () => {
       title: selectedPost?.title || "",
       description: selectedPost?.description || selectedPost?.content || "",
       experienceType: defaultExperienceType,
+      domain: selectedPost?.domain || "Other",
     });
   }, [defaultExperienceType, selectedPost]);
 
@@ -196,6 +211,7 @@ const AdminPostEditor = () => {
     const preservedDescription = getPreservedEditorHtml();
     const payload = {
       ...formData,
+      content: preservedDescription,
       description: preservedDescription,
       status: "PUBLISHED",
     };
@@ -211,6 +227,7 @@ const AdminPostEditor = () => {
     const preservedDescription = getPreservedEditorHtml();
     const payload = {
       ...formData,
+      content: preservedDescription,
       description: preservedDescription,
       status: "DRAFT",
     };
@@ -269,7 +286,7 @@ const AdminPostEditor = () => {
       {/*Form*/}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col flex-1 overflow-hidden">
         <div className="p-6 overflow-y-auto space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             <div className="space-y-1.5">
               <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                 <Type size={16} className="text-gray-400" />
@@ -297,6 +314,25 @@ const AdminPostEditor = () => {
                 className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow outline-none text-gray-800"
               >
                 {EXPERIENCE_TYPE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <Tag size={16} className="text-gray-400" />
+                Domain
+              </label>
+              <select
+                name="domain"
+                value={formData.domain}
+                onChange={handleChange}
+                className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow outline-none text-gray-800"
+              >
+                {DOMAIN_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
