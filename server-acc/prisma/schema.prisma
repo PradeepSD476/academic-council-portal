@@ -33,6 +33,7 @@ model Experience {
   title          String
   description    String        @db.Text
   experienceType ExperienceType
+  domain         String?
   status         ContentStatus
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt

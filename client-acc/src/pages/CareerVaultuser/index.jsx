@@ -16,10 +16,24 @@ const EXPERIENCE_TYPES = [
   { value: "STARTUP", label: "Startup" },
 ];
 
+const DOMAINS = [
+  { value: "CS", label: "CS" },
+  { value: "ME", label: "ME" },
+  { value: "ECE", label: "ECE" },
+  { value: "EE", label: "EE" },
+  { value: "Quant", label: "Quant" },
+  { value: "Civil", label: "Civil" },
+  { value: "Chemical", label: "Chemical" },
+  { value: "Consulting", label: "Consulting" },
+  { value: "Product", label: "Product" },
+  { value: "Other", label: "Other" }
+];
+
 // ─── Create Post Modal ────────────────────────────────────────────────────────
 const CreatePostModal = ({ onClose, onSubmitted }) => {
   const [title, setTitle] = useState("");
   const [experienceType, setExperienceType] = useState("");
+  const [domain, setDomain] = useState("");
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -27,12 +41,13 @@ const CreatePostModal = ({ onClose, onSubmitted }) => {
     e.preventDefault();
     if (!title.trim()) return toast.error("Please enter a title.");
     if (!experienceType) return toast.error("Please select an experience type.");
+    if (!domain) return toast.error("Please select a domain.");
     const strippedDesc = description.replace(/<[^>]*>/g, "").trim();
     if (!strippedDesc) return toast.error("Please write something in the description.");
 
     setSubmitting(true);
     try {
-      await forumApi.submitPost({ title: title.trim(), description, experienceType, status: "DRAFT" });
+      await forumApi.submitPost({ title: title.trim(), description, experienceType, domain, status: "DRAFT" });
       toast.success("Post submitted! It will appear publicly after admin review.");
       onSubmitted();
       onClose();
@@ -111,6 +126,24 @@ const CreatePostModal = ({ onClose, onSubmitted }) => {
                 <option value="">Select type…</option>
                 {EXPERIENCE_TYPES.map((t) => (
                   <option key={t.value} value={t.value}>{t.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Domain */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="post-domain" className="text-sm font-semibold text-gray-700">
+                Domain <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="post-domain"
+                value={domain}
+                onChange={(e) => setDomain(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent bg-white transition"
+              >
+                <option value="" disabled>Select domain...</option>
+                {DOMAINS.map((d) => (
+                  <option key={d.value} value={d.value}>{d.label}</option>
                 ))}
               </select>
             </div>
@@ -253,6 +286,7 @@ const CareerVault = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [domainFilter, setDomainFilter] = useState("All");
 
   // FEATURE 1: spam prevention ref for in-flight like requests
   const likePendingRef = useRef({});
@@ -260,13 +294,20 @@ const CareerVault = () => {
   // FEATURE 2: refs for comment sections (keyed by post id) for smooth scroll
   const commentSectionRefs = useRef({});
 
+  // Always hold latest filter state so bare fetchPosts() calls read current values
+  const filterRef = useRef({ page, domainFilter });
+  filterRef.current = { page, domainFilter };
+
   const currentUserId = user?.id;
   const currentUserName = user?.displayName || "Student";
 
-  const fetchPosts = useCallback(async (targetPage = page) => {
+  const fetchPosts = useCallback(async (targetPage, targetDomain) => {
+    // Fall back to current filter state via ref when called without args
+    const pg = targetPage ?? filterRef.current.page;
+    const dm = targetDomain ?? filterRef.current.domainFilter;
     setIsLoading(true);
     try {
-      const response = await forumApi.getPosts(targetPage, 10);
+      const response = await forumApi.getPosts(pg, 10, 'PUBLISHED', dm);
       if (response.data.success) {
         const mapped = response.data.data.map((p) => ({
           ...p,
@@ -281,15 +322,19 @@ const CareerVault = () => {
       }
     } catch (error) {
       console.error("Error fetching posts:", error);
-      toast.error("Could not load experiences.");
+      toast.error("Could not load experiences. Please try again later.");
+
+      setExperiences([]);
+      setTotalPages(1);
+      setPage(1);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchPosts(page);
-  }, [page]);
+    fetchPosts(page, domainFilter);
+  }, [page, domainFilter]);
 
   const toggleExpand = (id) => {
     setExpandedId(expandedId === id ? null : id);
@@ -420,7 +465,7 @@ const CareerVault = () => {
 
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
               Career Vault
@@ -430,16 +475,32 @@ const CareerVault = () => {
             </p>
           </div>
 
-          <motion.button
-            id="create-post-btn"
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-md transition-colors"
-          >
-            <PenSquare size={16} />
-            Create Post
-          </motion.button>
+          <div className="flex flex-wrap items-center gap-4">
+            <select
+              value={domainFilter}
+              onChange={(e) => {
+                setDomainFilter(e.target.value);
+                setPage(1);
+              }}
+              className="px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-sm font-medium text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+            >
+              <option value="All">All Domains</option>
+              {DOMAINS.map((d) => (
+                <option key={d.value} value={d.value}>{d.label}</option>
+              ))}
+              <option value="Uncategorized">Uncategorized (Legacy)</option>
+            </select>
+            <motion.button
+              id="create-post-btn"
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-md transition-colors"
+            >
+              <PenSquare size={16} />
+              Create Post
+            </motion.button>
+          </div>
         </div>
 
         <div className="space-y-4">
@@ -476,6 +537,12 @@ const CareerVault = () => {
                           <span>
                             {new Date(exp.date || exp.createdAt).toLocaleDateString()}
                           </span>
+                          <>
+                            <span>•</span>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                              {exp.domain || 'Uncategorized'}
+                            </span>
+                          </>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">

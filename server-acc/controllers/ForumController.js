@@ -10,8 +10,21 @@ export const getAllPosts = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const status = req.query.status || 'PUBLISHED';
+    const domain = req.query.domain;
 
     const whereClause = status === 'ALL' ? {} : { status: status };
+    if (domain && domain !== 'All') {
+        if (domain === 'Uncategorized') {
+            whereClause.OR = [
+                { domain: null },
+                { domain: '' }
+            ];
+        } else if (domain === 'Other') {
+            whereClause.domain = 'Other';
+        } else {
+            whereClause.domain = domain;
+        }
+    }
 
     try {
         const [result, total] = await Promise.all([
@@ -89,7 +102,7 @@ export const getAllPosts = async (req, res) => {
 
 
 export const addpost = async (req, res) => {
-    const { title, description, status, experienceType } = req.body;
+    const { title, description, status, experienceType, domain } = req.body;
     const user = req.user;
     if (!title || !description) {
         return res.status(400).json({
@@ -105,6 +118,7 @@ export const addpost = async (req, res) => {
                 description: description,
                 status: status,
                 experienceType: experienceType,
+                domain: domain,
                 uploadedById: user.id
             }
         })
@@ -176,7 +190,7 @@ export const deletePost = async (req, res) => {
 export const editPost = async (req, res) => {
     const postId = req.params.id;
     const user = req.user;
-    const { title, description, experienceType, status } = req.body;
+    const { title, description, experienceType, status, domain } = req.body;
     if (!postId) {
         return res.status(400).json({
             success: false,
@@ -210,7 +224,8 @@ export const editPost = async (req, res) => {
                 title,
                 description,
                 experienceType,
-                status
+                status,
+                domain
             }
         })
 
