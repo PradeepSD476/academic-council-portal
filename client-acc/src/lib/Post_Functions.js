@@ -22,7 +22,7 @@ export const getRoutedPost = async (postId) => {
     return null;
   }
 
-  const response = await getAllPosts();
+  const response = await getAllPosts(1, 1000);
   return (response?.data || []).find((item) => item.id === numericPostId) || null;
 };
 
