@@ -294,13 +294,20 @@ const CareerVault = () => {
   // FEATURE 2: refs for comment sections (keyed by post id) for smooth scroll
   const commentSectionRefs = useRef({});
 
+  // Always hold latest filter state so bare fetchPosts() calls read current values
+  const filterRef = useRef({ page, domainFilter });
+  filterRef.current = { page, domainFilter };
+
   const currentUserId = user?.id;
   const currentUserName = user?.displayName || "Student";
 
-  const fetchPosts = useCallback(async (targetPage = page, targetDomain = domainFilter) => {
+  const fetchPosts = useCallback(async (targetPage, targetDomain) => {
+    // Fall back to current filter state via ref when called without args
+    const pg = targetPage ?? filterRef.current.page;
+    const dm = targetDomain ?? filterRef.current.domainFilter;
     setIsLoading(true);
     try {
-      const response = await forumApi.getPosts(targetPage, 10, 'PUBLISHED', targetDomain);
+      const response = await forumApi.getPosts(pg, 10, 'PUBLISHED', dm);
       if (response.data.success) {
         const mapped = response.data.data.map((p) => ({
           ...p,
@@ -316,7 +323,7 @@ const CareerVault = () => {
     } catch (error) {
       console.error("Error fetching posts:", error);
       toast.error("Could not load experiences. Please try again later.");
-      
+
       setExperiences([]);
       setTotalPages(1);
       setPage(1);

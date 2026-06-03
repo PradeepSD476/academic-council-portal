@@ -9,7 +9,7 @@ const api = axios.create({
 
 export const forumApi = {
   // Posts - public (only PUBLISHED)
-  getPosts: (page = 1, limit = 10, status = 'PUBLISHED') => api.get(`/posts?page=${page}&limit=${limit}&status=${status}`),
+  getPosts: (page = 1, limit = 10, status = 'PUBLISHED', domain = '') => api.get('/posts', { params: { page, limit, status, ...(domain && domain !== 'All' ? { domain } : {}) } }),
 
   deletePost: (id) => api.delete(`/posts/${id}`),
 
