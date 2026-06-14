@@ -50,13 +50,22 @@ const AuthState = ({ children }) => {
 
             if (response.ok) {
                 setUser(data.data);
-                console.table(data.data)
-                toast.success("logged In")
+                console.table(data.data);
+                toast.success("Logged in successfully!");
             } else {
-                toast.error("Unable to login, Please try again later.")
-                throw new Error(data.message);
+                const status = response.status;
+                if (status === 401 && data?.error === "MISSING_PARAMETERS") {
+                    throw new Error("Please enter both your email and password.");
+                } else if (status === 404) {
+                    throw new Error("No account found with this email. Please sign up first.");
+                } else if (status === 401) {
+                    throw new Error("Incorrect password. Please try again.");
+                } else {
+                    throw new Error(data?.message || "Login failed. Please try again later.");
+                }
             }
         } catch (err) {
+            toast.error(err.message || "Login failed. Please try again later.");
             console.error(err);
         } finally {
             setLoading(false);
@@ -80,14 +89,16 @@ const AuthState = ({ children }) => {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.message);
-            }else{
-                toast.success("registered successfully, please login now.")
+                // Use the server's human-readable message; the backend now returns
+                // specific messages for every failure case
+                throw new Error(data?.message || "Registration failed. Please try again.");
+            } else {
+                toast.success("Account created! Please sign in.");
             }
-            
-            navigate('/login')
+
+            navigate('/login');
         } catch (err) {
-            toast.error("unable to register, check your credentials or please try again later.")
+            toast.error(err.message || "Unable to register. Please try again later.");
             console.error(err.message);
         } finally {
             setLoading(false);
