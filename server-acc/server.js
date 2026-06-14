@@ -27,7 +27,7 @@ const app = express();
 const PORT = process.env.PORT || 3000
 
 app.use(cors({
-  origin: [ process.env.CLIENT_URL, "https://academic-council-portal.vercel.app", "http://localhost:800", "https://acc.iitp.ac.in", "http://acc.iitp.ac.in", "https://172.16.1.254", "http://172.16.1.254" ],
+  origin: [ process.env.CLIENT_URL, "https://academic-council-portal.vercel.app", "http://localhost:800", "http://localhost:5173", "http://localhost:3001", "https://acc.iitp.ac.in", "http://acc.iitp.ac.in", "https://172.16.1.254", "http://172.16.1.254" ],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   credentials: true
 }));

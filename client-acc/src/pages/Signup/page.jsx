@@ -20,7 +20,7 @@ function SignUp() {
 
     const handleSendOTP = async () => {
         if (!email.endsWith("@iitp.ac.in")) {
-            toast.error("Please use college email id");
+            toast.error("Only @iitp.ac.in email addresses are allowed.");
             return;
         }
         setOtpLoading(true);
@@ -37,13 +37,14 @@ function SignUp() {
             const data = await res.json();
 
             if (!data.success) {
-                toast.error(data.error);
-            }else{
+                // Use the human-readable message from the server, not the error code
+                toast.error(data.message || data.error || "Failed to send OTP. Please try again.");
+            } else {
                 setOtpSent(true);
                 toast.success("OTP sent to your email.");
             }
         } catch (err) {
-            toast.error("Please try again later.");
+            toast.error("Network error — please check your connection and try again.");
         } finally {
             setOtpLoading(false);
         }
