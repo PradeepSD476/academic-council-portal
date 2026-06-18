@@ -3,6 +3,7 @@ import prisma from '../config/db.js';
 export const getUsers = async (req, res) => {
     const page = parseInt(req.query.page);
     const limit = parseInt(req.query.limit);
+    const search = req.query.search?.trim() || "";
     if (!page || !limit) {
         return res.status(400).json({
             success: false,
@@ -18,18 +19,48 @@ export const getUsers = async (req, res) => {
         })
     }
     try {
-        const results = await prisma.user.findMany({
-            skip: (page - 1) * limit,
-            take: limit,
-            orderBy: [
+    const results = await prisma.user.findMany({
+    where: search
+        ? {
+            OR: [
                 {
-                    branchName: 'asc'
+                    displayName: {
+                        contains: search,
+                        mode: 'insensitive'
+                    }
                 },
                 {
-                    id: 'asc'
+                    email: {
+                        contains: search,
+                        mode: 'insensitive'
+                    }
+                },
+                {
+                    branchName: {
+                        contains: search,
+                        mode: 'insensitive'
+                    }
+                },
+                {
+                   rollNo: {
+                        contains: search,
+                        mode: 'insensitive'
+                    }
                 }
-            ],
-        })
+            ]
+        }
+        : {},
+    skip: (page - 1) * limit,
+    take: limit,
+    orderBy: [
+        {
+            branchName: 'asc'
+        },
+        {
+            id: 'asc'
+        }
+    ]
+});
         return res.status(200).json({
             success: true,
             message: "Data fetched Successfully",
