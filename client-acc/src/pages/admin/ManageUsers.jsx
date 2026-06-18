@@ -11,6 +11,7 @@ const ManageUsers = () => {
   const [page, setPage] = useState(1);
   const limit = 10;
   const [hasMore, setHasMore] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const roles = ['STUDENT', 'CAREER_ADMIN', 'ANNOUNCEMENT_ADMIN', 'RESOURCE_ADMIN', 'SUPER_ADMIN', 'FACULTY'];
 
@@ -18,12 +19,12 @@ const ManageUsers = () => {
     setLoading(true);
     try {
 
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/users?page=${page}&limit=${limit}`, {
+      const response =  await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/users?page=${page}&limit=${limit}&search=${searchTerm}`,{
         withCredentials: true
       });
 
       if (response.data && response.data.data) {
-        toast.success("fetched Users data.")
+       
         setUsers(response.data.data);
   
         if (response.data.data.length < limit) {
@@ -43,7 +44,7 @@ const ManageUsers = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, [page]); 
+  }, [page,searchTerm]); 
 
   const handleRoleChange = async (userId, newRole) => {
     setUpdatingId(userId);
@@ -79,7 +80,18 @@ const ManageUsers = () => {
           Page {page}
         </div>
       </div>
-
+    <div className="mb-4">
+     <input
+        type="text"
+        placeholder="Search by name, email, branch, roll number..."
+        value={searchTerm}
+        onChange={(e) => {
+          setSearchTerm(e.target.value);
+         setPage(1);
+        }}
+    className="w-full md:w-96 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+  />
+</div>
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
 
         {loading && users.length === 0 ? (
