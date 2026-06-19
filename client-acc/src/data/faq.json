@@ -679,7 +679,7 @@
       "travel"
     ]
   },
- {
+{
   "id": "faq_031",
   "category": "Academics",
   "subcategory": "Branch Change",
@@ -691,16 +691,15 @@
     "IITP branch change",
     "branch transfer",
     "department change"
+  ],
+  "priority": "medium",
+  "source": "FAQs.pdf",
+  "tags": [
+    "academics",
+    "branch change",
+    "B.Tech"
   ]
-}
-    "priority": "medium",
-    "source": "FAQs.pdf",
-    "tags": [
-      "academics",
-      "branch change",
-      "B.Tech"
-    ]
-  },
+},
   {
     "id": "faq_032",
     "category": "Placements",
