@@ -679,20 +679,20 @@
       "travel"
     ]
   },
-  {
-    "id": "faq_031",
-    "category": "Academics",
-    "subcategory": "Branch Change",
-    "question": "Is branch change possible at IIT Patna?",
-    "answer": "
-No, As per the latest institute policy, branch change is currently not allowed at IIT Patna. Students are advised to choose their branch carefully during JoSAA counselling.",
-    "keywords": [
-      "branch change",
-      "change branch",
-      "IITP branch change",
-      "branch transfer",
-      "department change"
-    ],
+ {
+  "id": "faq_031",
+  "category": "Academics",
+  "subcategory": "Branch Change",
+  "question": "Is branch change possible at IIT Patna?",
+  "answer": "No. As per the latest institute policy, branch change is currently not allowed at IIT Patna. Students are advised to choose their branch carefully during JoSAA counselling.",
+  "keywords": [
+    "branch change",
+    "change branch",
+    "IITP branch change",
+    "branch transfer",
+    "department change"
+  ]
+}
     "priority": "medium",
     "source": "FAQs.pdf",
     "tags": [
