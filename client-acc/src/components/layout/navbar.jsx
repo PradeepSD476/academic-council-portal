@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FiMenu, FiX, FiLogOut, FiGrid, FiChevronDown, FiUser } from "react-icons/fi";
-import { motion, AnimatePresence } from "framer-motion";
+import {AnimatePresence } from "framer-motion";
 import logo from "/logo.png";
 import AuthContext from "../../context/auth/authContext";
 
@@ -49,7 +49,7 @@ function Navbar() {
   const displayName = user?.displayName?.split(" ")[0] || user?.email?.split("@")[0] || "Student";
 
   return (
-    <nav className="bg-white shadow-md fixed w-full z-50">
+    <nav className="bg-white shadow-md fixed w-full z-100">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 sm:h-20">
           {/* Logo */}

@@ -9,11 +9,20 @@ const api = axios.create({
 
 export const forumApi = {
   // Posts - public (only PUBLISHED)
-  getPosts: (page = 1, limit = 10, status = 'PUBLISHED', domain = '') => api.get('/posts', { params: { page, limit, status, ...(domain && domain !== 'All' ? { domain } : {}) } }),
+  getPosts: (page = 1, limit = 10, status = 'PUBLISHED', domain = '', search = '') => api.get('/posts', {
+    params: {
+      page,
+      limit,
+      status,
+      ...(domain && domain !== 'All' ? { domain } : {}),
+      ...(search ? { search } : {}),
+    },
+  }),
 
   deletePost: (id) => api.delete(`/posts/${id}`),
 
   toggleLike: (id) => api.post(`/posts/toggle-like/${id}`),
+  toggleBookmark: (id) => api.post(`/posts/toggle-bookmark/${id}`),
 
   // Comments
   addComment: (data) => api.post('/posts/comments', data),
