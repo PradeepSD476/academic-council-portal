@@ -1,14 +1,16 @@
-import React, { useState, useContext, useEffect, useRef, useCallback } from "react";
+import React, { useState, useContext, useEffect, useRef, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronDown, ChevronUp, MessageSquare, ArrowBigUp,
-  PenSquare, X, Trash2, ChevronLeft, ChevronRight, MessageCircle,
+  PenSquare, X, Trash2, ChevronLeft, ChevronRight, MessageCircle, Search, Bookmark, BookmarkCheck,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import AuthContext from "../../context/auth/authContext";
 import CommentSection from "./CommentSection";
 import NativeRichTextEditor from "./NativeRichTextEditor";
 import { forumApi } from "../../api/forumApi";
+
+void motion;
 
 const EXPERIENCE_TYPES = [
   { value: "INTERNSHIP", label: "Internship" },
@@ -26,7 +28,7 @@ const DOMAINS = [
   { value: "Chemical", label: "Chemical" },
   { value: "Consulting", label: "Consulting" },
   { value: "Product", label: "Product" },
-  { value: "Other", label: "Other" }
+  { value: "Other", label: "Other" },
 ];
 
 // ─── Create Post Modal ────────────────────────────────────────────────────────
@@ -251,7 +253,7 @@ const CommentPreview = ({ postId, commentCount, onViewAll }) => {
           onClick={onViewAll}
           title="Click to view all comments"
         >
-          <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600 uppercase">
+          <div className="shrink-0 w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600 uppercase">
             {c.userName?.[0] || "?"}
           </div>
           <div className="flex-1 min-w-0">
@@ -279,7 +281,7 @@ const CommentPreview = ({ postId, commentCount, onViewAll }) => {
 // ─── Main CareerVault Page ────────────────────────────────────────────────────
 const CareerVault = () => {
   const { user } = useContext(AuthContext);
-  const [experiences, setExperiences] = useState([]);
+  const [allExperiences, setAllExperiences] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
   const [expandedComments, setExpandedComments] = useState({});
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -287,54 +289,84 @@ const CareerVault = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [domainFilter, setDomainFilter] = useState("All");
+  const [showBookmarkedOnly, setShowBookmarkedOnly] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const pageSize = 10;
 
   // FEATURE 1: spam prevention ref for in-flight like requests
   const likePendingRef = useRef({});
+  const bookmarkPendingRef = useRef({});
 
   // FEATURE 2: refs for comment sections (keyed by post id) for smooth scroll
   const commentSectionRefs = useRef({});
 
-  // Always hold latest filter state so bare fetchPosts() calls read current values
-  const filterRef = useRef({ page, domainFilter });
-  filterRef.current = { page, domainFilter };
-
   const currentUserId = user?.id;
   const currentUserName = user?.displayName || "Student";
 
-  const fetchPosts = useCallback(async (targetPage, targetDomain) => {
-    // Fall back to current filter state via ref when called without args
-    const pg = targetPage ?? filterRef.current.page;
-    const dm = targetDomain ?? filterRef.current.domainFilter;
+  const normalizePost = useCallback((p) => ({
+    ...p,
+    authorName: p.uploadedBy?.displayName || p.authorName || "Unknown",
+    likes: p._count?.likes ?? 0,
+    likedBy: p.likes?.map((l) => l.userId) || [],
+    isBookmarked: (p.bookmarks?.length || 0) > 0,
+  }), []);
+
+  const fetchPosts = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await forumApi.getPosts(pg, 10, 'PUBLISHED', dm);
+      const response = await forumApi.getPosts(1, 1000, 'PUBLISHED');
       if (response.data.success) {
-        const mapped = response.data.data.map((p) => ({
-          ...p,
-          authorName: p.uploadedBy?.displayName || p.authorName || "Unknown",
-          likes: p._count?.likes ?? 0,
-          // Map array of like objects to array of userIds for local liked state
-          likedBy: p.likes?.map((l) => l.userId) || [],
-        }));
-        setExperiences(mapped);
-        setTotalPages(response.data.pagination.totalPages);
-        setPage(response.data.pagination.page);
+        const mapped = response.data.data.map(normalizePost);
+        setAllExperiences(mapped);
       }
     } catch (error) {
       console.error("Error fetching posts:", error);
       toast.error("Could not load experiences. Please try again later.");
 
-      setExperiences([]);
-      setTotalPages(1);
-      setPage(1);
+      setAllExperiences([]);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [normalizePost]);
 
   useEffect(() => {
-    fetchPosts(page, domainFilter);
-  }, [page, domainFilter]);
+    fetchPosts();
+    setPage(1);
+  }, [fetchPosts]);
+
+  const filteredExperiences = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    const domainFiltered = allExperiences.filter((exp) => {
+      if (showBookmarkedOnly && !exp.isBookmarked) {
+        return false;
+      }
+
+      if (domainFilter === "All") return true;
+
+      return (exp.domain || "").toLowerCase() === domainFilter.toLowerCase();
+    });
+
+    if (!q) return domainFiltered;
+
+    return domainFiltered.filter((exp) => {
+      const titleMatch = (exp.title || "").toLowerCase().includes(q);
+      const authorMatch = (exp.authorName || "").toLowerCase().includes(q);
+      return titleMatch || authorMatch;
+    });
+  }, [allExperiences, searchTerm, domainFilter, showBookmarkedOnly]);
+
+  const paginatedExperiences = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredExperiences.slice(start, start + pageSize);
+  }, [filteredExperiences, page, pageSize]);
+
+  useEffect(() => {
+    const nextTotalPages = Math.max(1, Math.ceil(filteredExperiences.length / pageSize));
+    setTotalPages(nextTotalPages);
+    if (page > nextTotalPages) {
+      setPage(1);
+    }
+  }, [filteredExperiences, page, pageSize]);
 
   const toggleExpand = (id) => {
     setExpandedId(expandedId === id ? null : id);
@@ -348,7 +380,7 @@ const CareerVault = () => {
     let previousExperiences;
 
     // Optimistically update UI immediately
-    setExperiences((prev) => {
+    setAllExperiences((prev) => {
       previousExperiences = prev;
       return prev.map((exp) => {
         if (exp.id !== id) return exp;
@@ -367,7 +399,7 @@ const CareerVault = () => {
       const res = await forumApi.toggleLike(id);
       // Sync with authoritative count from server
       if (res.data.success) {
-        setExperiences((prev) =>
+        setAllExperiences((prev) =>
           prev.map((exp) =>
             exp.id === id ? { ...exp, likes: res.data.likesCount } : exp
           )
@@ -376,10 +408,39 @@ const CareerVault = () => {
     } catch (err) {
       console.error("Like failed:", err);
       // Rollback to previous state on failure
-      setExperiences(previousExperiences);
+      setAllExperiences(previousExperiences);
       toast.error("Failed to update vote. Please try again.");
     } finally {
       likePendingRef.current[id] = false;
+    }
+  };
+
+  const toggleBookmark = async (id) => {
+    if (bookmarkPendingRef.current[id]) return;
+    bookmarkPendingRef.current[id] = true;
+
+    let previousExperiences;
+
+    setAllExperiences((prev) => {
+      previousExperiences = prev;
+      return prev.map((exp) => (
+        exp.id === id ? { ...exp, isBookmarked: !exp.isBookmarked } : exp
+      ));
+    });
+
+    try {
+      const res = await forumApi.toggleBookmark(id);
+      if (res.data.success) {
+        setAllExperiences((prev) => prev.map((exp) => (
+          exp.id === id ? { ...exp, isBookmarked: res.data.bookmarked } : exp
+        )));
+      }
+    } catch (error) {
+      console.error("Bookmark failed:", error);
+      setAllExperiences(previousExperiences);
+      toast.error("Failed to update bookmark. Please try again.");
+    } finally {
+      bookmarkPendingRef.current[id] = false;
     }
   };
 
@@ -405,7 +466,7 @@ const CareerVault = () => {
       await forumApi.deletePost(id);
       toast.success("Post deleted!");
       fetchPosts();
-    } catch (err) {
+    } catch {
       toast.error("Failed to delete post.");
     }
   };
@@ -475,37 +536,71 @@ const CareerVault = () => {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4">
+        </div>
+
+        <div className="mb-6">
+          <div className="relative w-full max-w-5xl">
+            <Search size={22} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setPage(1);
+              }}
+              placeholder="Search posts by title or author..."
+              className="w-full rounded-xl border border-gray-300 bg-white py-4 pl-12 pr-4 text-base text-gray-700 shadow-sm outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
             <select
               value={domainFilter}
               onChange={(e) => {
                 setDomainFilter(e.target.value);
                 setPage(1);
               }}
-              className="px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-sm font-medium text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+              className="min-w-62.5 px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-sm font-medium text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
             >
               <option value="All">All Domains</option>
               {DOMAINS.map((d) => (
                 <option key={d.value} value={d.value}>{d.label}</option>
               ))}
-              <option value="Uncategorized">Uncategorized (Legacy)</option>
             </select>
-            <motion.button
-              id="create-post-btn"
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-md transition-colors"
-            >
-              <PenSquare size={16} />
-              Create Post
-            </motion.button>
+            <div className="flex items-center gap-3">
+              <motion.button
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => {
+                  setShowBookmarkedOnly(!showBookmarkedOnly);
+                  setPage(1);
+                }}
+                className={`flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl shadow-sm border transition-all ${
+                  showBookmarkedOnly
+                    ? "bg-amber-500 hover:bg-amber-600 border-amber-500 text-white"
+                    : "bg-white hover:bg-gray-50 border-gray-300 text-gray-700"
+                }`}
+              >
+                {showBookmarkedOnly ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
+                Show Bookmarked
+              </motion.button>
+              <motion.button
+                id="create-post-btn"
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-md transition-colors"
+              >
+                <PenSquare size={16} />
+                Create Post
+              </motion.button>
+            </div>
           </div>
         </div>
 
         <div className="space-y-4">
           <AnimatePresence>
-            {experiences?.map((exp) => {
+            {paginatedExperiences?.map((exp) => {
               const isExpanded = expandedId === exp.id;
               // FEATURE 1: derive local liked state
               const hasLiked = exp.likedBy?.includes(currentUserId);
@@ -545,7 +640,24 @@ const CareerVault = () => {
                           </>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleBookmark(exp.id);
+                          }}
+                          disabled={!!bookmarkPendingRef.current[exp.id]}
+                          className={`p-2 rounded-full transition-colors ${
+                            exp.isBookmarked
+                              ? "text-amber-500 hover:text-amber-600 bg-amber-50"
+                              : "text-gray-400 hover:text-amber-500"
+                          }`}
+                          title={exp.isBookmarked ? "Remove bookmark" : "Bookmark post"}
+                          aria-label={exp.isBookmarked ? "Remove bookmark" : "Bookmark post"}
+                        >
+                          {exp.isBookmarked ? <BookmarkCheck size={20} /> : <Bookmark size={20} />}
+                        </button>
+
                         {exp.uploadedById === currentUserId && (
                           <button
                             onClick={(e) => {
@@ -674,7 +786,7 @@ const CareerVault = () => {
                           <div
                             ref={(el) => { commentSectionRefs.current[exp.id] = el; }}
                             id={`comment-section-${exp.id}`}
-                            className="max-h-[28rem] overflow-y-auto pr-2 custom-scrollbar bg-white border border-gray-200 rounded-xl shadow-sm p-4 mt-2"
+                            className="max-h-112 overflow-y-auto pr-2 custom-scrollbar bg-white border border-gray-200 rounded-xl shadow-sm p-4 mt-2"
                           >
                             <CommentSection
                               experience={exp}
@@ -695,9 +807,11 @@ const CareerVault = () => {
             })}
           </AnimatePresence>
 
-          {(!experiences || experiences.length === 0) && !isLoading && (
+          {(!filteredExperiences || filteredExperiences.length === 0) && !isLoading && (
             <div className="text-center py-12 text-gray-500">
-              No posts out here yet!
+              {searchTerm.trim() || domainFilter !== "All"
+                ? "No posts match your current filters."
+                : "No posts out here yet!"}
             </div>
           )}
 

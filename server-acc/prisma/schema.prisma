@@ -26,6 +26,7 @@ model User {
   experiences         Experience[]
   comments            Comment[] @relation("CommentBy")
   likes               Like[]
+  bookmarks           Bookmark[]
 }
 
 model Experience {
@@ -42,6 +43,21 @@ model Experience {
 
   comments Comment[]
   likes    Like[]
+  bookmarks Bookmark[]
+}
+
+model Bookmark {
+  id        Int        @id @default(autoincrement())
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  postId    Int
+  post      Experience @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    Int
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([postId])
+  @@index([userId])
 }
 
 model Comment {

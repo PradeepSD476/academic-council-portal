@@ -11,6 +11,8 @@ export const getAllPosts = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const status = req.query.status || 'PUBLISHED';
     const domain = req.query.domain;
+    const search = (req.query.search || "").trim();
+    const userId = req.user?.id;
 
     const whereClause = status === 'ALL' ? {} : { status: status };
     if (domain && domain !== 'All') {
@@ -24,6 +26,18 @@ export const getAllPosts = async (req, res) => {
         } else {
             whereClause.domain = domain;
         }
+    }
+
+    if (search) {
+        whereClause.AND = [
+            ...(whereClause.AND || []),
+            {
+                OR: [
+                    { title: { contains: search, mode: 'insensitive' } },
+                    { uploadedBy: { is: { displayName: { contains: search, mode: 'insensitive' } } } },
+                ],
+            },
+        ];
     }
 
     try {
@@ -42,6 +56,10 @@ export const getAllPosts = async (req, res) => {
                     likes: {
                         select: { userId: true }
                     },
+                    bookmarks: userId ? {
+                        where: { userId },
+                        select: { userId: true }
+                    } : false,
                     _count: {
                         select: { likes: true, comments: true },
                     }
@@ -549,6 +567,78 @@ export const togglePostLike = async (req, res) => {
             success: false,
             error: "ServerError",
             message: "Unable to toggle like due to a server error. Please try again."
+        });
+    }
+}
+
+export const togglePostBookmark = async (req, res) => {
+    const postId = parseInt(req.params.id);
+    const userId = req.user.id;
+
+    if (!postId) {
+        return res.status(400).json({
+            success: false,
+            error: "BadRequest",
+            message: "Missing required fields."
+        });
+    }
+
+    try {
+        const post = await prisma.experience.findUnique({
+            where: { id: postId },
+        });
+
+        if (!post) {
+            return res.status(404).json({
+                success: false,
+                error: "NotFound",
+                message: "post not found."
+            });
+        }
+
+        const isBookmarked = await prisma.bookmark.findUnique({
+            where: {
+                userId_postId: {
+                    postId,
+                    userId,
+                },
+            },
+        });
+
+        if (isBookmarked) {
+            await prisma.bookmark.delete({
+                where: { id: isBookmarked.id },
+            });
+        } else {
+            await prisma.bookmark.create({
+                data: {
+                    postId,
+                    userId,
+                },
+            });
+        }
+
+        const bookmarked = await prisma.bookmark.findUnique({
+            where: {
+                userId_postId: {
+                    postId,
+                    userId,
+                },
+            },
+            select: { id: true },
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Bookmark toggled.",
+            bookmarked: !!bookmarked,
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            success: false,
+            error: "ServerError",
+            message: "Unable to toggle bookmark due to a server error. Please try again."
         });
     }
 }
