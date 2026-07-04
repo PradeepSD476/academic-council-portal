@@ -26,12 +26,13 @@ model User {
   experiences         Experience[]
   likes               Like[]
   uploadedResources   Resource[]
+  bookmarks           Bookmark[]
 }
 
 model Experience {
   id             Int            @id @default(autoincrement())
   title          String
-  description    String
+  description    String         @db.Text
   experienceType ExperienceType
   status         ContentStatus
   createdAt      DateTime       @default(now())
@@ -41,6 +42,21 @@ model Experience {
   comments       Comment[]
   uploadedBy     User           @relation(fields: [uploadedById], references: [id])
   likes          Like[]
+  bookmarks      Bookmark[]
+}
+
+model Bookmark {
+  id        Int        @id @default(autoincrement())
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  postId    Int
+  post      Experience @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    Int
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([postId])
+  @@index([userId])
 }
 
 model Comment {
@@ -132,6 +148,38 @@ model Announcement {
   uploadedBy     User?    @relation(fields: [uploadedById], references: [id])
 }
 
+model FinanceVault {
+  id          Int    @id @default(autoincrement())
+  title       String
+  description String
+
+  category FinanceCategory
+  provider String?
+
+  amount String?
+
+  eligibilityCriteria String?
+  incomeEligibility   String?
+
+  genderEligibility GenderEligibility @default(ALL)
+
+  applicableBranch String[]
+  academicYear     String?
+
+  deadline DateTime?
+
+  applicationUrl  String?
+  officialWebsite String?
+
+  requiredDocuments String?
+  attachments       Json?
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 enum Role {
   STUDENT
   RESOURCE_ADMIN
@@ -203,36 +251,4 @@ enum GenderEligibility {
   ALL
   MALE
   FEMALE
-}
-
-model FinanceVault {
-  id          Int    @id @default(autoincrement())
-  title       String
-  description String
-
-  category FinanceCategory
-  provider String?
-
-  amount String?
-
-  eligibilityCriteria String?
-  incomeEligibility   String?
-
-  genderEligibility GenderEligibility @default(ALL)
-
-  applicableBranch String[]
-  academicYear String?
-
-  deadline DateTime?
-
-  applicationUrl  String?
-  officialWebsite String?
-
-  requiredDocuments String?
-  attachments       Json?
-
-  isActive Boolean @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
