@@ -10,7 +10,6 @@ datasource db {
 model User {
   id                  Int            @id @default(autoincrement())
   email               String         @unique
-  password            String         @default("xyz")
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
   admissionYear       Int?
@@ -20,59 +19,43 @@ model User {
   program             Program?
   role                Role           @default(STUDENT)
   rollNo              String?
+  password            String         @default("xyz")
   lastseen            DateTime?
   postedAnnouncements Announcement[]
-  uploadedResources   Resource[]
+  comments            Comment[]      @relation("CommentBy")
   experiences         Experience[]
-  comments            Comment[] @relation("CommentBy")
   likes               Like[]
-  bookmarks           Bookmark[]
+  uploadedResources   Resource[]
 }
 
 model Experience {
   id             Int            @id @default(autoincrement())
   title          String
-  description    String        @db.Text
+  description    String
   experienceType ExperienceType
-  domain         String?
   status         ContentStatus
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
   uploadedById   Int
+  domain         String?
+  comments       Comment[]
   uploadedBy     User           @relation(fields: [uploadedById], references: [id])
-
-  comments Comment[]
-  likes    Like[]
-  bookmarks Bookmark[]
-}
-
-model Bookmark {
-  id        Int        @id @default(autoincrement())
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  postId    Int
-  post      Experience @relation(fields: [postId], references: [id], onDelete: Cascade)
-  userId    Int
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, postId])
-  @@index([postId])
-  @@index([userId])
+  likes          Like[]
 }
 
 model Comment {
-  id        Int        @id @default(autoincrement())
+  id        Int         @id @default(autoincrement())
   content   String?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
   postId    Int?
-  post      Experience? @relation(fields: [postId], references: [id])
   userId    Int
-  user      User       @relation("CommentBy", fields: [userId], references: [id])
   parentId  Int?
-  parent    Comment?   @relation("ParentComment", fields: [parentId], references: [id])
   rootId    Int?
-  replies  Comment[]  @relation("ParentComment")
+  parent    Comment?    @relation("ParentComment", fields: [parentId], references: [id])
+  replies   Comment[]   @relation("ParentComment")
+  post      Experience? @relation(fields: [postId], references: [id])
+  user      User        @relation("CommentBy", fields: [userId], references: [id])
 
   @@index([postId])
   @@index([rootId])
@@ -81,16 +64,16 @@ model Comment {
 }
 
 model Like {
-  id        Int        @id @default(autoincrement())
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id        Int         @id @default(autoincrement())
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
   postId    Int?
-  post      Experience? @relation(fields: [postId], references: [id])
   userId    Int
-  user      User       @relation(fields: [userId], references: [id])
+  post      Experience? @relation(fields: [postId], references: [id])
+  user      User        @relation(fields: [userId], references: [id])
 
-  @@index([postId])
   @@unique([userId, postId])
+  @@index([postId])
 }
 
 model Verification {
@@ -139,13 +122,13 @@ model Announcement {
   id             Int      @id @default(autoincrement())
   title          String
   description    String?
-  type           String   @default("GENERAL")
   isPinned       Boolean  @default(false)
   isFileAttached Boolean  @default(false)
   filePath       String?
   uploadedById   Int?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  type           String   @default("GENERAL")
   uploadedBy     User?    @relation(fields: [uploadedById], references: [id])
 }
 
@@ -156,6 +139,7 @@ enum Role {
   SUPER_ADMIN
   FACULTY
   CAREER_ADMIN
+  FINANCE_ADMIN
 }
 
 enum VerificationType {
@@ -186,11 +170,11 @@ enum ResourceType {
   NOTES
   PYQ
   TUTORIAL
-  ASSIGNMENT
-  LECTURE_SLIDE
-  BOOK
-  LAB_MANUAL
   LAB_ASSIGNMENT
+  LAB_MANUAL
+  BOOK
+  LECTURE_SLIDE
+  ASSIGNMENT
   PROJECT
   SYLLABUS
   QUESTION_BANK
@@ -204,4 +188,51 @@ enum ResourceType {
   EXAM_NOTICE
   TIME_TABLE
   OTHER
+}
+
+enum FinanceCategory {
+  SCHOLARSHIP
+  FEE_WAIVER
+  EDUCATION_LOAN
+  FINANCIAL_ASSISTANCE
+  GRANT
+  OTHER
+}
+
+enum GenderEligibility {
+  ALL
+  MALE
+  FEMALE
+}
+
+model FinanceVault {
+  id          Int    @id @default(autoincrement())
+  title       String
+  description String
+
+  category FinanceCategory
+  provider String?
+
+  amount String?
+
+  eligibilityCriteria String?
+  incomeEligibility   String?
+
+  genderEligibility GenderEligibility @default(ALL)
+
+  applicableBranch String[]
+  academicYear String?
+
+  deadline DateTime?
+
+  applicationUrl  String?
+  officialWebsite String?
+
+  requiredDocuments String?
+  attachments       Json?
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

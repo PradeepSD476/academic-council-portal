@@ -14,6 +14,7 @@ import { ensureBucket } from './config/minio.js';
 import dashboardRoutes from './routes/dashboard.js'
 import { checkAuth } from './middlewares/checkAuth.js'
 import forumRoutes from './routes/forum.js'
+import financeVaultRoutes from './routes/financeVault.js'
 
 dotenv.config();
 
@@ -54,6 +55,7 @@ app.use('/api/v1', resourceRoutes);
 app.use('/api/v1', userRoutes);
 app.use('/api/v1', dashboardRoutes);
 app.use('/api/v1', forumRoutes);
+app.use('/api/v1/finance-vault', financeVaultRoutes);
 
 server.listen(PORT, () => {
   console.log(`Server is running on PORT: ${PORT}`);
