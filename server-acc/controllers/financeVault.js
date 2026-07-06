@@ -4,9 +4,28 @@ const prisma = new PrismaClient();
 
 // Create a new Finance Opportunity
 export const createOpportunity = async (req, res) => {
+    console.log("========== Finance create route reached ==========");
+    console.log("Request Body:", req.body);
+    console.log("User:", req.user);
+
     try {
         const userId = req.user.id;
         const data = req.body;
+
+        // Clean and validate date fields
+        if (data.deadline === "" || data.deadline === undefined || data.deadline === null) {
+            data.deadline = null;
+        } else {
+            const parsedDate = new Date(data.deadline);
+            if (!isNaN(parsedDate.getTime())) {
+                data.deadline = parsedDate.toISOString();
+            } else {
+                data.deadline = null;
+            }
+        }
+
+        // Prevent primary key mutations if id is passed in req.body
+        delete data.id;
 
         const newOpportunity = await prisma.financeVault.create({
             data: {
@@ -14,18 +33,42 @@ export const createOpportunity = async (req, res) => {
             }
         });
 
-        res.status(201).json({ success: true, data: newOpportunity });
+        res.status(201).json({
+            success: true,
+            data: newOpportunity,
+        });
     } catch (error) {
-        console.error("Error creating finance opportunity:", error);
-        res.status(500).json({ success: false, message: 'Failed to create finance opportunity', error: error.message });
+        console.error("========================");
+        console.error(error);
+        console.error(error.message);
+        console.error("========================");
+
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
     }
 };
-
 // Update an existing Finance Opportunity
 export const updateOpportunity = async (req, res) => {
     try {
         const { id } = req.params;
         const data = req.body;
+
+        // Clean and validate date fields
+        if (data.deadline === "" || data.deadline === undefined || data.deadline === null) {
+            data.deadline = null;
+        } else {
+            const parsedDate = new Date(data.deadline);
+            if (!isNaN(parsedDate.getTime())) {
+                data.deadline = parsedDate.toISOString();
+            } else {
+                data.deadline = null;
+            }
+        }
+
+        // Prevent updating the ID field
+        delete data.id;
 
         const updatedOpportunity = await prisma.financeVault.update({
             where: { id: parseInt(id) },
@@ -110,7 +153,7 @@ export const getOpportunities = async (req, res) => {
             where.applicableBranch = { has: branch };
         }
         
-        if (activeStatus !== undefined) {
+        if (activeStatus !== undefined && activeStatus !== '') {
             where.isActive = activeStatus === 'true';
         }
 
