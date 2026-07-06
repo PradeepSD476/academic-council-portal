@@ -1,6 +1,16 @@
 import {
-    BookOpen, Bell, Users, Layers, Settings, LogOut,
-    Repeat, User, ChevronRight, ChevronLeft, Briefcase
+    BookOpen,
+    Bell,
+    Users,
+    Layers,
+    Settings,
+    LogOut,
+    Repeat,
+    User,
+    ChevronRight,
+    ChevronLeft,
+    Briefcase,
+    Landmark
 } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import AuthContext from "../context/auth/authContext";
@@ -11,8 +21,9 @@ export default function DashboardLayout() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const isAdmin =  (user?.role === "SUPER_ADMIN") || (user?.role === "FACULTY") || (user?.role === "ANNOUNCEMENT_ADMIN") || (user?.role === "RESOURCE_ADMIN") || (user?.role === "CAREER_ADMIN") ;
+    const isAdmin =  (user?.role === "SUPER_ADMIN") || (user?.role === "FACULTY") || (user?.role === "ANNOUNCEMENT_ADMIN") || (user?.role === "RESOURCE_ADMIN") || (user?.role === "CAREER_ADMIN") || (user?.role === "FINANCE_ADMIN") ;
     const isCareerAdmin = user?.role === "CAREER_ADMIN" ;
+    const isFinanceAdmin = user?.role === "FINANCE_ADMIN" ;
     const isSTUDENT = user?.role === "STUDENT" ;
     const isFaculty = user?.role === "FACULTY" ;
     
@@ -75,10 +86,12 @@ export default function DashboardLayout() {
                 </div>
 
                 <div className="relative bg-blue-50/50 rounded-xl mx-4 p-5 my-6 border border-blue-100/50">
-                    {(isAdmin || isCareerAdmin) && !isFaculty && (
+                    {(isAdmin || isCareerAdmin || isFinanceAdmin) && !isFaculty && (
                         <button
                             onClick={() => {
-                                const target = (viewRole === "STUDENT") ? (isCareerAdmin ? "/admin/manage-posts" : "/admin/dashboard") : "/dashboard/courses";
+                                const target = (viewRole === "STUDENT") 
+                                    ? (isCareerAdmin ? "/admin/manage-posts" : (isFinanceAdmin ? "/admin/finance-vault" : "/admin/dashboard")) 
+                                    : "/dashboard/courses";
                                 setViewRole(viewRole === "STUDENT" ? "admin" : "STUDENT");
                                 navigate(target);
                             }}
@@ -111,6 +124,8 @@ export default function DashboardLayout() {
                             <SidebarItem to="/dashboard/courses" icon={<Layers size={18} />} label="My Courses" />
                             <SidebarItem to="/dashboard/announcements" icon={<Bell size={18} />} label="Announcements" />
                             <SidebarItem to="/dashboard/career-vault" icon={<Briefcase size={18} />} label="Career Vault" />
+                            <SidebarItem to="/dashboard/finance-vault" icon={<Landmark size={18} />} label="Finance Vault"/>
+
                         </>
                     )}
 
@@ -123,6 +138,7 @@ export default function DashboardLayout() {
                             <SidebarItem to="/admin/manage-resources" icon={<Settings size={18} />} label="Resources" />
                             <SidebarItem to="/admin/manage-announcements" icon={<Bell size={18} />} label="Announcements" />
                             <SidebarItem to="/admin/manage-posts" icon={<Briefcase size={18} />} label="Career Vault" />
+                            <SidebarItem to="/admin/finance-vault" icon={<Landmark size={18} />} label="Finance Vault"/>
                         </>
                     )}
 
@@ -130,6 +146,14 @@ export default function DashboardLayout() {
                         <>
                             <p className="px-4 text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-widest">Career Admin Tools</p>
                             <SidebarItem to="/admin/manage-posts" icon={<Briefcase size={18} />} label="Career Vault" />
+
+                        </>
+                    )}
+
+                    {isAdmin && isFinanceAdmin && viewRole === "admin" && (
+                        <>
+                            <p className="px-4 text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-widest">Finance Admin Tools</p>
+                            <SidebarItem to="/admin/finance-vault" icon={<Landmark size={18} />} label="Finance Vault"/>
                         </>
                     )}
                 </nav>

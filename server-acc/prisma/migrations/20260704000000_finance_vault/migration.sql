@@ -1,4 +1,4 @@
-﻿-- CreateEnum
+-- CreateEnum
 CREATE TYPE "FinanceCategory" AS ENUM ('SCHOLARSHIP', 'FEE_WAIVER', 'EDUCATION_LOAN', 'FINANCIAL_ASSISTANCE', 'GRANT', 'OTHER');
 
 -- CreateEnum
@@ -31,4 +31,3 @@ CREATE TABLE "FinanceVault" (
 
     CONSTRAINT "FinanceVault_pkey" PRIMARY KEY ("id")
 );
-
