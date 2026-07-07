@@ -118,6 +118,76 @@ export const getOpportunityById = async (req, res) => {
     }
 };
 
+/**
+ * Bidirectional income normalizer.
+ *
+ * Parses user input (plain number OR shorthand like 30k / 8L / 1.5L)
+ * into a raw integer, then generates every string variant that the
+ * database might store for that amount:
+ *   30000 → ["30000", "30k", "30K", "30,000", "30,000"]
+ *
+ * This way "30000" finds rows storing "30k", and "30k" finds rows
+ * storing "30000" — completely bidirectional.
+ *
+ * If the input cannot be parsed as a number, a plain case-insensitive
+ * substring match is performed on the raw string.
+ */
+const expandIncomeVariants = (raw) => {
+    if (!raw) return null;
+    const str = raw.trim();
+
+    // ── Parse input to a raw integer ──────────────────────────────────
+    let numValue = null;
+
+    const kMatch = str.match(/^(\d+(?:\.\d+)?)\s*[kK]$/);
+    if (kMatch) numValue = Math.round(parseFloat(kMatch[1]) * 1_000);
+
+    if (numValue === null) {
+        const lMatch = str.match(/^(\d+(?:\.\d+)?)\s*[lL]$/);
+        if (lMatch) numValue = Math.round(parseFloat(lMatch[1]) * 100_000);
+    }
+
+    if (numValue === null) {
+        // Plain number, possibly with commas
+        const plain = str.replace(/,/g, '');
+        if (/^\d+$/.test(plain)) numValue = parseInt(plain, 10);
+    }
+
+    // ── Could not parse → plain substring fallback ────────────────────
+    if (numValue === null || isNaN(numValue)) {
+        return { type: 'plain', value: str };
+    }
+
+    // ── Generate all storage variants for this amount ─────────────────
+    const variants = new Set();
+
+    // Plain integer
+    variants.add(String(numValue));
+
+    // k-notation (only when cleanly divisible)
+    if (numValue % 1_000 === 0) {
+        const k = numValue / 1_000;
+        variants.add(`${k}k`);
+        variants.add(`${k}K`);
+        variants.add(`${k}k/-`);   // common Indian format
+    }
+
+    // L / lakh notation
+    if (numValue % 100_000 === 0) {
+        const l = numValue / 100_000;
+        variants.add(`${l}L`);
+        variants.add(`${l}l`);
+        variants.add(`${l} lakh`);
+        variants.add(`${l} Lakh`);
+    }
+
+    // Comma-separated formats (Indian and international)
+    variants.add(numValue.toLocaleString('en-IN'));   // "30,000"
+    variants.add(numValue.toLocaleString('en-US'));   // "30,000"
+
+    return { type: 'variants', values: [...variants] };
+};
+
 // Get multiple Finance Opportunities with Pagination, Search, and Filtering
 export const getOpportunities = async (req, res) => {
     try {
@@ -129,12 +199,18 @@ export const getOpportunities = async (req, res) => {
 
         // Build the where clause
         const where = {};
+
+        // We may need to combine multiple OR/AND conditions safely.
+        // Keep track of top-level AND conditions separately.
+        const andConditions = [];
         
         if (search) {
-            where.OR = [
-                { title: { contains: search, mode: 'insensitive' } },
-                { provider: { contains: search, mode: 'insensitive' } }
-            ];
+            andConditions.push({
+                OR: [
+                    { title: { contains: search, mode: 'insensitive' } },
+                    { provider: { contains: search, mode: 'insensitive' } }
+                ]
+            });
         }
 
         if (category) {
@@ -146,15 +222,39 @@ export const getOpportunities = async (req, res) => {
         }
 
         if (income) {
-            where.incomeEligibility = { contains: income, mode: 'insensitive' };
-        }
-        
-        if (branch) {
-            where.applicableBranch = { has: branch };
+            // Expand user input into all possible stored variants for bidirectional matching.
+            // e.g. typing "30000" finds records storing "30k", and typing "30k" finds "30000".
+            const expanded = expandIncomeVariants(income);
+            if (expanded) {
+                if (expanded.type === 'plain') {
+                    // Non-numeric input → simple substring match
+                    where.incomeEligibility = { contains: expanded.value, mode: 'insensitive' };
+                } else {
+                    // Numeric input → OR across every possible string form
+                    andConditions.push({
+                        OR: expanded.values.map(v => ({
+                            incomeEligibility: { contains: v, mode: 'insensitive' }
+                        }))
+                    });
+                }
+            }
         }
         
         if (activeStatus !== undefined && activeStatus !== '') {
             where.isActive = activeStatus === 'true';
+        }
+
+        if (branch) {
+            // Branch values from the frontend dropdown are already uppercase (CSE, ECE, etc.)
+            where.applicableBranch = { hasSome: [branch.trim().toUpperCase()] };
+        }
+
+        // Merge andConditions into the where clause
+        if (andConditions.length === 1) {
+            // Single condition — can be flattened directly
+            Object.assign(where, andConditions[0]);
+        } else if (andConditions.length > 1) {
+            where.AND = andConditions;
         }
 
         const [data, total] = await Promise.all([
