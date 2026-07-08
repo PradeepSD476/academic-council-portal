@@ -2,16 +2,17 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Save } from "lucide-react";
 
-const BRANCHES = ["CSE", "ECE", "EE", "ME", "CE", "AI", "MNC", "MME", "CBE", "EP", "ES"];
+const BRANCHES = ["CSE", "ECE", "EE", "ME", "CE", "AI", "MNC", "MME", "CBE", "EP", "ES", "ALL"];
+const SUBCATEGORIES = ["SC", "ST", "OBC", "EWS", "PwD", "General"];
 
 const ScholarshipForm = ({ formData, setFormData, onSubmit, loading, buttonText, backTo = "/admin/finance-vault" }) => {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-    if (type === "checkbox" && name === "applicableBranch") {
-      let arr = [...(formData.applicableBranch || [])];
+    if (type === "checkbox" && (name === "applicableBranch" || name === "subCategory")) {
+      let arr = [...(formData[name] || [])];
       arr = checked ? [...arr, value] : arr.filter(x => x !== value);
-      setFormData({ ...formData, applicableBranch: arr });
+      setFormData({ ...formData, [name]: arr });
       return;
     }
     if (type === "checkbox") {
@@ -94,6 +95,7 @@ const ScholarshipForm = ({ formData, setFormData, onSubmit, loading, buttonText,
                   <option value="EDUCATION_LOAN">Education Loan</option>
                   <option value="FINANCIAL_ASSISTANCE">Financial Assistance</option>
                   <option value="GRANT">Grant</option>
+                  <option value="FEE_REIMBURSEMENT">Fee Reimbursement</option>
                   <option value="OTHER">Other</option>
                 </select>
               </div>
@@ -178,6 +180,18 @@ const ScholarshipForm = ({ formData, setFormData, onSubmit, loading, buttonText,
                   <option value="FEMALE">Female</option>
                 </select>
               </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">State(s)</label>
+                <input
+                  type="text"
+                  name="state"
+                  value={Array.isArray(formData.state) ? formData.state.join(", ") : (formData.state || "")}
+                  onChange={(e) => setFormData({ ...formData, state: e.target.value.split(",").map(s => s.trim()).filter(Boolean) })}
+                  placeholder="e.g. Bihar, UP, All India"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                />
+              </div>
             </div>
 
             {/* Applicable Branches */}
@@ -205,6 +219,37 @@ const ScholarshipForm = ({ formData, setFormData, onSubmit, loading, buttonText,
                       />
                       {checked && <span>✓</span>}
                       {branch}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Sub Categories */}
+            <div className="mt-4">
+              <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Sub Categories</label>
+              <div className="flex flex-wrap gap-2">
+                {SUBCATEGORIES.map(cat => {
+                  const checked = Array.isArray(formData.subCategory) && formData.subCategory.includes(cat);
+                  return (
+                    <label
+                      key={cat}
+                      className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer select-none transition-all ${
+                        checked
+                          ? "bg-purple-50 text-purple-700 border-purple-200"
+                          : "bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        name="subCategory"
+                        value={cat}
+                        checked={checked}
+                        onChange={handleChange}
+                        className="hidden"
+                      />
+                      {checked && <span>✓</span>}
+                      {cat}
                     </label>
                   );
                 })}

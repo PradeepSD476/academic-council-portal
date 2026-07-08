@@ -12,6 +12,7 @@ const Index = () => {
 
   const [filters, setFilters] = useState({
     category: "",
+    subCategory: "",
     gender: "",
     income: "",
     branch: "",
@@ -35,6 +36,7 @@ const Index = () => {
             limit: 10,
             search: searchTerm,
             category: filters.category,
+            subCategory: filters.subCategory,
             gender: filters.gender,
             income: filters.income,
             branch: filters.branch,
@@ -235,7 +237,7 @@ const FilterPanel = ({ filters, setFilters, setPage }) => {
   };
 
   const clearFilters = () => {
-    setFilters({ category: "", gender: "", income: "", branch: "", activeStatus: "" });
+    setFilters({ category: "", subCategory: "", gender: "", income: "", branch: "", activeStatus: "" });
     if (setPage) setPage(1);
   };
 
@@ -279,7 +281,27 @@ const FilterPanel = ({ filters, setFilters, setPage }) => {
           <option value="EDUCATION_LOAN">Education Loan</option>
           <option value="FINANCIAL_ASSISTANCE">Financial Assistance</option>
           <option value="GRANT">Grant</option>
+          <option value="FEE_REIMBURSEMENT">Fees Reimbursement</option>
           <option value="OTHER">Other</option>
+        </select>
+      </div>
+
+      {/* Sub Category */}
+      <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-xs">
+        <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Sub Category</label>
+        <select
+          name="subCategory"
+          value={filters.subCategory}
+          onChange={handleChange}
+          className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+        >
+          <option value="">All Categories</option>
+          <option value="SC">SC</option>
+          <option value="ST">ST</option>
+          <option value="OBC">OBC</option>
+          <option value="EWS">EWS</option>
+          <option value="PwD">PwD</option>
+          <option value="General">General</option>
         </select>
       </div>
 
