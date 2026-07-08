@@ -60,6 +60,7 @@ export const Login = async (req, res) => {
       success: true,
       message: "Logged in successfully...",
       data: {
+        id: user.id,
         email: user.email,
         displayName: user.displayName,
         photoURL: user.photoURL,
@@ -315,6 +316,7 @@ export const GetMe = async (req, res) => {
     return res.status(200).json({
       success: true,
       data: {
+        id: user.id,
         email: user.email,
         displayName: user.displayName,
         photoURL: user.photoURL,

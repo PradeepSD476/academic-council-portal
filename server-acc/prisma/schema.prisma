@@ -166,6 +166,9 @@ model FinanceVault {
   applicableBranch String[]
   academicYear     String?
 
+  subCategory      String[]
+  state            String[]
+
   deadline DateTime?
 
   applicationUrl  String?
@@ -244,6 +247,7 @@ enum FinanceCategory {
   EDUCATION_LOAN
   FINANCIAL_ASSISTANCE
   GRANT
+  FEE_REIMBURSEMENT
   OTHER
 }
 

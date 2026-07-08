@@ -79,15 +79,47 @@ const ScholarshipCard = ({ scholarship }) => {
 
         {/* Applicable Branches */}
         {scholarship.applicableBranch && scholarship.applicableBranch.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-4">
-            {scholarship.applicableBranch.slice(0, 6).map(b => (
+          <div className="flex flex-wrap gap-1 mb-1.5">
+            {scholarship.applicableBranch.slice(0, 4).map(b => (
               <span key={b} className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-100">
                 {b}
               </span>
             ))}
-            {scholarship.applicableBranch.length > 6 && (
+            {scholarship.applicableBranch.length > 4 && (
               <span className="text-gray-400 text-[10px] self-center ml-1">
-                +{scholarship.applicableBranch.length - 6} more
+                +{scholarship.applicableBranch.length - 4} more
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Sub Categories */}
+        {scholarship.subCategory && scholarship.subCategory.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-1.5">
+            {scholarship.subCategory.slice(0, 4).map(c => (
+              <span key={c} className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-100">
+                {c}
+              </span>
+            ))}
+            {scholarship.subCategory.length > 4 && (
+              <span className="text-gray-400 text-[10px] self-center ml-1">
+                +{scholarship.subCategory.length - 4} more
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* States */}
+        {scholarship.state && scholarship.state.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-4">
+            {scholarship.state.slice(0, 3).map(s => (
+              <span key={s} className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                {s}
+              </span>
+            ))}
+            {scholarship.state.length > 3 && (
+              <span className="text-gray-400 text-[10px] self-center ml-1">
+                +{scholarship.state.length - 3} more
               </span>
             )}
           </div>

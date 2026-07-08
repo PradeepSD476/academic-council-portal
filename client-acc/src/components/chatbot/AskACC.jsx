@@ -48,7 +48,7 @@ export default function AskACC({ onClose }) {
       aria-label="AskACC Chatbot"
       aria-modal="true"
       className="
-        fixed bottom-24 right-4 z-50
+        fixed bottom-24 right-4 z-[9999]
         w-[92vw] sm:w-96 h-[82vh] sm:h-[600px] max-h-[700px]
         bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden
         border border-gray-100

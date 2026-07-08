@@ -191,7 +191,7 @@ const expandIncomeVariants = (raw) => {
 // Get multiple Finance Opportunities with Pagination, Search, and Filtering
 export const getOpportunities = async (req, res) => {
     try {
-        const { page = 1, limit = 10, search, category, gender, income, branch, activeStatus } = req.query;
+        const { page = 1, limit = 10, search, category, gender, income, branch, activeStatus, subCategory, state } = req.query;
         
         const pageNum = parseInt(page);
         const limitNum = parseInt(limit);
@@ -246,7 +246,15 @@ export const getOpportunities = async (req, res) => {
 
         if (branch) {
             // Branch values from the frontend dropdown are already uppercase (CSE, ECE, etc.)
-            where.applicableBranch = { hasSome: [branch.trim().toUpperCase()] };
+            where.applicableBranch = { hasSome: [branch.trim().toUpperCase(), "ALL"] };
+        }
+
+        if (subCategory) {
+            where.subCategory = { hasSome: [subCategory.trim()] };
+        }
+
+        if (state) {
+            where.state = { hasSome: [state.trim()] };
         }
 
         // Merge andConditions into the where clause

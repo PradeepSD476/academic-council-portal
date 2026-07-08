@@ -64,7 +64,7 @@ const CreatePostModal = ({ onClose, onSubmitted }) => {
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -98,69 +98,78 @@ const CreatePostModal = ({ onClose, onSubmitted }) => {
               📋 Your post will be reviewed by an admin before it goes public. You will see it appear on the Career Vault once approved.
             </div>
 
-            {/* Title */}
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="post-title" className="text-sm font-semibold text-gray-700">
-                Title <span className="text-red-500">*</span>
-              </label>
-              <input
-                id="post-title"
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. My internship experience at Google"
-                maxLength={150}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
-              />
+            {/* Section 1: Basic Information */}
+            <div className="p-5 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col gap-4">
+              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">1. Basic Information</h3>
+              
+              {/* Title */}
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="post-title" className="text-sm font-semibold text-gray-700">
+                  Title <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="post-title"
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g. My internship experience at Google"
+                  maxLength={150}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition bg-white shadow-sm"
+                />
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4">
+                {/* Experience Type */}
+                <div className="flex flex-col gap-1.5 flex-1">
+                  <label htmlFor="post-type" className="text-sm font-semibold text-gray-700">
+                    Experience Type <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="post-type"
+                    value={experienceType}
+                    onChange={(e) => setExperienceType(e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent bg-white shadow-sm transition"
+                  >
+                    <option value="">Select type…</option>
+                    {EXPERIENCE_TYPES.map((t) => (
+                      <option key={t.value} value={t.value}>{t.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Domain */}
+                <div className="flex flex-col gap-1.5 flex-1">
+                  <label htmlFor="post-domain" className="text-sm font-semibold text-gray-700">
+                    Domain <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="post-domain"
+                    value={domain}
+                    onChange={(e) => setDomain(e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent bg-white shadow-sm transition"
+                  >
+                    <option value="" disabled>Select domain...</option>
+                    {DOMAINS.map((d) => (
+                      <option key={d.value} value={d.value}>{d.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
 
-            {/* Experience Type */}
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="post-type" className="text-sm font-semibold text-gray-700">
-                Experience Type <span className="text-red-500">*</span>
-              </label>
-              <select
-                id="post-type"
-                value={experienceType}
-                onChange={(e) => setExperienceType(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent bg-white transition"
-              >
-                <option value="">Select type…</option>
-                {EXPERIENCE_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Domain */}
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="post-domain" className="text-sm font-semibold text-gray-700">
-                Domain <span className="text-red-500">*</span>
-              </label>
-              <select
-                id="post-domain"
-                value={domain}
-                onChange={(e) => setDomain(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent bg-white transition"
-              >
-                <option value="" disabled>Select domain...</option>
-                {DOMAINS.map((d) => (
-                  <option key={d.value} value={d.value}>{d.label}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Rich Text Editor */}
-            <div className="flex flex-col gap-1.5 flex-1">
-              <label className="text-sm font-semibold text-gray-700">
-                Your Story <span className="text-red-500">*</span>
-              </label>
-              <NativeRichTextEditor
-                value={description}
-                onChange={setDescription}
-                minHeight="220px"
-                placeholder="Describe your experience in detail — preparation tips, interview process, key learnings…"
-              />
+            {/* Section 2: Story Content */}
+            <div className="p-5 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col gap-4 flex-1">
+              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">2. Story Content</h3>
+              
+              {/* Rich Text Editor */}
+              <div className="flex flex-col gap-1.5 flex-1">
+                <NativeRichTextEditor
+                  value={description}
+                  onChange={setDescription}
+                  minHeight="220px"
+                  placeholder="Describe your experience in detail — preparation tips, interview process, key learnings…"
+                />
+              </div>
             </div>
 
             {/* Footer */}
