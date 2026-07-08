@@ -167,6 +167,50 @@ const ScholarshipDetails = () => {
             </div>
           )}
 
+        {scholarship.subCategory &&
+          scholarship.subCategory.length > 0 && (
+            <div className="mt-6">
+
+              <h2 className="text-2xl font-semibold mb-3">
+                Eligible Categories
+              </h2>
+
+              <div className="flex flex-wrap gap-2">
+                {scholarship.subCategory.map((cat) => (
+                  <span
+                    key={cat}
+                    className="px-3 py-1 rounded-full bg-purple-100 text-purple-700 text-sm"
+                  >
+                    {cat}
+                  </span>
+                ))}
+              </div>
+
+            </div>
+          )}
+
+        {scholarship.state &&
+          scholarship.state.length > 0 && (
+            <div className="mt-6">
+
+              <h2 className="text-2xl font-semibold mb-3">
+                Applicable States
+              </h2>
+
+              <div className="flex flex-wrap gap-2">
+                {scholarship.state.map((s) => (
+                  <span
+                    key={s}
+                    className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-sm"
+                  >
+                    {s}
+                  </span>
+                ))}
+              </div>
+
+            </div>
+          )}
+
         {scholarship.requiredDocuments && (
           <div className="mt-8">
 

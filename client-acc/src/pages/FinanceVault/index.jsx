@@ -13,6 +13,7 @@ const Index = () => {
   const [filters, setFilters] = useState({
     category: "",
     subCategory: "",
+    state: "",
     gender: "",
     income: "",
     branch: "",
@@ -37,6 +38,7 @@ const Index = () => {
             search: searchTerm,
             category: filters.category,
             subCategory: filters.subCategory,
+            state: filters.state,
             gender: filters.gender,
             income: filters.income,
             branch: filters.branch,
@@ -237,7 +239,7 @@ const FilterPanel = ({ filters, setFilters, setPage }) => {
   };
 
   const clearFilters = () => {
-    setFilters({ category: "", subCategory: "", gender: "", income: "", branch: "", activeStatus: "" });
+    setFilters({ category: "", subCategory: "", state: "", gender: "", income: "", branch: "", activeStatus: "" });
     if (setPage) setPage(1);
   };
 
@@ -303,6 +305,19 @@ const FilterPanel = ({ filters, setFilters, setPage }) => {
           <option value="PwD">PwD</option>
           <option value="General">General</option>
         </select>
+      </div>
+
+      {/* State */}
+      <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-xs">
+        <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">State</label>
+        <input
+          type="text"
+          name="state"
+          value={filters.state}
+          onChange={handleChange}
+          placeholder="e.g. Bihar, UP"
+          className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+        />
       </div>
 
       {/* Gender */}
