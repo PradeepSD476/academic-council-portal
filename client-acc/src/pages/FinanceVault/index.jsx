@@ -81,7 +81,7 @@ const Index = () => {
         </div>
 
         {/* ── Search Bar ── */}
-        <div className="mb-6 relative w-full md:w-96">
+        <div className="mb-6 relative w-full lg:w-96">
           <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
@@ -101,10 +101,10 @@ const Index = () => {
         </div>
 
         {/* ── Main Content Grid ── */}
-        <div className="flex flex-col md:flex-row gap-6 items-start">
+        <div className="flex flex-col lg:flex-row gap-6 items-start">
           
           {/* Desktop Filter Panel (Sticky) */}
-          <aside className="hidden md:block w-64 shrink-0 sticky top-24 self-start max-h-[calc(100vh-120px)] overflow-y-auto">
+          <aside className="hidden lg:block w-64 shrink-0 sticky top-24 self-start max-h-[calc(100vh-120px)] overflow-y-auto">
             <FilterPanel filters={filters} setFilters={setFilters} setPage={setPage} />
           </aside>
 
@@ -125,7 +125,7 @@ const Index = () => {
               
               <button
                 onClick={() => setDrawerOpen(true)}
-                className="md:hidden flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm hover:bg-gray-50"
+                className="lg:hidden flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm hover:bg-gray-50"
               >
                 <SlidersHorizontal size={14} />
                 Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
