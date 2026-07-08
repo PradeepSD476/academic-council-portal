@@ -10,13 +10,24 @@ services:
     volumes:
       - ./nginx-acc/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx-acc/conf.d:/etc/nginx/conf.d:ro
-      - ./client-acc/dist:/usr/share/nginx/html:ro
       - ./nginx-acc/logs:/var/log/nginx
   
       - ./certs-acc:/etc/nginx/ssl:ro
     depends_on:
       - backend-acc
       - minio-acc
+    networks:
+      - acc-net
+
+  frontend-acc:
+    build:
+      context: ./client-acc
+      dockerfile: Dockerfile
+
+    container_name: acc-frontend
+
+    restart: unless-stopped
+
     networks:
       - acc-net
 
