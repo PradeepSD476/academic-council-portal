@@ -12,6 +12,7 @@ permissions:
 
 jobs:
   build-and-push:
+    name: Build & Push Images
     runs-on: ubuntu-latest
 
     env:
@@ -56,3 +57,36 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER_LC }}/acc-backend:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER_LC }}/acc-backend:${{ github.sha }}
+
+  deploy:
+    name: Deploy to Production
+    needs: build-and-push
+
+    runs-on:
+      - self-hosted
+      - production
+      - acc
+
+    steps:
+      - name: Deploy to Production
+        run: |
+          set -e
+
+          cd /home/iitp/Academic-Council-Portal
+
+          sed -i "s/^IMAGE_TAG=.*/IMAGE_TAG=${{ github.sha }}/" .env.prod
+
+          docker compose \
+            -f docker-compose.prod.yml \
+            --env-file .env.prod \
+            pull
+
+          docker compose \
+            -f docker-compose.prod.yml \
+            --env-file .env.prod \
+            up -d
+
+          sleep 10
+
+          docker exec acc-backend \
+            npx prisma migrate deploy
