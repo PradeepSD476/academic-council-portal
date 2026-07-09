@@ -39,7 +39,7 @@ const Home = () => {
     className="relative z-10 max-w-4xl text-center space-y-6"
   >
     <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-white leading-tight">
-      ACADEMICS AND <br className="hidden sm:block" /> CAREER COUNCIL
+      ACADEMIC AND <br className="hidden sm:block" /> CAREER COUNCIL
       <br />
       IIT PATNA
     </h1>
