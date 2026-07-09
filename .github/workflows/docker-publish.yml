@@ -44,6 +44,8 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER_LC }}/acc-frontend:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER_LC }}/acc-frontend:${{ github.sha }}
+          build-args: |
+            VITE_API_URL=https://acc.iitp.ac.in/api
 
       - name: Build and Push Backend Image
         uses: docker/build-push-action@v6
