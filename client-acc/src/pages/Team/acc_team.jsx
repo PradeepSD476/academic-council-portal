@@ -240,7 +240,7 @@ const details = {
     wingpeople: [
       {
          name: "Sagitra Pradeep",
-          subtitle: "Junior Year Acc Sec.",
+          subtitle: "Junior Year ACC Sec.",
           description: "AI & Data Science | Roll No: 2401AI33",
           phone: "91 9522515129",
           email: "acc_ug@iitp.ac.in",
