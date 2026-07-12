@@ -23,7 +23,7 @@ export default function Announcements() {
       const res = await fetch(
         `${
           import.meta.env.VITE_API_URL
-        }/api/v1/announcements?page=${page}&limit=${limit}`,
+        }/v1/announcements?page=${page}&limit=${limit}`,
         {
           credentials: "include",
         }

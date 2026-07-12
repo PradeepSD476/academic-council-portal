@@ -64,7 +64,7 @@ const ManageResources = () => {
 
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL
-        }/api/v1/resources/all?page=${page}&limit=${limit}`,
+        }/v1/resources/all?page=${page}&limit=${limit}`,
         {
           withCredentials: true
         }

@@ -26,7 +26,7 @@ const CourseResources = () => {
       const response = await axios.get(
         `${
           import.meta.env.VITE_API_URL
-        }/api/v1/resources/?page=${page}&limit=${limit}&resourceType=${key}&courseId=${id}`,
+        }/v1/resources/?page=${page}&limit=${limit}&resourceType=${key}&courseId=${id}`,
         {
           withCredentials: true
         }
