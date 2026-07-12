@@ -41,7 +41,7 @@ function VerifyRoll() {
 
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/v1/profile`,
+        `${import.meta.env.VITE_API_URL}/v1/profile`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -21,7 +21,7 @@ const Dashboard = () => {
   const fetchOpportunities = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/finance-vault`, {
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/v1/finance-vault`, {
         params: { page: 1, limit: 100 },
         withCredentials: true,
       });
@@ -40,7 +40,7 @@ const Dashboard = () => {
     if (!window.confirm("Are you sure you want to delete this opportunity?")) return;
     setDeletingId(id);
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/api/v1/finance-vault/${id}`, { withCredentials: true });
+      await axios.delete(`${import.meta.env.VITE_API_URL}/v1/finance-vault/${id}`, { withCredentials: true });
       toast.success("Opportunity deleted successfully.");
       setOpportunities(prev => prev.filter(item => item.id !== id));
     } catch (err) {

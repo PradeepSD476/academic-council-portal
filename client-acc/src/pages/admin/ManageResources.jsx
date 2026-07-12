@@ -44,7 +44,7 @@ const ManageResources = () => {
     try {
 
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/v1/courses?limit=500`,
+        `${import.meta.env.VITE_API_URL}/v1/courses?limit=500`,
         {
           withCredentials: true
         }
@@ -125,7 +125,7 @@ const ManageResources = () => {
         delete editPayload.courseCode;
 
         await axios.patch(
-          `${import.meta.env.VITE_API_URL}/api/v1/resources/${currentId}`,
+          `${import.meta.env.VITE_API_URL}/v1/resources/${currentId}`,
           editPayload,
           {
             withCredentials: true
@@ -143,7 +143,7 @@ const ManageResources = () => {
         delete addPayload.courseId;
 
         await axios.post(
-          `${import.meta.env.VITE_API_URL}/api/v1/resources`,
+          `${import.meta.env.VITE_API_URL}/v1/resources`,
           addPayload,
           {
             withCredentials: true
@@ -166,7 +166,7 @@ const ManageResources = () => {
     try {
 
       await axios.delete(
-        `${import.meta.env.VITE_API_URL}/api/v1/resources/${id}`,
+        `${import.meta.env.VITE_API_URL}/v1/resources/${id}`,
         {
           withCredentials: true
         }

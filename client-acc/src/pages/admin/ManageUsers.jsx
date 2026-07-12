@@ -18,7 +18,7 @@ const ManageUsers = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/users?page=${page}&limit=${limit}&search=${searchTerm}`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/v1/users?page=${page}&limit=${limit}&search=${searchTerm}`, {
         withCredentials: true
       });
 
@@ -45,7 +45,7 @@ const ManageUsers = () => {
   const handleRoleChange = async (userId, newRole) => {
     setUpdatingId(userId);
     try {
-      await axios.patch(`${import.meta.env.VITE_API_URL}/api/v1/users/${userId}?newRole=${newRole}`, {}, {
+      await axios.patch(`${import.meta.env.VITE_API_URL}/v1/users/${userId}?newRole=${newRole}`, {}, {
         withCredentials: true
       });
 

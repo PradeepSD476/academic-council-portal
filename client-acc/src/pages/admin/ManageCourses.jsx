@@ -78,7 +78,7 @@ const ManageCourses = () => {
     try {
       const searchParam = debouncedSearch ? `&search=${encodeURIComponent(debouncedSearch)}` : '';
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/v1/courses?page=${page}&limit=${limit}${searchParam}`,
+        `${import.meta.env.VITE_API_URL}/v1/courses?page=${page}&limit=${limit}${searchParam}`,
         { withCredentials: true }
       );
 
@@ -122,7 +122,7 @@ const ManageCourses = () => {
   const handleDelete = async (id) => {
 
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/api/v1/courses/${id}`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/v1/courses/${id}`, {
         withCredentials: true
       });
       toast.success("Course deleted successfully");
@@ -145,12 +145,12 @@ const ManageCourses = () => {
       };
 
       if (modalMode === 'add') {
-        await axios.post(`${import.meta.env.VITE_API_URL}/api/v1/courses`, payload, {
+        await axios.post(`${import.meta.env.VITE_API_URL}/v1/courses`, payload, {
           withCredentials: true
         });
         toast.success("Course Added Successfully!");
       } else {
-        await axios.patch(`${import.meta.env.VITE_API_URL}/api/v1/courses/${selectedCourseId}`, payload, {
+        await axios.patch(`${import.meta.env.VITE_API_URL}/v1/courses/${selectedCourseId}`, payload, {
           withCredentials: true
         });
         toast.success("Course Updated Successfully!");

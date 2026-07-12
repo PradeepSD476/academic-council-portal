@@ -13,7 +13,7 @@ const AuthState = ({ children }) => {
         const fetchMe = async () => {
             try {
                 const response = await fetch(
-                    `${import.meta.env.VITE_API_URL}/api/v1/getuser/me`,
+                    `${import.meta.env.VITE_API_URL}/v1/getuser/me`,
                     { credentials: "include" }
                 );
 
@@ -37,7 +37,7 @@ const AuthState = ({ children }) => {
         setLoading(true);
         try {
             const response = await fetch(
-                `${import.meta.env.VITE_API_URL}/api/v1/auth/login`,
+                `${import.meta.env.VITE_API_URL}/v1/auth/login`,
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -77,7 +77,7 @@ const AuthState = ({ children }) => {
         setLoading(true);
         try {
             const response = await fetch(
-                `${import.meta.env.VITE_API_URL}/api/v1/auth/register`,
+                `${import.meta.env.VITE_API_URL}/v1/auth/register`,
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -111,7 +111,7 @@ const AuthState = ({ children }) => {
         setLoading(true);
         try {
             await fetch(
-                `${import.meta.env.VITE_API_URL}/api/v1/auth/logout`,
+                `${import.meta.env.VITE_API_URL}/v1/auth/logout`,
                 { withCredentials: true }
             );
             setUser(null);

@@ -12,7 +12,7 @@ const ScholarshipDetails = () => {
   useEffect(() => {
     const fetchScholarship = async () => {
       try {
-        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/finance-vault/${id}`, {
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/v1/finance-vault/${id}`, {
           withCredentials: true,
         });
 

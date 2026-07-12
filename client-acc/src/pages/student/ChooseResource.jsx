@@ -24,7 +24,7 @@ export default function ChooseResource() {
   const fetchResourceCount = async () => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/v1/dashboard/public/resource-count/${id}`,
+        `${import.meta.env.VITE_API_URL}/v1/dashboard/public/resource-count/${id}`,
         {
           withCredentials: true,
         }
@@ -42,7 +42,7 @@ export default function ChooseResource() {
     setLoading(true);
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/v1/courses/${id}`,
+        `${import.meta.env.VITE_API_URL}/v1/courses/${id}`,
         {
           withCredentials: true,
         }

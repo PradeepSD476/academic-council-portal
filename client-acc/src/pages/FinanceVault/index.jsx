@@ -30,7 +30,7 @@ const Index = () => {
       setError("");
 
       const { data } = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/v1/finance-vault`,
+        `${import.meta.env.VITE_API_URL}/v1/finance-vault`,
         {
           params: {
             page,

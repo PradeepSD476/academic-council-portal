@@ -31,7 +31,7 @@ const AddScholarship = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/v1/finance-vault`, formData, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/v1/finance-vault`, formData, {
         withCredentials: true,
       });
       toast.success("Finance opportunity added successfully!");

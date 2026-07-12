@@ -18,7 +18,7 @@ const AdminDashboard = () => {
     const fetchStats = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/v1/dashboard/admin`,
+          `${import.meta.env.VITE_API_URL}/v1/dashboard/admin`,
           {
             withCredentials: true,
           },

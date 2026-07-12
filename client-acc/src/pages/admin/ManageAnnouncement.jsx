@@ -39,7 +39,7 @@ const ManageAnnouncement = () => {
     setLoading(true);
     try {
 
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/announcements?page=${page}&limit=${limit}`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/v1/announcements?page=${page}&limit=${limit}`, {
         withCredentials: true
       });
 
@@ -90,12 +90,12 @@ const ManageAnnouncement = () => {
       };
 
       if (editMode) {
-        await axios.patch(`${import.meta.env.VITE_API_URL}/api/v1/announcements/${currentId}`, apiPayload, {
+        await axios.patch(`${import.meta.env.VITE_API_URL}/v1/announcements/${currentId}`, apiPayload, {
             withCredentials: true
         });
         toast.success("Announcement Updated Successfully!");
       } else {
-        await axios.post(`${import.meta.env.VITE_API_URL}/api/v1/announcements`, apiPayload, {
+        await axios.post(`${import.meta.env.VITE_API_URL}/v1/announcements`, apiPayload, {
             withCredentials: true
         });
         toast.success("Announcement Created Successfully!");
@@ -114,7 +114,7 @@ const ManageAnnouncement = () => {
   const handleDelete = async (id) => {
     try {
 
-      await axios.delete(`${import.meta.env.VITE_API_URL}/api/v1/announcements/${id}`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/v1/announcements/${id}`, {
         withCredentials: true
       });
       toast.success("Announcement Deleted.")

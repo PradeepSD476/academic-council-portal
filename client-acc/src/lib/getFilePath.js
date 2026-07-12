@@ -5,7 +5,7 @@ export const getFilePath = async ({ file, folder }) => {
         return;
     }
     try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/upload/get-upload-url`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/v1/upload/get-upload-url`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

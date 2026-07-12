@@ -29,7 +29,7 @@ export const getRoutedPost = async (postId) => {
 export const getAllPosts = async (page = 1, limit = 10) => {
   try {
     const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/v1/posts?page=${page}&limit=${limit}&status=ALL`,
+      `${import.meta.env.VITE_API_URL}/v1/posts?page=${page}&limit=${limit}&status=ALL`,
       {
         method: "GET",
         credentials: "include",
@@ -87,7 +87,7 @@ const createPost = async (formData) => {
       return fallback;
     }
 
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/posts`, {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/v1/posts`, {
       method: "POST",
       credentials: "include",
       body: JSON.stringify(formData),
@@ -140,7 +140,7 @@ const updatePost = async (postId, formData) => {
       return fallback;
     }
 
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/posts/${postId}`, {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/v1/posts/${postId}`, {
       method: "PATCH",
       credentials: "include",
       body: JSON.stringify(formData),
@@ -202,7 +202,7 @@ export const publishPost = async (postId, formData) => {
 export const deletePost = async (postId) => {
   // Deletes the post with the provided post id.
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/posts/${postId}`, {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/v1/posts/${postId}`, {
       method: "DELETE",
       credentials: "include",
     });

@@ -24,7 +24,7 @@ export default function MyCourses() {
       const token = await firebaseUser?.getIdToken();
 
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/v1/courses/my`,
+        `${import.meta.env.VITE_API_URL}/v1/courses/my`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
