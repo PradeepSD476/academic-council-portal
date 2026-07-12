@@ -188,6 +188,24 @@ const expandIncomeVariants = (raw) => {
     return { type: 'variants', values: [...variants] };
 };
 
+// Helper to parse any income string (e.g. 30k, 8L, 800000, 8 Lakhs, 800000/-) to a clean numeric value.
+const parseToNumericIncome = (raw) => {
+    if (!raw) return null;
+    let clean = raw.trim().toLowerCase().replace(/[₹$,\/\-]/g, '');
+
+    const kMatch = clean.match(/^(\d+(?:\.\d+)?)\s*k$/);
+    if (kMatch) return Math.round(parseFloat(kMatch[1]) * 1000);
+
+    const lMatch = clean.match(/^(\d+(?:\.\d+)?)\s*(?:l|lakhs?)$/);
+    if (lMatch) return Math.round(parseFloat(lMatch[1]) * 100000);
+
+    const plain = clean.replace(/,/g, '');
+    const numMatch = plain.match(/^(\d+)/);
+    if (numMatch) return parseInt(numMatch[1], 10);
+
+    return null;
+};
+
 // Get multiple Finance Opportunities with Pagination, Search, and Filtering
 export const getOpportunities = async (req, res) => {
     try {
@@ -220,25 +238,6 @@ export const getOpportunities = async (req, res) => {
         if (gender) {
             where.genderEligibility = gender;
         }
-
-        if (income) {
-            // Expand user input into all possible stored variants for bidirectional matching.
-            // e.g. typing "30000" finds records storing "30k", and typing "30k" finds "30000".
-            const expanded = expandIncomeVariants(income);
-            if (expanded) {
-                if (expanded.type === 'plain') {
-                    // Non-numeric input → simple substring match
-                    where.incomeEligibility = { contains: expanded.value, mode: 'insensitive' };
-                } else {
-                    // Numeric input → OR across every possible string form
-                    andConditions.push({
-                        OR: expanded.values.map(v => ({
-                            incomeEligibility: { contains: v, mode: 'insensitive' }
-                        }))
-                    });
-                }
-            }
-        }
         
         if (activeStatus !== undefined && activeStatus !== '') {
             where.isActive = activeStatus === 'true';
@@ -265,21 +264,35 @@ export const getOpportunities = async (req, res) => {
             where.AND = andConditions;
         }
 
-        const [data, total] = await Promise.all([
-            prisma.financeVault.findMany({
-                where,
-                skip,
-                take: limitNum,
-                orderBy: { createdAt: 'desc' }
-            }),
-            prisma.financeVault.count({ where })
-        ]);
+        // Fetch all matching rows without pagination first, so we can filter by numeric income in JS memory
+        const allData = await prisma.financeVault.findMany({
+            where,
+            orderBy: { createdAt: 'desc' }
+        });
 
+        let filteredData = allData;
+
+        if (income) {
+            const userIncomeNum = parseToNumericIncome(income);
+            if (userIncomeNum !== null && !isNaN(userIncomeNum)) {
+                filteredData = allData.filter(opportunity => {
+                    if (!opportunity.incomeEligibility) return true; // No income limit means eligible
+                    const oppIncomeLimitNum = parseToNumericIncome(opportunity.incomeEligibility);
+                    if (oppIncomeLimitNum === null || isNaN(oppIncomeLimitNum)) return true; // Stored format not parseable, default to show
+                    
+                    // The student is eligible if their family income is less than or equal to the scholarship's limit
+                    return userIncomeNum <= oppIncomeLimitNum;
+                });
+            }
+        }
+
+        const total = filteredData.length;
         const totalPages = Math.ceil(total / limitNum);
+        const paginatedData = filteredData.slice(skip, skip + limitNum);
 
         res.status(200).json({
             success: true,
-            data,
+            data: paginatedData,
             page: pageNum,
             limit: limitNum,
             total,
