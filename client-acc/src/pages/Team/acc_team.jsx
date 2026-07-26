@@ -72,7 +72,7 @@ const details = {
           phone: "91 9522515129",
           email: "sagitrapradeep2006@gmail.com",
           linkedin: "https://www.linkedin.com/in/pradeep-sagitra-213890323/",
-          profile: `/pradeepsd.jpeg`
+          profile: `/sagitra.jpeg`
         },
         {
           name: "Saad Manda",
@@ -245,7 +245,7 @@ const details = {
           phone: "91 9522515129",
           email: "acc_ug@iitp.ac.in",
           linkedin: "https://www.linkedin.com/in/pradeep-sagitra-213890323/",
-          profile: `/pradeepsd.jpeg`
+          profile: `/sagitra.jpeg`
       },
       {
         name: "Pranav Mishra",
