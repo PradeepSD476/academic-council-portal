@@ -202,108 +202,130 @@ const ManageResources = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const getTypeBadge = (type) => {
+    switch (type) {
+      case "PYQ":
+        return "bg-purple-950/60 text-purple-300 border-purple-800/60";
+      case "NOTES":
+        return "bg-emerald-950/60 text-emerald-300 border-emerald-800/60";
+      case "LECTURE_SLIDE":
+        return "bg-[var(--color-secondary)]/10 text-[var(--color-secondary)] border-[var(--color-secondary)]/20";
+      case "TUTORIAL":
+      case "ASSIGNMENT":
+        return "bg-blue-950/60 text-blue-300 border-blue-800/60";
+      default:
+        return "bg-white/5 text-slate-600 border-white/10";
+    }
+  };
+
   return (
-    <div className="p-6 min-h-screen bg-gray-50">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-            <FileText className="text-amber-500" /> Manage Resources
-          </h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Add, update, and remove academic materials.
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-[3px] h-6 bg-[var(--color-secondary)] rounded-full shadow-[0_0_8px_var(--color-secondary)]" />
+            <h1 className="text-2xl md:text-3xl font-extrabold text-[var(--color-primary)] tracking-tight flex items-center gap-2.5">
+              <FileText className="text-[var(--color-secondary)]" size={24} /> Manage Resources
+            </h1>
+          </div>
+          <p className="text-slate-500 text-sm ml-4">
+            Upload, update, and manage academic resources and course materials.
           </p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+          className="flex items-center justify-center gap-2 bg-[var(--color-secondary)] hover:opacity-90 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-[0_8px_20px_var(--color-secondary-glow)] cursor-pointer self-start sm:self-auto"
         >
-          <Plus className="w-4 h-4 mr-2" /> Add Resource
+          <Plus size={16} /> Add Resource
         </button>
       </div>
 
       {/* --- Table Section --- */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="bg-white/95 backdrop-blur-xl shadow-xs rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
         {loading && resources.length === 0 ? (
           <div className="flex items-center justify-center h-64">
-            <Loader2 className="animate-spin text-blue-500 w-8 h-8" />
+            <Loader2 className="animate-spin text-[var(--color-secondary)] w-8 h-8" />
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-neutral-800">
+              <thead className="bg-white/90">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Title
+                  <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    Title &amp; Info
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Type
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Course
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Link
+                  <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    File Link
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3.5 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-neutral-800/70">
                 {resources.map((res) => (
                   <tr
                     key={res.id}
-                    className="hover:bg-gray-50 transition-colors"
+                    className="hover:bg-white/5 transition-colors"
                   >
                     <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-bold text-[var(--color-primary)] leading-snug">
                         {res.title}
                       </div>
-                      <div className="text-xs text-gray-500 truncate max-w-xs">
-                        {res.description}
+                      <div className="text-xs text-slate-500 truncate max-w-xs mt-0.5">
+                        {res.description || "No description provided"}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
-                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                        ${res.resourceType === "PYQ"
-                            ? "bg-purple-100 text-purple-800"
-                            : res.resourceType === "NOTES"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-800"
-                          }`}
+                        className={`px-2.5 py-0.5 inline-flex text-xs font-bold border rounded-full uppercase tracking-wider ${getTypeBadge(res.resourceType)}`}
                       >
-                        {res.resourceType}
+                        {res.resourceType?.replace(/_/g, " ")}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {res.course?.courseCode || res.courseCode || "N/A"}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <span className="px-2.5 py-0.5 inline-flex text-xs font-semibold rounded-full bg-white/5 border border-white/10 text-slate-600">
+                        {res.course?.courseCode || res.courseCode || "General"}
+                      </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
-                      {res.fileURL && (
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      {res.fileURL ? (
                         <a
                           href={res.fileURL}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-1 hover:underline"
+                          className="flex items-center gap-1.5 text-[var(--color-secondary)] hover:text-[#ff7438] font-bold text-xs hover:underline"
                         >
-                          View <ExternalLink size={14} />
+                          View File <ExternalLink size={13} />
                         </a>
+                      ) : (
+                        <span className="text-xs text-slate-500">—</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        onClick={() => openEditModal(res)}
-                        className="text-blue-600 hover:text-blue-900 mr-4"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(res.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => openEditModal(res)}
+                          className="p-1.5 text-slate-500 hover:text-[var(--color-primary)] bg-white/5 hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+                          title="Edit Resource"
+                        >
+                          <Edit2 size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(res.id)}
+                          className="p-1.5 text-slate-500 hover:text-red-400 bg-white/5 hover:bg-red-950/30 rounded-lg transition-colors cursor-pointer"
+                          title="Delete Resource"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -312,19 +334,25 @@ const ManageResources = () => {
           </div>
         )}
 
-        <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+        {!loading && resources.length === 0 && (
+          <div className="p-16 text-center text-slate-500 text-sm">
+            No resources found.
+          </div>
+        )}
+
+        <div className="bg-white/90 px-6 py-3.5 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="px-4 py-2 border rounded-md bg-white disabled:opacity-50 text-sm"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-600 hover:text-[var(--color-primary)] disabled:opacity-30 disabled:cursor-not-allowed transition font-semibold cursor-pointer"
           >
             Previous
           </button>
-          <span className="text-sm text-gray-600">Page {page}</span>
+          <span>Page <span className="font-bold text-[var(--color-primary)]">{page}</span></span>
           <button
             onClick={() => setPage((p) => p + 1)}
             disabled={!hasMore}
-            className="px-4 py-2 border rounded-md bg-white disabled:opacity-50 text-sm"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-600 hover:text-[var(--color-primary)] disabled:opacity-30 disabled:cursor-not-allowed transition font-semibold cursor-pointer"
           >
             Next
           </button>
@@ -333,24 +361,24 @@ const ManageResources = () => {
 
       {/* --- Modal Section --- */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="px-6 py-4 bg-gray-50 border-b flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-gray-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+          <div className="bg-white/95 backdrop-blur-xl shadow-xs border border-slate-200 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden text-[var(--color-primary)]">
+            <div className="px-6 py-4 bg-white/95 backdrop-blur-xl shadow-xs border-b border-slate-200 flex justify-between items-center">
+              <h3 className="text-lg font-bold text-[var(--color-primary)]">
                 {editMode ? "Edit Resource" : "Add New Resource"}
               </h3>
               <button
                 onClick={closeModal}
-                className="text-gray-400 hover:text-gray-600"
+                className="p-1.5 rounded-full hover:bg-white/10 text-slate-500 hover:text-white transition-colors cursor-pointer"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Title
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                  Title *
                 </label>
                 <input
                   type="text"
@@ -358,81 +386,82 @@ const ManageResources = () => {
                   required
                   value={formData.title}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  placeholder="e.g. Endsem 2024 PYQ with Solutions"
+                  className="w-full px-3.5 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Course
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                  Associated Course *
                 </label>
                 <select
                   name="courseId"
                   required
                   value={formData.courseId}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-3.5 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] focus:border-[var(--color-secondary)] focus:outline-none text-sm transition cursor-pointer"
                 >
-                  <option value="">Select a Course</option>
+                  <option value="" className="bg-sky-100 text-slate-500">Select a Course</option>
                   {courses.map((course) => (
-                    <option key={course.id} value={course.id}>
+                    <option key={course.id} value={course.id} className="bg-sky-100 text-[var(--color-primary)]">
                       {course.courseCode} - {course.name}
                     </option>
                   ))}
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Type
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                    Resource Type
                   </label>
                   <select
                     name="resourceType"
                     value={formData.resourceType}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3.5 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] focus:border-[var(--color-secondary)] focus:outline-none text-sm transition cursor-pointer"
                   >
-                    <option value="LECTURE_SLIDE">Lecture Slides</option>
-                    <option value="NOTES">Handwritten Notes</option>
-                    <option value="PYQ">Previous Year Questions</option>
-                    <option value="TUTORIAL">Tutorial Sheets</option>
-                    <option value="ASSIGNMENT">Assignments</option>
-                    <option value="BOOK">Reference Books</option>
-                    <option value="LAB_MANUAL">Lab Manual</option>
-                    <option value="LAB_ASSIGNMENT">Lab Assignments</option>
-                    <option value="PROJECT">Project Guidelines</option>
-                    <option value="SYLLABUS">Course Syllabus</option>
-                    <option value="QUESTION_BANK">Question Bank</option>
-                    <option value="REFERENCE_MATERIAL">Reference Material</option>
-                    <option value="PRESENTATION">Presentations</option>
-                    <option value="VIDEO_LECTURE">Video Lectures</option>
-                    <option value="SOFTWARE">Software / Tools</option>
-                    <option value="DATASET">Datasets</option>
-                    <option value="READING_MATERIAL">Reading Material</option>
-                    <option value="CASE_STUDY">Case Studies</option>
-                    <option value="EXAM_NOTICE">Exam Notices</option>
-                    <option value="TIME_TABLE">Time Table</option>
-                    <option value="OTHER">Other</option>
+                    <option value="LECTURE_SLIDE" className="bg-sky-100 text-[var(--color-primary)]">Lecture Slides</option>
+                    <option value="NOTES" className="bg-sky-100 text-[var(--color-primary)]">Handwritten Notes</option>
+                    <option value="PYQ" className="bg-sky-100 text-[var(--color-primary)]">Previous Year Questions</option>
+                    <option value="TUTORIAL" className="bg-sky-100 text-[var(--color-primary)]">Tutorial Sheets</option>
+                    <option value="ASSIGNMENT" className="bg-sky-100 text-[var(--color-primary)]">Assignments</option>
+                    <option value="BOOK" className="bg-sky-100 text-[var(--color-primary)]">Reference Books</option>
+                    <option value="LAB_MANUAL" className="bg-sky-100 text-[var(--color-primary)]">Lab Manual</option>
+                    <option value="LAB_ASSIGNMENT" className="bg-sky-100 text-[var(--color-primary)]">Lab Assignments</option>
+                    <option value="PROJECT" className="bg-sky-100 text-[var(--color-primary)]">Project Guidelines</option>
+                    <option value="SYLLABUS" className="bg-sky-100 text-[var(--color-primary)]">Course Syllabus</option>
+                    <option value="QUESTION_BANK" className="bg-sky-100 text-[var(--color-primary)]">Question Bank</option>
+                    <option value="REFERENCE_MATERIAL" className="bg-sky-100 text-[var(--color-primary)]">Reference Material</option>
+                    <option value="PRESENTATION" className="bg-sky-100 text-[var(--color-primary)]">Presentations</option>
+                    <option value="VIDEO_LECTURE" className="bg-sky-100 text-[var(--color-primary)]">Video Lectures</option>
+                    <option value="SOFTWARE" className="bg-sky-100 text-[var(--color-primary)]">Software / Tools</option>
+                    <option value="DATASET" className="bg-sky-100 text-[var(--color-primary)]">Datasets</option>
+                    <option value="READING_MATERIAL" className="bg-sky-100 text-[var(--color-primary)]">Reading Material</option>
+                    <option value="CASE_STUDY" className="bg-sky-100 text-[var(--color-primary)]">Case Studies</option>
+                    <option value="EXAM_NOTICE" className="bg-sky-100 text-[var(--color-primary)]">Exam Notices</option>
+                    <option value="TIME_TABLE" className="bg-sky-100 text-[var(--color-primary)]">Time Table</option>
+                    <option value="OTHER" className="bg-sky-100 text-[var(--color-primary)]">Other</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">
                     Upload File
                   </label>
                   <div className="relative group">
                     <input
                       type="file"
                       onChange={(e) => setSelectedFile(e.target.files[0])}
-                      className="block w-full text-xs text-gray-500
-                          file:mr-4 file:py-2 file:px-4
-                          file:rounded-md file:border-0
-                          file:text-xs file:font-semibold
-                          file:bg-blue-50 file:text-blue-700
-                          hover:file:bg-blue-100 cursor-pointer"
+                      className="block w-full text-xs text-slate-500
+                          file:mr-3 file:py-2 file:px-3
+                          file:rounded-xl file:border-0
+                          file:text-xs file:font-bold
+                          file:bg-[var(--color-secondary)]/15 file:text-[var(--color-secondary)]
+                          hover:file:bg-[var(--color-secondary)]/25 cursor-pointer bg-white/90 border border-slate-200 rounded-xl p-1"
                     />
                     {editMode && !selectedFile && (
-                      <p className="text-[10px] text-gray-400 mt-1 truncate">
+                      <p className="text-[10px] text-slate-500 mt-1 truncate">
                         Current: {formData.filePath.split("/").pop()}
                       </p>
                     )}
@@ -441,7 +470,7 @@ const ManageResources = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">
                   Description
                 </label>
                 <textarea
@@ -449,47 +478,49 @@ const ManageResources = () => {
                   rows="3"
                   value={formData.description}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                  placeholder="Additional notes, semester, instructor details..."
+                  className="w-full px-3.5 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition resize-none"
                 />
               </div>
 
               {!editMode && (
-                <div className="flex align-items-center">
+                <div className="flex items-center gap-2.5 bg-white/90 border border-slate-200 p-3 rounded-xl">
                   <input
                     type="checkbox"
                     id="notifyUsers"
                     checked={notifyUsers}
                     onChange={(e) => setNotifyUsers(e.target.checked)}
+                    className="w-4 h-4 rounded accent-[var(--color-secondary)] cursor-pointer"
                   />
-                  <label htmlFor="notifyUsers" className="ml-2">
-                    Notify Students
+                  <label htmlFor="notifyUsers" className="text-xs text-slate-600 font-semibold cursor-pointer">
+                    Notify enrolled students via in-app alert
                   </label>
                 </div>
               )}
 
-              <div className="pt-4 flex justify-end gap-3">
+              <div className="pt-4 border-t border-slate-200 flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={closeModal}
                   disabled={isUploading}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 border border-slate-200 rounded-xl hover:bg-white/5 transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isUploading}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm disabled:opacity-50 flex items-center gap-2"
+                  className="px-5 py-2 text-xs font-bold text-[var(--color-primary)] bg-[var(--color-secondary)] hover:opacity-90 rounded-xl shadow-xs disabled:opacity-50 flex items-center gap-2 transition cursor-pointer"
                 >
                   {isUploading ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Uploading...
+                      <span>Uploading...</span>
                     </>
                   ) : (
                     <>
-                      <UploadCloud size={16} />
-                      {editMode ? "Update Resource" : "Create Resource"}
+                      <UploadCloud size={15} />
+                      <span>{editMode ? "Update Resource" : "Create Resource"}</span>
                     </>
                   )}
                 </button>

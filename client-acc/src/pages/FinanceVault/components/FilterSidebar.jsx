@@ -113,7 +113,7 @@ const FilterSidebar = ({ filters, setFilters }) => {
 
         <button
           onClick={clearFilters}
-          className="w-full bg-red-600 text-white py-2 rounded-md hover:bg-red-700 transition"
+          className="w-full bg-red-600 text-[var(--color-primary)] py-2 rounded-md hover:bg-red-700 transition"
         >
           Clear Filters
         </button>

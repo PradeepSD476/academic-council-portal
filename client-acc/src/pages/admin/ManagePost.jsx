@@ -58,163 +58,173 @@ const ManagePost = () => {
   const endItem = Math.min(page * PAGE_SIZE, totalResults);
 
   return (
-    <div className="p-6 h-[calc(100vh-7.5rem)] bg-gray-50 flex flex-col overflow-hidden">
+    <div className="space-y-6">
       {/*Headers*/}
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-            <FileText className="text-blue-600" /> Manage Posts
-          </h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Add,Edit and Delete your Posts
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-[3px] h-6 bg-[var(--color-secondary)] rounded-full shadow-[0_0_8px_var(--color-secondary)]" />
+            <h1 className="text-2xl md:text-3xl font-extrabold text-[var(--color-primary)] tracking-tight flex items-center gap-2.5">
+              <FileText className="text-[var(--color-secondary)]" size={24} /> Manage Posts
+            </h1>
+          </div>
+          <p className="text-slate-500 text-sm ml-4">
+            Review, edit, draft, and moderate student career experiences.
           </p>
         </div>
 
-        <div className="flex justify-between items-center gap-5">
-          <div className="text-sm text-gray-600 bg-white border border-gray-200 rounded-lg px-4 py-2">
+        <div className="flex items-center gap-3 self-start sm:self-auto">
+          <div className="text-xs font-semibold text-slate-500 bg-white/95 backdrop-blur-xl shadow-xs border border-slate-200 rounded-xl px-3.5 py-2">
             Total Posts:{" "}
-            <span className="font-semibold text-gray-800">{posts.length}</span>
+            <span className="font-bold text-[var(--color-primary)] ml-1">{totalResults || posts.length}</span>
           </div>
 
           <button
-            className="bg-blue-700 px-4 py-2 text-white rounded-lg cursor-pointer "
+            className="bg-[var(--color-secondary)] hover:opacity-90 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all shadow-[0_8px_20px_var(--color-secondary-glow)] cursor-pointer"
             onClick={() => {
               openEditorForId(-1);
             }}
-          >+ New Post</button>
+          >
+            + New Post
+          </button>
         </div>
       </div>
 
       {/*Pagination Table*/}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col flex-1 overflow-hidden">
-        <div className="flex-1 overflow-auto">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+      <div className="bg-white/95 backdrop-blur-xl shadow-xs rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-neutral-800">
+            <thead className="bg-white/90">
+              <tr>
+                <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Title &amp; Summary
+                </th>
+                <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Type
+                </th>
+                <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Posted By
+                </th>
+                <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Engagement
+                </th>
+                <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Date
+                </th>
+                <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3.5 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Actions
+                </th> 
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-neutral-800/70">
+              {posts.length === 0 ? (
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Title
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Type
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Posted By
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Likes / Comments
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Options
-                  </th> 
+                  <td
+                    colSpan={7}
+                    className="px-6 py-16 text-center text-sm text-slate-500"
+                  >
+                    {isLoading ? "Loading posts..." : "No career posts found."}
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {posts.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="px-6 py-12 text-center text-sm text-gray-500"
-                    >
-                      {isLoading ? "Loading posts..." : "No posts found."}
+              ) : (
+                posts.map((item) => (
+                  <tr
+                    key={item.id}
+                    className="hover:bg-white/5 transition-colors"
+                  >
+                    {/*Title and Description*/}
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-bold text-[var(--color-primary)] leading-snug">
+                        {item.title}
+                      </div>
+                      <div className="text-xs text-slate-500 truncate max-w-xs mt-0.5">
+                        {stripHtml(item.description)}
+                      </div>
                     </td>
+
+                    {/*Types*/}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="px-2.5 py-0.5 inline-flex text-xs font-semibold rounded-full bg-white/5 border border-white/10 text-slate-600">
+                        {item.experienceType || "INTERVIEW"}
+                      </span>
+                    </td>
+
+                    {/*Posted By*/}
+                    <td className="px-6 py-4 whitespace-nowrap text-xs font-semibold text-slate-600">
+                      {item.uploadedBy?.displayName || "Anonymous"}
+                    </td>
+
+                    {/*Likes/Comments*/}
+                    <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-500 font-medium">
+                      ♥ {item._count?.likes || 0} &nbsp;·&nbsp; 💬 {item._count?.comments || 0}
+                    </td>
+                    
+                    {/*Post Data*/}
+                    <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-500 font-medium">
+                      {new Date(item.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    </td>
+
+                    {/*Status*/}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2.5 py-0.5 inline-flex text-[10px] font-bold border rounded-full uppercase tracking-wider ${
+                        item.status === 'PUBLISHED'
+                          ? 'bg-emerald-950/60 text-emerald-300 border-emerald-800/60'
+                          : item.status === 'DRAFT'
+                          ? 'bg-amber-950/60 text-amber-300 border-amber-800/60'
+                          : 'bg-rose-950/60 text-rose-300 border-rose-800/60'
+                      }`}>
+                        {item.status || "DRAFT"}
+                      </span>
+                    </td>
+
+                    {/*Editing Options for a Single Post*/}
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          type="button"
+                          className="p-1.5 text-slate-500 hover:text-[var(--color-primary)] bg-white/5 hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+                          aria-label={`Edit ${item.title}`}
+                          onClick={() => {
+                            openEditorForId(item.id);
+                          }}
+                        >
+                          <Edit2 size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          className="p-1.5 text-slate-500 hover:text-red-400 bg-white/5 hover:bg-red-950/30 rounded-lg transition-colors cursor-pointer"
+                          aria-label={`Delete ${item.title}`}
+                          onClick={() => {
+                            void handleDeletePost(item.id);
+                          }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                    
                   </tr>
-                ) : (
-                  posts.map((item) => (
-                    <tr
-                      key={item.id}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      {/*Title and Description*/}
-                      <td className="px-6 py-4">
-                        <div className="text-sm font-bold text-gray-900">
-                          {item.title}
-                        </div>
-                        <div className="text-xs text-gray-500 truncate max-w-xs mt-1 overflow-clip">
-                          {stripHtml(item.description)}
-                        </div>
-                      </td>
-
-                      {/*Types*/}
-                      <td className="px-6 py-4 whitespace-nowrap text-xs font-medium text-blue-700">
-                        {item.experienceType}
-                      </td>
-
-                      {/*Posted By*/}
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {item.uploadedBy?.displayName || "Unknown"}
-                      </td>
-
-                      {/*Likes/Comments*/}
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {item._count?.likes || 0} / {item._count?.comments || 0}
-                      </td>
-                      
-                      {/*Post Data*/}
-                      <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">
-                        {new Date(item.updatedAt).toLocaleDateString()}
-                      </td>
-
-                      {/*Status*/}
-                      <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">
-                        {item.status}
-                      </td>
-
-                      {/*Editing Options for a Single Post*/}
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        <div className="flex items-center gap-3">
-                          <button
-                            type="button"
-                            className="text-blue-600 hover:text-blue-800 transition-colors"
-                            aria-label={`Edit ${item.title}`}
-                            onClick={() => {
-                              openEditorForId(item.id);
-                            }}
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                          <button
-                            type="button"
-                            className="text-red-600 hover:text-red-800 transition-colors"
-                            aria-label={`Delete ${item.title}`}
-                            onClick={() => {
-                              void handleDeletePost(item.id);
-                            }}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                      
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
 
-        
-        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-gray-200 bg-gray-50 flex-none">
-          {/*Page Number*/}
-          <p className="text-xs text-gray-600">
-            Showing {startItem} to {endItem} of {totalResults}
+        <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-3.5 border-t border-slate-200 bg-white/90 text-xs text-slate-500">
+          <p>
+            Showing <span className="font-bold text-[var(--color-primary)]">{startItem}</span> to <span className="font-bold text-[var(--color-primary)]">{endItem}</span> of <span className="font-bold text-[var(--color-primary)]">{totalResults}</span>
           </p>
 
-          <div className="flex items-center gap-1">
-            {/*Previous Button as per announcement section*/}
+          <div className="flex items-center gap-1.5">
             <button
               onClick={() => setPage((prev) => Math.max(1, prev - 1))}
               disabled={page === 1}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-600 hover:text-[var(--color-primary)] disabled:opacity-30 disabled:cursor-not-allowed transition font-semibold cursor-pointer"
             >
-              <ChevronLeft className="w-4 h-4" /> Prev
+              <ChevronLeft size={14} /> Prev
             </button>
 
             {Array.from({ length: totalPages }, (_, index) => index + 1).map(
@@ -222,10 +232,10 @@ const ManagePost = () => {
                 <button
                   key={pageNo}
                   onClick={() => setPage(pageNo)}
-                  className={`px-3 py-1.5 text-sm border rounded-md ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                     pageNo === page
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "bg-white text-gray-700 hover:bg-gray-100"
+                      ? "bg-[var(--color-secondary)] text-white shadow-[0_0_10px_rgba(232,93,37,0.3)]"
+                      : "bg-white/5 border border-white/10 text-slate-500 hover:text-[var(--color-primary)]"
                   }`}
                 >
                   {pageNo}
@@ -233,18 +243,16 @@ const ManagePost = () => {
               ),
             )}
 
-            {/*Set Page Number*/}
             <button
               onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
               disabled={page === totalPages}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-600 hover:text-[var(--color-primary)] disabled:opacity-30 disabled:cursor-not-allowed transition font-semibold cursor-pointer"
             >
-              Next <ChevronRight className="w-4 h-4" />
+              Next <ChevronRight size={14} />
             </button>
           </div>
         </div>
       </div>
-      
     </div>
   );
 };

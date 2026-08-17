@@ -109,26 +109,26 @@ const CommentSection = ({ experience, currentUserId, currentUserName, onCommentA
   };
 
   return (
-    <div className="bg-gray-50 rounded-lg p-4">
+    <div className="bg-sky-50/50 rounded-2xl p-4 border border-slate-200/80">
       {/* Comments List */}
       <div className="space-y-4 mb-4">
         {comments.map((comment) => (
-          <div key={comment.id} className="text-sm bg-white p-3 rounded-lg border border-gray-100 shadow-sm flex flex-col gap-2">
+          <div key={comment.id} className="text-sm bg-white/90 p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-2">
             <div className="flex justify-between items-start">
-              <span className="font-bold text-gray-800">{comment.userName}</span>
-              <span className="text-xs text-gray-400">
+              <span className="font-bold text-[var(--color-primary)] text-xs md:text-sm">{comment.userName}</span>
+              <span className="text-[11px] text-slate-500">
                 {comment.date && new Date(comment.date).toLocaleDateString()}
               </span>
             </div>
 
-            <div className="text-gray-600 leading-relaxed quill-content" dangerouslySetInnerHTML={{ __html: comment.text }} />
+            <div className="text-slate-600 leading-relaxed quill-content text-xs md:text-sm" dangerouslySetInnerHTML={{ __html: comment.text }} />
 
-            <div className="flex items-center gap-4 mt-1">
+            <div className="flex items-center gap-4 mt-2 pt-2 border-t border-slate-200/60">
               <button
                 onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
-                className="text-xs font-semibold text-gray-500 hover:text-blue-600 flex items-center gap-1 transition-colors"
+                className="text-xs font-semibold text-slate-500 hover:text-[var(--color-secondary)] flex items-center gap-1 transition-colors cursor-pointer"
               >
-                <MessageCircle size={14} /> {replyingTo === comment.id ? "Cancel" : "Reply"}
+                <MessageCircle size={13} /> {replyingTo === comment.id ? "Cancel" : "Reply"}
               </button>
               {comment.ownerId === currentUserId && (
                 <button
@@ -136,22 +136,22 @@ const CommentSection = ({ experience, currentUserId, currentUserName, onCommentA
                     await onCommentDelete(experience.id, comment.id);
                     fetchComments(page);
                   }}
-                  className="text-xs font-semibold text-red-500 hover:text-red-700 flex items-center gap-1 transition-colors"
+                  className="text-xs font-semibold text-red-400 hover:text-red-300 flex items-center gap-1 transition-colors cursor-pointer"
                 >
-                  <Trash2 size={14} /> Delete
+                  <Trash2 size={13} /> Delete
                 </button>
               )}
             </div>
 
             {/* Nested Replies */}
             {comment.repliesCount > 0 && (
-              <div className="mt-3 space-y-3 pl-4 border-l-2 border-gray-100 pb-1">
+              <div className="mt-3 space-y-3 pl-3 md:pl-4 border-l-2 border-slate-200 pb-1">
                 {expandedReplies[comment.id] && comment.replies && comment.replies.map((reply) => (
-                  <div key={reply.id} className="bg-gray-50 p-3 rounded border border-gray-100">
+                  <div key={reply.id} className="bg-white/95 backdrop-blur-xl shadow-xs p-3 rounded-xl border border-slate-200">
                     <div className="flex justify-between items-start mb-1">
-                      <span className="font-bold text-gray-800 text-xs">{reply.userName}</span>
+                      <span className="font-bold text-[var(--color-primary)] text-xs">{reply.userName}</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-400">
+                        <span className="text-[10px] text-slate-500">
                           {reply.date && new Date(reply.date).toLocaleDateString()}
                         </span>
                         {reply.ownerId === currentUserId && (
@@ -160,7 +160,7 @@ const CommentSection = ({ experience, currentUserId, currentUserName, onCommentA
                               await onReplyDelete(experience.id, comment.id, reply.id);
                               fetchReplies(comment.id);
                             }}
-                            className="text-red-500 hover:text-red-700 transition-colors"
+                            className="text-red-400 hover:text-red-300 transition-colors cursor-pointer"
                             title="Delete reply"
                           >
                             <Trash2 size={12} />
@@ -168,13 +168,13 @@ const CommentSection = ({ experience, currentUserId, currentUserName, onCommentA
                         )}
                       </div>
                     </div>
-                    <div className="text-gray-600 text-xs quill-content leading-relaxed" dangerouslySetInnerHTML={{ __html: reply.text }} />
+                    <div className="text-slate-600 text-xs quill-content leading-relaxed" dangerouslySetInnerHTML={{ __html: reply.text }} />
                   </div>
                 ))}
 
                 <button
                   onClick={() => toggleRepliesExpansion(comment.id)}
-                  className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors mt-2 block"
+                  className="text-xs font-bold text-[var(--color-secondary)] hover:underline transition-colors mt-2 block cursor-pointer"
                 >
                   {expandedReplies[comment.id] ? "Hide replies" : `View ${comment.repliesCount} repl${comment.repliesCount === 1 ? "y" : "ies"}`}
                 </button>
@@ -187,14 +187,14 @@ const CommentSection = ({ experience, currentUserId, currentUserName, onCommentA
                 <NativeRichTextEditor
                   value={replyInputs[comment.id] || ""}
                   onChange={(val) => setReplyInputs({ ...replyInputs, [comment.id]: val })}
-                  minHeight="120px"
+                  minHeight="100px"
                   placeholder="Write a reply..."
                   autoFocus
                 />
                 <div className="flex justify-end gap-2 mt-[-10px]">
                   <button
                     onClick={() => handleReplySubmit(comment.id)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs px-4 py-1.5 rounded transition-colors"
+                    className="bg-[var(--color-secondary)] hover:opacity-90 text-white font-bold text-xs px-4 py-1.5 rounded-lg transition-colors cursor-pointer shadow-sm"
                   >
                     Submit Reply
                   </button>
@@ -205,36 +205,28 @@ const CommentSection = ({ experience, currentUserId, currentUserName, onCommentA
         ))}
 
         {comments.length === 0 && !isLoading && (
-          <p className="text-sm text-gray-400 text-center py-4">No comments yet. Be the first to start the discussion!</p>
+          <p className="text-xs text-slate-500 text-center py-4">No comments yet. Be the first to start the discussion!</p>
         )}
 
         {isLoading && (
-          <p className="text-sm text-gray-400 text-center py-4">Loading comments...</p>
+          <p className="text-xs text-slate-500 text-center py-4">Loading comments...</p>
         )}
 
         {/* Pagination Controls */}
         {(page > 1 || hasMore) && (
-          <div className="flex justify-between items-center mt-4 pt-2 border-t border-gray-100">
+          <div className="flex justify-between items-center mt-4 pt-3 border-t border-slate-200">
             <button
               onClick={handlePrevPage}
               disabled={page === 1 || isLoading}
-              className={`text-xs font-semibold px-4 py-2 rounded-full border transition-colors ${
-                page === 1 || isLoading
-                  ? "text-gray-400 border-gray-200 bg-gray-50 cursor-not-allowed"
-                  : "text-blue-600 border-blue-200 hover:bg-blue-50"
-              }`}
+              className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-200 bg-sky-50 text-slate-600 hover:text-[var(--color-primary)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
               Previous
             </button>
-            <span className="text-xs text-gray-500 font-medium">Page {page}</span>
+            <span className="text-xs text-slate-500 font-medium">Page {page}</span>
             <button
               onClick={handleNextPage}
               disabled={!hasMore || isLoading}
-              className={`text-xs font-semibold px-4 py-2 rounded-full border transition-colors ${
-                !hasMore || isLoading
-                  ? "text-gray-400 border-gray-200 bg-gray-50 cursor-not-allowed"
-                  : "text-blue-600 border-blue-200 hover:bg-blue-50"
-              }`}
+              className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-200 bg-sky-50 text-slate-600 hover:text-[var(--color-primary)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
               Next
             </button>
@@ -243,19 +235,19 @@ const CommentSection = ({ experience, currentUserId, currentUserName, onCommentA
       </div>
 
       {/* Leave a Comment Editor */}
-      <div className="pt-2 border-t border-gray-200">
-        <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Leave a comment</label>
+      <div className="pt-3 border-t border-slate-200">
+        <label className="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">Leave a comment</label>
         <NativeRichTextEditor
           value={commentInput}
           onChange={setCommentInput}
-          minHeight="120px"
+          minHeight="100px"
           placeholder="Share your thoughts on this..."
         />
         <div className="flex justify-end mt-[-10px]">
           <button
             onClick={handleCommentSubmit}
             disabled={isLoading}
-            className="px-5 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-md transition-colors text-sm font-bold shadow-sm disabled:opacity-50"
+            className="px-5 py-2 bg-[var(--color-secondary)] hover:opacity-90 text-white rounded-xl transition-all text-xs font-bold shadow-xs disabled:opacity-50 cursor-pointer"
           >
             Post Comment
           </button>

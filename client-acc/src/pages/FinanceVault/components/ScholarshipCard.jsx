@@ -1,12 +1,15 @@
+import React from "react";
 import { Link } from "react-router-dom";
+import { Calendar, Award, Building2, CheckCircle2, ChevronRight } from "lucide-react";
 
 const CATEGORY_META = {
-  SCHOLARSHIP:           { label: "Scholarship",            bg: "bg-purple-100 text-purple-800 border-purple-200" },
-  FEE_WAIVER:            { label: "Fee Waiver",             bg: "bg-green-100 text-green-800 border-green-200" },
-  EDUCATION_LOAN:        { label: "Education Loan",         bg: "bg-amber-100 text-amber-800 border-amber-200" },
-  FINANCIAL_ASSISTANCE:  { label: "Financial Assistance",   bg: "bg-red-100 text-red-800 border-red-200" },
-  GRANT:                 { label: "Grant",                  bg: "bg-blue-100 text-blue-800 border-blue-200" },
-  OTHER:                 { label: "Other",                  bg: "bg-gray-100 text-gray-800 border-gray-200" },
+  SCHOLARSHIP: { label: "Scholarship", bg: "bg-sky-100 text-[var(--color-primary)] border-sky-300" },
+  FEE_WAIVER: { label: "Fee Waiver", bg: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  EDUCATION_LOAN: { label: "Education Loan", bg: "bg-amber-50 text-amber-700 border-amber-200" },
+  FINANCIAL_ASSISTANCE: { label: "Financial Assistance", bg: "bg-indigo-50 text-indigo-700 border-indigo-200" },
+  GRANT: { label: "Grant", bg: "bg-blue-50 text-blue-700 border-blue-200" },
+  FEE_REIMBURSEMENT: { label: "Fee Reimbursement", bg: "bg-cyan-50 text-cyan-700 border-cyan-200" },
+  OTHER: { label: "Other", bg: "bg-slate-100 text-slate-700 border-slate-200" },
 };
 
 const ScholarshipCard = ({ scholarship }) => {
@@ -15,111 +18,76 @@ const ScholarshipCard = ({ scholarship }) => {
 
   const deadline = scholarship.deadline
     ? new Date(scholarship.deadline).toLocaleDateString("en-IN", {
-        day: "numeric", month: "short", year: "numeric"
-      })
+      day: "numeric", month: "short", year: "numeric"
+    })
     : null;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md hover:border-blue-200 transition-all duration-200 flex flex-col justify-between">
+    <div className="bg-gradient-to-b from-white/95 via-sky-50/25 to-blue-50/35 backdrop-blur-2xl border-2 border-[var(--color-secondary)]/40 hover:border-[var(--color-primary-accent)]/60 rounded-[2.2rem] p-6 sm:p-7 shadow-[0_12px_35px_rgba(11,30,63,0.06)] hover:shadow-[0_20px_50px_var(--color-secondary-glow)] transition-all duration-300 flex flex-col justify-between group relative overflow-hidden">
       <div>
-        {/* Header */}
-        <div className="flex justify-between items-start gap-4 mb-3">
-          <div className="min-w-0">
-            <h2 className="text-base font-bold text-gray-900 leading-snug line-clamp-2">
-              {scholarship.title}
-            </h2>
-            {scholarship.provider && (
-              <p className="text-gray-500 text-xs mt-0.5 font-medium">
-                {scholarship.provider}
-              </p>
-            )}
-          </div>
+        {/* Top Meta: Category + Active Status */}
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <span className={`px-3 py-0.5 text-[11px] font-black border rounded-full uppercase tracking-wider shadow-xs ${cat.bg}`}>
+            {cat.label}
+          </span>
 
-          <div className="flex flex-col items-end gap-1.5 shrink-0">
-            <span className={`px-2 py-0.5 inline-flex items-center text-[10px] font-semibold border rounded-full ${
-              isActive ? "bg-green-100 text-green-800 border-green-200" : "bg-red-100 text-red-800 border-red-200"
+          <span className={`px-3 py-0.5 inline-flex items-center text-[10px] font-black border rounded-full shadow-xs ${isActive ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-600 border-slate-200"
             }`}>
-              <span className={`w-1.5 h-1.5 rounded-full mr-1 ${isActive ? "bg-green-500 animate-pulse" : "bg-red-500"}`} />
-              {isActive ? "Active" : "Inactive"}
-            </span>
-
-            <span className={`px-2 py-0.5 text-[10px] font-semibold border rounded-full ${cat.bg}`}>
-              {cat.label}
-            </span>
-          </div>
+            <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${isActive ? "bg-emerald-500 animate-pulse" : "bg-slate-400"}`} />
+            {isActive ? "Active" : "Closed"}
+          </span>
         </div>
 
-        {/* Description */}
-        {scholarship.description && (
-          <p className="text-gray-600 text-xs leading-relaxed mb-4 line-clamp-2">
-            {scholarship.description}
+        {/* Title */}
+        <h2 className="text-lg font-black text-[var(--color-primary)] group-hover:text-[var(--color-primary-accent)] transition-colors leading-snug line-clamp-2 mb-1.5">
+          {scholarship.title}
+        </h2>
+
+        {/* Provider */}
+        {scholarship.provider && (
+          <p className="text-slate-600 text-xs font-semibold flex items-center gap-1.5 mb-3">
+            <Building2 size={14} className="text-[var(--color-secondary)] shrink-0" />
+            <span className="truncate">{scholarship.provider}</span>
           </p>
         )}
 
-        {/* Info Grid */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {scholarship.amount && (
-            <InfoChip label="Amount" value={scholarship.amount} />
-          )}
-          {scholarship.genderEligibility && (
-            <InfoChip label="Gender" value={scholarship.genderEligibility} />
-          )}
-          {scholarship.academicYear && (
-            <InfoChip label="Year" value={scholarship.academicYear} />
-          )}
-          {scholarship.incomeEligibility && (
-            <InfoChip label="Income Limit" value={scholarship.incomeEligibility} />
-          )}
-          <InfoChip
-            label="Deadline"
-            value={deadline || "No Deadline"}
-            highlight={!!deadline}
-          />
+        {/* Amount Badge */}
+        {scholarship.amount && (
+          <div className="mb-4 inline-flex items-center gap-2 bg-white/90 border border-sky-200/90 px-3.5 py-1.5 rounded-xl shadow-xs">
+            <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Benefit:</span>
+            <span className="text-xs font-black text-[var(--color-primary)]">{scholarship.amount}</span>
+          </div>
+        )}
+
+        {/* Key Metrics Grid */}
+        <div className="grid grid-cols-2 gap-2.5 mb-4 text-xs">
+          <div className="bg-white/90 border border-sky-100/90 rounded-2xl p-3 shadow-xs">
+            <span className="text-slate-400 block text-[10px] font-black uppercase tracking-wider mb-0.5">Deadline</span>
+            <span className={`font-bold ${deadline ? "text-[var(--color-primary)]" : "text-slate-500"}`}>
+              {deadline || "Rolling / No Deadline"}
+            </span>
+          </div>
+
+          <div className="bg-white/90 border border-sky-100/90 rounded-2xl p-3 shadow-xs">
+            <span className="text-slate-400 block text-[10px] font-black uppercase tracking-wider mb-0.5">Eligibility</span>
+            <span className="font-bold text-[var(--color-primary)] truncate block">
+              {scholarship.incomeEligibility ? `Income ≤ ${scholarship.incomeEligibility}` : (scholarship.genderEligibility === 'ALL' || !scholarship.genderEligibility ? "All Students" : scholarship.genderEligibility)}
+            </span>
+          </div>
         </div>
 
-        {/* Applicable Branches */}
+        {/* Branches preview */}
         {scholarship.applicableBranch && scholarship.applicableBranch.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-1.5">
+          <div className="flex flex-wrap items-center gap-1.5 mb-4">
+            <span className="text-slate-400 text-[10px] font-black uppercase tracking-wider mr-1">Branches:</span>
             {scholarship.applicableBranch.slice(0, 4).map(b => (
-              <span key={b} className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-100">
+              <span key={b} className="px-2 py-0.5 rounded-lg text-[10px] font-black bg-white/90 text-slate-700 border border-slate-200 shadow-xs">
                 {b}
               </span>
             ))}
             {scholarship.applicableBranch.length > 4 && (
-              <span className="text-gray-400 text-[10px] self-center ml-1">
-                +{scholarship.applicableBranch.length - 4} more
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Sub Categories */}
-        {scholarship.subCategory && scholarship.subCategory.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-1.5">
-            {scholarship.subCategory.slice(0, 4).map(c => (
-              <span key={c} className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-100">
-                {c}
-              </span>
-            ))}
-            {scholarship.subCategory.length > 4 && (
-              <span className="text-gray-400 text-[10px] self-center ml-1">
-                +{scholarship.subCategory.length - 4} more
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* States */}
-        {scholarship.state && scholarship.state.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-4">
-            {scholarship.state.slice(0, 3).map(s => (
-              <span key={s} className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
-                {s}
-              </span>
-            ))}
-            {scholarship.state.length > 3 && (
-              <span className="text-gray-400 text-[10px] self-center ml-1">
-                +{scholarship.state.length - 3} more
+              <span className="text-slate-500 text-[10px] font-black self-center">
+                +{scholarship.applicableBranch.length - 4}
               </span>
             )}
           </div>
@@ -127,25 +95,20 @@ const ScholarshipCard = ({ scholarship }) => {
       </div>
 
       {/* Button Action */}
-      <div className="flex justify-end mt-2">
+      <div className="pt-3.5 border-t border-slate-200/80 flex items-center justify-between">
+        <span className="text-[11px] text-slate-500 font-medium">
+          {scholarship.academicYear ? `Year: ${scholarship.academicYear}` : "All academic years"}
+        </span>
+
         <Link
           to={`/dashboard/finance-vault/${scholarship._id || scholarship.id}`}
-          className="inline-flex items-center text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-1.5 rounded-lg shadow-xs transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-black bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] hover:opacity-95 text-white px-4 py-2 rounded-full shadow-xs transition-all cursor-pointer group-hover:scale-105"
         >
-          View Details →
+          <span>View Details</span>
+          <ChevronRight size={14} />
         </Link>
       </div>
     </div>
   );
 };
-
-const InfoChip = ({ label, value, highlight }) => (
-  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium border ${
-    highlight ? "bg-amber-50 text-amber-800 border-amber-200" : "bg-gray-50 text-gray-700 border-gray-100"
-  }`}>
-    <span className="text-gray-400 text-[10px] font-semibold uppercase">{label}:</span>
-    <span className="font-semibold">{value}</span>
-  </span>
-);
-
 export default ScholarshipCard;

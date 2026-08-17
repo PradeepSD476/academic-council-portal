@@ -4,18 +4,17 @@ import { FaArrowRight } from "react-icons/fa";
 import { useParams } from "react-router-dom";
 import { FaBook, FaBriefcase, FaFlask, FaGraduationCap, FaLaptopCode, FaUsers, FaBullhorn } from "react-icons/fa";
 
-// Enhanced Data Structure for a more dynamic and formal look
 const ResourcesData = {
     "academic-mentorship": {
         wingTitle: "Academic Support",
-        subtitle: "Key Resources focused on guidance and study.",
+        subtitle: "Key resources and initiatives focused on curriculum guidance and study strategies.",
         events: [
             {
                 id: 1,
                 title: "ACC Academic Resources Portal",
                 logo: "/hero.png",
                 description:
-                    "The ACC Academic Resources Portal (acc.iitp.ac.in) serves as a centralized platform for curated academic materials and student support resources. It provides access to organized notes, slides, manuals, reports, and structured study content across courses. The portal is designed to simplify academic preparation and ensure students have reliable, accessible learning resources at one place.",
+                    "The ACC Academic Resources Portal serves as a centralized platform for curated academic materials and student support resources. It provides access to organized notes, slides, manuals, reports, and structured study content across courses.",
                 items: [
                     "Curated notes, slides, and course materials",
                     "Previous year resources and academic guides",
@@ -31,127 +30,92 @@ const ResourcesData = {
                 title: "Student Mentorship Program",
                 logo: "/mentorship.jpeg",
                 description:
-                    "The Student Mentorship Program is designed to provide personalized academic and personal guidance to students throughout the year. Each student is assigned a mentor and co-mentor who conduct regular meetings, monitor progress, and offer support in academics, career planning, and overall well-being. The program fosters a supportive ecosystem where students can openly discuss challenges and receive consistent guidance.",
+                    "The Student Mentorship Program is designed to provide personalized academic and personal guidance to students throughout the year. Each student is assigned a mentor and co-mentor who conduct regular meetings and monitor progress.",
                 items: [
                     "Assigned mentor and co-mentor for every student",
                     "Regular one-on-one mentorship meetings",
                     "Academic and career guidance support",
-                    "Continuous monitoring and personal development assistance"
+                    "Continuous monitoring and personal development"
                 ],
                 heading: "Program Highlights",
-                link: "https://docs.google.com/presentation/d/1EXlE3ZdNMAF92tO7y6vgL3YrjIqiC_nw/edit?usp=drive_link&ouid=105099264644522248634&rtpof=true&sd=true",
+                link: "/smp/",
                 icon: FaBook
             }
-
-
         ]
     },
     "career-development": {
         wingTitle: "Career Development Initiatives",
-        subtitle: "Seminars and workshops to boost professional skills, resume building, and networking prowess.",
+        subtitle: "Seminars and workshops to boost professional skills, resume building, and industry networking.",
         events: [
             {
                 id: 3,
                 title: "Online Session: Robotics Reality",
-                logo: "/robotics-reality.png", // upload first image with this name
+                logo: "/robotics-reality.png",
                 description:
-                    "An interactive online session featuring Suganth Ravichandran (IIT Patna’22 | Engineer, Adverb | ex-Chegg Inc.) sharing practical insights into careers in Robotics and Mechanical Core domains. The session explored how academic knowledge translates into real-world industrial production and challenges.",
+                    "An interactive online session featuring industry experts sharing practical insights into careers in Robotics and Mechanical Core domains. Explores how academic knowledge translates into real-world production.",
                 items: [
                     "Career insights in Robotics & Core Engineering",
-                    "Industry–academia perspective",
-                    "Live Q&A with IITP alumnus"
+                    "Practical industrial challenges and roadmaps",
+                    "Live interactive Q&A with experienced engineers",
+                    "Guidance on skill transition from campus to industry"
                 ],
                 heading: "Session Highlights",
-                link: "/wing/career-development",
+                link: "https://youtube.com",
                 icon: FaBriefcase
             },
             {
                 id: 4,
-                title: "Online Session: AI Unleashed",
-                logo: "/ai-unleashed.png", // upload second image with this name
+                title: "Online Session: Beyond College",
+                logo: "/beyond-college.png",
                 description:
-                    "A dynamic online session featuring Amish Mittal (IIT Patna’22 | Co-Founder & CTO, Saturn Labs | ex-Microsoft Research Fellow) discussing career pathways in AI, research, and entrepreneurship. The session provided clarity on opportunities spanning research labs, industry roles, and startup ecosystems.",
+                    "A dynamic talk on mastering interview strategies, cracking competitive hiring rounds, and transitioning effectively from college life to professional corporate environments.",
                 items: [
-                    "Careers in AI & Research",
-                    "Entrepreneurship insights",
-                    "Industry and startup exposure"
+                    "Resume building & personal branding tips",
+                    "Cracking technical and behavioral interviews",
+                    "Real-world work culture expectations",
+                    "Alumni experiences and actionable career roadmaps"
                 ],
                 heading: "Session Highlights",
-                link: "/wing/career-development",
+                link: "https://youtube.com",
                 icon: FaBriefcase
             }
         ]
-
     },
     "research": {
-        wingTitle: "Research & Innovation",
-        subtitle: "Showcasing student research and fostering a culture of academic inquiry and innovation.",
+        wingTitle: "Research Initiatives",
+        subtitle: "Cultivating curiosity, industrial lab visits, and academic publishing mentorship.",
         events: [
             {
                 id: 5,
-                title: "Grad School Application Guidance Session",
+                title: "Industrial & Lab Visit Program",
                 logo: "/hero.png",
                 description:
-                    "The Research Community hosted an online session on 31st May 2025 to guide students through the graduate school application process — from selecting suitable programs to crafting strong Statements of Purpose (SOPs). The session was led by seniors from the 2021–25 batch, a cohort that particularly excelled in ML research. Students gained practical insights directly from those who recently navigated the application journey.",
+                    "Facilitating student visits to state-of-the-art national research facilities, cleanrooms, and private R&D hubs to observe research in action.",
                 items: [
-                    "Choosing the right graduate programs",
-                    "SOP writing strategies and application tips",
-                    "Insights from ML-focused research seniors (2021–25 batch)",
-                    "Live interaction and Q&A session"
+                    "Guided tours to cutting-edge research facilities",
+                    "Direct interaction with senior scientists & principal investigators",
+                    "Understanding industrial safety and lab standards",
+                    "Exploration of joint R&D internship pathways"
                 ],
-                heading: "Session Highlights",
-                link: "https://docs.google.com/presentation/d/1ktPAdUFjdCj0gFZSuTw0eVHR-pygmH_Or5FrzcAvwjg/edit",
+                heading: "Key Takeaways",
+                link: "#",
                 icon: FaFlask
-            }
-
-
-        ]
-    },
-    "placement": {
-        wingTitle: "Placement Preparation",
-        subtitle: "Targeted workshops and resources to ensure student success in final placement drives.",
-        events: [
+            },
             {
                 id: 6,
-                title: "Placement Prep Workshop",
+                title: "Research Paper Mentorship Cell",
                 logo: "/hero.png",
-                description: "Intensive training to prepare students for technical interviews, aptitude tests, and group discussions.",
-                items: ["Advanced resume tips", "Technical interview prep", "In-depth company insights"],
-                heading: "Workshop Sessions",
-                link: "/events/placement-prep",
-                icon: FaGraduationCap
-            }
-        ]
-    },
-    "internship": {
-        wingTitle: "Internship Programs",
-        subtitle: "Orientation and guidance for securing valuable summer and winter industrial training experiences.",
-        events: [
-            {
-                id: 7,
-                title: "Internship Orientation",
-                logo: "/hero.png",
-                description: "An introductory session to understand the process, timeline, and expectations for internships.",
-                items: ["Resume structuring advice", "Company shortlisting insights", "Interview preparation strategies"],
-                heading: "Event Agenda",
-                link: "/events/internship-orientation",
-                icon: FaLaptopCode
-            }
-        ]
-    },
-    "alumni": {
-        wingTitle: "Alumni Engagement",
-        subtitle: "Connecting current students with distinguished alumni for mentorship and professional guidance.",
-        events: [
-            {
-                id: 8,
-                title: "Alumni Meet 2024",
-                logo: "/hero.png",
-                description: "A formal gathering to network and learn from the professional journeys of our successful alumni.",
-                items: ["Focused networking sessions", "Industry expert panel discussions", "Personalized career advice"],
-                heading: "Key Highlights",
-                link: "/events/alumni-meet",
-                icon: FaUsers
+                description:
+                    "Guiding undergraduate and postgraduate scholars through literature review structuring, LaTeX formatting, peer review response drafting, and IEEE/ACM journal submissions.",
+                items: [
+                    "Structured workshops on LaTeX and academic typography",
+                    "Guidance on identifying high-impact conferences",
+                    "Review feedback and peer-mentoring sessions",
+                    "Ethical citation and plagiarism check assistance"
+                ],
+                heading: "Program Pillars",
+                link: "#",
+                icon: FaFlask
             }
         ]
     }
@@ -159,84 +123,80 @@ const ResourcesData = {
 
 const ResourcesPage = () => {
     const { wingId } = useParams();
-    // Retrieve the data object for the current wingId
-    const wingData = ResourcesData[wingId] || { wingTitle: "Events", subtitle: "Events from the Academic and Career Council", events: [] };
+    const wingData = ResourcesData[wingId] || { wingTitle: "Wing Resources", subtitle: "Key programs and resources for this division.", events: [] };
     const { wingTitle, subtitle, events } = wingData;
 
-    return (
-        <section className="max-w-7xl mx-auto px-6 py-16">
-            <div className="text-center mb-16">
-                <motion.span
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    // Formal and neat design: solid background, white text
-                    className="text-lg text-white py-1 font-semibold uppercase tracking-widest bg-linear-to-r from-blue-700 to-blue-500 px-6 rounded-2xl py-3"
-                >
-                    Resources
-                </motion.span>
+    if (!events || events.length === 0) return null;
 
-                {/* Dynamic and formal main title */}
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 my-4 tracking-tight">
-                    {wingTitle}
-                </h2>
-                {/* Dynamic subtitle */}
-                <p className="text-gray-600 max-w-3xl mx-auto text-lg">
+    return (
+        <section className="max-w-[1280px] mx-auto px-6 md:px-16 py-16 border-t border-slate-200/80">
+            {/* Header Section */}
+            <div className="text-center mb-16">
+                <div className="flex justify-center items-center gap-3 mb-4">
+                    <div className="w-[4px] h-8 bg-gradient-to-b from-[#D96B43] via-[#FED7AA] to-[#133E87] rounded-full shadow-[0_0_8px_#D96B43]" />
+                    <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#0B1E3F] uppercase tracking-tight">
+                        {wingTitle}
+                    </h2>
+                    <div className="w-[4px] h-8 bg-gradient-to-b from-[#D96B43] via-[#FED7AA] to-[#133E87] rounded-full shadow-[0_0_8px_#D96B43]" />
+                </div>
+                <p className="text-slate-600 max-w-3xl mx-auto text-base sm:text-lg font-normal">
                     {subtitle}
                 </p>
             </div>
 
-            {/* Event Cards - Refined Design */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            {/* Event Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {events.map((event, index) => (
                     <motion.div
                         key={event.id}
                         initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.2, duration: 0.6 }}
-                        // Formal Card: Clean white background, subtle border, and indigo shadow on hover
-                        className="bg-white border border-gray-200 rounded-xl shadow-md p-8 flex flex-col justify-between transition-all duration-300 hover:shadow-xl hover:border-indigo-200"
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: index * 0.15, duration: 0.5 }}
+                        className="group bg-gradient-to-b from-white/95 via-sky-50/25 to-blue-50/35 backdrop-blur-2xl border-2 border-[var(--color-secondary)]/40 hover:border-[var(--color-primary-accent)]/60 rounded-[2.5rem] shadow-[0_16px_45px_rgba(11,30,63,0.08)] p-8 flex flex-col justify-between transition-all duration-500 hover:shadow-[0_24px_60px_var(--color-secondary-glow)] relative overflow-hidden hover:-translate-y-2"
                     >
-                        {/* Icon for quick visual identity */}
-                        <div className="mb-4 text-center">
-                            <event.icon className="w-10 h-10 text-blue-600 mx-auto" />
+                        {/* Icon Badge */}
+                        <div className="mb-6 flex justify-center">
+                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-100 to-blue-100 border-2 border-sky-200 flex items-center justify-center group-hover:scale-110 group-hover:bg-gradient-to-br group-hover:from-[var(--color-primary)] group-hover:via-[var(--color-primary-accent)] group-hover:to-[var(--color-secondary)] transition-all duration-300 shadow-xs backdrop-blur-md">
+                                <event.icon className="w-7 h-7 text-[var(--color-primary)] group-hover:text-white transition-colors duration-300" />
+                            </div>
                         </div>
 
-                        {/* <img // Kept the image but it's often better to use the icon for this formal style
-                            src={event.logo}
-                            alt={event.title}
-                            className="w-16 h-16 object-contain mb-4 mx-auto"
-                        /> */}
-                        <h3 className="text-xl font-bold text-gray-900 mb-3 text-center tracking-tight">{event.title}</h3>
-                        <p className="text-gray-600 text-base mb-6 text-center">{event.description}</p>
+                        <h3 className="text-xl font-black text-[var(--color-primary)] mb-3 text-center tracking-tight group-hover:text-[var(--color-primary-accent)] transition-colors">
+                            {event.title}
+                        </h3>
+                        <p className="text-slate-700 text-sm leading-relaxed mb-6 text-center font-normal">
+                            {event.description}
+                        </p>
 
-                        <div className="mt-auto"> {/* Pushes the content to the bottom */}
-                            <h4 className="text-md font-semibold uppercase text-blue-700 mb-3 border-b border-indigo-100 pb-1">{event.heading}</h4>
+                        <div className="mt-auto pt-4 border-t border-slate-200/80">
+                            <div className="flex items-center justify-center gap-2 mb-3">
+                                <div className="w-[3px] h-3.5 bg-[var(--color-secondary)] rounded-full" />
+                                <h4 className="text-xs font-black uppercase text-[var(--color-secondary)] tracking-wider">{event.heading}</h4>
+                            </div>
 
-                            <ul className="list-disc list-inside text-gray-700 mb-6 text-md space-y-2 pl-4">
+                            <ul className="list-none space-y-2 mb-6 text-xs sm:text-sm">
                                 {event.items.map((item, idx) => (
-                                    <li key={idx} className="leading-relaxed">{item}</li>
+                                    <li key={idx} className="flex items-start gap-2.5 text-slate-700 font-medium">
+                                        <span className="text-[var(--color-secondary)] mt-0.5 text-xs font-black">▶</span>
+                                        <span className="leading-relaxed">{item}</span>
+                                    </li>
                                 ))}
                             </ul>
 
-                            <a
-                                href={event.link}
-                                // Formal Link: Indigo color with subtle hover underline
-                                className="inline-flex items-center text-blue-600 font-semibold  transition-colors text-lg group"
-                            >
-                                View Details
-                                <FaArrowRight className="ml-2 w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
-                            </a>
+                            <div className="text-center">
+                                <a
+                                    href={event.link}
+                                    className="group/btn inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-white/95 border border-sky-300 text-[var(--color-primary)] font-black text-sm rounded-full hover:bg-gradient-to-r hover:from-[var(--color-primary)] hover:via-[var(--color-primary-accent)] hover:to-[var(--color-secondary)] hover:text-white hover:border-transparent transition-all duration-300 shadow-xs"
+                                >
+                                    <span>Access Resource</span>
+                                    <FaArrowRight className="text-xs transition-transform duration-300 group-hover/btn:translate-x-1" />
+                                </a>
+                            </div>
                         </div>
                     </motion.div>
                 ))}
             </div>
-            {/* Display message if no events found for the wing */}
-            {events.length === 0 && (
-                <div className="text-center py-10">
-                    <p className="text-lg text-gray-500">No events found for this resource wing.</p>
-                </div>
-            )}
         </section>
     );
 };

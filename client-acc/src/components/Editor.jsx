@@ -143,8 +143,8 @@ const AdminPostEditor = () => {
 
   if (isLoadingPost) {
     return (
-      <div className="p-6 h-[calc(100vh-7.5rem)] bg-gray-50 flex items-center justify-center">
-        <p className="text-sm text-gray-500">Loading post...</p>
+      <div className="p-16 flex items-center justify-center">
+        <p className="text-sm font-semibold text-gray-400">Loading post data...</p>
       </div>
     );
   }
@@ -240,195 +240,194 @@ const AdminPostEditor = () => {
   };
 
   return (
-    <div className="p-6 h-[calc(100vh-7.5rem)] bg-gray-50 flex flex-col overflow-hidden">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
 
         {/*Header*/}
         <div>
-          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-            <FileText className="text-blue-600" />
-            {isNewPost ? "Create New Post" : "Edit Post"}
-          </h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Review and manage the student experience post before publishing.
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-[3px] h-6 bg-[#E85D25] rounded-full shadow-[0_0_8px_#E85D25]" />
+            <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
+              <FileText className="text-[#E85D25]" size={24} />
+              {isNewPost ? "Create Career Experience Post" : "Edit Career Experience Post"}
+            </h1>
+          </div>
+          <p className="text-gray-400 text-sm ml-4">
+            Review, format, and manage student career insights before publishing.
           </p>
         </div>
 
         {/*Actions*/}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
           <button
             type="button"
             onClick={handleClose}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-white/5 border border-white/10 text-gray-300 text-xs font-semibold rounded-xl hover:text-white hover:bg-white/10 transition cursor-pointer"
           >
-            <ArrowLeft size={16} />
+            <ArrowLeft size={14} />
             Back to Posts
           </button>
           <button
             type="button"
             onClick={handleSaveDraft}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-white/5 border border-white/10 text-gray-300 text-xs font-semibold rounded-xl hover:text-white hover:bg-white/10 transition cursor-pointer"
           >
-            <Save size={16} />
+            <Save size={14} />
             Save Draft
           </button>
           <button
             type="button"
             onClick={handlePublish}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center gap-1.5 px-5 py-2 bg-[#E85D25] hover:bg-[#d44d18] text-white text-xs font-bold rounded-xl shadow-[0_0_15px_rgba(232,93,37,0.35)] transition cursor-pointer"
           >
-            <CheckCircle size={16} />
+            <CheckCircle size={14} />
             Publish Post
           </button>
         </div>
       </div>
 
-      {/*Form*/}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col flex-1 overflow-hidden">
-        <div className="p-6 overflow-y-auto space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            <div className="space-y-1.5">
-              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                <Type size={16} className="text-gray-400" />
-                Title
-              </label>
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                placeholder="e.g. Google SDE Interview Experience"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow outline-none text-gray-800"
-              />
-            </div>
+      {/*Form Container*/}
+      <div className="bg-[#141414] rounded-3xl border border-neutral-800 shadow-xl p-6 space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-1.5">
+            <label className="flex items-center gap-2 text-xs font-bold text-gray-300 uppercase tracking-wider">
+              <Type size={14} className="text-[#E85D25]" />
+              Post Title
+            </label>
+            <input
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              placeholder="e.g. Google SWE Summer Intern Interview & Prep"
+              className="w-full px-3.5 py-2.5 border border-neutral-800 bg-[#181818] rounded-xl text-white placeholder-gray-500 focus:border-[#E85D25] focus:outline-none text-sm transition"
+            />
+          </div>
 
-            <div className="space-y-1.5">
-              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                <Tag size={16} className="text-gray-400" />
-                Experience Type
-              </label>
-              <select
-                name="experienceType"
-                value={formData.experienceType}
-                onChange={handleChange}
-                className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow outline-none text-gray-800"
-              >
-                {EXPERIENCE_TYPE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="space-y-1.5">
+            <label className="flex items-center gap-2 text-xs font-bold text-gray-300 uppercase tracking-wider">
+              <Tag size={14} className="text-[#E85D25]" />
+              Experience Type
+            </label>
+            <select
+              name="experienceType"
+              value={formData.experienceType}
+              onChange={handleChange}
+              className="w-full px-3.5 py-2.5 bg-[#181818] border border-neutral-800 rounded-xl text-white focus:border-[#E85D25] focus:outline-none text-sm transition cursor-pointer"
+            >
+              {EXPERIENCE_TYPE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value} className="bg-neutral-900 text-white">
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
 
-            <div className="space-y-1.5">
-              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                <Tag size={16} className="text-gray-400" />
-                Domain
-              </label>
-              <select
-                name="domain"
-                value={formData.domain}
-                onChange={handleChange}
-                className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow outline-none text-gray-800"
+          <div className="space-y-1.5">
+            <label className="flex items-center gap-2 text-xs font-bold text-gray-300 uppercase tracking-wider">
+              <Tag size={14} className="text-[#E85D25]" />
+              Domain Track
+            </label>
+            <select
+              name="domain"
+              value={formData.domain}
+              onChange={handleChange}
+              className="w-full px-3.5 py-2.5 bg-[#181818] border border-neutral-800 rounded-xl text-white focus:border-[#E85D25] focus:outline-none text-sm transition cursor-pointer"
+            >
+              {DOMAIN_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value} className="bg-neutral-900 text-white">
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+            <label className="flex items-center gap-2 text-xs font-bold text-gray-300 uppercase tracking-wider">
+              <FileText size={14} className="text-[#E85D25]" />
+              Rich Article Content
+            </label>
+
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => applyCommand("formatBlock", "h1")}
+                className="inline-flex items-center gap-1 rounded-xl border border-neutral-800 bg-[#181818] px-2.5 py-1 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#E85D25]/40 transition cursor-pointer"
               >
-                {DOMAIN_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+                <Heading1 size={13} />
+                H1
+              </button>
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => applyCommand("bold")}
+                className="inline-flex items-center gap-1 rounded-xl border border-neutral-800 bg-[#181818] px-2.5 py-1 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#E85D25]/40 transition cursor-pointer"
+              >
+                <Bold size={13} />
+                Bold
+              </button>
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => applyCommand("italic")}
+                className="inline-flex items-center gap-1 rounded-xl border border-neutral-800 bg-[#181818] px-2.5 py-1 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#E85D25]/40 transition cursor-pointer"
+              >
+                <Italic size={13} />
+                Italic
+              </button>
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => wrapSelectionWithTag("code")}
+                className="inline-flex items-center gap-1 rounded-xl border border-neutral-800 bg-[#181818] px-2.5 py-1 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#E85D25]/40 transition cursor-pointer"
+              >
+                <Code size={13} />
+                Code
+              </button>
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => applyCommand("insertUnorderedList")}
+                className="inline-flex items-center gap-1 rounded-xl border border-neutral-800 bg-[#181818] px-2.5 py-1 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#E85D25]/40 transition cursor-pointer"
+              >
+                <List size={13} />
+                List
+              </button>
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => applyCommand("formatBlock", "blockquote")}
+                className="inline-flex items-center gap-1 rounded-xl border border-neutral-800 bg-[#181818] px-2.5 py-1 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#E85D25]/40 transition cursor-pointer"
+              >
+                <Quote size={13} />
+                Quote
+              </button>
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={applyLink}
+                className="inline-flex items-center gap-1 rounded-xl border border-neutral-800 bg-[#181818] px-2.5 py-1 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#E85D25]/40 transition cursor-pointer"
+              >
+                <Link size={13} />
+                Link
+              </button>
             </div>
           </div>
 
-          <div className="space-y-3 flex-1 flex flex-col">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                <FileText size={16} className="text-gray-400" />
-                Description
-              </label>
-
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => applyCommand("formatBlock", "h1")}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  <Heading1 size={14} />
-                  H1
-                </button>
-                <button
-                  type="button"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => applyCommand("bold")}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  <Bold size={14} />
-                  Bold
-                </button>
-                <button
-                  type="button"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => applyCommand("italic")}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  <Italic size={14} />
-                  Italic
-                </button>
-                <button
-                  type="button"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => wrapSelectionWithTag("code")}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  <Code size={14} />
-                  Code
-                </button>
-                <button
-                  type="button"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => applyCommand("insertUnorderedList")}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  <List size={14} />
-                  List
-                </button>
-                <button
-                  type="button"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => applyCommand("formatBlock", "blockquote")}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  <Quote size={14} />
-                  Quote
-                </button>
-                <button
-                  type="button"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={applyLink}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  <Link size={14} />
-                  Link
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="rounded-xl border border-gray-200 bg-gray-50/70">
-                <div
-                  ref={editorRef}
-                  contentEditable
-                  suppressContentEditableWarning
-                  onInput={handleEditorInput}
-                  onBlur={handleEditorInput}
-                  className="rich-editor min-h-80 px-4 py-4 text-gray-800 outline-none"
-                  data-placeholder="Write the complete experience details here..."
-                  aria-label="Post description editor"
-                />
-              </div>
-            </div>
+          <div className="rounded-2xl border border-neutral-800 bg-[#181818] overflow-hidden focus-within:border-[#E85D25] transition">
+            <div
+              ref={editorRef}
+              contentEditable
+              suppressContentEditableWarning
+              onInput={handleEditorInput}
+              onBlur={handleEditorInput}
+              className="rich-editor min-h-80 px-5 py-5 text-gray-100 outline-none leading-relaxed text-sm"
+              data-placeholder="Write the complete experience details here..."
+              aria-label="Post description editor"
+            />
           </div>
         </div>
       </div>

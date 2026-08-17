@@ -1,8 +1,9 @@
 import React from "react";
 import VerifyRoll from "./pages/Login/VerifyRoll.jsx";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/layout/navbar.jsx";
 import Footer from "./components/layout/footer.jsx";
+import AuroraBackground from "./components/layout/AuroraBackground.jsx";
 import Home from "./pages/Home/page.jsx";
 import AccTeam from "./pages/Team/page.jsx";
 import WingPage from "./pages/Wing/page.jsx";
@@ -209,24 +210,34 @@ const AppRoutes = () => {
   );
 };
 
+const AppContent = () => {
+  const location = useLocation();
+  const overlapPages = ["/", "/wings", "/team", "/administrators", "/devs", "/faq", "/login", "/register", "/login-with-roll"];
+  const isOverlap = overlapPages.includes(location.pathname) || location.pathname.startsWith("/wing/");
+  const isDashboard = location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin");
+
+  return (
+    <div className="flex flex-col min-h-screen text-slate-900 selection:bg-blue-200 selection:text-slate-900 relative">
+      <AuroraBackground />
+      <Navbar />
+
+      <main className={`grow ${isOverlap ? "" : "pt-16"}`}>
+        <Toaster position="top-right" />
+        <AppRoutes />
+      </main>
+
+      {!isDashboard && <Footer />}
+    </div>
+  );
+};
+
 const App = () => {
   return (
-    <>
-      <BrowserRouter>
-        <AuthState>
-          <div className="flex flex-col min-h-screen">
-            <Navbar />
-
-            <main className="grow pt-16">
-              <Toaster position="top-right" />
-              <AppRoutes />
-            </main>
-
-            <Footer />
-          </div>
-        </AuthState>
-      </BrowserRouter>
-    </>
+    <BrowserRouter>
+      <AuthState>
+        <AppContent />
+      </AuthState>
+    </BrowserRouter>
   );
 };
 

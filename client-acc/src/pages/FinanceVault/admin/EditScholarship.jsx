@@ -87,12 +87,9 @@ const EditScholarship = () => {
 
   if (fetching) {
     return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
-        <div style={{ textAlign: "center" }}>
-          <div style={{ width: "36px", height: "36px", border: "3px solid #e5e7eb", borderTopColor: "#6366f1", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 0.75rem" }} />
-          <p style={{ color: "#9ca3af", fontSize: "0.875rem" }}>Loading opportunity…</p>
-        </div>
-        <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
+        <div className="w-9 h-9 border-3 border-slate-200 border-t-[var(--color-secondary)] rounded-full animate-spin" />
+        <p className="text-slate-500 text-xs font-semibold">Loading opportunity details...</p>
       </div>
     );
   }

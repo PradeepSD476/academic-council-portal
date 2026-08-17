@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   nginx-acc:
     image: nginx:alpine
@@ -14,8 +12,11 @@ services:
   
       - ./certs-acc:/etc/nginx/ssl:ro
     depends_on:
+      - frontend-acc
       - backend-acc
       - minio-acc
+      - smp-frontend
+      - smp-backend
     networks:
       - acc-net
 
@@ -70,9 +71,63 @@ services:
     networks:
       - acc-net
 
+  smp-mongo:
+    image: mongo:latest
+    container_name: smp-mongo
+    restart: unless-stopped
+    volumes:
+      - smp_mongo_data:/data/db
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    healthcheck:
+      test: >
+        mongosh --quiet --eval "
+          try {
+            const status = rs.status();
+            if (status.ok) quit(0); else quit(1);
+          } catch(e) {
+            rs.initiate({_id: 'rs0', members: [{_id: 0, host: 'smp-mongo:27017'}]});
+            quit(1);
+          }
+        "
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    networks:
+      - acc-net
+
+  smp-backend:
+    build:
+      context: ./smp/server
+      dockerfile: Dockerfile
+    container_name: smp-backend
+    restart: unless-stopped
+    env_file:
+      - ./smp/server/.env
+    environment:
+      - DATABASE_URL=mongodb://smp-mongo:27017/mydb?authSource=admin&directConnection=true
+      - MINIO_ENDPOINT=minio-acc
+    depends_on:
+      smp-mongo:
+        condition: service_healthy
+      minio-acc:
+        condition: service_started
+    networks:
+      - acc-net
+
+  smp-frontend:
+    build:
+      context: ./smp/client
+      dockerfile: Dockerfile
+    container_name: smp-frontend
+    restart: unless-stopped
+    networks:
+      - acc-net
+
 volumes:
   acc_postgres:
   minio_data:
+  smp_mongo_data:
 
 networks:
   acc-net:

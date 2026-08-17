@@ -170,87 +170,162 @@ const ManageCourses = () => {
   };
 
 
+  const customSelectStyles = {
+    control: (provided, state) => ({
+      ...provided,
+      backgroundColor: 'white',
+      borderColor: state.isFocused ? 'var(--color-secondary)' : '#e2e8f0', // slate-200
+      borderRadius: '0.75rem',
+      padding: '2px',
+      boxShadow: state.isFocused ? '0 0 0 1px var(--color-secondary)' : 'none',
+      '&:hover': {
+        borderColor: state.isFocused ? 'var(--color-secondary)' : '#cbd5e1', // slate-300
+      },
+    }),
+    menu: (provided) => ({
+      ...provided,
+      backgroundColor: 'white',
+      borderRadius: '0.75rem',
+      border: '1px solid #e2e8f0',
+      zIndex: 50,
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      backgroundColor: state.isSelected
+        ? 'var(--color-secondary)'
+        : state.isFocused
+        ? '#f0f9ff' // sky-50
+        : 'white',
+      color: state.isSelected ? 'white' : 'var(--color-primary)',
+      cursor: 'pointer',
+    }),
+    multiValue: (provided) => ({
+      ...provided,
+      backgroundColor: '#f0f9ff',
+      borderRadius: '0.5rem',
+      border: '1px solid #bae6fd',
+    }),
+    multiValueLabel: (provided) => ({
+      ...provided,
+      color: 'var(--color-secondary)',
+      fontWeight: 'bold',
+      fontSize: '0.75rem',
+    }),
+    multiValueRemove: (provided) => ({
+      ...provided,
+      color: 'var(--color-secondary)',
+      ':hover': {
+        backgroundColor: 'var(--color-secondary)',
+        color: '#ffffff',
+      },
+    }),
+    input: (provided) => ({
+      ...provided,
+      color: 'var(--color-primary)',
+    }),
+    placeholder: (provided) => ({
+      ...provided,
+      color: '#94a3b8', // slate-400
+      fontSize: '0.875rem',
+    }),
+  };
+
   return (
-    <div className="p-6 space-y-6 bg-gray-50 min-h-screen relative">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Manage Courses</h1>
-          <p className="text-gray-500 text-sm mt-1">View and manage the academic course catalog.</p>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-[3px] h-6 bg-[var(--color-secondary)] rounded-full shadow-[0_0_8px_var(--color-secondary)]" />
+            <h1 className="text-2xl md:text-3xl font-extrabold text-[var(--color-primary)] tracking-tight">
+              Manage Courses
+            </h1>
+          </div>
+          <p className="text-slate-500 text-sm ml-4">
+            View, add, and manage academic course offerings.
+          </p>
         </div>
 
         <button
           onClick={handleOpenAdd}
-          className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm"
+          className="flex items-center justify-center gap-2 bg-[var(--color-secondary)] hover:opacity-90 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-[0_8px_20px_var(--color-secondary-glow)] cursor-pointer self-start sm:self-auto"
         >
-          <Plus size={18} />
-          Add New Course
+          <Plus size={16} />
+          <span>Add New Course</span>
         </button>
       </div>
 
-      <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search courses by code or name..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
+      {/* Search Bar */}
+      <div className="relative w-full max-w-md">
+        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search courses by code, name, or instructor..."
+          className="w-full pl-11 pr-4 py-3 rounded-2xl border border-slate-200 bg-white/95 backdrop-blur-xl shadow-xs text-[var(--color-primary)] placeholder-slate-400 focus:outline-none focus:border-[var(--color-secondary)] focus:ring-1 focus:ring-[var(--color-secondary)] text-sm shadow-sm transition"
+        />
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+      {/* Table Card */}
+      <div className="bg-white/95 backdrop-blur-xl shadow-xs rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-slate-200">
+            <thead className="bg-white/90">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Branches</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Credits</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Code</th>
+                <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Name &amp; Faculty</th>
+                <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Branches</th>
+                <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Credits</th>
+                <th className="px-6 py-3.5 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="divide-y divide-slate-100">
               {loading ? (
                 [...Array(5)].map((_, i) => (
                   <tr key={i} className="animate-pulse">
-                    <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-16"></div></td>
-                    <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-48"></div></td>
-                    <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-24"></div></td>
-                    <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-12"></div></td>
-                    <td className="px-6 py-4"><div className="h-8 bg-gray-200 rounded w-20 ml-auto"></div></td>
+                    <td className="px-6 py-4"><div className="h-4 bg-slate-200 rounded w-16"></div></td>
+                    <td className="px-6 py-4"><div className="h-4 bg-slate-200 rounded w-48"></div></td>
+                    <td className="px-6 py-4"><div className="h-4 bg-slate-200 rounded w-24"></div></td>
+                    <td className="px-6 py-4"><div className="h-4 bg-slate-200 rounded w-12"></div></td>
+                    <td className="px-6 py-4"><div className="h-8 bg-slate-200 rounded w-20 ml-auto"></div></td>
                   </tr>
                 ))
               ) : courses.length > 0 ? (
                 courses.map((course) => (
-                  <tr key={course.id || course.courseCode} className="hover:bg-gray-50 transition-colors">
+                  <tr key={course.id || course.courseCode} className="hover:bg-white/5 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                      <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[var(--color-secondary)]/10 text-[var(--color-secondary)] border border-[var(--color-secondary)]/20 uppercase">
                         {course.courseCode}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{course.name}</div>
-                      <div className="text-xs text-gray-500">{course.instructor}</div>
+                      <div className="text-sm font-bold text-[var(--color-primary)] leading-snug">{course.name}</div>
+                      <div className="text-xs text-slate-500 mt-0.5">{course.instructor || "Faculty"}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <span className="px-2.5 py-0.5 inline-flex text-xs font-semibold rounded-full bg-white/5 border border-white/10 text-slate-600">
                         {Array.isArray(course.allowedBranch) && course.allowedBranch.length > 0
                           ? course.allowedBranch.join(', ')
-                          : '-'}
+                          : 'All'}
                       </span>
-
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{course.credits}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[var(--color-primary)]">{course.credits}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                       <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => handleOpenEdit(course)} className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                          <Edit2 size={16} />
+                        <button
+                          onClick={() => handleOpenEdit(course)}
+                          className="p-1.5 text-slate-500 hover:text-[var(--color-primary)] bg-sky-50 hover:bg-sky-100 rounded-lg transition-colors cursor-pointer"
+                          title="Edit Course"
+                        >
+                          <Edit2 size={14} />
                         </button>
-                        <button onClick={() => handleDelete(course.id)} className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                          <Trash2 size={16} />
+                        <button
+                          onClick={() => handleDelete(course.id)}
+                          className="p-1.5 text-slate-500 hover:text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors cursor-pointer"
+                          title="Delete Course"
+                        >
+                          <Trash2 size={14} />
                         </button>
                       </div>
                     </td>
@@ -258,10 +333,10 @@ const ManageCourses = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan="5" className="px-6 py-16 text-center text-slate-500">
                     <div className="flex flex-col items-center justify-center gap-3">
-                      <div className="p-3 bg-gray-100 rounded-full"><BookOpen size={24} className="text-gray-400" /></div>
-                      <p className="font-medium">No courses found</p>
+                      <div className="p-3 bg-sky-100 border border-slate-200 rounded-full"><BookOpen size={24} className="text-slate-500" /></div>
+                      <p className="font-semibold text-slate-500 text-sm">No courses found</p>
                     </div>
                   </td>
                 </tr>
@@ -271,75 +346,138 @@ const ManageCourses = () => {
         </div>
 
         {/* Pagination */}
-        <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-          <p className="text-sm text-gray-500">Page <span className="font-medium text-gray-900">{page}</span></p>
+        <div className="bg-white/90 px-6 py-3.5 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+          <p>Page <span className="font-bold text-[var(--color-primary)]">{page}</span></p>
           <div className="flex gap-2">
-            <button onClick={() => page > 1 && setPage(p => p - 1)} disabled={page === 1 || loading} className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"><ChevronLeft size={16} /> Previous</button>
-            <button onClick={() => hasMore && setPage(p => p + 1)} disabled={!hasMore || loading} className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50">Next <ChevronRight size={16} /></button>
+            <button
+              onClick={() => page > 1 && setPage(p => p - 1)}
+              disabled={page === 1 || loading}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-sky-50 border border-sky-100 text-slate-600 hover:text-[var(--color-primary)] disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer font-semibold"
+            >
+              <ChevronLeft size={14} /> Previous
+            </button>
+            <button
+              onClick={() => hasMore && setPage(p => p + 1)}
+              disabled={!hasMore || loading}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-sky-50 border border-sky-100 text-slate-600 hover:text-[var(--color-primary)] disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer font-semibold"
+            >
+              Next <ChevronRight size={14} />
+            </button>
           </div>
         </div>
       </div>
 
       {/* --- ADD / EDIT MODAL --- */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white px-6 py-4 border-b border-gray-100 flex items-center justify-between z-10">
-              <h2 className="text-lg font-bold text-gray-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+          <div className="bg-white/95 backdrop-blur-xl shadow-xs border border-slate-200 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto text-[var(--color-primary)]">
+            <div className="sticky top-0 bg-white/95 backdrop-blur-xl shadow-xs px-6 py-4 border-b border-slate-200 flex items-center justify-between z-10">
+              <h2 className="text-lg font-bold text-[var(--color-primary)]">
                 {modalMode === 'add' ? 'Add New Course' : 'Edit Course'}
               </h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
-                <X size={20} />
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="p-1.5 rounded-full hover:bg-white/10 text-slate-500 hover:text-white transition-colors cursor-pointer"
+              >
+                <X size={18} />
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Course Code *</label>
-                  <input required name="courseCode" value={formData.courseCode} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="e.g. CS101" />
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Course Code *</label>
+                  <input
+                    required
+                    name="courseCode"
+                    value={formData.courseCode}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition"
+                    placeholder="e.g. CS101"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Course Name *</label>
-                  <input required name="name" value={formData.name} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. Data Structures" />
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Course Name *</label>
+                  <input
+                    required
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition"
+                    placeholder="e.g. Data Structures"
+                  />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <textarea name="description" value={formData.description} onChange={handleInputChange} rows="3" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Brief course description..." />
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Description</label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  rows="3"
+                  className="w-full px-3 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition resize-y"
+                  placeholder="Brief course description..."
+                />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Instructor *</label>
-                  <input required name="instructor" value={formData.instructor} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Faculty Name" />
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Instructor *</label>
+                  <input
+                    required
+                    name="instructor"
+                    value={formData.instructor}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition"
+                    placeholder="Faculty Name"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Credits *</label>
-                  <input required type="number" step="any" name="credits" value={formData.credits} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. 4" />
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Credits *</label>
+                  <input
+                    required
+                    type="number"
+                    step="any"
+                    name="credits"
+                    value={formData.credits}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition"
+                    placeholder="e.g. 4"
+                  />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Program *</label>
-                  <p className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">BTECH</p>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Program *</label>
+                  <div className="w-full px-3 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-slate-600 text-sm font-semibold">
+                    BTECH
+                  </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Academic Year (i.e. 1) *</label>
-                  <input required type="number" name="academicYear" value={formData.academicYear} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. 1 for 1st year" />
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Academic Year *</label>
+                  <input
+                    required
+                    type="number"
+                    name="academicYear"
+                    value={formData.academicYear}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition"
+                    placeholder="e.g. 1 for 1st year"
+                  />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">
                   Allowed Branches *
                 </label>
 
                 <Select
                   isMulti
                   options={branchOptions}
+                  styles={customSelectStyles}
                   placeholder="Select allowed branches"
                   closeMenuOnSelect={false}
                   value={branchOptions.filter(opt =>
@@ -353,19 +491,25 @@ const ManageCourses = () => {
                   }
                 />
 
-                <p className="text-xs text-gray-500 mt-1">
-                  Select one or more branches
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Select one or more branches eligible for this course
                 </p>
               </div>
 
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 mt-4">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 mt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 border border-slate-200 rounded-xl hover:bg-sky-50 transition cursor-pointer"
+                >
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 flex items-center gap-2">
-                  <Save size={16} />
-                  {modalMode === 'add' ? 'Save Course' : 'Update Course'}
+                <button
+                  type="submit"
+                  className="px-5 py-2 text-xs font-bold text-white bg-[var(--color-secondary)] hover:opacity-90 rounded-xl shadow-xs flex items-center gap-2 transition cursor-pointer"
+                >
+                  <Save size={14} />
+                  <span>{modalMode === 'add' ? 'Save Course' : 'Update Course'}</span>
                 </button>
               </div>
             </form>

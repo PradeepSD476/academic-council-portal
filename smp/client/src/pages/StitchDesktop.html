@@ -1,0 +1,342 @@
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<style>
+        @layer base {
+            html, body {
+                margin: 0;
+                padding: 0;
+            }
+            body {
+                overscroll-behavior: none;
+            }
+            main > :first-child {
+                margin-top: 0 !important;
+            }
+            main > :last-child {
+                margin-bottom: 0 !important;
+            }
+        }
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        .glossy-button {
+            background: linear-gradient(180deg, #1e40af 0%, #1d4ed8 100%);
+            box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.2), 0 4px 12px rgba(29,78,216,0.3);
+        }
+    </style>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#dae2fd",
+                        "surface-container-high": "#e2e7ff",
+                        "surface-container-low": "#f2f3ff",
+                        "on-tertiary-fixed-variant": "#004e60",
+                        "inverse-primary": "#b1c5ff",
+                        "surface-dim": "#d2d9f4",
+                        "tertiary": "#003c4c",
+                        "on-secondary-container": "#5e656c",
+                        "surface-bright": "#faf8ff",
+                        "on-secondary-fixed": "#151c22",
+                        "on-primary-fixed": "#001946",
+                        "on-primary-container": "#a5bdff",
+                        "surface-container-lowest": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#005569",
+                        "on-tertiary-container": "#00d0fd",
+                        "on-secondary-fixed-variant": "#40484e",
+                        "inverse-surface": "#283044",
+                        "on-surface": "#131b2e",
+                        "surface-variant": "#dae2fd",
+                        "surface-container": "#eaedff",
+                        "outline": "#737784",
+                        "on-primary-fixed-variant": "#00419e",
+                        "on-tertiary": "#ffffff",
+                        "outline-variant": "#c3c6d5",
+                        "secondary-container": "#dce3eb",
+                        "secondary": "#585f66",
+                        "on-tertiary-fixed": "#001f28",
+                        "secondary-fixed-dim": "#c0c7cf",
+                        "tertiary-fixed": "#b7eaff",
+                        "primary-fixed": "#dae2ff",
+                        "on-primary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#2559bd",
+                        "secondary-fixed": "#dce3eb",
+                        "on-error-container": "#93000a",
+                        "on-surface-variant": "#434653",
+                        "primary-container": "#0047ab",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed-dim": "#4cd6ff",
+                        "on-background": "#131b2e",
+                        "surface": "#faf8ff",
+                        "primary": "#00327d",
+                        "background": "#faf8ff",
+                        "inverse-on-surface": "#eef0ff",
+                        "primary-fixed-dim": "#b1c5ff",
+                        "on-error": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "margin-desktop": "64px",
+                        "gutter": "24px",
+                        "container-max": "1280px",
+                        "base": "8px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "display-lg-mobile": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-caps": ["Geist"],
+                        "body-md": ["Inter"],
+                        "display-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["32px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "display-lg-mobile": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "display-lg": ["64px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+</head>
+<body class="bg-background font-body-md text-on-background antialiased">
+<header class="fixed top-6 left-0 right-0 w-full z-50 px-margin-desktop">
+<div class="max-w-container-max mx-auto h-14 bg-surface/40 backdrop-blur-2xl rounded-full border border-white/40 shadow-sm flex items-center justify-between px-6">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2">
+<img alt="MENTOR.GRID Logo" class="h-6 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvczb5RGhRU2LhpDA-GoswqPWxLBJXpl-dhKnZdN_8ZM8XwTJUWdgLxmDUg4mshTzZISok7LrXkOTuMauA6lDBeFOy7817FMIoGg3jYczo2vE9a8C2IQEVmd7Qle11l4hjLh_UEyY1c8TwO1C6zrtJ45CHxZnRzB3c154_6uWY90P_EZZz6VW79acTfnmj2yyyXgpiGuH-gxrb5daXpaVATMXsR9Tjto-SYccYTO8VsTtqfLqsLIM"/>
+<span class="font-bold text-on-surface tracking-tight text-sm uppercase">MENTOR.GRID</span>
+</div>
+<div class="h-4 w-[1px] bg-outline-variant/30"></div>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1" href="#">Features <span class="material-symbols-outlined text-[14px]">expand_more</span></a>
+<a class="text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant hover:text-primary transition-colors" href="#">Pricing</a>
+<a class="text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1" href="#">Resources <span class="material-symbols-outlined text-[14px]">expand_more</span></a>
+<a class="text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant hover:text-primary transition-colors" href="#">Integrations</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="bg-[#0f172a] text-white px-5 py-2 rounded-full text-[12px] font-semibold flex items-center gap-2 hover:bg-black transition-all">
+<span class="material-symbols-outlined text-[18px]">account_circle</span>
+                    Sign up
+                </button>
+</div>
+</div>
+</header>
+<main class="w-full">
+<div class="flex flex-col w-full overflow-hidden relative">
+<!-- Ambient Background Gradients -->
+<div class="absolute inset-0 pointer-events-none overflow-hidden z-0">
+<div class="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-primary/5 blur-[140px] rounded-full"></div>
+<div class="absolute top-[10%] right-[-10%] w-[50%] h-[50%] bg-tertiary-fixed-dim/5 blur-[120px] rounded-full"></div>
+<div class="absolute bottom-[20%] left-[20%] w-[40%] h-[40%] bg-surface-tint/5 blur-[100px] rounded-full"></div>
+<!-- Soft glow circles like ref -->
+<div class="absolute top-[15%] left-[5%] w-32 h-32 bg-primary/10 blur-3xl rounded-full opacity-30"></div>
+<div class="absolute top-[40%] right-[5%] w-48 h-48 bg-tertiary/10 blur-3xl rounded-full opacity-30"></div>
+</div>
+<!-- Hero Section -->
+<section class="relative z-10 w-full pt-48 pb-16 px-margin-mobile md:px-margin-desktop flex flex-col items-center justify-center min-h-[90vh] text-center">
+<!-- Micro-label -->
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/60 backdrop-blur-md border border-outline-variant/30 mb-8 shadow-sm">
+<div class="w-4 h-4 rounded-full bg-on-background flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-[10px]">grid_view</span>
+</div>
+<span class="font-semibold text-on-surface text-[11px] tracking-tight">Start your journey</span>
+</div>
+<!-- Main Headline -->
+<h1 class="font-display-lg-mobile md:text-[84px] md:leading-[0.95] md:font-bold text-[#0f172a] max-w-5xl mx-auto tracking-tighter mb-8 relative z-10">
+                    Streamline Your <br/>
+<span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-surface-tint">Mentor Network</span>
+</h1>
+<p class="font-body-lg text-on-surface-variant/70 max-w-3xl mx-auto mb-16 text-lg md:text-xl leading-relaxed">
+                    The all-in-one platform that empowers students to track, manage, <br class="hidden md:block"/> and grow professional connections seamlessly.
+                </p>
+<!-- Network Visualization Integrated -->
+<div class="relative w-full max-w-5xl mx-auto h-[300px] mb-12 select-none pointer-events-none">
+<svg class="absolute inset-0 w-full h-full" preserveaspectratio="xMidYMid meet" viewbox="0 0 1000 300">
+<!-- Connecting Lines - Refined styling -->
+<g class="text-outline-variant/40" fill="none" stroke="currentColor" stroke-width="1.5">
+<path d="M 220,150 L 380,150"></path>
+<path d="M 150,80 C 250,80 250,150 380,150"></path>
+<path d="M 150,220 C 250,220 250,150 380,150"></path>
+<path d="M 620,150 L 780,150"></path>
+<path d="M 620,150 C 750,150 750,80 850,80"></path>
+<path d="M 620,150 C 750,150 750,220 850,220"></path>
+</g>
+<!-- Left Icons -->
+<circle class="shadow-sm" cx="150" cy="80" fill="#ffffff" r="22" stroke="#f1f5f9" stroke-width="1"></circle>
+<text fill="#22c55e" font-family="Material Symbols Outlined" font-size="20" text-anchor="middle" x="150" y="86">bolt</text>
+<circle class="shadow-md" cx="220" cy="150" fill="#ffffff" r="26" stroke="#f1f5f9" stroke-width="1"></circle>
+<circle cx="212" cy="150" fill="#3b82f6" r="8"></circle>
+<circle cx="228" cy="150" fill="#60a5fa" r="8"></circle>
+<circle class="shadow-sm" cx="150" cy="220" fill="#ffffff" r="22" stroke="#f1f5f9" stroke-width="1"></circle>
+<text fill="#ef4444" font-family="Material Symbols Outlined" font-size="20" text-anchor="middle" x="150" y="226">layers</text>
+<!-- Center Tags Area -->
+<rect fill="#ffffff" fill-opacity="0.9" height="80" rx="12" stroke="#f1f5f9" stroke-width="1" width="360" x="320" y="110"></rect>
+<foreignobject height="80" width="360" x="320" y="110">
+<div class="flex flex-wrap items-center justify-center gap-2 p-4 h-full">
+<span class="px-3 py-1 bg-surface-container-low/50 text-on-surface-variant text-[10px] rounded-full border border-outline-variant/20">#Mentorship</span>
+<span class="px-3 py-1 bg-surface-container-low/50 text-on-surface-variant text-[10px] rounded-full border border-outline-variant/20">#Growth</span>
+<span class="px-3 py-1 bg-surface-container-low/50 text-on-surface-variant text-[10px] rounded-full border border-outline-variant/20">#Networking</span>
+<span class="px-3 py-1 bg-surface-container-low/50 text-on-surface-variant text-[10px] rounded-full border border-outline-variant/20">#FutureLeaders</span>
+</div>
+</foreignobject>
+<!-- Node Labels -->
+<rect fill="#f8fafc" height="24" rx="12" stroke="#e2e8f0" width="64" x="250" y="138"></rect>
+<text fill="#475569" font-family="Inter" font-size="9" font-weight="600" text-anchor="middle" x="282" y="154">Collab</text>
+<rect fill="#f8fafc" height="24" rx="12" stroke="#e2e8f0" width="64" x="686" y="138"></rect>
+<text fill="#475569" font-family="Inter" font-size="9" font-weight="600" text-anchor="middle" x="718" y="154">Connect</text>
+<!-- Right Person Avatars -->
+<image class="rounded-full" height="48" href="https://lh3.googleusercontent.com/aida-public/AB6AXuBSFBM1WxMA2hkmzYRRcW13DwIQgaytFuRJV6X8uGpfJTmGZ7uid7fXjsnZCEVw1ZFVuyP72K2jFNTF9hKW0HUFO-LggoHI8jjtqhEpdXaBQnhoXDY1xJPIuOsvNLDInHp0E0--J9v007H4tSyk_xfAYOo8fiM0UkkQN7Gw0hZByNyFaB-kXtDkJVtWf2hoiXjLUSzqOmn_1UG2oJiqFlMtuCosxiN4Ci-nOCckOSLWN5EVnWaS-9s" width="48" x="830" y="56"/>
+<image class="rounded-full" height="48" href="https://lh3.googleusercontent.com/aida-public/AB6AXuAx230VnL2KsOgS-VVPg8J1IpdSXnGrjrv4x7l3Pq_zttANY8EtBUi47ZtxAZIl-JDMQuDCQ1f4sXs9fYNE2ZdD6q81y0wYokTQCLWw3mI7B3ExmbXUz32duXTYaVSl9hbEfp4JRRY7-C9534ufvPllbEm6pcXLJk_yygvuVYDQiikEVm_Z5Uv21i3HuUuuatuWL1kjuVkLTCz7AJrq93MjZBIQL4mV3SVHcWhEkdgeMKYCvmih2yQ" width="48" x="780" y="126"/>
+<image class="rounded-full" height="48" href="https://lh3.googleusercontent.com/aida-public/AB6AXuD89xTCkqQOnmQiOftaU-0eu1nhEnlUtiD0fp6ZLOdsSgMKmO5yKLBOwpzVTWpyNTeKhh3uNeiKobxs_jUy63UlXZ-nrKLsb8romKJ_e1Px-wwXd0Qsv-GeMkozQMHuwuW2pRxGD93YUCbkLdhVc_3x03_YgygEPjkqj3n13CILV0tmo2QI4ZrcqZE5HjlAdr8bOk3C2pocGng86XyMUONyE9XKvcExsIPvhc29eCfQKVNC6sWxsgU" width="48" x="830" y="196"/>
+</svg>
+</div>
+<!-- Actions -->
+<div class="flex flex-col sm:flex-row items-center gap-4 relative z-20">
+<button class="glossy-button group flex items-center justify-center gap-3 px-10 py-4 rounded-full text-white font-semibold shadow-lg hover:scale-[1.02] transition-all duration-300">
+<span>Get Started</span>
+<div class="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</div>
+</button>
+<button class="flex items-center justify-center px-10 py-4 rounded-full bg-transparent text-[#0f172a] border border-outline-variant hover:bg-surface-container-lowest/50 transition-all duration-300 font-semibold">
+                        Explore Mentors
+                    </button>
+</div>
+</section>
+<!-- Bento Grid Section -->
+<section class="relative z-10 w-full px-margin-mobile md:px-margin-desktop py-32">
+<div class="max-w-container-max mx-auto">
+<div class="mb-20 text-center">
+<h2 class="text-4xl md:text-5xl font-bold text-[#0f172a] mb-6 tracking-tight">Structured for Success</h2>
+<p class="font-body-md text-on-surface-variant/80 max-w-2xl mx-auto text-lg leading-relaxed">Everything you need to build meaningful professional relationships, organized in one intuitive platform.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8 auto-rows-[340px]">
+<!-- Large Card 1 -->
+<div class="md:col-span-2 relative bg-white/40 backdrop-blur-sm rounded-3xl p-10 border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden group hover:shadow-[0_20px_40px_rgba(0,0,0,0.04)] transition-all duration-500">
+<div class="relative z-10 h-full flex flex-col justify-between">
+<div>
+<div class="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary">search_insights</span>
+</div>
+<h3 class="text-2xl font-bold text-[#0f172a] mb-4">Find Your Match</h3>
+<p class="font-body-md text-on-surface-variant/80 max-w-md text-lg">Our algorithm pairs you with industry veterans based on your exact career trajectory and learning style.</p>
+</div>
+<div class="mt-8 flex gap-4 overflow-hidden">
+<div class="shrink-0 w-64 p-4 rounded-2xl bg-white/80 border border-outline-variant/10 shadow-sm flex items-center gap-4">
+<img class="w-12 h-12 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSFBM1WxMA2hkmzYRRcW13DwIQgaytFuRJV6X8uGpfJTmGZ7uid7fXjsnZCEVw1ZFVuyP72K2jFNTF9hKW0HUFO-LggoHI8jjtqhEpdXaBQnhoXDY1xJPIuOsvNLDInHp0E0--J9v007H4tSyk_xfAYOo8fiM0UkkQN7Gw0hZByNyFaB-kXtDkJVtWf2hoiXjLUSzqOmn_1UG2oJiqFlMtuCosxiN4Ci-nOCckOSLWN5EVnWaS-9s"/>
+<div>
+<p class="font-bold text-[14px] text-on-surface">Sarah J.</p>
+<p class="text-[12px] text-on-surface-variant">Senior Engineer, TechCo</p>
+</div>
+</div>
+<div class="shrink-0 w-64 p-4 rounded-2xl bg-white/40 border border-outline-variant/10 flex items-center gap-4 opacity-50">
+<img class="w-12 h-12 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAx230VnL2KsOgS-VVPg8J1IpdSXnGrjrv4x7l3Pq_zttANY8EtBUi47ZtxAZIl-JDMQuDCQ1f4sXs9fYNE2ZdD6q81y0wYokTQCLWw3mI7B3ExmbXUz32duXTYaVSl9hbEfp4JRRY7-C9534ufvPllbEm6pcXLJk_yygvuVYDQiikEVm_Z5Uv21i3HuUuuatuWL1kjuVkLTCz7AJrq93MjZBIQL4mV3SVHcWhEkdgeMKYCvmih2yQ"/>
+<div>
+<p class="font-bold text-[14px] text-on-surface">David M.</p>
+<p class="text-[12px] text-on-surface-variant">Product Lead, Innovate</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Small Card 1 -->
+<div class="relative bg-white/40 backdrop-blur-sm rounded-3xl p-10 border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden group hover:shadow-[0_20px_40px_rgba(0,0,0,0.04)] transition-all duration-500">
+<div class="relative z-10 h-full flex flex-col justify-between">
+<div>
+<div class="w-12 h-12 rounded-2xl bg-tertiary/5 flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-tertiary">route</span>
+</div>
+<h3 class="text-xl font-bold text-[#0f172a] mb-2">Guided Pathways</h3>
+<p class="font-body-md text-on-surface-variant/80 text-sm leading-relaxed">Follow structured curriculums designed by experts to hit your milestones.</p>
+</div>
+<div class="mt-auto">
+<div class="w-full bg-slate-100 rounded-full h-1.5 mb-2 overflow-hidden">
+<div class="bg-primary h-full rounded-full w-2/3"></div>
+</div>
+<p class="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-widest text-right">65% Completed</p>
+</div>
+</div>
+</div>
+<!-- Small Card 2 -->
+<div class="relative bg-white/40 backdrop-blur-sm rounded-3xl p-10 border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden group hover:shadow-[0_20px_40px_rgba(0,0,0,0.04)] transition-all duration-500">
+<div class="relative z-10 h-full flex flex-col justify-between">
+<div>
+<div class="w-12 h-12 rounded-2xl bg-secondary/5 flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-secondary">forum</span>
+</div>
+<h3 class="text-xl font-bold text-[#0f172a] mb-2">Seamless Comms</h3>
+<p class="font-body-md text-on-surface-variant/80 text-sm leading-relaxed">Integrated messaging, video calls, and file sharing in one secure hub.</p>
+</div>
+<div class="flex flex-wrap gap-2 mt-4">
+<span class="px-3 py-1 rounded-full bg-slate-50 text-slate-500 text-[9px] font-bold uppercase tracking-tighter border border-slate-100">1:1 Video</span>
+<span class="px-3 py-1 rounded-full bg-slate-50 text-slate-500 text-[9px] font-bold uppercase tracking-tighter border border-slate-100">Direct Chat</span>
+</div>
+</div>
+</div>
+<!-- Large Card 2 -->
+<div class="md:col-span-2 relative bg-white/40 backdrop-blur-sm rounded-3xl p-10 border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden group hover:shadow-[0_20px_40px_rgba(0,0,0,0.04)] transition-all duration-500">
+<div class="relative z-10 h-full flex flex-col md:flex-row gap-12 items-center">
+<div class="flex-1">
+<div class="w-12 h-12 rounded-2xl bg-surface-tint/5 flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-surface-tint">analytics</span>
+</div>
+<h3 class="text-2xl font-bold text-[#0f172a] mb-4">Track Your Growth</h3>
+<p class="font-body-md text-on-surface-variant/80 mb-8 text-lg">Visualize your skill progression over time. Set goals, receive actionable feedback, and export your validated skills.</p>
+<button class="text-primary font-bold text-sm hover:text-surface-tint flex items-center gap-2 transition-colors">
+                                        View Sample Dashboard <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+<div class="flex-1 w-full flex justify-end">
+<div class="w-48 h-48 rounded-full border-[10px] border-slate-50 relative flex items-center justify-center shadow-inner">
+<svg class="absolute inset-0 w-full h-full -rotate-90" viewbox="0 0 100 100">
+<circle class="text-primary" cx="50" cy="50" fill="none" r="40" stroke="currentColor" stroke-dasharray="251.2" stroke-dashoffset="60" stroke-linecap="round" stroke-width="10"></circle>
+</svg>
+<div class="text-center">
+<span class="block text-4xl font-bold text-[#0f172a]">76%</span>
+<span class="block text-[9px] font-bold text-on-surface-variant/60 uppercase tracking-widest">Mastery</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<footer class="w-full bg-white py-16 border-t border-slate-100">
+<div class="max-w-container-max mx-auto px-margin-desktop flex flex-col md:flex-row justify-between items-center gap-8">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 grayscale opacity-40">
+<img alt="Logo" class="h-5 w-auto" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvczb5RGhRU2LhpDA-GoswqPWxLBJXpl-dhKnZdN_8ZM8XwTJUWdgLxmDUg4mshTzZISok7LrXkOTuMauA6lDBeFOy7817FMIoGg3jYczo2vE9a8C2IQEVmd7Qle11l4hjLh_UEyY1c8TwO1C6zrtJ45CHxZnRzB3c154_6uWY90P_EZZz6VW79acTfnmj2yyyXgpiGuH-gxrb5daXpaVATMXsR9Tjto-SYccYTO8VsTtqfLqsLIM"/>
+<span class="text-[10px] font-bold uppercase tracking-widest">MENTOR.GRID</span>
+</div>
+<span class="text-[10px] font-semibold text-slate-400">© 2026</span>
+</div>
+<div class="flex gap-8">
+<a class="text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-primary transition-colors" href="#">Privacy</a>
+<a class="text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-primary transition-colors" href="#">Terms</a>
+<a class="text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-primary transition-colors" href="#">Contact</a>
+</div>
+</div>
+</footer>
+</body></html>

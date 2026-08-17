@@ -58,6 +58,28 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER_LC }}/acc-backend:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER_LC }}/acc-backend:${{ github.sha }}
 
+      - name: Build and Push SMP Frontend Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./smp/client
+          file: ./smp/client/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER_LC }}/smp-frontend:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER_LC }}/smp-frontend:${{ github.sha }}
+          build-args: |
+            VITE_API_URL=https://acc.iitp.ac.in/smp/api
+
+      - name: Build and Push SMP Backend Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./smp/server
+          file: ./smp/server/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER_LC }}/smp-backend:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER_LC }}/smp-backend:${{ github.sha }}
+
   deploy:
     name: Deploy to Production
     needs: build-and-push

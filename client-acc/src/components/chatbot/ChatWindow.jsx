@@ -1,14 +1,3 @@
-/**
- * ChatWindow – Scrollable message list container.
- *
- * Renders:
- * - ChatMessage bubbles (user + bot text)
- * - FAQCard sets (bot FAQ results)
- * - CategoryChips (welcome state)
- * - QuickSuggestions (welcome state)
- * - TypingIndicator
- * - Auto-scroll anchor
- */
 import React, { memo } from "react";
 import ChatMessage from "./ChatMessage.jsx";
 import FAQCard from "./FAQCard.jsx";
@@ -28,7 +17,7 @@ const ChatWindow = memo(function ChatWindow({
 
   return (
     <div
-      className="flex-1 overflow-y-auto p-3 space-y-3 scrollbar-thin bg-gradient-to-b from-slate-50/60 to-white"
+      className="flex-1 overflow-y-auto p-4 space-y-3.5 scrollbar-thin bg-slate-50"
       aria-live="polite"
       aria-label="Chat messages"
     >
@@ -36,7 +25,7 @@ const ChatWindow = memo(function ChatWindow({
         // Bot message with FAQ results
         if (msg.faqs && msg.faqs.length > 0) {
           return (
-            <div key={msg.id} className="space-y-2">
+            <div key={msg.id} className="space-y-2.5">
               {/* Introductory bot text */}
               {msg.text && <ChatMessage message={{ ...msg, faqs: undefined }} />}
               {/* FAQ cards */}
@@ -50,7 +39,7 @@ const ChatWindow = memo(function ChatWindow({
         // Bot message with category chips suggestion
         if (msg.showCategories) {
           return (
-            <div key={msg.id} className="space-y-2">
+            <div key={msg.id} className="space-y-2.5">
               <ChatMessage message={{ ...msg, showCategories: undefined }} />
               <CategoryChips onSelect={onCategorySelect} />
             </div>
@@ -63,10 +52,10 @@ const ChatWindow = memo(function ChatWindow({
 
       {/* Welcome state extras */}
       {isWelcomeState && (
-        <>
+        <div className="space-y-3">
           <QuickSuggestions onSelect={onSuggestionSelect} />
           <CategoryChips onSelect={onCategorySelect} />
-        </>
+        </div>
       )}
 
       {/* Typing indicator */}

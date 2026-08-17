@@ -1,7 +1,3 @@
-/**
- * FAQAccordion – Expandable FAQ accordion for the /faq page.
- * Features smooth height animation, category badge, priority indicator.
- */
 import React, { useState, useCallback } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { PRIORITY_STYLES, getCategoryConfig } from "@/lib/chatbot/categories.js";
@@ -15,22 +11,24 @@ export default function FAQAccordion({ item, defaultOpen = false }) {
 
   return (
     <div
-      className={`bg-white rounded-2xl border transition-all duration-200 overflow-hidden ${
-        open ? "border-blue-200 shadow-md" : "border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200"
+      className={`bg-white/95 backdrop-blur-xl rounded-2xl border transition-all duration-200 overflow-hidden ${
+        open
+          ? "border-[var(--color-secondary)]/50 shadow-[0_0_20px_rgba(21,135,212,0.15)]"
+          : "border-slate-200 hover:border-slate-300 shadow-sm"
       }`}
     >
-      {/* Color stripe */}
-      <div className={`h-0.5 w-full ${catConfig?.color ?? "bg-blue-500"}`} />
+      {/* Orange accent line when open */}
+      <div className={`h-[2px] w-full ${open ? "bg-[var(--color-secondary)]" : "bg-transparent"}`} />
 
       <button
         onClick={toggle}
         aria-expanded={open}
-        className="w-full flex items-start justify-between gap-4 px-5 py-4 text-left"
+        className="w-full flex items-start justify-between gap-4 px-5 py-4 text-left cursor-pointer"
       >
-        <span className={`font-semibold text-sm leading-snug ${open ? "text-blue-700" : "text-gray-800"}`}>
+        <span className={`font-bold text-sm leading-snug ${open ? "text-[var(--color-secondary)]" : "text-[var(--color-primary)]"}`}>
           {item.question}
         </span>
-        <span className={`flex-shrink-0 mt-0.5 transition-colors ${open ? "text-blue-500" : "text-gray-400"}`}>
+        <span className={`flex-shrink-0 mt-0.5 transition-colors ${open ? "text-[var(--color-secondary)]" : "text-slate-500"}`}>
           {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </span>
       </button>
@@ -41,22 +39,22 @@ export default function FAQAccordion({ item, defaultOpen = false }) {
           open ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"
         }`}
       >
-        <div className="px-5 pb-4">
-          <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line mb-3">
+        <div className="px-5 pb-5">
+          <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line mb-3.5">
             {item.answer}
           </p>
           {/* Badges */}
           <div className="flex items-center gap-2 flex-wrap">
-            {catConfig && (
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${catConfig.bgLight} ${catConfig.textColor}`}>
+            {item.category && (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[var(--color-secondary)]/15 text-[var(--color-secondary)] border border-[var(--color-secondary)]/30">
                 {item.category}
               </span>
             )}
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${priorityStyle.bg} ${priorityStyle.text}`}>
-              {priorityStyle.label}
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-50 text-slate-600 border border-slate-200">
+              {priorityStyle.label} Priority
             </span>
             {item.subcategory && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-50 text-slate-500 border border-slate-200">
                 {item.subcategory}
               </span>
             )}

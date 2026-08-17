@@ -1,15 +1,5 @@
-/**
- * AskACC – Main chatbot panel controller.
- *
- * Manages:
- * - Panel open/close state
- * - Chat orchestration via useChatbot hook
- * - Panel slide animation
- * - Header with status, clear, minimize controls
- * - Link to full FAQ page
- */
 import React, { useState, useCallback } from "react";
-import { X, RotateCcw, ExternalLink, GraduationCap } from "lucide-react";
+import { X, RotateCcw, ExternalLink, GraduationCap, Bot } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useChatbot } from "@/hooks/useChatbot.js";
 import ChatWindow from "./ChatWindow.jsx";
@@ -17,7 +7,7 @@ import InputBar from "./InputBar.jsx";
 
 export default function AskACC({ onClose }) {
   const [input, setInput] = useState("");
-  const [isOpen] = useState(true); // panel is always open when this mounts
+  const [isOpen] = useState(true);
 
   const {
     messages,
@@ -49,24 +39,26 @@ export default function AskACC({ onClose }) {
       aria-modal="true"
       className="
         fixed bottom-24 right-4 z-[9999]
-        w-[92vw] sm:w-96 h-[82vh] sm:h-[600px] max-h-[700px]
-        bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden
-        border border-gray-100
-        animate-askacc-slide-up
+        w-[92vw] sm:w-[410px] h-[82vh] sm:h-[620px] max-h-[720px]
+        bg-white/95 backdrop-blur-xl rounded-3xl shadow-[0_10px_40px_rgba(11,30,63,0.15)] flex flex-col overflow-hidden
+        border border-slate-200 animate-askacc-slide-up text-[var(--color-primary)]
       "
     >
       {/* ── Header ─────────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-r from-[#1e3a5f] via-blue-800 to-indigo-800 px-4 py-3 flex items-center justify-between flex-shrink-0">
-        <div className="flex items-center gap-2.5">
+      <div className="bg-white/95 backdrop-blur-xl border-b border-slate-200 px-4 py-3.5 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-3">
           {/* Bot avatar */}
-          <div className="w-9 h-9 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center">
-            <GraduationCap className="w-5 h-5 text-white" />
+          <div className="w-9 h-9 rounded-2xl bg-slate-100 border border-[var(--color-secondary)]/40 flex items-center justify-center shadow-[0_0_10px_rgba(21,135,212,0.2)]">
+            <GraduationCap className="w-5 h-5 text-[var(--color-secondary)]" />
           </div>
           <div>
-            <h2 className="text-white font-bold text-sm leading-tight">AskACC</h2>
             <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-              <span className="text-blue-200 text-[11px]">IIT Patna Guide · Online</span>
+              <h2 className="text-[var(--color-primary)] font-extrabold text-sm leading-tight">AskACC</h2>
+              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-[var(--color-secondary)]/15 text-[var(--color-secondary)]">AI Guide</span>
+            </div>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-slate-500 text-[10px] font-semibold">IIT Patna · Online</span>
             </div>
           </div>
         </div>
@@ -78,31 +70,31 @@ export default function AskACC({ onClose }) {
             to="/faq"
             onClick={onClose}
             title="Browse all FAQs"
-            className="flex items-center gap-1 px-2 py-1 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors text-[11px] font-medium"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-slate-600 hover:text-[var(--color-primary)] bg-slate-50 hover:bg-slate-200 transition-colors text-[11px] font-semibold"
             aria-label="Go to full FAQ page"
           >
-            <ExternalLink size={11} />
-            All FAQs
+            <ExternalLink size={12} />
+            <span>FAQs</span>
           </Link>
 
           {/* Clear chat */}
           <button
             onClick={clearChat}
             title="Clear chat"
-            className="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-2 rounded-xl text-slate-500 hover:text-[var(--color-primary)] hover:bg-slate-200 transition-colors cursor-pointer"
             aria-label="Clear conversation"
           >
-            <RotateCcw size={14} />
+            <RotateCcw size={13} />
           </button>
 
           {/* Close */}
           <button
             onClick={onClose}
             title="Close chatbot"
-            className="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-2 rounded-xl text-slate-500 hover:text-[var(--color-primary)] hover:bg-slate-200 transition-colors cursor-pointer"
             aria-label="Close chatbot"
           >
-            <X size={16} />
+            <X size={15} />
           </button>
         </div>
       </div>

@@ -64,28 +64,28 @@ const CreatePostModal = ({ onClose, onSubmitted }) => {
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       >
         <motion.div
-          className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh] overflow-hidden"
+          className="bg-white/95 backdrop-blur-xl shadow-xs border border-slate-200 rounded-3xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh] overflow-hidden text-[var(--color-primary)]"
           initial={{ opacity: 0, scale: 0.94, y: 24 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.94, y: 24 }}
           transition={{ duration: 0.25, ease: "easeOut" }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
             <div className="flex items-center gap-2">
-              <PenSquare size={20} className="text-blue-600" />
-              <h2 className="text-lg font-bold text-gray-800">Share Your Experience</h2>
+              <PenSquare size={20} className="text-[var(--color-secondary)]" />
+              <h2 className="text-lg font-bold text-[var(--color-primary)]">Share Your Experience</h2>
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
+              className="p-1.5 rounded-full hover:bg-sky-50 text-slate-500 hover:text-[var(--color-primary)] transition-colors cursor-pointer"
               aria-label="Close"
             >
               <X size={20} />
@@ -94,18 +94,18 @@ const CreatePostModal = ({ onClose, onSubmitted }) => {
 
           {/* Body */}
           <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-y-auto p-6 gap-4">
-            <div className="bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 text-sm text-blue-700">
+            <div className="bg-[var(--color-secondary)]/10 border border-[var(--color-secondary)]/20 rounded-xl px-4 py-3 text-xs text-[var(--color-secondary)]">
               📋 Your post will be reviewed by an admin before it goes public. You will see it appear on the Career Vault once approved.
             </div>
 
             {/* Section 1: Basic Information */}
-            <div className="p-5 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col gap-4">
-              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">1. Basic Information</h3>
+            <div className="p-4 rounded-2xl border border-slate-200 bg-white/90 flex flex-col gap-4">
+              <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">1. Basic Information</h3>
               
               {/* Title */}
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="post-title" className="text-sm font-semibold text-gray-700">
-                  Title <span className="text-red-500">*</span>
+                <label htmlFor="post-title" className="text-xs font-semibold text-slate-600">
+                  Title <span className="text-[var(--color-secondary)]">*</span>
                 </label>
                 <input
                   id="post-title"
@@ -114,43 +114,43 @@ const CreatePostModal = ({ onClose, onSubmitted }) => {
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g. My internship experience at Google"
                   maxLength={150}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition bg-white shadow-sm"
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-[var(--color-primary)] placeholder-slate-400 focus:outline-none focus:border-[var(--color-secondary)] transition bg-sky-50/50"
                 />
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
                 {/* Experience Type */}
                 <div className="flex flex-col gap-1.5 flex-1">
-                  <label htmlFor="post-type" className="text-sm font-semibold text-gray-700">
-                    Experience Type <span className="text-red-500">*</span>
+                  <label htmlFor="post-type" className="text-xs font-semibold text-slate-600">
+                    Experience Type <span className="text-[var(--color-secondary)]">*</span>
                   </label>
                   <select
                     id="post-type"
                     value={experienceType}
                     onChange={(e) => setExperienceType(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent bg-white shadow-sm transition"
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-[var(--color-primary)] focus:outline-none focus:border-[var(--color-secondary)] bg-sky-50/50 transition"
                   >
-                    <option value="">Select type…</option>
+                    <option value="" className="bg-sky-100 text-slate-500">Select type…</option>
                     {EXPERIENCE_TYPES.map((t) => (
-                      <option key={t.value} value={t.value}>{t.label}</option>
+                      <option key={t.value} value={t.value} className="bg-sky-100 text-[var(--color-primary)]">{t.label}</option>
                     ))}
                   </select>
                 </div>
 
                 {/* Domain */}
                 <div className="flex flex-col gap-1.5 flex-1">
-                  <label htmlFor="post-domain" className="text-sm font-semibold text-gray-700">
-                    Domain <span className="text-red-500">*</span>
+                  <label htmlFor="post-domain" className="text-xs font-semibold text-slate-600">
+                    Domain <span className="text-[var(--color-secondary)]">*</span>
                   </label>
                   <select
                     id="post-domain"
                     value={domain}
                     onChange={(e) => setDomain(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent bg-white shadow-sm transition"
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-[var(--color-primary)] focus:outline-none focus:border-[var(--color-secondary)] bg-sky-50/50 transition"
                   >
-                    <option value="" disabled>Select domain...</option>
+                    <option value="" disabled className="bg-sky-100 text-slate-500">Select domain...</option>
                     {DOMAINS.map((d) => (
-                      <option key={d.value} value={d.value}>{d.label}</option>
+                      <option key={d.value} value={d.value} className="bg-sky-100 text-[var(--color-primary)]">{d.label}</option>
                     ))}
                   </select>
                 </div>
@@ -158,33 +158,33 @@ const CreatePostModal = ({ onClose, onSubmitted }) => {
             </div>
 
             {/* Section 2: Story Content */}
-            <div className="p-5 rounded-xl border border-gray-200 bg-gray-50/50 flex flex-col gap-4 flex-1">
-              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">2. Story Content</h3>
+            <div className="p-4 rounded-2xl border border-slate-200 bg-white/90 flex flex-col gap-4 flex-1">
+              <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">2. Story Content</h3>
               
               {/* Rich Text Editor */}
               <div className="flex flex-col gap-1.5 flex-1">
                 <NativeRichTextEditor
                   value={description}
                   onChange={setDescription}
-                  minHeight="220px"
+                  minHeight="200px"
                   placeholder="Describe your experience in detail — preparation tips, interview process, key learnings…"
                 />
               </div>
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-100">
+            <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-200">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                className="px-4 py-2 text-xs font-semibold text-slate-600 border border-slate-200 rounded-xl hover:bg-sky-50 transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-5 py-2 text-sm font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-5 py-2 text-xs font-bold bg-[var(--color-secondary)] hover:opacity-90 text-white rounded-xl shadow-xs transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
               >
                 {submitting ? (
                   <>
@@ -238,8 +238,8 @@ const CommentPreview = ({ postId, commentCount, onViewAll }) => {
     return (
       <div className="px-5 pb-3">
         <div className="animate-pulse flex gap-2 items-center">
-          <div className="h-2 bg-gray-200 rounded w-24" />
-          <div className="h-2 bg-gray-200 rounded w-40" />
+          <div className="h-2 bg-slate-200 rounded w-24" />
+          <div className="h-2 bg-slate-200 rounded w-40" />
         </div>
       </div>
     );
@@ -248,7 +248,7 @@ const CommentPreview = ({ postId, commentCount, onViewAll }) => {
   if (previews.length === 0) {
     return (
       <div className="px-5 pb-4">
-        <p className="text-xs text-gray-400 italic">No comments yet. Be the first!</p>
+        <p className="text-xs text-slate-500 italic">No comments yet. Be the first!</p>
       </div>
     );
   }
@@ -262,12 +262,12 @@ const CommentPreview = ({ postId, commentCount, onViewAll }) => {
           onClick={onViewAll}
           title="Click to view all comments"
         >
-          <div className="shrink-0 w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600 uppercase">
+          <div className="shrink-0 w-6 h-6 rounded-full bg-[var(--color-secondary)]/10 border border-[var(--color-secondary)]/20 flex items-center justify-center text-[10px] font-bold text-[var(--color-secondary)] uppercase">
             {c.userName?.[0] || "?"}
           </div>
           <div className="flex-1 min-w-0">
-            <span className="text-xs font-semibold text-gray-700 mr-1.5">{c.userName}</span>
-            <span className="text-xs text-gray-500 truncate block leading-snug">
+            <span className="text-xs font-semibold text-slate-600 mr-1.5">{c.userName}</span>
+            <span className="text-xs text-slate-500 truncate block leading-snug">
               {stripHtml(c.text).slice(0, 120)}{stripHtml(c.text).length > 120 ? "…" : ""}
             </span>
           </div>
@@ -277,7 +277,7 @@ const CommentPreview = ({ postId, commentCount, onViewAll }) => {
       {commentCount > 2 && (
         <button
           onClick={onViewAll}
-          className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors mt-1 flex items-center gap-1"
+          className="text-xs font-bold text-[var(--color-secondary)] hover:underline transition-colors mt-1 flex items-center gap-1 cursor-pointer"
         >
           <MessageCircle size={12} />
           View all {commentCount} comments
@@ -525,7 +525,7 @@ const CareerVault = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+    <div className="space-y-6">
       {showCreateModal && (
         <CreatePostModal
           onClose={() => setShowCreateModal(false)}
@@ -533,326 +533,325 @@ const CareerVault = () => {
         />
       )}
 
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
-              Career Vault
-            </h1>
-            <p className="text-gray-500 mt-2">
-              Learn from the experiences of seniors and alumni.
-            </p>
-          </div>
+      {/* Header */}
+      <div>
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-[3px] h-6 bg-[var(--color-secondary)] rounded-full shadow-[0_0_8px_var(--color-secondary)]" />
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[var(--color-primary)] tracking-tight">
+            Career Vault
+          </h1>
+        </div>
+        <p className="text-slate-500 text-sm ml-4">
+          Learn from interview and internship experiences shared by seniors and alumni.
+        </p>
+      </div>
 
+      {/* Search & Filter Controls */}
+      <div className="space-y-3">
+        <div className="relative w-full">
+          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
+            placeholder="Search experiences by company, title, or author..."
+            className="w-full rounded-2xl border border-slate-200 bg-white/95 backdrop-blur-xl shadow-xs py-3.5 pl-11 pr-4 text-sm text-[var(--color-primary)] placeholder-slate-400 shadow-sm outline-none transition focus:border-[var(--color-secondary)] focus:ring-1 focus:ring-[var(--color-secondary)]"
+          />
         </div>
 
-        <div className="mb-6">
-          <div className="relative w-full max-w-5xl">
-            <Search size={22} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setPage(1);
-              }}
-              placeholder="Search posts by title or author..."
-              className="w-full rounded-xl border border-gray-300 bg-white py-4 pl-12 pr-4 text-base text-gray-700 shadow-sm outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <select
+            value={domainFilter}
+            onChange={(e) => {
+              setDomainFilter(e.target.value);
+              setPage(1);
+            }}
+            className="px-4 py-2.5 bg-white/95 backdrop-blur-xl shadow-xs border border-slate-200 rounded-xl text-xs font-semibold text-[var(--color-primary)] shadow-sm focus:outline-none focus:border-[var(--color-secondary)] transition cursor-pointer"
+          >
+            <option value="All" className="bg-sky-100 text-[var(--color-primary)]">All Domains</option>
+            {DOMAINS.map((d) => (
+              <option key={d.value} value={d.value} className="bg-sky-100 text-[var(--color-primary)]">{d.label}</option>
+            ))}
+          </select>
 
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
-            <select
-              value={domainFilter}
-              onChange={(e) => {
-                setDomainFilter(e.target.value);
+          <div className="flex items-center gap-3">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => {
+                setShowBookmarkedOnly(!showBookmarkedOnly);
                 setPage(1);
               }}
-              className="min-w-62.5 px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-sm font-medium text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+              className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl border transition-all cursor-pointer ${
+                showBookmarkedOnly
+                  ? "bg-[var(--color-secondary)] border-[var(--color-secondary)] text-white shadow-[0_8px_20px_var(--color-secondary-glow)]"
+                  : "bg-sky-50 border-sky-100 text-slate-600 hover:text-[var(--color-primary)] hover:bg-sky-100"
+              }`}
             >
-              <option value="All">All Domains</option>
-              {DOMAINS.map((d) => (
-                <option key={d.value} value={d.value}>{d.label}</option>
-              ))}
-            </select>
-            <div className="flex items-center gap-3">
-              <motion.button
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => {
-                  setShowBookmarkedOnly(!showBookmarkedOnly);
-                  setPage(1);
-                }}
-                className={`flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl shadow-sm border transition-all ${
-                  showBookmarkedOnly
-                    ? "bg-amber-500 hover:bg-amber-600 border-amber-500 text-white"
-                    : "bg-white hover:bg-gray-50 border-gray-300 text-gray-700"
-                }`}
-              >
-                {showBookmarkedOnly ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
-                Show Bookmarked
-              </motion.button>
-              <motion.button
-                id="create-post-btn"
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => setShowCreateModal(true)}
-                className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-md transition-colors"
-              >
-                <PenSquare size={16} />
-                Create Post
-              </motion.button>
-            </div>
+              {showBookmarkedOnly ? <BookmarkCheck size={15} /> : <Bookmark size={15} />}
+              <span>Bookmarked</span>
+            </motion.button>
+
+            <motion.button
+              id="create-post-btn"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center gap-2 px-5 py-2.5 bg-[var(--color-secondary)] hover:opacity-90 text-white text-xs font-bold rounded-xl shadow-[0_8px_20px_var(--color-secondary-glow)] transition-all cursor-pointer"
+            >
+              <PenSquare size={15} />
+              <span>Share Experience</span>
+            </motion.button>
           </div>
         </div>
+      </div>
 
-        <div className="space-y-4">
-          <AnimatePresence>
-            {paginatedExperiences?.map((exp) => {
-              const isExpanded = expandedId === exp.id;
-              // FEATURE 1: derive local liked state
-              const hasLiked = exp.likedBy?.includes(currentUserId);
-              const commentCount = exp._count?.comments ?? 0;
+      {/* Experience Feed */}
+      <div className="space-y-4">
+        <AnimatePresence>
+          {paginatedExperiences?.map((exp) => {
+            const isExpanded = expandedId === exp.id;
+            const hasLiked = exp.likedBy?.includes(currentUserId);
+            const commentCount = exp._count?.comments ?? 0;
 
-              return (
-                <motion.div
-                  key={exp.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
-                >
-                  <div className="p-5 hover:bg-gray-50 transition-colors">
-                    {/* Post Header */}
-                    <div
-                      className="flex justify-between items-start cursor-pointer group"
-                      onClick={() => toggleExpand(exp.id)}
-                    >
-                      <div>
-                        <h2 className="text-lg font-bold text-gray-800 group-hover:text-blue-600 transition-colors">
-                          {exp.title}
-                        </h2>
-                        <div className="text-sm text-gray-500 flex items-center gap-2 mt-1 mb-4">
-                          <span className="font-medium text-blue-600">
-                            {exp.authorName}
-                          </span>
-                          <span>•</span>
-                          <span>
-                            {new Date(exp.date || exp.createdAt).toLocaleDateString()}
-                          </span>
-                          <>
-                            <span>•</span>
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                              {exp.domain || 'Uncategorized'}
-                            </span>
-                          </>
-                        </div>
+            return (
+              <motion.div
+                key={exp.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-white/95 backdrop-blur-xl shadow-xs rounded-2xl shadow-md border border-slate-200/90 overflow-hidden hover:border-[var(--color-secondary)]/40 transition-all duration-300"
+              >
+                <div className="p-5">
+                  {/* Post Header */}
+                  <div
+                    className="flex justify-between items-start cursor-pointer group"
+                    onClick={() => toggleExpand(exp.id)}
+                  >
+                    <div>
+                      <h2 className="text-base md:text-lg font-bold text-[var(--color-primary)] group-hover:text-[var(--color-secondary)] transition-colors leading-snug">
+                        {exp.title}
+                      </h2>
+                      <div className="text-xs text-slate-500 flex flex-wrap items-center gap-2 mt-1.5 mb-3">
+                        <span className="font-semibold text-slate-600">
+                          {exp.authorName}
+                        </span>
+                        <span>•</span>
+                        <span>
+                          {new Date(exp.date || exp.createdAt).toLocaleDateString()}
+                        </span>
+                        <span>•</span>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[var(--color-secondary)]/10 text-[var(--color-secondary)] border border-[var(--color-secondary)]/20 uppercase">
+                          {exp.domain || 'Uncategorized'}
+                        </span>
                       </div>
-                      <div className="flex items-center gap-1 sm:gap-2">
+                    </div>
+
+                    <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleBookmark(exp.id);
+                        }}
+                        disabled={!!bookmarkPendingRef.current[exp.id]}
+                        className={`p-2 rounded-xl transition-all cursor-pointer ${
+                          exp.isBookmarked
+                            ? "text-[var(--color-secondary)] bg-[var(--color-secondary)]/10 border border-[var(--color-secondary)]/20"
+                            : "text-slate-500 hover:text-[var(--color-primary)] bg-white/5 border border-white/10 hover:bg-white/10"
+                        }`}
+                        title={exp.isBookmarked ? "Remove bookmark" : "Bookmark post"}
+                        aria-label={exp.isBookmarked ? "Remove bookmark" : "Bookmark post"}
+                      >
+                        {exp.isBookmarked ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
+                      </button>
+
+                      {exp.uploadedById === currentUserId && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            toggleBookmark(exp.id);
+                            handleDeletePost(exp.id);
                           }}
-                          disabled={!!bookmarkPendingRef.current[exp.id]}
-                          className={`p-2 rounded-full transition-colors ${
-                            exp.isBookmarked
-                              ? "text-amber-500 hover:text-amber-600 bg-amber-50"
-                              : "text-gray-400 hover:text-amber-500"
-                          }`}
-                          title={exp.isBookmarked ? "Remove bookmark" : "Bookmark post"}
-                          aria-label={exp.isBookmarked ? "Remove bookmark" : "Bookmark post"}
+                          className="p-2 text-slate-500 hover:text-red-400 bg-white/5 border border-white/10 hover:bg-red-950/30 rounded-xl transition-colors cursor-pointer"
+                          title="Delete Post"
                         >
-                          {exp.isBookmarked ? <BookmarkCheck size={20} /> : <Bookmark size={20} />}
+                          <Trash2 size={16} />
                         </button>
+                      )}
 
-                        {exp.uploadedById === currentUserId && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeletePost(exp.id);
-                            }}
-                            className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                            title="Delete Post"
-                          >
-                            <Trash2 size={20} />
-                          </button>
+                      <div className="text-slate-500 ml-1 flex flex-col items-center gap-0.5 group-hover:text-[var(--color-secondary)] transition-colors">
+                        {isExpanded ? (
+                          <ChevronUp size={20} />
+                        ) : (
+                          <ChevronDown size={20} />
                         )}
-                        <div className="text-gray-400 ml-2 flex flex-col items-center gap-1 group-hover:text-blue-500 transition-colors">
-                          {isExpanded ? (
-                            <ChevronUp size={24} />
-                          ) : (
-                            <ChevronDown size={24} />
-                          )}
-                          <span className="text-[10px] font-bold uppercase tracking-wider">
-                            {isExpanded ? "Close" : "Read More"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Action Row */}
-                    <div className="flex items-center gap-6 text-gray-500">
-
-                      {/* FEATURE 1: Upvote button — optimistic + filled state */}
-                      <button
-                        id={`upvote-btn-${exp.id}`}
-                        onClick={() => toggleLike(exp.id)}
-                        disabled={!!likePendingRef.current[exp.id]}
-                        aria-pressed={hasLiked}
-                        aria-label={hasLiked ? "Remove upvote" : "Upvote"}
-                        className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 transition-all duration-150 select-none ${
-                          hasLiked
-                            ? "bg-pink-100 text-pink-600 font-semibold"
-                            : "hover:bg-pink-50 hover:text-pink-600"
-                        }`}
-                      >
-                        <ArrowBigUp
-                          size={20}
-                          strokeWidth={hasLiked ? 0 : 1.5}
-                          fill={hasLiked ? "currentColor" : "none"}
-                          className={`transition-transform duration-150 ${hasLiked ? "scale-110" : ""}`}
-                        />
-                        {/* FEATURE 1: Use local optimistic count */}
-                        <span className="font-medium text-sm">{exp.likes ?? 0}</span>
-                      </button>
-
-                      {/* FEATURE 2: Clickable comment count → scrolls to comments */}
-                      <button
-                        id={`comments-btn-${exp.id}`}
-                        onClick={() => handleCommentsClick(exp.id)}
-                        className="flex items-center gap-1.5 text-gray-500 hover:text-blue-600 transition-colors"
-                        aria-label={`View ${commentCount} comments`}
-                      >
-                        <MessageSquare size={18} />
-                        <span className="font-medium text-sm">
-                          {commentCount} Comment{commentCount !== 1 ? "s" : ""}
+                        <span className="text-[9px] font-bold uppercase tracking-wider">
+                          {isExpanded ? "Close" : "Read"}
                         </span>
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setExpandedComments((prev) => ({ ...prev, [exp.id]: true }));
-                          setTimeout(() => {
-                            const el = commentSectionRefs.current[exp.id];
-                            if (el) {
-                              el.scrollIntoView({ behavior: "smooth", block: "nearest" });
-                            }
-                          }, 150);
-                        }}
-                        className="text-sm font-medium border border-gray-300 px-3 py-1.5 rounded-md hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors"
-                      >
-                        Share your thought
-                      </button>
+                      </div>
                     </div>
                   </div>
 
-                  {/* FEATURE 3: Compact comment preview (visible when collapsed) */}
-                  {!expandedComments[exp.id] && (
-                    <div className="border-t border-gray-50 bg-gray-50/60 pt-3">
-                      <CommentPreview
-                        postId={exp.id}
-                        commentCount={commentCount}
-                        onViewAll={() => handleCommentsClick(exp.id)}
+                  {/* Action Row */}
+                  <div className="flex flex-wrap items-center gap-4 text-slate-500 pt-3 border-t border-slate-200/60 text-xs">
+                    {/* Upvote Button */}
+                    <button
+                      id={`upvote-btn-${exp.id}`}
+                      onClick={() => toggleLike(exp.id)}
+                      disabled={!!likePendingRef.current[exp.id]}
+                      aria-pressed={hasLiked}
+                      aria-label={hasLiked ? "Remove upvote" : "Upvote"}
+                      className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 transition-all select-none cursor-pointer ${
+                        hasLiked
+                          ? "bg-[var(--color-secondary)]/20 text-[var(--color-secondary)] border border-[var(--color-secondary)]/30 font-bold"
+                          : "bg-white/5 border border-white/10 text-slate-600 hover:text-[var(--color-primary)] hover:bg-white/10"
+                      }`}
+                    >
+                      <ArrowBigUp
+                        size={16}
+                        strokeWidth={hasLiked ? 0 : 1.5}
+                        fill={hasLiked ? "currentColor" : "none"}
                       />
-                    </div>
-                  )}
+                      <span>{exp.likes ?? 0}</span>
+                    </button>
 
-                  {/* Expanded post body */}
-                  <AnimatePresence>
-                    {isExpanded && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: "easeInOut" }}
-                        className="overflow-hidden"
-                      >
-                        <div className="px-5 pb-5 border-t border-gray-100 mt-4 pt-4">
-                          <div
-                            className="text-gray-700 leading-relaxed quill-content"
-                            dangerouslySetInnerHTML={{
-                              __html: exp.content || exp.description,
-                            }}
+                    {/* Comments count */}
+                    <button
+                      id={`comments-btn-${exp.id}`}
+                      onClick={() => handleCommentsClick(exp.id)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-600 hover:text-[var(--color-primary)] hover:bg-white/10 transition-colors cursor-pointer"
+                      aria-label={`View ${commentCount} comments`}
+                    >
+                      <MessageSquare size={14} />
+                      <span>
+                        {commentCount} Comment{commentCount !== 1 ? "s" : ""}
+                      </span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setExpandedComments((prev) => ({ ...prev, [exp.id]: true }));
+                        setTimeout(() => {
+                          const el = commentSectionRefs.current[exp.id];
+                          if (el) {
+                            el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                          }
+                        }, 150);
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-600 hover:text-[var(--color-secondary)] hover:border-[var(--color-secondary)]/30 transition-colors cursor-pointer"
+                    >
+                      Share thoughts
+                    </button>
+                  </div>
+                </div>
+
+                {/* Compact Comment Preview */}
+                {!expandedComments[exp.id] && (
+                  <div className="border-t border-slate-200/80 bg-slate-50/50 pt-3 rounded-b-2xl">
+                    <CommentPreview
+                      postId={exp.id}
+                      commentCount={commentCount}
+                      onViewAll={() => handleCommentsClick(exp.id)}
+                    />
+                  </div>
+                )}
+
+                {/* Expanded Post Body */}
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                    >
+                      <div className="px-5 pb-5 border-t border-slate-200 mt-2 pt-4 bg-slate-50/50 rounded-b-2xl">
+                        <div
+                          className="text-slate-600 leading-relaxed quill-content text-sm"
+                          dangerouslySetInnerHTML={{
+                            __html: exp.content || exp.description,
+                          }}
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Expanded Full Comment Section */}
+                <AnimatePresence>
+                  {expandedComments[exp.id] && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      className="overflow-hidden"
+                    >
+                      <div className="p-4 bg-slate-50/50 border-t border-slate-200 rounded-b-2xl">
+                        <div
+                          ref={(el) => { commentSectionRefs.current[exp.id] = el; }}
+                          id={`comment-section-${exp.id}`}
+                          className="max-h-112 overflow-y-auto pr-2 custom-scrollbar"
+                        >
+                          <CommentSection
+                            experience={exp}
+                            currentUserId={currentUserId}
+                            currentUserName={currentUserName}
+                            onCommentAdd={handleCommentAdd}
+                            onReplyAdd={handleReplyAdd}
+                            onCommentDelete={handleCommentDelete}
+                            onReplyDelete={handleReplyDelete}
                           />
                         </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
 
-                  {/* Expanded full comment section */}
-                  <AnimatePresence>
-                    {expandedComments[exp.id] && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: "easeInOut" }}
-                        className="overflow-hidden"
-                      >
-                        <div className="px-4 pb-4 pt-2 bg-gray-50/40 rounded-b-lg border-t border-gray-100">
-                          <div
-                            ref={(el) => { commentSectionRefs.current[exp.id] = el; }}
-                            id={`comment-section-${exp.id}`}
-                            className="max-h-112 overflow-y-auto pr-2 custom-scrollbar bg-white border border-gray-200 rounded-xl shadow-sm p-4 mt-2"
-                          >
-                            <CommentSection
-                              experience={exp}
-                              currentUserId={currentUserId}
-                              currentUserName={currentUserName}
-                              onCommentAdd={handleCommentAdd}
-                              onReplyAdd={handleReplyAdd}
-                              onCommentDelete={handleCommentDelete}
-                              onReplyDelete={handleReplyDelete}
-                            />
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
-
-          {(!filteredExperiences || filteredExperiences.length === 0) && !isLoading && (
-            <div className="text-center py-12 text-gray-500">
+        {(!filteredExperiences || filteredExperiences.length === 0) && !isLoading && (
+          <div className="text-center py-16 text-slate-500 bg-white/95 backdrop-blur-xl shadow-xs border border-slate-200 rounded-2xl p-8">
+            <p className="text-sm font-semibold text-slate-600">
               {searchTerm.trim() || domainFilter !== "All"
                 ? "No posts match your current filters."
-                : "No posts out here yet!"}
-            </div>
-          )}
+                : "No experiences shared yet. Be the first!"}
+            </p>
+          </div>
+        )}
 
-          {isLoading && (
-            <div className="flex justify-center py-12">
-              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-            </div>
-          )}
+        {isLoading && (
+          <div className="flex justify-center py-16">
+            <div className="w-8 h-8 border-3 border-[var(--color-secondary)] border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
 
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-4 pt-8">
-              <button
-                disabled={page === 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
-              >
-                <ChevronLeft size={16} /> Previous
-              </button>
-              <span className="text-sm font-semibold text-gray-600">
-                Page {page} of {totalPages}
-              </span>
-              <button
-                disabled={page === totalPages}
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
-              >
-                Next <ChevronRight size={16} />
-              </button>
-            </div>
-          )}
-        </div>
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between bg-white/95 backdrop-blur-xl shadow-xs border border-slate-200 rounded-2xl p-4 text-xs text-slate-500 mt-6">
+            <button
+              disabled={page === 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-sky-50 border border-sky-100 text-slate-600 hover:text-[var(--color-primary)] hover:bg-sky-100 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer font-semibold"
+            >
+              <ChevronLeft size={14} /> Previous
+            </button>
+            <span className="font-bold text-[var(--color-primary)]">
+              Page {page} of {totalPages}
+            </span>
+            <button
+              disabled={page === totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-sky-50 border border-sky-100 text-slate-600 hover:text-[var(--color-primary)] hover:bg-sky-100 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer font-semibold"
+            >
+              Next <ChevronRight size={14} />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

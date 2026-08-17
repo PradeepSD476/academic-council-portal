@@ -1,13 +1,3 @@
-/**
- * InputBar – Chat input with send button.
- *
- * Features:
- * - Enter to send
- * - Disabled during typing / loading
- * - Character count
- * - Animated send button
- * - Keyboard shortcut hint
- */
 import React, { memo, useRef, useCallback } from "react";
 import { Send, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -31,7 +21,7 @@ const InputBar = memo(function InputBar({ value, onChange, onSend, disabled }) {
   const isNearLimit = charCount > MAX_LENGTH * 0.85;
 
   return (
-    <div className="border-t border-gray-100 bg-white p-3">
+    <div className="border-t border-slate-200 bg-white/95 backdrop-blur-xl p-3.5">
       <div className="flex items-center gap-2">
         <div className="flex-1 relative">
           <input
@@ -46,13 +36,13 @@ const InputBar = memo(function InputBar({ value, onChange, onSend, disabled }) {
             disabled={disabled}
             aria-label="Type your question"
             className={`
-              w-full px-3.5 py-2.5 rounded-xl border text-sm leading-relaxed
-              focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400
+              w-full px-3.5 py-2.5 rounded-xl border text-xs leading-relaxed
+              focus:outline-none focus:border-[var(--color-secondary)]
               transition-all duration-150 pr-12
               ${
                 disabled
-                  ? "bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-gray-50 border-gray-200 text-gray-800 hover:border-gray-300"
+                  ? "bg-white/95 backdrop-blur-xl border-slate-200 text-gray-500 cursor-not-allowed"
+                  : "bg-white/95 backdrop-blur-xl border-slate-200 text-[var(--color-primary)] placeholder-gray-500 hover:border-slate-300"
               }
             `}
           />
@@ -60,7 +50,7 @@ const InputBar = memo(function InputBar({ value, onChange, onSend, disabled }) {
           {charCount > 0 && (
             <span
               className={`absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-medium transition-colors ${
-                isNearLimit ? "text-amber-500" : "text-gray-300"
+                isNearLimit ? "text-[var(--color-secondary)]" : "text-gray-500"
               }`}
             >
               {charCount}/{MAX_LENGTH}
@@ -75,29 +65,29 @@ const InputBar = memo(function InputBar({ value, onChange, onSend, disabled }) {
           disabled={disabled || !value.trim()}
           aria-label="Send message"
           className={`
-            flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center
-            transition-all duration-200 shadow-sm
+            shrink-0 w-9 h-9 rounded-xl flex items-center justify-center
+            transition-all duration-200 cursor-pointer
             ${
               disabled || !value.trim()
-                ? "bg-gray-100 text-gray-300 cursor-not-allowed"
-                : "bg-gradient-to-br from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 hover:shadow-md active:scale-95"
+                ? "bg-slate-50 border border-slate-200 text-gray-600 cursor-not-allowed"
+                : "bg-[var(--color-secondary)] hover:bg-[#d44d18] text-[var(--color-primary)] shadow-[0_0_12px_rgba(21,135,212,0.35)] active:scale-95"
             }
           `}
         >
-          <Send size={15} />
+          <Send size={14} />
         </button>
       </div>
 
       {/* Hint + FAQ link */}
-      <div className="flex items-center justify-between mt-1.5 px-1">
-        <p className="text-[10px] text-gray-400">
-          Press <kbd className="bg-gray-100 px-1 rounded text-gray-500">Enter</kbd> to send
+      <div className="flex items-center justify-between mt-2 px-1 text-[10px]">
+        <p className="text-gray-500">
+          Press <kbd className="bg-slate-50 border border-slate-200 px-1 py-0.5 rounded text-slate-500">Enter</kbd> to send
         </p>
         <Link
           to="/faq"
-          className="flex items-center gap-1 text-[10px] font-semibold text-blue-500 hover:text-blue-700 transition-colors"
+          className="flex items-center gap-1 font-bold text-[var(--color-secondary)] hover:underline transition-colors"
         >
-          <ExternalLink size={9} />
+          <ExternalLink size={10} />
           Browse all FAQs
         </Link>
       </div>

@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+  // output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  STUDENT
+}
+
+enum SmpRole {
+  MENTEE
+  CO_MENTOR
+  MENTOR
+  UNASSIGNED
+}
+
+model SystemConfig {
+  id                    String  @id @default(auto()) @map("_id") @db.ObjectId
+  currentAcademicYear   String // e.g., "2026-2027"
+  isRegistrationOpen    Boolean @default(false)
+  isAllocationComplete  Boolean @default(false)
+  isFeedbackOpen        Boolean @default(false)
+  firstYearBatchPrefix  String  @default("26")
+  secondYearBatchPrefix String  @default("25")
+  thirdYearBatchPrefix  String  @default("24")
+  allowFirstYearLogin   Boolean @default(true)
+  allowSecondYearLogin  Boolean @default(true)
+  allowThirdYearLogin   Boolean @default(true)
+}
+
+model User {
+  id           String  @id @default(auto()) @map("_id") @db.ObjectId
+  email        String  @unique
+  passwordHash String
+  rollNumber   String  @unique
+  name         String
+  role         Role    @default(STUDENT)
+  smpRole      SmpRole @default(UNASSIGNED)
+
+  bio          String?
+  description  String?
+  profilePic   String?
+
+  response QuestionnaireResponse?
+
+  // Relations to groups
+  mentorGroups    Group[]   @relation("MentorRelation")
+  coMentorGroups Group[]  @relation("CoMentorRelation", fields: [coMentorIds], references: [id])
+  coMentorIds    String[] @db.ObjectId
+  menteeGroups   Group[]  @relation("MenteeRelation", fields: [menteeIds], references: [id])
+  menteeIds      String[] @db.ObjectId
+
+  meetingIds       String[] @db.ObjectId
+  meetingsAttended Meeting[] @relation("MeetingAttendance", fields: [meetingIds], references: [id])
+
+  feedbackGiven    Feedback[] @relation("FeedbackGiven")
+  feedbackReceived Feedback[] @relation("FeedbackReceived")
+}
+
+model QuestionnaireResponse {
+  id           String @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String @unique @db.ObjectId
+  user         User   @relation(fields: [userId], references: [id])
+  academicYear String
+  branch       String
+
+  // Stored as arrays of strings for multi-hot encoding
+  techInterests   String[]
+  sportsInterests String[]
+  cultInterests   String[]
+  languages       String[]
+  hobbies         String[]
+  goals           String[]
+
+  // Single choice
+  preference String // e.g., "CORE", "NON_CORE"
+}
+
+model Group {
+  id           String @id @default(auto()) @map("_id") @db.ObjectId
+  academicYear String
+  groupName    String
+
+  mentorId String? @db.ObjectId
+  mentor   User?   @relation("MentorRelation", fields: [mentorId], references: [id])
+
+  coMentors   User[]   @relation("CoMentorRelation", fields: [coMentorIds], references: [id])
+  coMentorIds String[] @db.ObjectId
+
+  mentees   User[]   @relation("MenteeRelation", fields: [menteeIds], references: [id])
+  menteeIds String[] @db.ObjectId
+
+  meetings  Meeting[] @relation("GroupMeetings")
+  feedback  Feedback[] @relation("GroupFeedback")
+}
+
+
+model Meeting {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  groupId      String   @db.ObjectId
+  group        Group    @relation("GroupMeetings", fields: [groupId], references: [id])
+  date         DateTime
+  title        String
+  description  String?
+  momUrl       String?  
+  
+  attendeeIds  String[] @db.ObjectId
+  attendees    User[]   @relation("MeetingAttendance", fields: [attendeeIds], references: [id])
+
+  createdAt    DateTime @default(now())
+}
+
+model Feedback {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  fromUserId  String   @db.ObjectId
+  fromUser    User     @relation("FeedbackGiven", fields: [fromUserId], references: [id])
+  toUserId    String   @db.ObjectId
+  toUser      User     @relation("FeedbackReceived", fields: [toUserId], references: [id])
+  groupId     String   @db.ObjectId
+  group       Group    @relation("GroupFeedback", fields: [groupId], references: [id])
+  
+  rating      Int
+  comments    String
+  createdAt   DateTime @default(now())
+}
+
+model OTP {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String
+  otp       String
+  purpose   String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+

@@ -310,12 +310,16 @@ export const addComment = async (req, res) => {
                     data: { rootId: comment.id }
                 })
             });
-            await sendCommentNotification({
-                to: post.uploadedBy.email,
-                postAuthorName: post.uploadedBy.displayName,
-                commenterName: user.displayName,
-                postTitle: post.title,
-            });
+            try {
+                await sendCommentNotification({
+                    to: post.uploadedBy.email,
+                    postAuthorName: post.uploadedBy.displayName,
+                    commenterName: user.displayName,
+                    postTitle: post.title,
+                });
+            } catch (notifyErr) {
+                console.error("Failed to send comment notification:", notifyErr);
+            }
         } else {
             const comment = await prisma.comment.findUnique({
                 where: {
@@ -347,12 +351,16 @@ export const addComment = async (req, res) => {
                     rootId: parentId,
                 }
             })
-            await sendReplyNotification({
-                to: comment.user.email,
-                commentAuthorName: comment.user.displayName,
-                replierName: user.displayName,
-                postTitle: post.title,
-            });
+            try {
+                await sendReplyNotification({
+                    to: comment.user.email,
+                    commentAuthorName: comment.user.displayName,
+                    replierName: user.displayName,
+                    postTitle: post.title,
+                });
+            } catch (notifyErr) {
+                console.error("Failed to send reply notification:", notifyErr);
+            }
         }
 
         return res.status(201).json({

@@ -1,7 +1,8 @@
 import React, { useState, useContext, useEffect } from "react";
-import { Hash } from "lucide-react";
+import { Hash, ShieldCheck, ArrowRight, Sparkles } from "lucide-react";
 import AuthContext from "../../context/auth/authContext";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
 
 function VerifyRoll() {
@@ -18,16 +19,16 @@ function VerifyRoll() {
     }
 
     if (!loading && user?.rollNo) {
-      if(user?.role !== "FACULTY"){
+      if (user?.role !== "FACULTY") {
         navigate("/dashboard/courses");
-      }else{
-        navigate("/admin/dashboard")
+      } else {
+        navigate("/admin/dashboard");
       }
     }
   }, [user, loading, navigate]);
 
-
-  const handleVerify = async () => {
+  const handleVerify = async (e) => {
+    e.preventDefault();
     if (!authContext.user) {
       toast.error("Please login first!");
       navigate("/login");
@@ -46,7 +47,7 @@ function VerifyRoll() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify({ rollNumber: roll }),
+          body: JSON.stringify({ rollNumber: roll.trim().toUpperCase() }),
         }
       );
 
@@ -59,59 +60,84 @@ function VerifyRoll() {
 
       toast.success("Roll Verified Successfully!");
       navigate("/dashboard/courses");
-
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong!");
     }
   };
 
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#e9f0ff] to-[#eef4ff] px-4">
-      <div className="bg-white w-full max-w-md rounded-2xl shadow-xl p-8 text-center">
+    <div className="min-h-screen flex items-center justify-center px-4 pt-28 pb-16 relative overflow-hidden bg-[var(--color-canvas)]">
+      {/* Ambient Aurora Glow */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-tr from-[var(--color-secondary)]/35 via-[var(--color-primary-accent)]/25 to-transparent rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-10 right-10 w-[400px] h-[400px] bg-gradient-to-bl from-[var(--color-secondary-soft)]/30 via-[var(--color-primary-blue)]/20 to-transparent rounded-full blur-[100px] pointer-events-none" />
 
-        <div className="w-20 h-20 mx-auto bg-yellow-500 rounded-full flex items-center justify-center shadow-md">
-          <Hash size={42} color="white" />
+      <motion.div
+        initial={{ opacity: 0, y: 30, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full max-w-md bg-gradient-to-b from-white/95 via-sky-50/30 to-blue-50/40 backdrop-blur-2xl border-2 border-[var(--color-secondary)]/40 hover:border-[var(--color-primary-accent)]/60 rounded-[2.5rem] shadow-[0_20px_60px_rgba(11,30,63,0.08)] hover:shadow-[0_28px_75px_var(--color-secondary-glow)] p-8 sm:p-10 text-center relative z-10 transition-all duration-500"
+      >
+        {/* Glow Aura */}
+        <div className="absolute -top-16 -right-16 w-48 h-48 bg-[var(--color-secondary)]/25 rounded-full blur-3xl pointer-events-none" />
+
+        {/* Logo Badge */}
+        <motion.div
+          whileHover={{ scale: 1.08, rotate: 3 }}
+          transition={{ type: "spring", stiffness: 400, damping: 15 }}
+          className="w-18 h-18 mx-auto bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-primary-accent)] to-[var(--color-secondary)] rounded-2xl flex items-center justify-center shadow-[0_10px_30px_var(--color-secondary-glow)] border border-white/30"
+        >
+          <ShieldCheck className="w-9 h-9 text-white drop-shadow-md" />
+        </motion.div>
+
+        {/* Pill Tag */}
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-100/90 border border-sky-300/80 text-[var(--color-primary)] text-[11px] font-black uppercase tracking-wider mt-5 shadow-xs">
+          <Sparkles size={12} className="text-[var(--color-secondary)]" />
+          <span>Profile Verification</span>
         </div>
 
-        <h2 className="text-xl font-semibold mt-5">Verify Your Identity</h2>
-        <p className="text-gray-500 text-sm">
-          Please enter your roll number to continue
+        <h2 className="text-2xl sm:text-3xl font-black text-[var(--color-primary)] mt-3 tracking-tight">
+          Verify Identity
+        </h2>
+        <p className="text-slate-600 text-xs sm:text-sm mt-1 font-normal">
+          Enter your IIT Patna roll number to initialize your student courses &amp; resources
         </p>
 
-        <div className="mt-6 text-left">
-          <label className="text-gray-600 text-md font-medium">Roll Number</label>
-
-          <div className="flex items-center mt-2 bg-white border border-gray-300 rounded-lg px-3 py-2
-              focus-within:border-blue-500 focus-within:border-2">
-
-            <Hash size={18} className="text-gray-400" />
-
-            <input
-              type="text"
-              value={roll}
-              onChange={(e) => setRoll(e.target.value)}
-              placeholder="e.g., 2021CSE001"
-              className="w-full px-3 py-1 text-gray-600 focus:outline-none"
-            />
+        <form onSubmit={handleVerify} className="mt-8 space-y-4 text-left">
+          <div>
+            <label className="text-xs font-bold text-[var(--color-primary)] block mb-1.5 tracking-wide">
+              Roll Number
+            </label>
+            <div className="flex items-center bg-white/95 border-2 border-slate-200/90 rounded-2xl px-4 py-3 focus-within:border-[var(--color-secondary)] focus-within:ring-4 focus-within:ring-[var(--color-secondary)]/15 transition-all shadow-xs">
+              <Hash size={18} className="text-slate-400 shrink-0" />
+              <input
+                type="text"
+                value={roll}
+                onChange={(e) => setRoll(e.target.value)}
+                placeholder="e.g. 2101CS01"
+                required
+                className="text-[var(--color-primary)] placeholder-slate-400 text-sm font-bold tracking-wider uppercase w-full px-3 focus:outline-none bg-transparent"
+              />
+            </div>
           </div>
-        </div>
 
-        <button
-          onClick={handleVerify}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg mt-6 text-sm font-medium transition"
-        >
-          Verify & Continue
-        </button>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            type="submit"
+            className="w-full flex justify-center items-center gap-2.5 bg-gradient-to-r from-[var(--color-primary)] via-[var(--color-primary-accent)] to-[var(--color-secondary)] hover:from-[var(--color-primary-accent)] hover:to-[var(--color-secondary-soft)] text-white py-3.5 rounded-full mt-4 text-sm font-black tracking-wide shadow-[0_10px_30px_var(--color-secondary-glow)] hover:shadow-[0_15px_40px_var(--color-secondary-glow)] transition-all cursor-pointer"
+          >
+            <span>Verify &amp; Continue</span>
+            <ArrowRight size={16} />
+          </motion.button>
+        </form>
 
-        <div className="mt-6 bg-yellow-50 border border-yellow-300 rounded-lg p-4 text-left">
-          <p className="text-yellow-700 text-sm">
-            <strong>Note:</strong> Your roll number will be used to fetch your
-            branch, academic year, and program information from our database.
+        <div className="mt-6 bg-sky-50/80 border border-sky-200/80 rounded-2xl p-4 text-left">
+          <p className="text-slate-700 text-xs leading-relaxed">
+            <strong className="text-[var(--color-primary)] font-bold">Note:</strong> Your roll number maps your department, academic branch, and course batch to personalize your student dashboard.
           </p>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

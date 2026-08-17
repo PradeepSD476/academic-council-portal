@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { FaChevronDown } from "react-icons/fa";
 import { useParams } from "react-router-dom";
 
 export const faqsData = {
@@ -94,7 +94,7 @@ export const faqsData = {
   "career-development": [
     {
       question: "Official resume format of IIT Patna?",
-      answer: "You can access the templates here:Google Slides Template – https://docs.google.com/presentation/d/1NJXFVM8HsHpLi5mhjGO2Cm0lOGuTbKe2vSn93sbyLjQ/edit Overleaf LaTeX Template – https://www.overleaf.com/latex/templates/iit-patna-resume/ddnnnxjgzckp"
+      answer: "You can access the templates here: Google Slides Template – https://docs.google.com/presentation/d/1NJXFVM8HsHpLi5mhjGO2Cm0lOGuTbKe2vSn93sbyLjQ/edit | Overleaf LaTeX Template – https://www.overleaf.com/latex/templates/iit-patna-resume/ddnnnxjgzckp"
     },
     {
       question: "Application templates for official work?",
@@ -158,7 +158,6 @@ export const faqsData = {
   ]
 };
 
-
 const FAQs = () => {
   const { wingId } = useParams();
   const faqs = faqsData[wingId] || [];
@@ -172,75 +171,79 @@ const FAQs = () => {
 
   if (faqs.length === 0) {
     return (
-      <p className="text-center text-gray-500 mt-6 px-4">
+      <p className="text-center text-slate-500 mt-6 px-4">
         No FAQs available for this wing.
       </p>
     );
   }
 
-  // Show first 4 by default
   const visibleFaqs = showAll ? faqs : faqs.slice(0, 4);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      
-      {/* Header */}
-      <div className="text-center mb-10">
-        <h1 className="text-3xl sm:text-4xl font-bold text-black mb-3">
-          FAQs
-        </h1>
-        <p className="text-gray-600 text-sm sm:text-lg max-w-2xl mx-auto">
-          Browse through the FAQs below to answer most of your queries.
-        </p>
-      </div>
-
-      {/* FAQ List */}
-      <div className="space-y-3">
-        {visibleFaqs.map((faq, index) => (
-          <motion.div
-            key={index}
-            layout
-            className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 p-4 sm:p-6 cursor-pointer border border-gray-200"
-            onClick={() => toggleQuestion(index)}
-          >
-            <div className="flex justify-between items-start sm:items-center gap-4">
-              <h2 className="text-sm sm:text-lg font-medium text-gray-800 leading-snug">
-                {faq.question}
-              </h2>
-              <span className="text-blue-600 mt-1 sm:mt-0">
-                {activeIndex === index ? <FaChevronUp /> : <FaChevronDown />}
-              </span>
-            </div>
-
-            <AnimatePresence>
-              {activeIndex === index && (
-                <motion.p
-                  key="content"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="mt-4 text-gray-600 text-sm sm:text-base leading-relaxed"
-                >
-                  {faq.answer}
-                </motion.p>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Read More Button */}
-      {faqs.length > 4 && (
-        <div className="text-center mt-8">
-          <button
-            onClick={() => setShowAll(!showAll)}
-            className="px-6 py-2 rounded-full border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-300 text-sm sm:text-base"
-          >
-            {showAll ? "Show Less" : "Read More"}
-          </button>
+    <div className="py-20 px-6 sm:px-12 md:px-16 lg:px-24 border-t border-slate-200/80">
+      <div className="max-w-[1280px] mx-auto">
+        {/* Header */}
+        <div className="text-center mb-14">
+          <div className="flex justify-center items-center gap-3 mb-4">
+            <div className="w-[4px] h-8 bg-gradient-to-b from-[#D96B43] via-[#FED7AA] to-[#133E87] rounded-full shadow-[0_0_8px_#D96B43]" />
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#0B1E3F] uppercase tracking-tight">
+              Wing FAQs
+            </h2>
+            <div className="w-[4px] h-8 bg-gradient-to-b from-[#D96B43] via-[#FED7AA] to-[#133E87] rounded-full shadow-[0_0_8px_#D96B43]" />
+          </div>
+          <p className="text-slate-600 text-base sm:text-lg max-w-2xl mx-auto font-normal">
+            Browse through the FAQs below to answer most of your wing-specific queries.
+          </p>
         </div>
-      )}
+
+        {/* FAQ List */}
+        <div className="space-y-4 max-w-4xl mx-auto">
+          {visibleFaqs.map((faq, index) => (
+            <motion.div
+              key={index}
+              layout
+              className="bg-gradient-to-r from-white/95 via-sky-50/25 to-blue-50/35 backdrop-blur-2xl rounded-2xl shadow-[0_10px_35px_rgba(11,30,63,0.06)] hover:shadow-[0_16px_45px_var(--color-secondary-glow)] transition-all duration-300 p-6 sm:p-7 cursor-pointer border-2 border-[var(--color-secondary)]/40 hover:border-[var(--color-primary-accent)]/60"
+              onClick={() => toggleQuestion(index)}
+            >
+              <div className="flex justify-between items-start sm:items-center gap-4">
+                <h3 className="text-base sm:text-lg font-bold text-[var(--color-primary)] leading-snug">
+                  {faq.question}
+                </h3>
+                <span className={`text-[var(--color-primary)] mt-1 sm:mt-0 transition-transform duration-300 p-1.5 bg-sky-100 border border-sky-300 rounded-full shrink-0 ${activeIndex === index ? 'rotate-180' : ''}`}>
+                  <FaChevronDown className="text-xs" />
+                </span>
+              </div>
+
+              <AnimatePresence>
+                {activeIndex === index && (
+                  <motion.p
+                    key="content"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="mt-4 text-slate-700 text-sm sm:text-base leading-relaxed border-t border-slate-200/80 pt-4 font-normal"
+                  >
+                    {faq.answer}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Read More Button */}
+        {faqs.length > 4 && (
+          <div className="text-center mt-10">
+            <button
+              onClick={() => setShowAll(!showAll)}
+              className="group inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-gradient-to-r from-[var(--color-primary)] via-[var(--color-primary-accent)] to-[var(--color-secondary)] hover:from-[var(--color-primary-accent)] hover:to-[var(--color-secondary-soft)] text-white font-bold text-sm sm:text-base rounded-full transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer border border-white/20"
+            >
+              {showAll ? "Show Fewer FAQs ↑" : "See All FAQs ↓"}
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

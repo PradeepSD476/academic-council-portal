@@ -43,12 +43,12 @@ const NativeRichTextEditor = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col border border-gray-300 rounded-md focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-shadow bg-white overflow-hidden mb-4" style={{ minHeight }}>
-      <div className="bg-gray-50 px-3 py-2 flex items-center gap-1 border-b border-gray-200 text-gray-600 flex-wrap z-10">
-        <button type="button" onMouseDown={(e) => execCommand(e, "bold")} className="p-1.5 hover:bg-gray-200 hover:text-gray-900 rounded transition-colors" title="Bold"><Bold size={16} strokeWidth={2.5}/></button>
-        <button type="button" onMouseDown={(e) => execCommand(e, "italic")} className="p-1.5 hover:bg-gray-200 hover:text-gray-900 rounded transition-colors" title="Italic"><Italic size={16} strokeWidth={2.5}/></button>
-        <button type="button" onMouseDown={(e) => execCommand(e, "strikeThrough")} className="p-1.5 hover:bg-gray-200 hover:text-gray-900 rounded transition-colors" title="Strikethrough"><Strikethrough size={16} strokeWidth={2.5}/></button>
-        <div className="w-[1px] h-4 bg-gray-300 mx-1"></div>
+    <div className="flex-1 flex flex-col border border-slate-200 rounded-2xl focus-within:border-[var(--color-secondary)] transition-all bg-white/90 overflow-hidden mb-4" style={{ minHeight }}>
+      <div className="bg-sky-50 px-3 py-2 flex items-center gap-1 border-b border-slate-200 text-slate-600 flex-wrap z-10">
+        <button type="button" onMouseDown={(e) => execCommand(e, "bold")} className="p-1.5 hover:bg-sky-100 hover:text-[var(--color-secondary)] rounded-lg transition-colors cursor-pointer" title="Bold"><Bold size={15} strokeWidth={2.5}/></button>
+        <button type="button" onMouseDown={(e) => execCommand(e, "italic")} className="p-1.5 hover:bg-sky-100 hover:text-[var(--color-secondary)] rounded-lg transition-colors cursor-pointer" title="Italic"><Italic size={15} strokeWidth={2.5}/></button>
+        <button type="button" onMouseDown={(e) => execCommand(e, "strikeThrough")} className="p-1.5 hover:bg-sky-100 hover:text-[var(--color-secondary)] rounded-lg transition-colors cursor-pointer" title="Strikethrough"><Strikethrough size={15} strokeWidth={2.5}/></button>
+        <div className="w-[1px] h-4 bg-slate-300 mx-1"></div>
         <button type="button" onMouseDown={(e) => {
             e.preventDefault();
             const url = prompt("Enter link URL:");
@@ -56,10 +56,10 @@ const NativeRichTextEditor = ({
               document.execCommand("createLink", false, url);
               onChange(editorRef.current.innerHTML);
             }
-        }} className="p-1.5 hover:bg-gray-200 hover:text-gray-900 rounded transition-colors" title="Link"><LinkIcon size={16} strokeWidth={2.5}/></button>
-        <div className="w-[1px] h-4 bg-gray-300 mx-1"></div>
-        <button type="button" onMouseDown={(e) => execCommand(e, "insertUnorderedList")} className="p-1.5 hover:bg-gray-200 hover:text-gray-900 rounded transition-colors" title="Bullet List"><List size={16} strokeWidth={2.5}/></button>
-        <button type="button" onMouseDown={(e) => execCommand(e, "insertOrderedList")} className="p-1.5 hover:bg-gray-200 hover:text-gray-900 rounded transition-colors" title="Numbered List"><ListOrdered size={16} strokeWidth={2.5}/></button>
+        }} className="p-1.5 hover:bg-sky-100 hover:text-[var(--color-secondary)] rounded-lg transition-colors cursor-pointer" title="Link"><LinkIcon size={15} strokeWidth={2.5}/></button>
+        <div className="w-[1px] h-4 bg-slate-300 mx-1"></div>
+        <button type="button" onMouseDown={(e) => execCommand(e, "insertUnorderedList")} className="p-1.5 hover:bg-sky-100 hover:text-[var(--color-secondary)] rounded-lg transition-colors cursor-pointer" title="Bullet List"><List size={15} strokeWidth={2.5}/></button>
+        <button type="button" onMouseDown={(e) => execCommand(e, "insertOrderedList")} className="p-1.5 hover:bg-sky-100 hover:text-[var(--color-secondary)] rounded-lg transition-colors cursor-pointer" title="Numbered List"><ListOrdered size={15} strokeWidth={2.5}/></button>
       </div>
       <div
         ref={editorRef}
@@ -67,9 +67,7 @@ const NativeRichTextEditor = ({
         onInput={handleInput}
         onBlur={handleInput}
         data-placeholder={placeholder}
-        // Tailwind empty:before selector reads the data-placeholder attribute 
-        // to show placeholder text when the contenteditable div is empty
-        className="flex-1 p-4 outline-none text-gray-800 focus:outline-none overflow-y-auto w-full format-prose empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
+        className="flex-1 p-4 outline-none text-[var(--color-primary)] focus:outline-none overflow-y-auto w-full format-prose empty:before:content-[attr(data-placeholder)] empty:before:text-slate-500 text-sm leading-relaxed"
       />
     </div>
   );

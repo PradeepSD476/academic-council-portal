@@ -4,74 +4,121 @@ import logo from "/logo.png";
 
 function Footer() {
   return (
-    <footer className=" text-white mt-auto my-0">
+    <footer className="text-slate-600 mt-auto border-t border-slate-200/80 bg-white/85 backdrop-blur-2xl shadow-[0_-4px_25px_rgba(15,23,42,0.03)]">
       {/* Top bar */}
-      <div className=" mx-auto   grid grid-cols-1 md:grid-cols-2 ">
+      <div className="mx-auto grid grid-cols-1 md:grid-cols-2">
         {/* Left Column */}
-        <div className=" bg-[#153460] px-6 md:px-16 py-10">
-          <div className="flex items-center mb-4">
-            <Link to="/" className="flex items-center space-x-3">
-              <img src={logo} alt="logo" className="h-14 w-auto" />
-              <p className="font-semibold text-2xl leading-snug">
-                Academic & Career Council
-              </p>
+        <div className="bg-slate-50/60 px-6 md:px-16 py-12 border-b md:border-b-0 md:border-r border-slate-200/80">
+          <div className="flex items-center mb-5">
+            <Link to="/" className="flex items-center space-x-3 group">
+              <img src={logo} alt="logo" className="h-12 w-auto object-contain" />
+              <div>
+                <p className="font-extrabold text-xl md:text-2xl text-[#0B1E3F] tracking-tight leading-snug group-hover:text-[#133E87] transition-colors">
+                  Academic &amp; Career Council
+                </p>
+                <p className="text-xs font-bold text-[#0284C7] tracking-wider uppercase">
+                  IIT Patna
+                </p>
+              </div>
             </Link>
           </div>
 
-          <p className="text-gray-300 mb-4 leading-relaxed text-justify">
-            The Academic & Career Council (ACC) of IIT Patna is a student body under
-            the students' Gymkhana that fosters academic excellence, research,
-            and career development for students through various initiatives
-            and events.
+          <p className="text-slate-600 mb-6 leading-relaxed text-sm max-w-lg">
+            The Academic &amp; Career Council (ACC) of IIT Patna is the premier student body under
+            the Students' Gymkhana that fosters academic excellence, research culture,
+            and career progression through mentorship, workshops, and student initiatives.
           </p>
 
           <div>
-            <h2 className="text-lg font-semibold mb-1 text-white">Contact</h2>
-            <p className="text-gray-300 hover:text-white transition">
-              acc_ug@iitp.ac.in
-            </p>
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+              Contact Desk
+            </h2>
+            <a
+              href="mailto:acc_ug@iitp.ac.in"
+              className="text-[#133E87] hover:text-[#0284C7] font-semibold transition-colors text-sm inline-flex items-center gap-1.5"
+            >
+              <span>acc_ug@iitp.ac.in</span>
+              <span className="text-[#0284C7]">↗</span>
+            </a>
           </div>
         </div>
 
         {/* Right Column */}
-        <div className="grid grid-cols-2 gap-8 bg-[#1C4980] px-6 md:px-16 py-10">
+        <div className="grid grid-cols-2 gap-8 bg-white/40 px-6 md:px-16 py-12">
           <div>
-            <h1 className="text-lg text-center font-semibold mb-3 border-b border-blue-400 pb-1">
+            <h3 className="text-xs font-extrabold text-[#0B1E3F] uppercase tracking-widest mb-4 border-b border-slate-200/80 pb-2">
               Quick Links
-            </h1>
-            <ul className="space-y-2 text-gray-300 text-center">
-              <li><Link to="/" className="hover:text-white transition">Home</Link></li>
-              <li><a href="https://academics.iitp.ac.in" target="_blank" className="hover:text-white transition">Academics</a></li>
-              <li><a href="https://www.iitp.ac.in/research/research-projects-and-resources" target="_blank" className="hover:text-white transition">Research</a></li>
-              <li><Link to="/wings" className="hover:text-white transition">Wings</Link></li>
-              <li><Link to="/dashboard/courses" className="hover:text-white transition">Resources</Link></li>
+            </h3>
+            <ul className="space-y-3 text-slate-600 text-sm font-medium">
+              <li>
+                <Link to="/" className="hover:text-[#133E87] transition-colors inline-block hover:translate-x-1 duration-200">
+                  Home
+                </Link>
+              </li>
+              <li>
+                <a href="https://academics.iitp.ac.in" target="_blank" rel="noreferrer" className="hover:text-[#133E87] transition-colors inline-block hover:translate-x-1 duration-200">
+                  Academics Portal ↗
+                </a>
+              </li>
+              <li>
+                <a href="https://www.iitp.ac.in/research/research-projects-and-resources" target="_blank" rel="noreferrer" className="hover:text-[#133E87] transition-colors inline-block hover:translate-x-1 duration-200">
+                  Research Initiatives ↗
+                </a>
+              </li>
+              <li>
+                <Link to="/wings" className="hover:text-[#133E87] transition-colors inline-block hover:translate-x-1 duration-200">
+                  Council Wings
+                </Link>
+              </li>
+              <li>
+                <Link to="/dashboard/courses" className="hover:text-[#133E87] transition-colors inline-block hover:translate-x-1 duration-200">
+                  Resource Vault
+                </Link>
+              </li>
             </ul>
           </div>
 
           <div>
-            <h1 className="text-lg font-semibold mb-3 border-b border-blue-400 pb-1 text-center">
-              Info
-            </h1>
-            <ul className="space-y-2 text-gray-300 text-center">
-              <li><Link to="/team" className="hover:text-white transition">Team</Link></li>
-              <li><Link to="/devs" className="hover:text-white transition">Developers</Link></li>
-              <li><Link to="/" className="hover:text-white transition">About Us</Link></li>
+            <h3 className="text-xs font-extrabold text-[#0B1E3F] uppercase tracking-widest mb-4 border-b border-slate-200/80 pb-2">
+              Council Info
+            </h3>
+            <ul className="space-y-3 text-slate-600 text-sm font-medium">
+              <li>
+                <Link to="/team" className="hover:text-[#133E87] transition-colors inline-block hover:translate-x-1 duration-200">
+                  ACC Team
+                </Link>
+              </li>
+              <li>
+                <Link to="/administrators" className="hover:text-[#133E87] transition-colors inline-block hover:translate-x-1 duration-200">
+                  Administrators
+                </Link>
+              </li>
+              <li>
+                <Link to="/devs" className="hover:text-[#133E87] transition-colors inline-block hover:translate-x-1 duration-200">
+                  Web &amp; Dev Team
+                </Link>
+              </li>
+              <li>
+                <Link to="/faq" className="hover:text-[#133E87] transition-colors inline-block hover:translate-x-1 duration-200">
+                  FAQs &amp; Help Desk
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-gray-700 py-4">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center text-black text-sm px-6 md:px-16">
-          <ul className="flex flex-wrap justify-center md:justify-start gap-4 mb-3 md:mb-0 text-md">
-            <li className="hover:text-white transition cursor-pointer">English</li>
-            <li className="hover:text-white transition cursor-pointer">Privacy Policy</li>
-            <li className="hover:text-white transition cursor-pointer">Support</li>
+      <div className="border-t border-slate-200/80 bg-slate-100/70 py-6">
+        <div className="max-w-[1280px] mx-auto flex flex-col md:flex-row justify-between items-center text-slate-500 text-xs px-6 md:px-16 gap-4">
+          <ul className="flex flex-wrap justify-center md:justify-start gap-6 font-medium">
+            <li className="hover:text-slate-800 transition cursor-pointer">Student Gymkhana</li>
+            <li className="hover:text-slate-800 transition cursor-pointer">Privacy Guidelines</li>
+            <li className="hover:text-slate-800 transition cursor-pointer">Support</li>
           </ul>
 
-          <p className="text-center text-black text-md">
-            &copy; 2025 Academic & Career Council, IIT Patna. All Rights Reserved.
+          <p className="text-center text-slate-500 font-medium">
+            &copy; 2026 Academic &amp; Career Council, IIT Patna. All Rights Reserved.
           </p>
         </div>
       </div>

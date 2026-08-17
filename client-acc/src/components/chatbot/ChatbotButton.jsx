@@ -1,11 +1,5 @@
-/**
- * ChatbotButton – Floating AskACC trigger button.
- *
- * Design: pill "Ask ACC" label + circular graduation cap button.
- * Appears on every page (rendered in App.jsx outside page flow).
- */
 import React, { useState, useCallback } from "react";
-import { GraduationCap, X } from "lucide-react";
+import { GraduationCap, X, MessageSquare } from "lucide-react";
 import AskACC from "./AskACC.jsx";
 
 export default function ChatbotButton() {
@@ -14,7 +8,7 @@ export default function ChatbotButton() {
 
   const toggle = useCallback(() => {
     setIsOpen((prev) => !prev);
-    setLabelVisible(false); // hide label after first click
+    setLabelVisible(false);
   }, []);
 
   const handleClose = useCallback(() => {
@@ -24,19 +18,18 @@ export default function ChatbotButton() {
   return (
     <>
       {/* ── Floating trigger ───────────────────────────────────────── */}
-      <div className="fixed bottom-6 right-5 z-50 flex flex-col items-end gap-2 select-none">
+      <div className="fixed bottom-6 right-5 z-50 flex flex-col items-end gap-2.5 select-none">
 
         {/* Pill label "Ask ACC" — shown when panel is closed */}
         {!isOpen && labelVisible && (
-          <div className="flex items-center gap-2 bg-[#1e3a5f] text-white text-sm font-semibold
-                          px-4 py-2 rounded-full shadow-lg
-                          animate-askacc-label-in
-                          cursor-pointer hover:bg-[#16304f] transition-colors"
+          <div
+            className="flex items-center gap-2 bg-white/95 backdrop-blur-xl border border-[var(--color-secondary)]/40 text-[var(--color-primary)] text-xs font-bold
+                       px-3.5 py-1.5 rounded-full shadow-[0_0_15px_rgba(21,135,212,0.25)]
+                       cursor-pointer hover:border-[var(--color-secondary)] hover:bg-slate-50 transition-all"
             onClick={toggle}
           >
-            <span>Ask ACC</span>
-            {/* Small dot indicator */}
-            <span className="w-2.5 h-2.5 rounded-full bg-white/40 flex-shrink-0" />
+            <span className="text-[var(--color-secondary)]">Ask ACC</span>
+            <span className="w-2 h-2 rounded-full bg-[var(--color-secondary)] animate-pulse" />
           </div>
         )}
 
@@ -48,29 +41,26 @@ export default function ChatbotButton() {
           aria-expanded={isOpen}
           aria-controls="askacc-panel"
           className="
-            relative w-16 h-16 rounded-full
-            bg-gradient-to-br from-[#1a3560] via-[#1e4080] to-[#2563eb]
+            relative w-14 h-14 rounded-full
+            bg-white/95 backdrop-blur-xl border-2 border-[var(--color-secondary)]
             flex items-center justify-center
-            shadow-xl hover:shadow-2xl
+            shadow-[0_0_20px_rgba(21,135,212,0.35)] hover:shadow-[0_0_25px_rgba(21,135,212,0.5)]
             transition-all duration-300 ease-out
             hover:scale-105 active:scale-95
-            focus:outline-none focus:ring-4 focus:ring-blue-400/40
-            overflow-hidden
+            focus:outline-none cursor-pointer
+            overflow-hidden group
           "
         >
-          {/* Subtle inner glow */}
-          <span className="absolute inset-0 rounded-full bg-gradient-to-t from-black/20 to-white/5 pointer-events-none" />
-
           {/* Pulse ring — only when closed */}
           {!isOpen && (
-            <span className="absolute inset-0 rounded-full border-2 border-blue-400/40 animate-ping" />
+            <span className="absolute inset-0 rounded-full border-2 border-[var(--color-secondary)]/30 animate-ping pointer-events-none" />
           )}
 
           {/* Icon */}
           <span className="relative z-10 flex items-center justify-center" aria-hidden="true">
             {isOpen
-              ? <X size={20} className="text-white" />
-              : <GraduationCap size={24} className="text-white" />}
+              ? <X size={20} className="text-[var(--color-secondary)]" />
+              : <GraduationCap size={24} className="text-[var(--color-secondary)] group-hover:scale-110 transition-transform" />}
           </span>
         </button>
       </div>
