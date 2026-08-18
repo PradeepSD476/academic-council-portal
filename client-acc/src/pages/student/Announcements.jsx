@@ -131,39 +131,34 @@ export default function Announcements() {
       )}
 
       {/* ---------- LIST ---------- */}
-      <div className="space-y-5">
+      <div className="space-y-4">
         {announcements.map((a, idx) => (
           <motion.div
             key={a.id}
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.05, duration: 0.3 }}
-            className={`p-6 sm:p-7 rounded-[2.2rem] border-2 backdrop-blur-2xl transition-all duration-300 relative overflow-hidden ${
+            transition={{ delay: idx * 0.04, duration: 0.3 }}
+            className={`p-5 sm:p-6 rounded-xl border bg-white shadow-2xs hover:shadow-xs transition-all duration-200 relative ${
               a.isPinned
-                ? "bg-gradient-to-r from-white/95 via-sky-50/50 to-blue-50/40 border-[var(--color-secondary)]/60 shadow-[0_12px_35px_var(--color-secondary-glow)]"
-                : "bg-white/95 border-slate-200/90 shadow-[0_8px_25px_rgba(11,30,63,0.04)] hover:border-sky-300"
+                ? "border-amber-300 ring-1 ring-amber-300/30"
+                : "border-slate-200 hover:border-slate-300"
             }`}
           >
-            {/* Pinned Glow Indicator */}
-            {a.isPinned && (
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-secondary)]/15 rounded-full blur-2xl pointer-events-none" />
-            )}
-
             {/* -------- TITLE + BADGES + ATTACHMENT -------- */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full relative z-10">
-              <div className="flex flex-wrap items-center gap-2.5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full">
+              <div className="flex flex-wrap items-center gap-2">
                 {a.isPinned && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-primary)] text-white px-3 py-1 text-[10.5px] font-black uppercase tracking-wider shadow-xs">
-                    <Pin size={12} className="text-[var(--color-secondary-soft)] rotate-45" />
+                  <span className="inline-flex items-center gap-1.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-0.5 text-[10.5px] font-bold uppercase tracking-wider">
+                    <Pin size={11} className="text-amber-700 rotate-45" />
                     <span>Pinned Notice</span>
                   </span>
                 )}
 
-                <h2 className="text-lg sm:text-xl font-black text-[var(--color-primary)] leading-snug">
+                <h2 className="text-base sm:text-lg font-bold text-slate-950 leading-snug">
                   {a.title}
                 </h2>
 
-                <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-0.5 text-[10.5px] font-black text-slate-700 border border-slate-200 uppercase tracking-wider">
+                <span className="inline-flex items-center rounded-md bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-700 border border-slate-200 uppercase tracking-wider">
                   {a.type || "GENERAL"}
                 </span>
 
@@ -177,36 +172,38 @@ export default function Announcements() {
                     href={a.fileURL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] text-white hover:opacity-95 text-xs font-black transition-all shadow-xs cursor-pointer"
+                    className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-[#E85D25] text-white text-xs font-bold transition-colors shadow-2xs cursor-pointer"
                   >
                     <span>View Circular</span>
-                    <ExternalLink size={13} />
+                    <ExternalLink size={12} />
                   </a>
                 ) : (
-                  <span className="text-slate-400 text-xs italic font-medium">No Attachment</span>
+                  <span className="text-slate-400 text-xs font-medium">No Attachment</span>
                 )}
               </div>
             </div>
 
             {/* -------- DESCRIPTION -------- */}
-            <p className="text-slate-700 text-sm mt-4 leading-relaxed font-normal relative z-10">
+            <p className="text-slate-600 text-xs sm:text-sm mt-3 leading-relaxed">
               {a.description}
             </p>
 
             {/* -------- FOOTER (department + date) -------- */}
-            <div className="flex flex-wrap items-center gap-6 mt-5 pt-4 border-t border-slate-100 text-xs text-slate-500 relative z-10">
+            <div className="flex flex-wrap items-center gap-5 mt-4 pt-3.5 border-t border-slate-100 text-xs text-slate-500">
               {/* Uploaded By */}
-              <div className="flex items-center gap-2">
-                <User2 size={15} className="text-[var(--color-secondary)]" />
-                <span className="font-bold text-[var(--color-primary)]">
+              <div className="flex items-center gap-1.5">
+                <div className="w-4 h-4 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                  <User2 size={11} />
+                </div>
+                <span className="font-semibold text-slate-700 text-xs">
                   {a.uploadedBy?.displayName || "Academic Office"}
                 </span>
               </div>
 
               {/* Date */}
-              <div className="flex items-center gap-2">
-                <Calendar size={15} className="text-[var(--color-secondary)]" />
-                <span className="font-semibold text-slate-600">{formatDate(a.updatedAt)}</span>
+              <div className="flex items-center gap-1.5">
+                <Calendar size={13} className="text-slate-400" />
+                <span className="text-slate-500 text-xs">{formatDate(a.updatedAt)}</span>
               </div>
             </div>
           </motion.div>
@@ -215,9 +212,10 @@ export default function Announcements() {
 
       {/* ---------- PAGINATION ---------- */}
       {announcements.length > 0 && (
-        <div className="bg-white/90 backdrop-blur-xl border-2 border-slate-200/90 rounded-2xl p-4 flex justify-between items-center text-xs text-slate-600 shadow-xs">
+        <div className="bg-white border border-slate-200 rounded-xl p-4 flex justify-between items-center text-xs text-slate-600 shadow-2xs">
           <p className="font-medium">
-            Showing <span className="font-black text-[var(--color-primary)]">{announcements.length}</span> notices on page <span className="font-black text-[var(--color-primary)]">{page}</span>
+            Showing <span className="font-bold text-slate-900">{announcements.length}</span> notices on page <span className="font-bold text-slate-900">{page}</span>
+
           </p>
 
           <div className="flex items-center gap-2">

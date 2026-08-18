@@ -11,24 +11,24 @@ export default function FAQAccordion({ item, defaultOpen = false }) {
 
   return (
     <div
-      className={`bg-white/95 backdrop-blur-xl rounded-2xl border transition-all duration-200 overflow-hidden ${
+      className={`bg-white rounded-xl border transition-all duration-200 overflow-hidden ${
         open
-          ? "border-[var(--color-secondary)]/50 shadow-[0_0_20px_rgba(21,135,212,0.15)]"
-          : "border-slate-200 hover:border-slate-300 shadow-sm"
+          ? "border-blue-600/40 shadow-md"
+          : "border-slate-200 hover:border-slate-300 shadow-2xs"
       }`}
     >
-      {/* Orange accent line when open */}
-      <div className={`h-[2px] w-full ${open ? "bg-[var(--color-secondary)]" : "bg-transparent"}`} />
+      {/* Blue accent line when open */}
+      <div className={`h-[2px] w-full ${open ? "bg-blue-600" : "bg-transparent"}`} />
 
       <button
         onClick={toggle}
         aria-expanded={open}
         className="w-full flex items-start justify-between gap-4 px-5 py-4 text-left cursor-pointer"
       >
-        <span className={`font-bold text-sm leading-snug ${open ? "text-[var(--color-secondary)]" : "text-[var(--color-primary)]"}`}>
+        <span className={`font-bold text-sm leading-snug ${open ? "text-blue-600" : "text-slate-900"}`}>
           {item.question}
         </span>
-        <span className={`flex-shrink-0 mt-0.5 transition-colors ${open ? "text-[var(--color-secondary)]" : "text-slate-500"}`}>
+        <span className={`flex-shrink-0 mt-0.5 transition-colors ${open ? "text-blue-600" : "text-slate-400"}`}>
           {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </span>
       </button>
@@ -46,15 +46,15 @@ export default function FAQAccordion({ item, defaultOpen = false }) {
           {/* Badges */}
           <div className="flex items-center gap-2 flex-wrap">
             {item.category && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[var(--color-secondary)]/15 text-[var(--color-secondary)] border border-[var(--color-secondary)]/30">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-100">
                 {item.category}
               </span>
             )}
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-50 text-slate-600 border border-slate-200">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
               {priorityStyle.label} Priority
             </span>
             {item.subcategory && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-50 text-slate-500 border border-slate-200">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-50 text-slate-500 border border-slate-200">
                 {item.subcategory}
               </span>
             )}

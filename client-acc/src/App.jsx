@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/layout/navbar.jsx";
 import Footer from "./components/layout/footer.jsx";
 import AuroraBackground from "./components/layout/AuroraBackground.jsx";
+import SmoothScroll from "./components/layout/SmoothScroll.jsx";
 import Home from "./pages/Home/page.jsx";
 import AccTeam from "./pages/Team/page.jsx";
 import WingPage from "./pages/Wing/page.jsx";
@@ -234,9 +235,11 @@ const AppContent = () => {
 const App = () => {
   return (
     <BrowserRouter>
-      <AuthState>
-        <AppContent />
-      </AuthState>
+      <SmoothScroll>
+        <AuthState>
+          <AppContent />
+        </AuthState>
+      </SmoothScroll>
     </BrowserRouter>
   );
 };

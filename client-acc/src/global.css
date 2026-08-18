@@ -1,21 +1,24 @@
-@import url('https://fonts.googleapis.com/css2?family=Elsie:wght@400;900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 html, body, #root {
-  height: 100%;
+  min-height: 100%;
 }
+
 html, body {
   overflow-x: hidden;
   background-color: #F8FAFC;
   color: #0F172A;
 }
+
 body {
   display: flex;
   flex-direction: column;
-  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
 main {
   flex: 1;
 }
@@ -26,22 +29,25 @@ main {
   --transparent: transparent;
   --color-canvas: #F8FAFC;
   
-  /* Primary Accent: Deep Navy / Royal Blue */
-  --color-primary: #0B1E3F;
-  --color-primary-dark: #050B17;
-  --color-primary-accent: #133E87;
-  --color-primary-blue: #1E40AF;
+  /* Institute Authority & Deep Navy Palette */
+  --color-primary: #0F172A;
+  --color-primary-dark: #020617;
+  --color-primary-accent: #1E3A8A;
+  --color-primary-blue: #1D4ED8;
 
-  /* Secondary Accent: Vibrant Azure / Electric Blue #0284C7 */
-  --color-secondary: #0284C7;
-  --color-secondary-light: #F0F9FF;
-  --color-secondary-soft: #38BDF8;
-  --color-secondary-border: rgba(2, 132, 199, 0.4);
-  --color-secondary-glow: rgba(2, 132, 199, 0.3);
+  /* Institute Accent Blue Palette */
+  --color-secondary: #2563EB;
+  --color-secondary-light: #EFF6FF;
+  --color-secondary-soft: #60A5FA;
+  --color-secondary-border: #DBEAFE;
+  --color-secondary-glow: rgba(37, 99, 235, 0.08);
+
+  --border-subtle: #E2E8F0;
+  --border-strong: #CBD5E1;
 }
 
 @theme {
-  --font-elsie: "Elsie", serif;
+  --font-outfit: "Outfit", sans-serif;
   --font-jakarta: "Plus Jakarta Sans", sans-serif;
   --font-inter: "Inter", sans-serif;
 
@@ -56,128 +62,93 @@ main {
 }
 
 @layer utilities {
-  .font-elsie {
-    font-family: var(--font-elsie);
+  .accent-bar {
+    width: 3.5px;
+    background-color: #2563EB;
+    border-radius: 9999px;
+    flex-shrink: 0;
   }
+}
+
+@layer utilities {
   .font-jakarta {
     font-family: var(--font-jakarta);
   }
   .font-inter {
     font-family: var(--font-inter);
   }
-  
-  /* Aurora Secondary & Deep Blue Gradient text presets */
-  .gradient-text-aurora {
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-accent) 50%, var(--color-secondary) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+
+  /* Clean Academic Hairline Cards */
+  .academic-card {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .gradient-text-navy-accent {
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-accent) 40%, var(--color-secondary) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+  .academic-card:hover {
+    border-color: #CBD5E1;
+    box-shadow: 0 4px 12px 0 rgba(15, 23, 42, 0.06);
   }
 
-  /* Rich Light Glassmorphism Cards with Permanent Color Tints */
-  .glass-card-light {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 249, 255, 0.85) 50%, rgba(238, 242, 255, 0.9) 100%);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1.5px solid var(--color-secondary-border);
-    box-shadow: 0 14px 40px rgba(11, 30, 63, 0.08), 0 2px 10px var(--color-secondary-glow);
-  }
-  .glass-card-light:hover {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(224, 242, 254, 0.92) 50%, rgba(238, 242, 255, 0.95) 100%);
-    border-color: rgba(19, 62, 135, 0.6);
-    box-shadow: 0 22px 50px rgba(11, 30, 63, 0.15), 0 4px 15px var(--color-secondary-glow);
+  /* Academic Subtle Glass Navbar */
+  .academic-nav {
+    background-color: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid #E2E8F0;
   }
 
-  .glass-nav-light {
-    background: rgba(255, 255, 255, 0.88);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border-bottom: 1px solid rgba(19, 62, 135, 0.15);
+  /* Institutional Badge */
+  .academic-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+    border-radius: 9999px;
+    background-color: #F1F5F9;
+    color: #334155;
+    border: 1px solid #E2E8F0;
   }
 
-  @keyframes aurora-1 {
-    0%, 100% {
-      transform: translate(0px, 0px) scale(1) rotate(0deg);
-    }
-    33% {
-      transform: translate(120px, -80px) scale(1.25) rotate(45deg);
-    }
-    66% {
-      transform: translate(-90px, 70px) scale(0.85) rotate(-30deg);
-    }
+  /* Standard Academic Button Outline */
+  .academic-btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    border: 1px solid #CBD5E1;
+    background-color: #FFFFFF;
+    color: #0F172A;
+    transition: all 0.15s ease-in-out;
+  }
+  .academic-btn-outline:hover {
+    background-color: #F8FAFC;
+    border-color: #94A3B8;
   }
 
-  @keyframes aurora-2 {
-    0%, 100% {
-      transform: translate(0px, 0px) scale(1.1) rotate(0deg);
-    }
-    33% {
-      transform: translate(-140px, 90px) scale(0.9) rotate(-40deg);
-    }
-    66% {
-      transform: translate(110px, -60px) scale(1.3) rotate(35deg);
-    }
+  /* Standard Academic Button Primary */
+  .academic-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1.125rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    background-color: #0F172A;
+    color: #FFFFFF;
+    border: 1px solid #0F172A;
+    transition: all 0.15s ease-in-out;
   }
-
-  @keyframes aurora-3 {
-    0%, 100% {
-      transform: translate(0px, 0px) scale(0.9) rotate(0deg);
-    }
-    50% {
-      transform: translate(150px, 110px) scale(1.2) rotate(60deg);
-    }
-  }
-
-  @keyframes aurora-4 {
-    0%, 100% {
-      transform: translate(0px, 0px) scale(1.2) rotate(0deg);
-    }
-    50% {
-      transform: translate(-120px, -90px) scale(0.8) rotate(-45deg);
-    }
-  }
-
-  .animate-aurora-1 {
-    animation: aurora-1 18s ease-in-out infinite;
-  }
-  .animate-aurora-2 {
-    animation: aurora-2 22s ease-in-out infinite;
-  }
-  .animate-aurora-3 {
-    animation: aurora-3 26s ease-in-out infinite;
-  }
-  .animate-aurora-4 {
-    animation: aurora-4 20s ease-in-out infinite;
-  }
-
-  @keyframes aurora {
-    from {
-      background-position: 50% 50%, 50% 50%;
-    }
-    to {
-      background-position: 350% 50%, 350% 50%;
-    }
-  }
-
-  .animate-aurora {
-    animation: aurora 40s linear infinite;
-  }
-
-  @keyframes floatSlow {
-    0%, 100% {
-      transform: translateY(0px) scale(1);
-    }
-    50% {
-      transform: translateY(-15px) scale(1.03);
-    }
-  }
-
-  .animate-float-slow {
-    animation: floatSlow 8s ease-in-out infinite;
+  .academic-btn-primary:hover {
+    background-color: #1E293B;
+    border-color: #1E293B;
   }
 }
 
@@ -217,11 +188,11 @@ main {
   }
 
   .rich-editor blockquote {
-    @apply mb-3 border-l-4 border-blue-300 bg-blue-50/60 px-4 py-2 italic text-gray-700;
+    @apply mb-3 border-l-4 border-slate-300 bg-slate-50 px-4 py-2 italic text-slate-700;
   }
 
   .rich-editor code {
-    @apply rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[0.9em] text-gray-900;
+    @apply rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[0.9em] text-slate-900;
   }
 
   .rich-editor a {
@@ -254,27 +225,11 @@ main {
   border-radius: 9999px;
 }
 
-/* ── Light ambient glow animations ───────────────────────────────────────── */
-@keyframes ambientPulse {
-  0%, 100% {
-    opacity: 0.6;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.9;
-    transform: scale(1.05);
-  }
-}
-
-.animate-ambient-pulse {
-  animation: ambientPulse 8s ease-in-out infinite;
-}
-
-/* ── AskACC chatbot helpers ──────────────────────────────────────────────── */
+/* ── Subtle AskACC Chatbot Transitions ──────────────────────────────────── */
 @keyframes askaccSlideUp {
   from {
     opacity: 0;
-    transform: translateY(24px) scale(0.97);
+    transform: translateY(12px) scale(0.98);
   }
   to {
     opacity: 1;
@@ -283,25 +238,5 @@ main {
 }
 
 .animate-askacc-slide-up {
-  animation: askaccSlideUp 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-@keyframes typingBounce {
-  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-  30%            { transform: translateY(-5px); opacity: 1; }
-}
-
-@keyframes askaccLabelIn {
-  from {
-    opacity: 0;
-    transform: translateX(12px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0) scale(1);
-  }
-}
-
-.animate-askacc-label-in {
-  animation: askaccLabelIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: askaccSlideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

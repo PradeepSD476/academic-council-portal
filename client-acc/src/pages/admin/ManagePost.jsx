@@ -80,46 +80,46 @@ const ManagePost = () => {
           </div>
 
           <button
-            className="bg-[var(--color-secondary)] hover:opacity-90 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all shadow-[0_8px_20px_var(--color-secondary-glow)] cursor-pointer"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
             onClick={() => {
               openEditorForId(-1);
             }}
           >
-            + New Post
+            <span>+ New Post</span>
           </button>
         </div>
       </div>
 
-      {/*Pagination Table*/}
-      <div className="bg-white/95 backdrop-blur-xl shadow-xs rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
+      {/* Pagination Table */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-neutral-800">
-            <thead className="bg-white/90">
+          <table className="min-w-full divide-y divide-slate-200">
+            <thead className="bg-slate-50">
               <tr>
-                <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
                   Title &amp; Summary
                 </th>
-                <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
                   Type
                 </th>
-                <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
                   Posted By
                 </th>
-                <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
                   Engagement
                 </th>
-                <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
                   Date
                 </th>
-                <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3.5 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <th className="px-6 py-3.5 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">
                   Actions
                 </th> 
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-800/70">
+            <tbody className="divide-y divide-slate-100 bg-white">
               {posts.length === 0 ? (
                 <tr>
                   <td
@@ -133,11 +133,11 @@ const ManagePost = () => {
                 posts.map((item) => (
                   <tr
                     key={item.id}
-                    className="hover:bg-white/5 transition-colors"
+                    className="hover:bg-slate-50 transition-colors"
                   >
-                    {/*Title and Description*/}
+                    {/* Title and Description */}
                     <td className="px-6 py-4">
-                      <div className="text-sm font-bold text-[var(--color-primary)] leading-snug">
+                      <div className="text-sm font-bold text-slate-900 leading-snug">
                         {item.title}
                       </div>
                       <div className="text-xs text-slate-500 truncate max-w-xs mt-0.5">
@@ -145,9 +145,9 @@ const ManagePost = () => {
                       </div>
                     </td>
 
-                    {/*Types*/}
+                    {/* Types */}
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2.5 py-0.5 inline-flex text-xs font-semibold rounded-full bg-white/5 border border-white/10 text-slate-600">
+                      <span className="px-2.5 py-0.5 inline-flex text-[11px] font-semibold rounded-md bg-blue-50 border border-blue-100 text-blue-700">
                         {item.experienceType || "INTERVIEW"}
                       </span>
                     </td>

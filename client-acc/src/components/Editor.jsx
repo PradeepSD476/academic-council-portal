@@ -242,57 +242,56 @@ const AdminPostEditor = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-
-        {/*Header*/}
+        {/* Header */}
         <div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-[3px] h-6 bg-[#E85D25] rounded-full shadow-[0_0_8px_#E85D25]" />
-            <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
-              <FileText className="text-[#E85D25]" size={24} />
-              {isNewPost ? "Create Career Experience Post" : "Edit Career Experience Post"}
+          <div className="flex items-center gap-2.5 mb-1.5">
+            <span className="w-2 h-2 rounded-full bg-blue-600" />
+            <h1 className="text-2xl md:text-3xl font-extrabold text-slate-950 tracking-tight flex items-center gap-2.5">
+              <FileText className="text-blue-600" size={24} />
+              <span>{isNewPost ? "Create Career Post" : "Edit Career Post"}</span>
             </h1>
           </div>
-          <p className="text-gray-400 text-sm ml-4">
+          <p className="text-slate-500 text-xs sm:text-sm">
             Review, format, and manage student career insights before publishing.
           </p>
         </div>
 
-        {/*Actions*/}
+        {/* Actions */}
         <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
           <button
             type="button"
             onClick={handleClose}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-white/5 border border-white/10 text-gray-300 text-xs font-semibold rounded-xl hover:text-white hover:bg-white/10 transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-50 hover:text-slate-950 transition cursor-pointer shadow-2xs"
           >
             <ArrowLeft size={14} />
-            Back to Posts
+            <span>Back to Posts</span>
           </button>
           <button
             type="button"
             onClick={handleSaveDraft}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-white/5 border border-white/10 text-gray-300 text-xs font-semibold rounded-xl hover:text-white hover:bg-white/10 transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-50 hover:text-slate-950 transition cursor-pointer shadow-2xs"
           >
             <Save size={14} />
-            Save Draft
+            <span>Save Draft</span>
           </button>
           <button
             type="button"
             onClick={handlePublish}
-            className="inline-flex items-center gap-1.5 px-5 py-2 bg-[#E85D25] hover:bg-[#d44d18] text-white text-xs font-bold rounded-xl shadow-[0_0_15px_rgba(232,93,37,0.35)] transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-xs transition cursor-pointer"
           >
             <CheckCircle size={14} />
-            Publish Post
+            <span>Publish Post</span>
           </button>
         </div>
       </div>
 
-      {/*Form Container*/}
-      <div className="bg-[#141414] rounded-3xl border border-neutral-800 shadow-xl p-6 space-y-6">
+      {/* Form Container */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs p-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-1.5">
-            <label className="flex items-center gap-2 text-xs font-bold text-gray-300 uppercase tracking-wider">
-              <Type size={14} className="text-[#E85D25]" />
-              Post Title
+            <label className="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider">
+              <Type size={14} className="text-blue-600" />
+              <span>Post Title</span>
             </label>
             <input
               type="text"
@@ -300,23 +299,23 @@ const AdminPostEditor = () => {
               value={formData.title}
               onChange={handleChange}
               placeholder="e.g. Google SWE Summer Intern Interview & Prep"
-              className="w-full px-3.5 py-2.5 border border-neutral-800 bg-[#181818] rounded-xl text-white placeholder-gray-500 focus:border-[#E85D25] focus:outline-none text-sm transition"
+              className="w-full px-3.5 py-2.5 border border-slate-200 bg-white rounded-lg text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 focus:outline-none text-sm transition"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="flex items-center gap-2 text-xs font-bold text-gray-300 uppercase tracking-wider">
-              <Tag size={14} className="text-[#E85D25]" />
-              Experience Type
+            <label className="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider">
+              <Tag size={14} className="text-blue-600" />
+              <span>Experience Type</span>
             </label>
             <select
               name="experienceType"
               value={formData.experienceType}
               onChange={handleChange}
-              className="w-full px-3.5 py-2.5 bg-[#181818] border border-neutral-800 rounded-xl text-white focus:border-[#E85D25] focus:outline-none text-sm transition cursor-pointer"
+              className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 focus:outline-none text-sm transition cursor-pointer"
             >
               {EXPERIENCE_TYPE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value} className="bg-neutral-900 text-white">
+                <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
               ))}
@@ -324,18 +323,18 @@ const AdminPostEditor = () => {
           </div>
 
           <div className="space-y-1.5">
-            <label className="flex items-center gap-2 text-xs font-bold text-gray-300 uppercase tracking-wider">
-              <Tag size={14} className="text-[#E85D25]" />
-              Domain Track
+            <label className="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider">
+              <Tag size={14} className="text-blue-600" />
+              <span>Domain Track</span>
             </label>
             <select
               name="domain"
               value={formData.domain}
               onChange={handleChange}
-              className="w-full px-3.5 py-2.5 bg-[#181818] border border-neutral-800 rounded-xl text-white focus:border-[#E85D25] focus:outline-none text-sm transition cursor-pointer"
+              className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 focus:outline-none text-sm transition cursor-pointer"
             >
               {DOMAIN_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value} className="bg-neutral-900 text-white">
+                <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
               ))}
@@ -345,9 +344,9 @@ const AdminPostEditor = () => {
 
         <div className="space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
-            <label className="flex items-center gap-2 text-xs font-bold text-gray-300 uppercase tracking-wider">
-              <FileText size={14} className="text-[#E85D25]" />
-              Rich Article Content
+            <label className="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider">
+              <FileText size={14} className="text-blue-600" />
+              <span>Rich Article Content</span>
             </label>
 
             <div className="flex flex-wrap gap-1.5">
@@ -355,76 +354,76 @@ const AdminPostEditor = () => {
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => applyCommand("formatBlock", "h1")}
-                className="inline-flex items-center gap-1 rounded-xl border border-neutral-800 bg-[#181818] px-2.5 py-1 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#E85D25]/40 transition cursor-pointer"
+                className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-950 transition cursor-pointer"
               >
                 <Heading1 size={13} />
-                H1
+                <span>H1</span>
               </button>
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => applyCommand("bold")}
-                className="inline-flex items-center gap-1 rounded-xl border border-neutral-800 bg-[#181818] px-2.5 py-1 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#E85D25]/40 transition cursor-pointer"
+                className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-950 transition cursor-pointer"
               >
                 <Bold size={13} />
-                Bold
+                <span>Bold</span>
               </button>
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => applyCommand("italic")}
-                className="inline-flex items-center gap-1 rounded-xl border border-neutral-800 bg-[#181818] px-2.5 py-1 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#E85D25]/40 transition cursor-pointer"
+                className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-950 transition cursor-pointer"
               >
                 <Italic size={13} />
-                Italic
+                <span>Italic</span>
               </button>
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => wrapSelectionWithTag("code")}
-                className="inline-flex items-center gap-1 rounded-xl border border-neutral-800 bg-[#181818] px-2.5 py-1 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#E85D25]/40 transition cursor-pointer"
+                className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-950 transition cursor-pointer"
               >
                 <Code size={13} />
-                Code
+                <span>Code</span>
               </button>
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => applyCommand("insertUnorderedList")}
-                className="inline-flex items-center gap-1 rounded-xl border border-neutral-800 bg-[#181818] px-2.5 py-1 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#E85D25]/40 transition cursor-pointer"
+                className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-950 transition cursor-pointer"
               >
                 <List size={13} />
-                List
+                <span>List</span>
               </button>
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => applyCommand("formatBlock", "blockquote")}
-                className="inline-flex items-center gap-1 rounded-xl border border-neutral-800 bg-[#181818] px-2.5 py-1 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#E85D25]/40 transition cursor-pointer"
+                className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-950 transition cursor-pointer"
               >
                 <Quote size={13} />
-                Quote
+                <span>Quote</span>
               </button>
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={applyLink}
-                className="inline-flex items-center gap-1 rounded-xl border border-neutral-800 bg-[#181818] px-2.5 py-1 text-xs font-semibold text-gray-300 hover:text-white hover:border-[#E85D25]/40 transition cursor-pointer"
+                className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-950 transition cursor-pointer"
               >
                 <Link size={13} />
-                Link
+                <span>Link</span>
               </button>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-neutral-800 bg-[#181818] overflow-hidden focus-within:border-[#E85D25] transition">
+          <div className="rounded-xl border border-slate-200 bg-white overflow-hidden focus-within:border-blue-600 transition shadow-2xs">
             <div
               ref={editorRef}
               contentEditable
               suppressContentEditableWarning
               onInput={handleEditorInput}
               onBlur={handleEditorInput}
-              className="rich-editor min-h-80 px-5 py-5 text-gray-100 outline-none leading-relaxed text-sm"
+              className="rich-editor min-h-80 px-5 py-4 text-slate-900 outline-none leading-relaxed text-sm"
               data-placeholder="Write the complete experience details here..."
               aria-label="Post description editor"
             />
