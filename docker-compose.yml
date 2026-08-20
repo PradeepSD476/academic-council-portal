@@ -75,6 +75,8 @@ services:
     image: mongo:latest
     container_name: smp-mongo
     restart: unless-stopped
+    ports:
+      - "27017:27017"
     volumes:
       - smp_mongo_data:/data/db
     command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]

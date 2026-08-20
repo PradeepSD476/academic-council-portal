@@ -1,8 +1,14 @@
 import { prisma } from '../../lib/prisma.js';
 import { z } from 'zod';
+import { STANDARDIZED_BRANCHES, SMP_BRANCH_MAP } from '../../utils/rollValidator.js';
 
 const questionnaireSchema = z.object({
-    branch: z.string().min(2),
+    branch: z.string().refine(
+        (val) => STANDARDIZED_BRANCHES.includes(val) || !!SMP_BRANCH_MAP[val?.toUpperCase()],
+        { message: 'Invalid academic branch selected.' }
+    ).transform(
+        (val) => STANDARDIZED_BRANCHES.includes(val) ? val : (SMP_BRANCH_MAP[val?.toUpperCase()] || val)
+    ),
     techInterests: z.array(z.string()),
     sportsInterests: z.array(z.string()),
     cultInterests: z.array(z.string()),

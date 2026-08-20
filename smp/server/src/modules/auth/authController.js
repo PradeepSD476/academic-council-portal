@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../../lib/prisma.js';
 import { getPublicUrl } from '../../utils/signedUrl.js';
 import { sendMail } from '../../utils/mailer.js';
+import { validateInstituteEmail, validateSmpRollNumber } from '../../utils/rollValidator.js';
 
 const generateOTP = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
@@ -27,36 +28,25 @@ const generateTokenAndSetCookie = (res, id, role) => {
 export const sendSignupOtp = async (req, res) => {
     const { email, rollNumber } = req.body;
     try {
-        const config = await prisma.systemConfig.findFirst();
-        if (config) {
-            if (!config.isRegistrationOpen) {
-                return res.status(403).json({ message: 'Registration is currently closed globally.' });
-            }
-
-            const isFirstYear = rollNumber.startsWith(config.firstYearBatchPrefix);
-            const isSecondYear = rollNumber.startsWith(config.secondYearBatchPrefix);
-            const isThirdYear = rollNumber.startsWith(config.thirdYearBatchPrefix);
-
-            if (!isFirstYear && !isSecondYear && !isThirdYear) {
-                return res.status(403).json({ message: 'Registration is only permitted for active 1st, 2nd, and 3rd year students.' });
-            }
-            if (isFirstYear && !config.allowFirstYearLogin) {
-                return res.status(403).json({ message: 'Registration is currently closed for First-Year students.' });
-            }
-            if (isSecondYear && !config.allowSecondYearLogin) {
-                return res.status(403).json({ message: 'Registration is currently closed for Second-Year students.' });
-            }
-            if (isThirdYear && !config.allowThirdYearLogin) {
-                return res.status(403).json({ message: 'Registration is currently closed for Third-Year students.' });
-            }
+        const emailValidation = validateInstituteEmail(email);
+        if (!emailValidation.valid) {
+            return res.status(400).json({ message: emailValidation.message });
         }
+        const cleanEmail = emailValidation.email;
 
-        const userExists = await prisma.user.findFirst({ where: { OR: [{ email }, { rollNumber }] } });
+        const config = await prisma.systemConfig.findFirst();
+        const rollValidation = validateSmpRollNumber(rollNumber, config, 'registration');
+        if (!rollValidation.valid) {
+            return res.status(403).json({ message: rollValidation.message });
+        }
+        const cleanRollNumber = rollValidation.rollNumber;
+
+        const userExists = await prisma.user.findFirst({ where: { OR: [{ email: cleanEmail }, { rollNumber: cleanRollNumber }] } });
         if (userExists) return res.status(400).json({ message: 'User already exists' });
 
         // Check cooldown per email
         const existingOtp = await prisma.oTP.findFirst({
-            where: { email, purpose: 'SIGNUP' },
+            where: { email: cleanEmail, purpose: 'SIGNUP' },
             orderBy: { createdAt: 'desc' }
         });
         if (existingOtp && (Date.now() - new Date(existingOtp.createdAt).getTime() < OTP_COOLDOWN_MS)) {
@@ -68,13 +58,13 @@ export const sendSignupOtp = async (req, res) => {
         const expiresAt = new Date(Date.now() + OTP_EXPIRY_MS);
 
         // Delete existing OTPs for this email and purpose
-        await prisma.oTP.deleteMany({ where: { email, purpose: 'SIGNUP' } });
+        await prisma.oTP.deleteMany({ where: { email: cleanEmail, purpose: 'SIGNUP' } });
 
         await prisma.oTP.create({
-            data: { email, otp, purpose: 'SIGNUP', expiresAt }
+            data: { email: cleanEmail, otp, purpose: 'SIGNUP', expiresAt }
         });
 
-        const mailSent = await sendMail(email, 'Your SMP Registration OTP', `Your OTP for registration is: ${otp}. It will expire in ${OTP_EXPIRY_MINUTES} minutes.`);
+        const mailSent = await sendMail(cleanEmail, 'Your SMP Registration OTP', `Your OTP for registration is: ${otp}. It will expire in ${OTP_EXPIRY_MINUTES} minutes.`);
         if (!mailSent) {
             return res.status(500).json({ message: 'Failed to send OTP email.' });
         }
@@ -93,9 +83,15 @@ export const signup = async (req, res) => {
         return res.status(400).json({ message: 'OTP is required' });
     }
 
+    const emailValidation = validateInstituteEmail(email);
+    if (!emailValidation.valid) {
+        return res.status(400).json({ message: emailValidation.message });
+    }
+    const cleanEmail = emailValidation.email;
+
     try {
         const otpRecord = await prisma.oTP.findFirst({
-            where: { email, purpose: 'SIGNUP' },
+            where: { email: cleanEmail, purpose: 'SIGNUP' },
             orderBy: { createdAt: 'desc' }
         });
 
@@ -112,38 +108,21 @@ export const signup = async (req, res) => {
         }
 
         const config = await prisma.systemConfig.findFirst();
-        if (config) {
-            if (!config.isRegistrationOpen) {
-                return res.status(403).json({ message: 'Registration is currently closed globally.' });
-            }
-
-            const isFirstYear = rollNumber.startsWith(config.firstYearBatchPrefix);
-            const isSecondYear = rollNumber.startsWith(config.secondYearBatchPrefix);
-            const isThirdYear = rollNumber.startsWith(config.thirdYearBatchPrefix);
-
-            if (!isFirstYear && !isSecondYear && !isThirdYear) {
-                return res.status(403).json({ message: 'Registration is only permitted for active 1st, 2nd, and 3rd year students.' });
-            }
-            if (isFirstYear && !config.allowFirstYearLogin) {
-                return res.status(403).json({ message: 'Registration is currently closed for First-Year students.' });
-            }
-            if (isSecondYear && !config.allowSecondYearLogin) {
-                return res.status(403).json({ message: 'Registration is currently closed for Second-Year students.' });
-            }
-            if (isThirdYear && !config.allowThirdYearLogin) {
-                return res.status(403).json({ message: 'Registration is currently closed for Third-Year students.' });
-            }
+        const rollValidation = validateSmpRollNumber(rollNumber, config, 'registration');
+        if (!rollValidation.valid) {
+            return res.status(403).json({ message: rollValidation.message });
         }
+        const cleanRollNumber = rollValidation.rollNumber;
 
-        const userExists = await prisma.user.findFirst({ where: { OR: [{ email }, { rollNumber }] } });
+        const userExists = await prisma.user.findFirst({ where: { OR: [{ email: cleanEmail }, { rollNumber: cleanRollNumber }] } });
         if (userExists) return res.status(400).json({ message: 'User already exists' });
 
         const salt = await bcrypt.genSalt(10);
         const passwordHash = await bcrypt.hash(password, salt);
-        const user = await prisma.user.create({ data: { name, email, rollNumber, passwordHash } });
+        const user = await prisma.user.create({ data: { name, email: cleanEmail, rollNumber: cleanRollNumber, passwordHash } });
 
         // Cleanup OTP
-        await prisma.oTP.deleteMany({ where: { email, purpose: 'SIGNUP' } });
+        await prisma.oTP.deleteMany({ where: { email: cleanEmail, purpose: 'SIGNUP' } });
 
         generateTokenAndSetCookie(res, user.id, user.role); // Set Cookie
 
@@ -160,29 +139,15 @@ export const signup = async (req, res) => {
 export const login = async (req, res) => {
     const { email, password } = req.body;
     try {
-        const user = await prisma.user.findUnique({ where: { email }, include: { response: true } });
+        const cleanEmail = email ? email.trim().toLowerCase() : '';
+        const user = await prisma.user.findUnique({ where: { email: cleanEmail }, include: { response: true } });
 
         if (user && (await bcrypt.compare(password, user.passwordHash))) {
             if (user.role === 'STUDENT') {
                 const config = await prisma.systemConfig.findFirst();
-                if (config) {
-                    const roll = user.rollNumber || '';
-                    const isFirstYear = roll.startsWith(config.firstYearBatchPrefix);
-                    const isSecondYear = roll.startsWith(config.secondYearBatchPrefix);
-                    const isThirdYear = roll.startsWith(config.thirdYearBatchPrefix);
-
-                    if (!isFirstYear && !isSecondYear && !isThirdYear) {
-                        return res.status(403).json({ message: 'Login is only permitted for active 1st, 2nd, and 3rd year students.' });
-                    }
-                    if (isFirstYear && !config.allowFirstYearLogin) {
-                        return res.status(403).json({ message: 'Login is currently disabled for First-Year students.' });
-                    }
-                    if (isSecondYear && !config.allowSecondYearLogin) {
-                        return res.status(403).json({ message: 'Login is currently disabled for Second-Year students.' });
-                    }
-                    if (isThirdYear && !config.allowThirdYearLogin) {
-                        return res.status(403).json({ message: 'Login is currently disabled for Third-Year students.' });
-                    }
+                const rollValidation = validateSmpRollNumber(user.rollNumber, config, 'login');
+                if (!rollValidation.valid) {
+                    return res.status(403).json({ message: rollValidation.message });
                 }
             }
 
@@ -234,14 +199,20 @@ export const getMe = async (req, res) => {
 export const sendResetPasswordOtp = async (req, res) => {
     const { email } = req.body;
     try {
-        const user = await prisma.user.findUnique({ where: { email } });
+        const emailValidation = validateInstituteEmail(email);
+        if (!emailValidation.valid) {
+            return res.status(400).json({ message: emailValidation.message });
+        }
+        const cleanEmail = emailValidation.email;
+
+        const user = await prisma.user.findUnique({ where: { email: cleanEmail } });
         if (!user) {
             return res.status(404).json({ message: 'User with this email does not exist.' });
         }
 
         // Check cooldown per email
         const existingOtp = await prisma.oTP.findFirst({
-            where: { email, purpose: 'RESET_PASSWORD' },
+            where: { email: cleanEmail, purpose: 'RESET_PASSWORD' },
             orderBy: { createdAt: 'desc' }
         });
         if (existingOtp && (Date.now() - new Date(existingOtp.createdAt).getTime() < OTP_COOLDOWN_MS)) {
@@ -253,13 +224,13 @@ export const sendResetPasswordOtp = async (req, res) => {
         const expiresAt = new Date(Date.now() + OTP_EXPIRY_MS);
 
         // Delete existing OTPs for this email and purpose
-        await prisma.oTP.deleteMany({ where: { email, purpose: 'RESET_PASSWORD' } });
+        await prisma.oTP.deleteMany({ where: { email: cleanEmail, purpose: 'RESET_PASSWORD' } });
 
         await prisma.oTP.create({
-            data: { email, otp, purpose: 'RESET_PASSWORD', expiresAt }
+            data: { email: cleanEmail, otp, purpose: 'RESET_PASSWORD', expiresAt }
         });
 
-        const mailSent = await sendMail(email, 'SMP Password Reset OTP', `Your OTP for password reset is: ${otp}. It will expire in ${OTP_EXPIRY_MINUTES} minutes.`);
+        const mailSent = await sendMail(cleanEmail, 'SMP Password Reset OTP', `Your OTP for password reset is: ${otp}. It will expire in ${OTP_EXPIRY_MINUTES} minutes.`);
         if (!mailSent) {
             return res.status(500).json({ message: 'Failed to send OTP email.' });
         }
@@ -278,9 +249,15 @@ export const resetPassword = async (req, res) => {
         return res.status(400).json({ message: 'Email, OTP, and new password are required.' });
     }
 
+    const emailValidation = validateInstituteEmail(email);
+    if (!emailValidation.valid) {
+        return res.status(400).json({ message: emailValidation.message });
+    }
+    const cleanEmail = emailValidation.email;
+
     try {
         const otpRecord = await prisma.oTP.findFirst({
-            where: { email, purpose: 'RESET_PASSWORD' },
+            where: { email: cleanEmail, purpose: 'RESET_PASSWORD' },
             orderBy: { createdAt: 'desc' }
         });
 
@@ -296,7 +273,7 @@ export const resetPassword = async (req, res) => {
             return res.status(400).json({ message: 'OTP has expired. Please request a new one.' });
         }
 
-        const user = await prisma.user.findUnique({ where: { email } });
+        const user = await prisma.user.findUnique({ where: { email: cleanEmail } });
         if (!user) {
             return res.status(404).json({ message: 'User not found.' });
         }
@@ -305,16 +282,16 @@ export const resetPassword = async (req, res) => {
         const passwordHash = await bcrypt.hash(newPassword, salt);
 
         await prisma.user.update({
-            where: { email },
+            where: { email: cleanEmail },
             data: { passwordHash }
         });
 
         // Cleanup OTP
-        await prisma.oTP.deleteMany({ where: { email, purpose: 'RESET_PASSWORD' } });
+        await prisma.oTP.deleteMany({ where: { email: cleanEmail, purpose: 'RESET_PASSWORD' } });
 
         res.status(200).json({ message: 'Password reset successfully. You can now login.' });
     } catch (error) {
         console.error("Reset Password Error:", error);
         res.status(500).json({ message: 'Server error' });
     }
-};
+};

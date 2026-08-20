@@ -10,9 +10,9 @@ const groupId = ObjectId();
 db.User.insertMany([
   {
     _id: mentorId,
-    email: 'mentor@test.com',
+    email: 'mentor@iitp.ac.in',
     name: 'Karan Verma',
-    rollNumber: '22BCS001',
+    rollNumber: '2401CS01',
     passwordHash: hash,
     role: 'STUDENT',
     smpRole: 'MENTOR',
@@ -21,9 +21,9 @@ db.User.insertMany([
   },
   {
     _id: comentorId,
-    email: 'comentor@test.com',
+    email: 'comentor@iitp.ac.in',
     name: 'Priya Sharma',
-    rollNumber: '23BCS101',
+    rollNumber: '2501CS01',
     passwordHash: hash,
     role: 'STUDENT',
     smpRole: 'CO_MENTOR',
@@ -32,9 +32,9 @@ db.User.insertMany([
   },
   {
     _id: menteeId,
-    email: 'mentee@test.com',
+    email: 'mentee@iitp.ac.in',
     name: 'Rahul Sharma',
-    rollNumber: '24BCS101',
+    rollNumber: '2601CS01',
     passwordHash: hash,
     role: 'STUDENT',
     smpRole: 'MENTEE',

@@ -9,8 +9,23 @@ import { Link, useNavigate } from 'react-router-dom';
 
 const signupSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
-  rollNumber: z.string().min(3, 'Roll number is required'),
-  email: z.string().email('Please enter a valid email address'),
+  rollNumber: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(
+      /^[0-9]{2}(01|02|03)[A-Za-z]{2}[0-9]{2}$/,
+      'Must be an 8-character B.Tech or Dual-Degree roll number (e.g. 2401AI36)'
+    ),
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .email('Please enter a valid email address')
+    .refine(
+      (val) => val.endsWith('@iitp.ac.in'),
+      { message: 'Must be an official @iitp.ac.in email address' }
+    ),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 

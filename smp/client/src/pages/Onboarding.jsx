@@ -13,17 +13,7 @@ const PRESET_CULT = ['Music & Singing', 'Dance', 'Dramatics & Acting', 'Fine Art
 const PRESET_HOBBIES = ['Reading', 'Gaming', 'Traveling', 'Cooking', 'Gardening', 'Writing & Blogging', 'Hiking & Trekking', 'Anime & Manga', 'Podcasting'];
 const PRESET_GOALS = ['Placements', 'Higher Studies (MS/MTech)', 'Research & Academia', 'Entrepreneurship / Startup', 'Competitive Programming', 'Open Source Contrib', 'Public Speaking', 'Civil Services (UPSC)'];
 
-const BRANCHES = [
-  'Computer Science & Engineering',
-  'Electronics & Communication Engineering',
-  'Electrical Engineering',
-  'Mechanical Engineering',
-  'Civil Engineering',
-  'Chemical Engineering',
-  'Metallurgical & Materials Engineering',
-  'Bio-Technology',
-  'Physics & Sciences'
-];
+import { STANDARDIZED_BRANCHES as BRANCHES, inferBranchFromRoll } from '../constants/branches';
 
 export default function Onboarding() {
   const [config, setConfig] = useState(null);
@@ -41,9 +31,18 @@ export default function Onboarding() {
   const [hobbies, setHobbies] = useState([]);
   const [goals, setGoals] = useState([]);
 
-  const { logout, setHasSubmittedQuestionnaire } = useAuth();
+  const { user, logout, setHasSubmittedQuestionnaire } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user?.rollNumber && !branch) {
+      const inferred = inferBranchFromRoll(user.rollNumber);
+      if (inferred) {
+        setBranch(inferred);
+      }
+    }
+  }, [user, branch]);
 
   useEffect(() => {
     async function fetchConfig() {
