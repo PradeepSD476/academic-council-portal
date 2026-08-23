@@ -1,0 +1,2579 @@
+[
+  {
+    "groupId": "6a86de4aa714f0b0ec4cd5d4",
+    "groupName": "SMP-Group-72",
+    "mentor": null,
+    "coMentors": [
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a66850",
+          "email": "comentor7@iitp.ac.in",
+          "rollNumber": "2501ES16",
+          "name": "Gabriel Patel",
+          "role": "STUDENT",
+          "smpRole": "CO_MENTOR",
+          "coMentorIds": [
+            "6a86de4aa714f0b0ec4cd5d4"
+          ],
+          "menteeIds": []
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a66851",
+          "userId": "6a86ddfd12b32e37a3a66850",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "Cloud Computing",
+            "App Dev"
+          ],
+          "sportsInterests": [
+            "Chess",
+            "Volleyball",
+            "Football"
+          ],
+          "cultInterests": [],
+          "languages": [
+            "Java"
+          ],
+          "hobbies": [
+            "Gaming",
+            "Traveling",
+            "Reading"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NON_CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a66870",
+          "email": "comentor23@iitp.ac.in",
+          "rollNumber": "2501ES32",
+          "name": "Chatresh Narayanan",
+          "role": "STUDENT",
+          "smpRole": "CO_MENTOR",
+          "coMentorIds": [
+            "6a86de4aa714f0b0ec4cd5d4"
+          ],
+          "menteeIds": []
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a66871",
+          "userId": "6a86ddfd12b32e37a3a66870",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "Web Dev"
+          ],
+          "sportsInterests": [
+            "Table Tennis",
+            "Football",
+            "Athletics"
+          ],
+          "cultInterests": [],
+          "languages": [
+            "Java"
+          ],
+          "hobbies": [
+            "Gaming",
+            "Cooking",
+            "Movies",
+            "Reading"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "CORE"
+        }
+      }
+    ],
+    "mentees": [
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a66360",
+          "email": "mentee175@iitp.ac.in",
+          "rollNumber": "2601ES95",
+          "name": "Harshil Jain",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de4aa714f0b0ec4cd5d4"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a66361",
+          "userId": "6a86ddfd12b32e37a3a66360",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "Cloud Computing",
+            "Game Dev",
+            "Web Dev",
+            "IoT"
+          ],
+          "sportsInterests": [
+            "Table Tennis",
+            "Football",
+            "Volleyball"
+          ],
+          "cultInterests": [
+            "Photography"
+          ],
+          "languages": [
+            "Java"
+          ],
+          "hobbies": [
+            "Movies",
+            "Traveling",
+            "Anime"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NO_PREFERENCE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a6639e",
+          "email": "mentee206@iitp.ac.in",
+          "rollNumber": "2601ES37",
+          "name": "Anirudh Ramakrishnan",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de4aa714f0b0ec4cd5d4"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a6639f",
+          "userId": "6a86ddfd12b32e37a3a6639e",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "CyberSec",
+            "Game Dev",
+            "IoT",
+            "App Dev"
+          ],
+          "sportsInterests": [],
+          "cultInterests": [
+            "Dance"
+          ],
+          "languages": [
+            "Java"
+          ],
+          "hobbies": [
+            "Gaming",
+            "Fitness"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NON_CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a6647c",
+          "email": "mentee317@iitp.ac.in",
+          "rollNumber": "2601ES59",
+          "name": "Mahika Sen",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de4aa714f0b0ec4cd5d4"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a6647d",
+          "userId": "6a86ddfd12b32e37a3a6647c",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "App Dev"
+          ],
+          "sportsInterests": [
+            "Athletics"
+          ],
+          "cultInterests": [],
+          "languages": [
+            "C++",
+            "Java"
+          ],
+          "hobbies": [
+            "Anime",
+            "Gaming"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NON_CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a66550",
+          "email": "mentee423@iitp.ac.in",
+          "rollNumber": "2601ES76",
+          "name": "Aradhana Edwin",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de4aa714f0b0ec4cd5d4"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a66551",
+          "userId": "6a86ddfd12b32e37a3a66550",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "Machine Learning",
+            "CyberSec"
+          ],
+          "sportsInterests": [
+            "Badminton",
+            "Football"
+          ],
+          "cultInterests": [],
+          "languages": [
+            "Java",
+            "TypeScript"
+          ],
+          "hobbies": [
+            "Fitness",
+            "Traveling",
+            "Gaming"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NON_CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a6656a",
+          "email": "mentee436@iitp.ac.in",
+          "rollNumber": "2601ES89",
+          "name": "Pushti Hayer",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de4aa714f0b0ec4cd5d4"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a6656b",
+          "userId": "6a86ddfd12b32e37a3a6656a",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "Game Dev",
+            "Web Dev",
+            "CyberSec",
+            "IoT"
+          ],
+          "sportsInterests": [
+            "Basketball",
+            "Volleyball"
+          ],
+          "cultInterests": [
+            "Music",
+            "Drama"
+          ],
+          "languages": [
+            "Java"
+          ],
+          "hobbies": [
+            "Fitness"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a665b4",
+          "email": "mentee473@iitp.ac.in",
+          "rollNumber": "2601ES37",
+          "name": "Sai Sahota",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de4aa714f0b0ec4cd5d4"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a665b5",
+          "userId": "6a86ddfd12b32e37a3a665b4",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "App Dev",
+            "CyberSec",
+            "Machine Learning"
+          ],
+          "sportsInterests": [
+            "Volleyball",
+            "Athletics"
+          ],
+          "cultInterests": [],
+          "languages": [
+            "TypeScript",
+            "Java"
+          ],
+          "hobbies": [
+            "Movies"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NON_CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a6664c",
+          "email": "mentee549@iitp.ac.in",
+          "rollNumber": "2601ES24",
+          "name": "Joshua Dugar",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de4aa714f0b0ec4cd5d4"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a6664d",
+          "userId": "6a86ddfd12b32e37a3a6664c",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "IoT",
+            "Cloud Computing",
+            "Machine Learning",
+            "CyberSec"
+          ],
+          "sportsInterests": [
+            "Athletics",
+            "Cricket",
+            "Football"
+          ],
+          "cultInterests": [],
+          "languages": [
+            "Java"
+          ],
+          "hobbies": [
+            "Movies",
+            "Traveling",
+            "Fitness"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NON_CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a6674c",
+          "email": "mentee677@iitp.ac.in",
+          "rollNumber": "2601ES63",
+          "name": "Jeevika Bhagat",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de4aa714f0b0ec4cd5d4"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a6674d",
+          "userId": "6a86ddfd12b32e37a3a6674c",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "CyberSec",
+            "Web Dev"
+          ],
+          "sportsInterests": [
+            "Athletics",
+            "Cricket",
+            "Volleyball"
+          ],
+          "cultInterests": [],
+          "languages": [
+            "JavaScript",
+            "Java"
+          ],
+          "hobbies": [
+            "Cooking"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NON_CORE"
+        }
+      }
+    ]
+  },
+  {
+    "groupId": "6a86de49a714f0b0ec4cd593",
+    "groupName": "SMP-Group-7",
+    "mentor": null,
+    "coMentors": [
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a668aa",
+          "email": "comentor52@iitp.ac.in",
+          "rollNumber": "2501ES61",
+          "name": "Rishi Sura",
+          "role": "STUDENT",
+          "smpRole": "CO_MENTOR",
+          "coMentorIds": [
+            "6a86de49a714f0b0ec4cd593"
+          ],
+          "menteeIds": []
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a668ab",
+          "userId": "6a86ddfd12b32e37a3a668aa",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "App Dev",
+            "Machine Learning",
+            "IoT"
+          ],
+          "sportsInterests": [],
+          "cultInterests": [
+            "Debating",
+            "Fine Arts"
+          ],
+          "languages": [
+            "JavaScript"
+          ],
+          "hobbies": [
+            "Traveling"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a668f0",
+          "email": "comentor87@iitp.ac.in",
+          "rollNumber": "2501ES96",
+          "name": "Aishani Amble",
+          "role": "STUDENT",
+          "smpRole": "CO_MENTOR",
+          "coMentorIds": [
+            "6a86de49a714f0b0ec4cd593"
+          ],
+          "menteeIds": []
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a668f1",
+          "userId": "6a86ddfd12b32e37a3a668f0",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "Cloud Computing",
+            "Blockchain"
+          ],
+          "sportsInterests": [
+            "Volleyball"
+          ],
+          "cultInterests": [
+            "Dance",
+            "Photography"
+          ],
+          "languages": [
+            "JavaScript",
+            "Go"
+          ],
+          "hobbies": [
+            "Reading",
+            "Traveling"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NO_PREFERENCE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a669a0",
+          "email": "comentor175@iitp.ac.in",
+          "rollNumber": "2501EE95",
+          "name": "Gauri Babu",
+          "role": "STUDENT",
+          "smpRole": "CO_MENTOR",
+          "coMentorIds": [
+            "6a86de49a714f0b0ec4cd593"
+          ],
+          "menteeIds": []
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a669a1",
+          "userId": "6a86ddfd12b32e37a3a669a0",
+          "academicYear": "2026-2027",
+          "branch": "Electrical Engineering",
+          "techInterests": [
+            "CyberSec",
+            "Web Dev"
+          ],
+          "sportsInterests": [
+            "Chess",
+            "Cricket"
+          ],
+          "cultInterests": [
+            "Debating",
+            "Quiz"
+          ],
+          "languages": [
+            "JavaScript",
+            "Python"
+          ],
+          "hobbies": [
+            "Fitness",
+            "Anime"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NO_PREFERENCE"
+        }
+      }
+    ],
+    "mentees": [
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a662de",
+          "email": "mentee110@iitp.ac.in",
+          "rollNumber": "2601ES30",
+          "name": "Yashoda Palla",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de49a714f0b0ec4cd593"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a662df",
+          "userId": "6a86ddfd12b32e37a3a662de",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "Cloud Computing",
+            "CyberSec",
+            "IoT"
+          ],
+          "sportsInterests": [
+            "Football",
+            "Table Tennis"
+          ],
+          "cultInterests": [],
+          "languages": [
+            "JavaScript"
+          ],
+          "hobbies": [
+            "Reading"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NO_PREFERENCE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a6637e",
+          "email": "mentee190@iitp.ac.in",
+          "rollNumber": "2601ES21",
+          "name": "Bina Ramanathan",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de49a714f0b0ec4cd593"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a6637f",
+          "userId": "6a86ddfd12b32e37a3a6637e",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "Cloud Computing",
+            "Game Dev",
+            "Blockchain"
+          ],
+          "sportsInterests": [],
+          "cultInterests": [
+            "Quiz"
+          ],
+          "languages": [
+            "JavaScript"
+          ],
+          "hobbies": [
+            "Cooking",
+            "Reading",
+            "Fitness"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a6651e",
+          "email": "mentee398@iitp.ac.in",
+          "rollNumber": "2601ES51",
+          "name": "Zilmil Basak",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de49a714f0b0ec4cd593"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a6651f",
+          "userId": "6a86ddfd12b32e37a3a6651e",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "Machine Learning"
+          ],
+          "sportsInterests": [
+            "Chess"
+          ],
+          "cultInterests": [],
+          "languages": [
+            "JavaScript",
+            "Java"
+          ],
+          "hobbies": [
+            "Cooking",
+            "Fitness",
+            "Movies"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NO_PREFERENCE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a66580",
+          "email": "mentee447@iitp.ac.in",
+          "rollNumber": "2601ES11",
+          "name": "Jagrati Contractor",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de49a714f0b0ec4cd593"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a66581",
+          "userId": "6a86ddfd12b32e37a3a66580",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "Game Dev",
+            "CyberSec",
+            "IoT"
+          ],
+          "sportsInterests": [
+            "Badminton",
+            "Chess"
+          ],
+          "cultInterests": [],
+          "languages": [
+            "JavaScript"
+          ],
+          "hobbies": [
+            "Cooking",
+            "Movies",
+            "Gaming",
+            "Reading"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NON_CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a6658e",
+          "email": "mentee454@iitp.ac.in",
+          "rollNumber": "2601ES18",
+          "name": "Laksh Varughese",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de49a714f0b0ec4cd593"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a6658f",
+          "userId": "6a86ddfd12b32e37a3a6658e",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "CyberSec",
+            "App Dev",
+            "Web Dev"
+          ],
+          "sportsInterests": [
+            "Football"
+          ],
+          "cultInterests": [
+            "Debating",
+            "Photography"
+          ],
+          "languages": [
+            "Python",
+            "JavaScript"
+          ],
+          "hobbies": [
+            "Traveling",
+            "Cooking",
+            "Anime"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a665a6",
+          "email": "mentee466@iitp.ac.in",
+          "rollNumber": "2601ES30",
+          "name": "Manthan Sibal",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de49a714f0b0ec4cd593"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a665a7",
+          "userId": "6a86ddfd12b32e37a3a665a6",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "Blockchain",
+            "IoT",
+            "Web Dev",
+            "Game Dev"
+          ],
+          "sportsInterests": [],
+          "cultInterests": [
+            "Debating"
+          ],
+          "languages": [
+            "JavaScript"
+          ],
+          "hobbies": [
+            "Traveling",
+            "Reading",
+            "Fitness",
+            "Gaming"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NON_CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a665ea",
+          "email": "mentee500@iitp.ac.in",
+          "rollNumber": "2601ES64",
+          "name": "Yadavi Nagar",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de49a714f0b0ec4cd593"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a665eb",
+          "userId": "6a86ddfd12b32e37a3a665ea",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "App Dev",
+            "Machine Learning"
+          ],
+          "sportsInterests": [
+            "Cricket",
+            "Badminton",
+            "Basketball"
+          ],
+          "cultInterests": [
+            "Dance",
+            "Drama"
+          ],
+          "languages": [
+            "JavaScript"
+          ],
+          "hobbies": [
+            "Fitness",
+            "Reading",
+            "Anime",
+            "Gaming"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a6665c",
+          "email": "mentee557@iitp.ac.in",
+          "rollNumber": "2601ES32",
+          "name": "Baghyawati Wable",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de49a714f0b0ec4cd593"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a6665d",
+          "userId": "6a86ddfd12b32e37a3a6665c",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "Web Dev"
+          ],
+          "sportsInterests": [],
+          "cultInterests": [],
+          "languages": [
+            "Python",
+            "JavaScript",
+            "C++"
+          ],
+          "hobbies": [
+            "Anime",
+            "Reading",
+            "Traveling"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NON_CORE"
+        }
+      }
+    ]
+  },
+  {
+    "groupId": "6a86de49a714f0b0ec4cd58e",
+    "groupName": "SMP-Group-2",
+    "mentor": null,
+    "coMentors": [
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a66940",
+          "email": "comentor127@iitp.ac.in",
+          "rollNumber": "2501EE47",
+          "name": "Meera Gara",
+          "role": "STUDENT",
+          "smpRole": "CO_MENTOR",
+          "coMentorIds": [
+            "6a86de49a714f0b0ec4cd58e"
+          ],
+          "menteeIds": []
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a66941",
+          "userId": "6a86ddfd12b32e37a3a66940",
+          "academicYear": "2026-2027",
+          "branch": "Electrical Engineering",
+          "techInterests": [
+            "App Dev",
+            "Cloud Computing",
+            "CyberSec",
+            "Game Dev"
+          ],
+          "sportsInterests": [
+            "Basketball",
+            "Athletics",
+            "Table Tennis"
+          ],
+          "cultInterests": [],
+          "languages": [
+            "C++",
+            "TypeScript"
+          ],
+          "hobbies": [
+            "Traveling"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a66a0e",
+          "email": "comentor230@iitp.ac.in",
+          "rollNumber": "2501EE61",
+          "name": "Kai Choudhry",
+          "role": "STUDENT",
+          "smpRole": "CO_MENTOR",
+          "coMentorIds": [
+            "6a86de49a714f0b0ec4cd58e"
+          ],
+          "menteeIds": []
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a66a0f",
+          "userId": "6a86ddfd12b32e37a3a66a0e",
+          "academicYear": "2026-2027",
+          "branch": "Electrical Engineering",
+          "techInterests": [
+            "CyberSec"
+          ],
+          "sportsInterests": [],
+          "cultInterests": [],
+          "languages": [
+            "C++"
+          ],
+          "hobbies": [
+            "Cooking",
+            "Reading"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NO_PREFERENCE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a66a18",
+          "email": "comentor235@iitp.ac.in",
+          "rollNumber": "2501EE66",
+          "name": "Dalbir Jayaraman",
+          "role": "STUDENT",
+          "smpRole": "CO_MENTOR",
+          "coMentorIds": [
+            "6a86de49a714f0b0ec4cd58e"
+          ],
+          "menteeIds": []
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a66a19",
+          "userId": "6a86ddfd12b32e37a3a66a18",
+          "academicYear": "2026-2027",
+          "branch": "Electrical Engineering",
+          "techInterests": [
+            "Web Dev",
+            "Blockchain",
+            "App Dev"
+          ],
+          "sportsInterests": [
+            "Chess",
+            "Badminton"
+          ],
+          "cultInterests": [
+            "Drama"
+          ],
+          "languages": [
+            "Go"
+          ],
+          "hobbies": [
+            "Cooking"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "CORE"
+        }
+      }
+    ],
+    "mentees": [
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a662d8",
+          "email": "mentee107@iitp.ac.in",
+          "rollNumber": "2601EE27",
+          "name": "Yug Shankar",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de49a714f0b0ec4cd58e"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a662d9",
+          "userId": "6a86ddfd12b32e37a3a662d8",
+          "academicYear": "2026-2027",
+          "branch": "Electrical Engineering",
+          "techInterests": [
+            "Game Dev",
+            "IoT",
+            "App Dev",
+            "Cloud Computing"
+          ],
+          "sportsInterests": [
+            "Basketball",
+            "Table Tennis"
+          ],
+          "cultInterests": [
+            "Fine Arts"
+          ],
+          "languages": [
+            "C++"
+          ],
+          "hobbies": [
+            "Traveling"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NON_CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a6630e",
+          "email": "mentee134@iitp.ac.in",
+          "rollNumber": "2601EE54",
+          "name": "Ansh Chadha",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de49a714f0b0ec4cd58e"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a6630f",
+          "userId": "6a86ddfd12b32e37a3a6630e",
+          "academicYear": "2026-2027",
+          "branch": "Electrical Engineering",
+          "techInterests": [
+            "Web Dev",
+            "Cloud Computing",
+            "App Dev",
+            "Game Dev"
+          ],
+          "sportsInterests": [
+            "Volleyball",
+            "Badminton"
+          ],
+          "cultInterests": [
+            "Photography"
+          ],
+          "languages": [
+            "Python",
+            "C++",
+            "Rust"
+          ],
+          "hobbies": [
+            "Fitness",
+            "Cooking"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NON_CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a6633e",
+          "email": "mentee158@iitp.ac.in",
+          "rollNumber": "2601EE78",
+          "name": "Ishwar Vaidya",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de49a714f0b0ec4cd58e"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a6633f",
+          "userId": "6a86ddfd12b32e37a3a6633e",
+          "academicYear": "2026-2027",
+          "branch": "Electrical Engineering",
+          "techInterests": [
+            "Web Dev",
+            "Game Dev",
+            "App Dev",
+            "Cloud Computing"
+          ],
+          "sportsInterests": [],
+          "cultInterests": [
+            "Debating"
+          ],
+          "languages": [
+            "C++"
+          ],
+          "hobbies": [
+            "Anime"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NON_CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a66368",
+          "email": "mentee179@iitp.ac.in",
+          "rollNumber": "2601EE10",
+          "name": "Balendra Patil",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de49a714f0b0ec4cd58e"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a66369",
+          "userId": "6a86ddfd12b32e37a3a66368",
+          "academicYear": "2026-2027",
+          "branch": "Electrical Engineering",
+          "techInterests": [
+            "Web Dev",
+            "App Dev"
+          ],
+          "sportsInterests": [
+            "Chess"
+          ],
+          "cultInterests": [],
+          "languages": [
+            "C++",
+            "Python"
+          ],
+          "hobbies": [
+            "Traveling"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a66498",
+          "email": "mentee331@iitp.ac.in",
+          "rollNumber": "2601EE73",
+          "name": "Zayyan Barad",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de49a714f0b0ec4cd58e"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a66499",
+          "userId": "6a86ddfd12b32e37a3a66498",
+          "academicYear": "2026-2027",
+          "branch": "Electrical Engineering",
+          "techInterests": [
+            "App Dev",
+            "Blockchain",
+            "Game Dev",
+            "Cloud Computing"
+          ],
+          "sportsInterests": [
+            "Cricket"
+          ],
+          "cultInterests": [
+            "Fine Arts"
+          ],
+          "languages": [
+            "Java",
+            "C++"
+          ],
+          "hobbies": [
+            "Movies"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NO_PREFERENCE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a664c8",
+          "email": "mentee355@iitp.ac.in",
+          "rollNumber": "2601EE97",
+          "name": "Ganga Nanda",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de49a714f0b0ec4cd58e"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a664c9",
+          "userId": "6a86ddfd12b32e37a3a664c8",
+          "academicYear": "2026-2027",
+          "branch": "Electrical Engineering",
+          "techInterests": [
+            "Web Dev",
+            "Blockchain",
+            "Game Dev"
+          ],
+          "sportsInterests": [
+            "Badminton"
+          ],
+          "cultInterests": [],
+          "languages": [
+            "C++"
+          ],
+          "hobbies": [
+            "Fitness",
+            "Anime",
+            "Cooking"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NO_PREFERENCE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a664ea",
+          "email": "mentee372@iitp.ac.in",
+          "rollNumber": "2601EE25",
+          "name": "Ojasvi Nadkarni",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de49a714f0b0ec4cd58e"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a664eb",
+          "userId": "6a86ddfd12b32e37a3a664ea",
+          "academicYear": "2026-2027",
+          "branch": "Electrical Engineering",
+          "techInterests": [
+            "Machine Learning",
+            "App Dev",
+            "Game Dev",
+            "Cloud Computing"
+          ],
+          "sportsInterests": [
+            "Volleyball",
+            "Table Tennis"
+          ],
+          "cultInterests": [
+            "Dance",
+            "Quiz"
+          ],
+          "languages": [
+            "Python",
+            "C++"
+          ],
+          "hobbies": [
+            "Cooking",
+            "Movies"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NO_PREFERENCE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a66510",
+          "email": "mentee391@iitp.ac.in",
+          "rollNumber": "2601EE44",
+          "name": "Ekanta Barman",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de49a714f0b0ec4cd58e"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a66511",
+          "userId": "6a86ddfd12b32e37a3a66510",
+          "academicYear": "2026-2027",
+          "branch": "Electrical Engineering",
+          "techInterests": [
+            "CyberSec",
+            "Blockchain"
+          ],
+          "sportsInterests": [],
+          "cultInterests": [
+            "Drama",
+            "Debating"
+          ],
+          "languages": [
+            "C++"
+          ],
+          "hobbies": [
+            "Traveling"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NON_CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a667e0",
+          "email": "mentee751@iitp.ac.in",
+          "rollNumber": "2601EE48",
+          "name": "Neelima Sunder",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de49a714f0b0ec4cd58e"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a667e1",
+          "userId": "6a86ddfd12b32e37a3a667e0",
+          "academicYear": "2026-2027",
+          "branch": "Electrical Engineering",
+          "techInterests": [
+            "CyberSec",
+            "App Dev",
+            "Blockchain"
+          ],
+          "sportsInterests": [
+            "Table Tennis",
+            "Volleyball"
+          ],
+          "cultInterests": [],
+          "languages": [
+            "Go",
+            "C++"
+          ],
+          "hobbies": [
+            "Reading",
+            "Anime",
+            "Cooking",
+            "Gaming"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NO_PREFERENCE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a66812",
+          "email": "mentee776@iitp.ac.in",
+          "rollNumber": "2601EE73",
+          "name": "Zaitra Chada",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de49a714f0b0ec4cd58e"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a66813",
+          "userId": "6a86ddfd12b32e37a3a66812",
+          "academicYear": "2026-2027",
+          "branch": "Electrical Engineering",
+          "techInterests": [
+            "App Dev"
+          ],
+          "sportsInterests": [
+            "Table Tennis",
+            "Football",
+            "Badminton"
+          ],
+          "cultInterests": [
+            "Fine Arts",
+            "Photography"
+          ],
+          "languages": [
+            "C++"
+          ],
+          "hobbies": [
+            "Cooking",
+            "Gaming",
+            "Movies",
+            "Traveling"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NON_CORE"
+        }
+      }
+    ]
+  },
+  {
+    "groupId": "6a86de49a714f0b0ec4cd5a6",
+    "groupName": "SMP-Group-26",
+    "mentor": null,
+    "coMentors": [
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a66856",
+          "email": "comentor10@iitp.ac.in",
+          "rollNumber": "2501ES19",
+          "name": "Abhimanyu Lad",
+          "role": "STUDENT",
+          "smpRole": "CO_MENTOR",
+          "coMentorIds": [
+            "6a86de49a714f0b0ec4cd5a6"
+          ],
+          "menteeIds": []
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a66857",
+          "userId": "6a86ddfd12b32e37a3a66856",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "Game Dev",
+            "Machine Learning",
+            "Cloud Computing",
+            "Blockchain"
+          ],
+          "sportsInterests": [
+            "Football",
+            "Badminton",
+            "Basketball"
+          ],
+          "cultInterests": [],
+          "languages": [
+            "C++",
+            "Java"
+          ],
+          "hobbies": [
+            "Gaming",
+            "Cooking"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NON_CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a66872",
+          "email": "comentor24@iitp.ac.in",
+          "rollNumber": "2501ES33",
+          "name": "Nihal Narasimhan",
+          "role": "STUDENT",
+          "smpRole": "CO_MENTOR",
+          "coMentorIds": [
+            "6a86de49a714f0b0ec4cd5a6"
+          ],
+          "menteeIds": []
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a66873",
+          "userId": "6a86ddfd12b32e37a3a66872",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "Cloud Computing",
+            "App Dev"
+          ],
+          "sportsInterests": [],
+          "cultInterests": [
+            "Quiz"
+          ],
+          "languages": [
+            "C++"
+          ],
+          "hobbies": [
+            "Reading"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NO_PREFERENCE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a6689e",
+          "email": "comentor46@iitp.ac.in",
+          "rollNumber": "2501ES55",
+          "name": "Janya Rattan",
+          "role": "STUDENT",
+          "smpRole": "CO_MENTOR",
+          "coMentorIds": [
+            "6a86de49a714f0b0ec4cd5a6"
+          ],
+          "menteeIds": []
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a6689f",
+          "userId": "6a86ddfd12b32e37a3a6689e",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "Cloud Computing",
+            "Machine Learning"
+          ],
+          "sportsInterests": [
+            "Volleyball"
+          ],
+          "cultInterests": [
+            "Photography",
+            "Drama"
+          ],
+          "languages": [
+            "Go",
+            "C++"
+          ],
+          "hobbies": [
+            "Reading"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NON_CORE"
+        }
+      }
+    ],
+    "mentees": [
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a66264",
+          "email": "mentee49@iitp.ac.in",
+          "rollNumber": "2601ES58",
+          "name": "Farhan Ganguly",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de49a714f0b0ec4cd5a6"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a66265",
+          "userId": "6a86ddfd12b32e37a3a66264",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "App Dev",
+            "Machine Learning",
+            "IoT",
+            "Blockchain"
+          ],
+          "sportsInterests": [
+            "Table Tennis",
+            "Basketball"
+          ],
+          "cultInterests": [
+            "Drama",
+            "Debating"
+          ],
+          "languages": [
+            "C++",
+            "Rust"
+          ],
+          "hobbies": [
+            "Movies",
+            "Anime",
+            "Cooking"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NON_CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a6631c",
+          "email": "mentee141@iitp.ac.in",
+          "rollNumber": "2601ES61",
+          "name": "Nitara Bassi",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de49a714f0b0ec4cd5a6"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a6631d",
+          "userId": "6a86ddfd12b32e37a3a6631c",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "Machine Learning",
+            "Cloud Computing",
+            "Web Dev"
+          ],
+          "sportsInterests": [
+            "Basketball",
+            "Badminton",
+            "Chess"
+          ],
+          "cultInterests": [
+            "Music",
+            "Fine Arts"
+          ],
+          "languages": [
+            "Java",
+            "Rust",
+            "C++"
+          ],
+          "hobbies": [
+            "Fitness"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NON_CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a664e2",
+          "email": "mentee368@iitp.ac.in",
+          "rollNumber": "2601ES21",
+          "name": "Baghyawati Dhingra",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de49a714f0b0ec4cd5a6"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a664e3",
+          "userId": "6a86ddfd12b32e37a3a664e2",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "IoT",
+            "CyberSec",
+            "Machine Learning",
+            "Web Dev"
+          ],
+          "sportsInterests": [
+            "Volleyball",
+            "Table Tennis",
+            "Chess"
+          ],
+          "cultInterests": [
+            "Photography"
+          ],
+          "languages": [
+            "C++"
+          ],
+          "hobbies": [
+            "Anime",
+            "Fitness"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NON_CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a66556",
+          "email": "mentee426@iitp.ac.in",
+          "rollNumber": "2601ES79",
+          "name": "Faraj Kant",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de49a714f0b0ec4cd5a6"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a66557",
+          "userId": "6a86ddfd12b32e37a3a66556",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "Cloud Computing",
+            "CyberSec"
+          ],
+          "sportsInterests": [],
+          "cultInterests": [
+            "Debating"
+          ],
+          "languages": [
+            "C++"
+          ],
+          "hobbies": [
+            "Traveling",
+            "Reading",
+            "Fitness"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a6660e",
+          "email": "mentee518@iitp.ac.in",
+          "rollNumber": "2601ES82",
+          "name": "Azad Doshi",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de49a714f0b0ec4cd5a6"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a6660f",
+          "userId": "6a86ddfd12b32e37a3a6660e",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "Cloud Computing",
+            "Game Dev"
+          ],
+          "sportsInterests": [],
+          "cultInterests": [],
+          "languages": [
+            "Rust",
+            "C++"
+          ],
+          "hobbies": [
+            "Movies",
+            "Cooking",
+            "Reading",
+            "Traveling"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NO_PREFERENCE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a66718",
+          "email": "mentee651@iitp.ac.in",
+          "rollNumber": "2601ES37",
+          "name": "Jagat Mital",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de49a714f0b0ec4cd5a6"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a66719",
+          "userId": "6a86ddfd12b32e37a3a66718",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "Game Dev",
+            "CyberSec",
+            "IoT"
+          ],
+          "sportsInterests": [
+            "Athletics"
+          ],
+          "cultInterests": [
+            "Fine Arts",
+            "Debating"
+          ],
+          "languages": [
+            "C++"
+          ],
+          "hobbies": [
+            "Cooking",
+            "Movies"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NON_CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a66754",
+          "email": "mentee681@iitp.ac.in",
+          "rollNumber": "2601ES67",
+          "name": "Gautami Suri",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de49a714f0b0ec4cd5a6"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a66755",
+          "userId": "6a86ddfd12b32e37a3a66754",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "Game Dev",
+            "Web Dev",
+            "App Dev"
+          ],
+          "sportsInterests": [
+            "Athletics",
+            "Volleyball"
+          ],
+          "cultInterests": [
+            "Drama"
+          ],
+          "languages": [
+            "JavaScript",
+            "Rust",
+            "C++"
+          ],
+          "hobbies": [
+            "Traveling"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a66796",
+          "email": "mentee714@iitp.ac.in",
+          "rollNumber": "2601ES11",
+          "name": "Kiaan Swaminathan",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de49a714f0b0ec4cd5a6"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a66797",
+          "userId": "6a86ddfd12b32e37a3a66796",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "Machine Learning"
+          ],
+          "sportsInterests": [],
+          "cultInterests": [],
+          "languages": [
+            "C++",
+            "Rust",
+            "JavaScript"
+          ],
+          "hobbies": [
+            "Fitness",
+            "Anime"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a667a8",
+          "email": "mentee723@iitp.ac.in",
+          "rollNumber": "2601ES20",
+          "name": "Ikbal Sachar",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de49a714f0b0ec4cd5a6"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a667a9",
+          "userId": "6a86ddfd12b32e37a3a667a8",
+          "academicYear": "2026-2027",
+          "branch": "Earth & Environmental Sciences",
+          "techInterests": [
+            "App Dev",
+            "CyberSec",
+            "Machine Learning",
+            "Cloud Computing"
+          ],
+          "sportsInterests": [
+            "Volleyball",
+            "Badminton"
+          ],
+          "cultInterests": [
+            "Photography",
+            "Fine Arts"
+          ],
+          "languages": [
+            "C++"
+          ],
+          "hobbies": [
+            "Movies"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "CORE"
+        }
+      }
+    ]
+  },
+  {
+    "groupId": "6a86de4aa714f0b0ec4cd5ba",
+    "groupName": "SMP-Group-46",
+    "mentor": null,
+    "coMentors": [
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a66934",
+          "email": "comentor121@iitp.ac.in",
+          "rollNumber": "2501ME41",
+          "name": "Mohini Pillai",
+          "role": "STUDENT",
+          "smpRole": "CO_MENTOR",
+          "coMentorIds": [
+            "6a86de4aa714f0b0ec4cd5ba"
+          ],
+          "menteeIds": []
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a66935",
+          "userId": "6a86ddfd12b32e37a3a66934",
+          "academicYear": "2026-2027",
+          "branch": "Mechanical Engineering",
+          "techInterests": [
+            "Web Dev"
+          ],
+          "sportsInterests": [
+            "Volleyball",
+            "Athletics"
+          ],
+          "cultInterests": [
+            "Dance"
+          ],
+          "languages": [
+            "Go",
+            "TypeScript"
+          ],
+          "hobbies": [
+            "Cooking",
+            "Movies"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NON_CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a669e8",
+          "email": "comentor211@iitp.ac.in",
+          "rollNumber": "2501ME42",
+          "name": "Panini Sawhney",
+          "role": "STUDENT",
+          "smpRole": "CO_MENTOR",
+          "coMentorIds": [
+            "6a86de4aa714f0b0ec4cd5ba"
+          ],
+          "menteeIds": []
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a669e9",
+          "userId": "6a86ddfd12b32e37a3a669e8",
+          "academicYear": "2026-2027",
+          "branch": "Mechanical Engineering",
+          "techInterests": [
+            "Cloud Computing",
+            "Blockchain",
+            "IoT",
+            "Web Dev"
+          ],
+          "sportsInterests": [],
+          "cultInterests": [
+            "Drama"
+          ],
+          "languages": [
+            "Go",
+            "Python",
+            "TypeScript"
+          ],
+          "hobbies": [
+            "Gaming",
+            "Reading",
+            "Fitness"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NO_PREFERENCE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a66a22",
+          "email": "comentor240@iitp.ac.in",
+          "rollNumber": "2501ME71",
+          "name": "Quincy Munshi",
+          "role": "STUDENT",
+          "smpRole": "CO_MENTOR",
+          "coMentorIds": [
+            "6a86de4aa714f0b0ec4cd5ba"
+          ],
+          "menteeIds": []
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a66a23",
+          "userId": "6a86ddfd12b32e37a3a66a22",
+          "academicYear": "2026-2027",
+          "branch": "Mechanical Engineering",
+          "techInterests": [
+            "Machine Learning",
+            "App Dev"
+          ],
+          "sportsInterests": [],
+          "cultInterests": [
+            "Drama",
+            "Dance"
+          ],
+          "languages": [
+            "Go",
+            "TypeScript",
+            "Rust"
+          ],
+          "hobbies": [
+            "Traveling",
+            "Movies",
+            "Fitness"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "CORE"
+        }
+      }
+    ],
+    "mentees": [
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a66278",
+          "email": "mentee59@iitp.ac.in",
+          "rollNumber": "2601ME68",
+          "name": "Lakshmi Kale",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de4aa714f0b0ec4cd5ba"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a66279",
+          "userId": "6a86ddfd12b32e37a3a66278",
+          "academicYear": "2026-2027",
+          "branch": "Mechanical Engineering",
+          "techInterests": [
+            "Blockchain",
+            "Machine Learning",
+            "IoT",
+            "Game Dev"
+          ],
+          "sportsInterests": [],
+          "cultInterests": [],
+          "languages": [
+            "TypeScript",
+            "Go"
+          ],
+          "hobbies": [
+            "Gaming",
+            "Cooking",
+            "Movies"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a66304",
+          "email": "mentee129@iitp.ac.in",
+          "rollNumber": "2601ME49",
+          "name": "Tara Jayaraman",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de4aa714f0b0ec4cd5ba"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a66305",
+          "userId": "6a86ddfd12b32e37a3a66304",
+          "academicYear": "2026-2027",
+          "branch": "Mechanical Engineering",
+          "techInterests": [
+            "App Dev",
+            "Machine Learning"
+          ],
+          "sportsInterests": [
+            "Cricket"
+          ],
+          "cultInterests": [
+            "Drama",
+            "Fine Arts"
+          ],
+          "languages": [
+            "Rust",
+            "Python",
+            "Go"
+          ],
+          "hobbies": [
+            "Cooking",
+            "Fitness",
+            "Reading",
+            "Traveling"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NO_PREFERENCE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a66388",
+          "email": "mentee195@iitp.ac.in",
+          "rollNumber": "2601ME26",
+          "name": "Lopa Desai",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de4aa714f0b0ec4cd5ba"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a66389",
+          "userId": "6a86ddfd12b32e37a3a66388",
+          "academicYear": "2026-2027",
+          "branch": "Mechanical Engineering",
+          "techInterests": [
+            "IoT"
+          ],
+          "sportsInterests": [],
+          "cultInterests": [
+            "Debating",
+            "Photography"
+          ],
+          "languages": [
+            "Python",
+            "TypeScript"
+          ],
+          "hobbies": [
+            "Reading"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a66534",
+          "email": "mentee409@iitp.ac.in",
+          "rollNumber": "2601ME62",
+          "name": "Omaja Gala",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de4aa714f0b0ec4cd5ba"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a66535",
+          "userId": "6a86ddfd12b32e37a3a66534",
+          "academicYear": "2026-2027",
+          "branch": "Mechanical Engineering",
+          "techInterests": [
+            "App Dev",
+            "CyberSec",
+            "IoT"
+          ],
+          "sportsInterests": [
+            "Table Tennis"
+          ],
+          "cultInterests": [
+            "Music",
+            "Fine Arts"
+          ],
+          "languages": [
+            "Go",
+            "TypeScript"
+          ],
+          "hobbies": [
+            "Fitness"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NO_PREFERENCE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a665ee",
+          "email": "mentee502@iitp.ac.in",
+          "rollNumber": "2601ME66",
+          "name": "Maanav Mangal",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de4aa714f0b0ec4cd5ba"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a665ef",
+          "userId": "6a86ddfd12b32e37a3a665ee",
+          "academicYear": "2026-2027",
+          "branch": "Mechanical Engineering",
+          "techInterests": [
+            "Machine Learning",
+            "Cloud Computing"
+          ],
+          "sportsInterests": [
+            "Cricket"
+          ],
+          "cultInterests": [
+            "Drama"
+          ],
+          "languages": [
+            "TypeScript",
+            "Python",
+            "Go"
+          ],
+          "hobbies": [
+            "Gaming",
+            "Anime",
+            "Reading",
+            "Cooking"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NO_PREFERENCE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a66674",
+          "email": "mentee569@iitp.ac.in",
+          "rollNumber": "2601ME44",
+          "name": "Barkha Dhawan",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de4aa714f0b0ec4cd5ba"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a66675",
+          "userId": "6a86ddfd12b32e37a3a66674",
+          "academicYear": "2026-2027",
+          "branch": "Mechanical Engineering",
+          "techInterests": [
+            "Machine Learning"
+          ],
+          "sportsInterests": [
+            "Table Tennis",
+            "Athletics"
+          ],
+          "cultInterests": [],
+          "languages": [
+            "Python",
+            "Go"
+          ],
+          "hobbies": [
+            "Gaming",
+            "Movies",
+            "Anime",
+            "Reading"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NON_CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a66688",
+          "email": "mentee579@iitp.ac.in",
+          "rollNumber": "2601ME54",
+          "name": "Hemal Sastry",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de4aa714f0b0ec4cd5ba"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a66689",
+          "userId": "6a86ddfd12b32e37a3a66688",
+          "academicYear": "2026-2027",
+          "branch": "Mechanical Engineering",
+          "techInterests": [
+            "App Dev",
+            "Game Dev"
+          ],
+          "sportsInterests": [
+            "Athletics"
+          ],
+          "cultInterests": [],
+          "languages": [
+            "Python",
+            "TypeScript",
+            "Rust"
+          ],
+          "hobbies": [
+            "Traveling",
+            "Anime",
+            "Fitness"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "CORE"
+        }
+      },
+      {
+        "profile": {
+          "_id": "6a86ddfd12b32e37a3a666aa",
+          "email": "mentee596@iitp.ac.in",
+          "rollNumber": "2601ME71",
+          "name": "Max Kata",
+          "role": "STUDENT",
+          "smpRole": "MENTEE",
+          "coMentorIds": [],
+          "menteeIds": [
+            "6a86de4aa714f0b0ec4cd5ba"
+          ]
+        },
+        "questionnaire": {
+          "_id": "6a86ddfd12b32e37a3a666ab",
+          "userId": "6a86ddfd12b32e37a3a666aa",
+          "academicYear": "2026-2027",
+          "branch": "Mechanical Engineering",
+          "techInterests": [
+            "Machine Learning",
+            "Game Dev",
+            "IoT"
+          ],
+          "sportsInterests": [
+            "Athletics",
+            "Football",
+            "Basketball"
+          ],
+          "cultInterests": [
+            "Quiz",
+            "Music"
+          ],
+          "languages": [
+            "TypeScript",
+            "Java",
+            "Go"
+          ],
+          "hobbies": [
+            "Cooking",
+            "Traveling"
+          ],
+          "goals": [
+            "Learn new tech",
+            "Build projects",
+            "Get an internship"
+          ],
+          "preference": "NO_PREFERENCE"
+        }
+      }
+    ]
+  }
+]

@@ -384,4 +384,175 @@ export const renewFeedbackCycle = async (req, res) => {
     }
 };
 
+function escapeCSV(val) {
+    if (val === null || val === undefined) return '""';
+    const str = String(val).replace(/"/g, '""');
+    return `"${str}"`;
+}
+
+export const exportUsersCSV = async (req, res) => {
+    try {
+        const users = await prisma.user.findMany({
+            where: { role: { not: 'ADMIN' } },
+            include: {
+                mentorGroups: { select: { groupName: true } },
+                coMentorGroups: { select: { groupName: true } },
+                menteeGroups: { select: { groupName: true } },
+                response: { select: { branch: true, academicYear: true } }
+            },
+            orderBy: [{ smpRole: 'asc' }, { rollNumber: 'asc' }]
+        });
+
+        const headers = [
+            'Roll Number',
+            'Name',
+            'Email',
+            'Role',
+            'Branch',
+            'Assigned Groups',
+            'Academic Year',
+            'Questionnaire Submitted'
+        ];
+
+        const rows = users.map(u => {
+            const assignedGroups = [
+                ...((u.mentorGroups || []).map(g => `${g.groupName} (Mentor)`)),
+                ...((u.coMentorGroups || []).map(g => `${g.groupName} (Co-Mentor)`)),
+                ...((u.menteeGroups || []).map(g => `${g.groupName} (Mentee)`))
+            ].join('; ') || 'None';
+
+            const branch = u.response?.branch || 'N/A';
+            const academicYear = u.response?.academicYear || 'N/A';
+            const hasSubmitted = u.response ? 'Yes' : 'No';
+
+            return [
+                escapeCSV(u.rollNumber),
+                escapeCSV(u.name),
+                escapeCSV(u.email),
+                escapeCSV(u.smpRole || 'UNASSIGNED'),
+                escapeCSV(branch),
+                escapeCSV(assignedGroups),
+                escapeCSV(academicYear),
+                escapeCSV(hasSubmitted)
+            ].join(',');
+        });
+
+        const csvContent = [headers.map(h => `"${h}"`).join(','), ...rows].join('\r\n');
+
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', 'attachment; filename="smp_all_users.csv"');
+        return res.status(200).send(csvContent);
+    } catch (error) {
+        console.error('Export users CSV error:', error);
+        res.status(500).json({ success: false, message: 'Server error exporting users CSV' });
+    }
+};
+
+export const exportGroupsCSV = async (req, res) => {
+    try {
+        const { format = 'roster' } = req.query; // 'roster' (official matrix) or 'members' (row-by-row table)
+        const groups = await prisma.group.findMany({
+            include: {
+                mentor: { select: { name: true, rollNumber: true, email: true } },
+                coMentors: { select: { name: true, rollNumber: true, email: true } },
+                mentees: { select: { name: true, rollNumber: true, email: true } }
+            },
+            orderBy: { groupName: 'asc' }
+        });
+
+        let csvContent = '';
+
+        if (format === 'members') {
+            // Normalized table: 1 row per student assignment
+            const headers = [
+                'Group Name',
+                'Academic Year',
+                'Role In Group',
+                'Member Name',
+                'Roll Number',
+                'Email'
+            ];
+
+            const rows = [];
+            for (const g of groups) {
+                if (g.mentor) {
+                    rows.push([
+                        escapeCSV(g.groupName),
+                        escapeCSV(g.academicYear),
+                        escapeCSV('Lead Mentor'),
+                        escapeCSV(g.mentor.name),
+                        escapeCSV(g.mentor.rollNumber),
+                        escapeCSV(g.mentor.email)
+                    ].join(','));
+                }
+                for (const co of (g.coMentors || [])) {
+                    rows.push([
+                        escapeCSV(g.groupName),
+                        escapeCSV(g.academicYear),
+                        escapeCSV('Co-Mentor'),
+                        escapeCSV(co.name),
+                        escapeCSV(co.rollNumber),
+                        escapeCSV(co.email)
+                    ].join(','));
+                }
+                for (const m of (g.mentees || [])) {
+                    rows.push([
+                        escapeCSV(g.groupName),
+                        escapeCSV(g.academicYear),
+                        escapeCSV('Mentee'),
+                        escapeCSV(m.name),
+                        escapeCSV(m.rollNumber),
+                        escapeCSV(m.email)
+                    ].join(','));
+                }
+            }
+            csvContent = [headers.map(h => `"${h}"`).join(','), ...rows].join('\r\n');
+        } else {
+            // Official Master Roster: 1 row per group with Name & Roll Numbers
+            const headers = [
+                'Group Name',
+                'Academic Year',
+                'Lead Mentor (Name & Roll)',
+                'Lead Mentor Email',
+                'Co-Mentors (Name & Roll)',
+                'Mentees (Name & Roll)',
+                'Total Co-Mentors',
+                'Total Mentees',
+                'Total Group Size'
+            ];
+
+            const rows = groups.map(g => {
+                const mentorInfo = g.mentor ? `${g.mentor.name} (${g.mentor.rollNumber})` : 'Unassigned';
+                const mentorEmail = g.mentor?.email || 'N/A';
+                const coMentorsInfo = (g.coMentors || []).map(co => `${co.name} (${co.rollNumber})`).join('; ') || 'None';
+                const menteesInfo = (g.mentees || []).map(m => `${m.name} (${m.rollNumber})`).join('; ') || 'None';
+                const totalCo = (g.coMentors || []).length;
+                const totalMe = (g.mentees || []).length;
+                const totalSize = (g.mentor ? 1 : 0) + totalCo + totalMe;
+
+                return [
+                    escapeCSV(g.groupName),
+                    escapeCSV(g.academicYear),
+                    escapeCSV(mentorInfo),
+                    escapeCSV(mentorEmail),
+                    escapeCSV(coMentorsInfo),
+                    escapeCSV(menteesInfo),
+                    escapeCSV(totalCo),
+                    escapeCSV(totalMe),
+                    escapeCSV(totalSize)
+                ].join(',');
+            });
+
+            csvContent = [headers.map(h => `"${h}"`).join(','), ...rows].join('\r\n');
+        }
+
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="smp_official_groups_${format}.csv"`);
+        return res.status(200).send(csvContent);
+    } catch (error) {
+        console.error('Export groups CSV error:', error);
+        res.status(500).json({ success: false, message: 'Server error exporting groups CSV' });
+    }
+};
+
 

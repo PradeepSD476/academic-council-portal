@@ -1,0 +1,25 @@
+{
+    "group_limits": {
+        "mentees_min": 8,
+        "mentees_max": 10,
+        "comentors_min": 2,
+        "comentors_max": 3,
+        "max_groups_per_mentor": 2
+    },
+    "weights_juniors": {
+        "branch": 50,
+        "languages": 10,
+        "techInterests": 5,
+        "sportsInterests": 3,
+        "cultInterests": 3,
+        "hobbies": 1
+    },
+    "weights_seniors": {
+        "branch": 50,
+        "languages": 8,
+        "techInterests": 4,
+        "sportsInterests": 3,
+        "cultInterests": 3,
+        "hobbies": 1
+    }
+}

@@ -1,2 +1,6 @@
 .vscode
-allocation_engine/
+allocation_engine/venv/
+allocation_engine/.venv/
+allocation_engine/__pycache__/
+allocation_engine/*.pyc
+allocation_engine/.env

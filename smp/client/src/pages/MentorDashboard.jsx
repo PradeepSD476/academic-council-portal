@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LogOut, Users, CalendarPlus, FileText, Clock, Plus, Trash2,
-  CheckCircle2, Link2, Star, User, Menu, X, ChevronRight
+  CheckCircle2, Link2, Star, User, Menu, X, ChevronRight, Mail
 } from 'lucide-react';
 import { fmt } from '../lib/mockData';
 import api from '../lib/api';
@@ -41,61 +41,159 @@ function SectionCard({ children, className = '' }) {
 }
 
 // ── Tab 1: My Group ───────────────────────────────────────────────────────────
-function GroupTab({ group, onMemberClick }) {
+function GroupTab({ group, user, onMemberClick }) {
   const gradients = {
-    mentor: 'from-primary to-primary-container',
-    comentor: 'from-tertiary to-tertiary-container',
-    mentee: 'from-blue-500 to-indigo-500',
+    mentor: 'from-primary to-indigo-600',
+    comentor: 'from-purple-600 to-pink-600',
+    mentee: 'from-emerald-500 to-teal-600',
   };
-  const allMembers = [
-    ...(group.coMentors || []).map(m => ({ ...m, role: 'comentor' })),
-    ...(group.mentees || []).map(m => ({ ...m, role: 'mentee' })),
-  ];
+
+  const totalMembers = (group?.mentor ? 1 : 0) + (group?.coMentors?.length || 0) + (group?.mentees?.length || 0);
+
   return (
     <div className="space-y-6 max-w-4xl">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      {/* ── Lead Mentor Card (3rd Year) ── */}
+      {group?.mentor ? (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          onClick={() => onMemberClick({ ...group.mentor, smpRole: 'MENTOR' })}
+          className="relative cursor-pointer rounded-2xl border border-outline-variant/30 bg-surface-container-lowest p-6 overflow-hidden hover:border-primary/40 transition-all duration-200 shadow-sm group"
+        >
+          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-indigo-500 to-primary" />
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Avatar name={group.mentor.name} src={group.mentor.profilePicUrl} gradient={gradients.mentor} size="lg" />
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold text-primary uppercase tracking-widest">Lead Mentor · 3rd Year</span>
+                  {group.mentor.id === user?.id && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary-container text-on-primary-container">You</span>
+                  )}
+                </div>
+                <h3 className="font-bold text-on-surface text-lg sm:text-xl group-hover:text-primary transition-colors mt-0.5">
+                  {group.mentor.name}
+                </h3>
+                <p className="text-on-surface-variant text-xs sm:text-sm font-mono mt-0.5">{group.mentor.rollNumber}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <a
+                href={`mailto:${group.mentor.email}`}
+                onClick={(e) => e.stopPropagation()}
+                className="h-10 px-4 flex items-center justify-center gap-2 rounded-xl bg-primary hover:bg-on-primary-fixed-variant text-on-primary font-semibold text-xs transition-all shadow-sm active:scale-95"
+              >
+                <Mail className="w-4 h-4" />
+                Email Mentor
+              </a>
+            </div>
+          </div>
+        </motion.div>
+      ) : (
+        <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 text-xs font-semibold">
+          No 3rd-year Lead Mentor assigned to this group yet.
+        </div>
+      )}
+
+      {/* ── Summary Stats ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: 'Co-Mentors', value: group.coMentors?.length || 0, color: 'text-tertiary' },
-          { label: 'Mentees', value: group.mentees?.length || 0, color: 'text-primary' },
-          { label: 'Total Members', value: (group.coMentors?.length || 0) + (group.mentees?.length || 0), color: 'text-on-surface' },
+          { label: 'Lead Mentor', value: group?.mentor ? 1 : 0, color: 'text-primary' },
+          { label: 'Co-Mentors', value: group?.coMentors?.length || 0, color: 'text-tertiary' },
+          { label: 'Mentees', value: group?.mentees?.length || 0, color: 'text-emerald-600' },
+          { label: 'Total In Group', value: totalMembers, color: 'text-on-surface' },
         ].map(s => (
-          <SectionCard key={s.label} className="p-6 text-center">
-            <div className={`text-4xl font-bold ${s.color} mb-2`}>{s.value}</div>
-            <div className="text-xs text-on-surface-variant font-bold uppercase tracking-widest">{s.label}</div>
+          <SectionCard key={s.label} className="p-5 text-center">
+            <div className={`text-3xl font-extrabold ${s.color} mb-1`}>{s.value}</div>
+            <div className="text-[11px] text-on-surface-variant font-bold uppercase tracking-wider">{s.label}</div>
           </SectionCard>
         ))}
       </div>
-      
-      <div>
-        <h3 className="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-4">Group Members</h3>
-        <SectionCard className="divide-y divide-outline-variant/20">
-          {allMembers.map((m, i) => (
-            <div key={m.id}
-              onClick={() => onMemberClick({ ...m, smpRole: m.role === 'mentee' ? 'MENTEE' : 'CO_MENTOR' })}
-              className="flex items-center gap-4 p-4 cursor-pointer hover:bg-surface-container-low transition-colors duration-150"
-            >
-              <Avatar name={m.name} src={m.profilePicUrl} gradient={gradients[m.role]} />
-              <div className="flex-1 min-w-0">
-                <span className="font-semibold text-on-surface text-sm block">{m.name}</span>
-                <span className="text-xs text-on-surface-variant font-mono mt-0.5">{m.rollNumber}</span>
-              </div>
-              <span className={`text-[10px] font-bold px-3 py-1 rounded-full border ${
-                m.role === 'mentee'
-                  ? 'bg-primary-container text-on-primary-container border-primary-container'
-                  : 'bg-tertiary-container text-on-tertiary-container border-tertiary-container'
-                }`}>
-                {m.role === 'mentee' ? 'Mentee' : 'Co-Mentor'}
-              </span>
-              <a href={`mailto:${m.email}`}
-                onClick={(e) => e.stopPropagation()}
-                className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-primary-container transition-all duration-150"
+
+      {/* ── Co-Mentors Section (2nd Year) ── */}
+      {group?.coMentors?.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-xs font-bold text-on-surface-variant uppercase tracking-widest flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-purple-500" />
+              Co-Mentors ({group.coMentors.length})
+            </h3>
+            <span className="text-[11px] text-on-surface-variant">2nd Year</span>
+          </div>
+          <SectionCard className="divide-y divide-outline-variant/20">
+            {group.coMentors.map((co) => (
+              <div
+                key={co.id}
+                onClick={() => onMemberClick({ ...co, smpRole: 'CO_MENTOR' })}
+                className="flex items-center gap-4 p-4 cursor-pointer hover:bg-surface-container-low transition-colors duration-150 group"
               >
-                <FileText className="w-4 h-4 hidden" /> {/* Placeholder just in case */}
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-              </a>
-            </div>
-          ))}
-        </SectionCard>
+                <Avatar name={co.name} src={co.profilePicUrl} gradient={gradients.comentor} size="md" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-on-surface text-sm block group-hover:text-tertiary transition-colors">{co.name}</span>
+                    {co.id === user?.id && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-tertiary-container text-on-tertiary-container">You</span>
+                    )}
+                  </div>
+                  <span className="text-xs text-on-surface-variant font-mono mt-0.5">{co.rollNumber}</span>
+                </div>
+                <span className="text-[10px] font-bold px-3 py-1 rounded-full border bg-tertiary-container text-on-tertiary-container border-tertiary-container">
+                  Co-Mentor
+                </span>
+                <a
+                  href={`mailto:${co.email}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-primary-container transition-all duration-150"
+                >
+                  <Mail className="w-4 h-4" />
+                </a>
+              </div>
+            ))}
+          </SectionCard>
+        </div>
+      )}
+
+      {/* ── Mentees Section (1st Year) ── */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-xs font-bold text-on-surface-variant uppercase tracking-widest flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            Mentees ({group?.mentees?.length || 0})
+          </h3>
+          <span className="text-[11px] text-on-surface-variant">1st Year</span>
+        </div>
+        {(!group?.mentees || group.mentees.length === 0) ? (
+          <SectionCard className="p-8 text-center border-dashed">
+            <p className="text-sm text-on-surface-variant">No mentees assigned yet.</p>
+          </SectionCard>
+        ) : (
+          <SectionCard className="divide-y divide-outline-variant/20">
+            {group.mentees.map((m) => (
+              <div
+                key={m.id}
+                onClick={() => onMemberClick({ ...m, smpRole: 'MENTEE' })}
+                className="flex items-center gap-4 p-4 cursor-pointer hover:bg-surface-container-low transition-colors duration-150 group"
+              >
+                <Avatar name={m.name} src={m.profilePicUrl} gradient={gradients.mentee} size="md" />
+                <div className="flex-1 min-w-0">
+                  <span className="font-semibold text-on-surface text-sm block group-hover:text-primary transition-colors">{m.name}</span>
+                  <span className="text-xs text-on-surface-variant font-mono mt-0.5">{m.rollNumber}</span>
+                </div>
+                <span className="text-[10px] font-bold px-3 py-1 rounded-full border bg-primary-container text-on-primary-container border-primary-container">
+                  Mentee
+                </span>
+                <a
+                  href={`mailto:${m.email}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-primary-container transition-all duration-150"
+                >
+                  <Mail className="w-4 h-4" />
+                </a>
+              </div>
+            ))}
+          </SectionCard>
+        )}
       </div>
     </div>
   );
@@ -298,7 +396,7 @@ function MOMTab({ group, meetings, onUpdated }) {
                 <div className="space-y-3">
                   {allMembers.map(m => (
                     <label key={m.id} className="flex items-center gap-4 p-4 rounded-xl bg-surface border border-outline-variant/30 cursor-pointer hover:border-primary/50 transition-colors">
-                      <input type="checkbox" checked={attendance[m.id] || false} onChange={() => setAttendance(p => ({ ...p, [m.id]: !p[m.id] }))} 
+                      <input type="checkbox" checked={attendance[m.id] || false} onChange={() => setAttendance(p => ({ ...p, [m.id]: !p[m.id] }))}
                         className="w-5 h-5 rounded border-outline-variant/50 text-primary focus:ring-primary accent-primary" />
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-semibold text-on-surface truncate">{m.name}</div>
@@ -349,7 +447,7 @@ function HistoryTab({ meetings }) {
                     <div className="font-semibold text-on-surface text-base mb-1">{mtg.title}</div>
                     <div className="text-sm text-on-surface-variant mb-3">{fmt.date(mtg.date)}</div>
                     {mtg.momUrl ? (
-                      <a href={mtg.momUrl.startsWith('http') ? mtg.momUrl : `//${mtg.momUrl}`} target="_blank" rel="noreferrer" 
+                      <a href={mtg.momUrl.startsWith('http') ? mtg.momUrl : `//${mtg.momUrl}`} target="_blank" rel="noreferrer"
                         className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-on-primary-fixed-variant transition-colors">
                         <Link2 className="w-4 h-4" /> View MOM
                       </a>
@@ -474,7 +572,7 @@ export default function MentorDashboard() {
       const gRes = await api.get('/user/group');
       const fetchedGroups = gRes.data.groups || (gRes.data?.id ? [gRes.data] : []);
       setAllGroups(fetchedGroups);
-      
+
       const initialGroup = fetchedGroups[0] || gRes.data;
       setGroup(initialGroup);
       if (initialGroup?.id) {
@@ -536,10 +634,10 @@ export default function MentorDashboard() {
         <div className="absolute top-[-5%] right-[-10%] w-[60%] h-[70%] bg-amber-200/30 blur-[140px] rounded-full mix-blend-multiply"></div>
         <div className="absolute bottom-[10%] left-[20%] w-[50%] h-[50%] bg-indigo-200/10 blur-[140px] rounded-full mix-blend-multiply"></div>
       </div>
-      
+
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-on-surface/20 backdrop-blur-sm z-40 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
@@ -567,11 +665,10 @@ export default function MentorDashboard() {
               <button
                 key={t.id}
                 onClick={() => { setTab(t.id); setIsSidebarOpen(false); }}
-                className={`w-full flex items-center px-4 py-3 rounded-xl transition-all duration-200 group font-semibold text-sm ${
-                  isActive
+                className={`w-full flex items-center px-4 py-3 rounded-xl transition-all duration-200 group font-semibold text-sm ${isActive
                     ? 'bg-primary-container text-on-primary-container shadow-sm'
                     : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
-                }`}
+                  }`}
               >
                 <Icon className={`w-5 h-5 mr-4 transition-transform group-hover:scale-110 ${isActive ? 'text-on-primary-container' : 'text-on-surface-variant'}`} />
                 {t.label}
@@ -634,7 +731,7 @@ export default function MentorDashboard() {
               </h2>
               <p className="text-on-surface-variant text-base">
                 You have <span className="text-primary font-semibold">{upcomingCount} upcoming meeting{upcomingCount !== 1 ? 's' : ''}</span> and{' '}
-                <span className="text-tertiary font-semibold">{group.mentees.length} mentees</span> in your current group.
+                <span className="text-tertiary font-semibold">{group.mentees?.length || 0} mentees</span> in your current group.
               </p>
             </motion.div>
 
@@ -659,11 +756,10 @@ export default function MentorDashboard() {
                     <button
                       key={g.id}
                       onClick={() => handleSwitchGroup(idx)}
-                      className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 flex items-center gap-1.5 ${
-                        selectedGroupIdx === idx
+                      className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 flex items-center gap-1.5 ${selectedGroupIdx === idx
                           ? 'bg-primary text-on-primary shadow-md ring-4 ring-primary/20 scale-105'
                           : 'bg-surface-container-lowest text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high border border-outline-variant/30'
-                      }`}
+                        }`}
                     >
                       <span className="material-symbols-outlined text-[16px]">{selectedGroupIdx === idx ? 'check_circle' : 'group'}</span>
                       {g.groupName}
@@ -676,7 +772,7 @@ export default function MentorDashboard() {
             {/* Tab Content */}
             <AnimatePresence mode="wait">
               <motion.div key={tab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                {tab === 'group' && <GroupTab group={group} onMemberClick={setSelectedMember} />}
+                {tab === 'group' && <GroupTab group={group} user={user} onMemberClick={setSelectedMember} />}
                 {tab === 'schedule' && <ScheduleTab groupId={group.id} meetings={meetings} setMeetings={setMeetings} onScheduled={fetchData} />}
                 {tab === 'mom' && <MOMTab group={group} meetings={meetings} onUpdated={fetchData} />}
                 {tab === 'history' && <HistoryTab meetings={meetings} />}

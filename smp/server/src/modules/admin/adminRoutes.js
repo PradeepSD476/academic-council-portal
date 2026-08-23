@@ -7,7 +7,9 @@ import {
     getGroupAnalytics,
     getUserAttendanceAnalytics,
     getFeedbackAnalytics,
-    renewFeedbackCycle
+    renewFeedbackCycle,
+    exportUsersCSV,
+    exportGroupsCSV
 } from './adminController.js';
 import groupAdminRoutes from '../group/group.adminRoutes.js';
 import userAdminRoutes from '../user/user.adminRoutes.js';
@@ -24,6 +26,10 @@ router.put('/config', updateAdminConfig);
 router.post('/reset', resetDatabase);
 router.post('/announcements', sendAnnouncement);
 router.post('/feedback/renew', renewFeedbackCycle);
+
+// Export Data Routes
+router.get('/export/users', exportUsersCSV);
+router.get('/export/groups', exportGroupsCSV);
 
 // Observability & Analytics routes
 router.get('/analytics/groups', getGroupAnalytics);

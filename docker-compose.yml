@@ -126,6 +126,21 @@ services:
     networks:
       - acc-net
 
+  smp-allocation:
+    build:
+      context: ./smp/allocation_engine
+      dockerfile: Dockerfile
+    container_name: smp-allocation
+    profiles:
+      - tools
+    environment:
+      - DATABASE_URL=mongodb://smp-mongo:27017/mydb?authSource=admin&directConnection=true
+    depends_on:
+      smp-mongo:
+        condition: service_healthy
+    networks:
+      - acc-net
+
 volumes:
   acc_postgres:
   minio_data:

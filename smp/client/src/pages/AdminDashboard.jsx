@@ -202,6 +202,10 @@ export default function AdminDashboard() {
   const [announcementForm, setAnnouncementForm] = useState({ subject: '', message: '' });
   const [isSendingAnnouncement, setIsSendingAnnouncement] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetConfirmationInput, setResetConfirmationInput] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const fetchConfig = async () => { try { const res = await api.get('/admin/config'); setConfig(res.data); } catch (err) {} };
   const fetchGroups = async () => { try { const res = await api.get(`/admin/groups?page=${groupsPage}&search=${groupsSearch}`); if (res.data.data) { setGroupsData(res.data); } else { setGroupsData({ data: res.data, meta: { total: res.data.length, page: 1, totalPages: 1 } }); } } catch (err) {} };
@@ -293,13 +297,32 @@ export default function AdminDashboard() {
   };
 
   const handleReset = async () => {
-    if (!window.confirm('WARNING: This will wipe all groups, responses, and non-admin users. Proceed?')) return;
+    if (resetConfirmationInput.trim().toUpperCase() !== 'RESET DATABASE') {
+      return toast({
+        title: 'Confirmation phrase mismatch',
+        description: 'Please type "RESET DATABASE" exactly as requested.',
+        variant: 'error',
+      });
+    }
+    setIsResetting(true);
     try {
       await api.post('/admin/reset');
-      toast({ title: 'Database reset successful', variant: 'success' });
+      toast({
+        title: 'Database Reset Successful',
+        description: 'All non-admin users, groups, allocations, and responses have been cleared.',
+        variant: 'success',
+      });
+      setShowResetModal(false);
+      setResetConfirmationInput('');
       fetchAllInitial();
     } catch (err) {
-      toast({ title: 'Error resetting database', variant: 'error' });
+      toast({
+        title: 'Error resetting database',
+        description: err.response?.data?.message || 'Server error',
+        variant: 'error',
+      });
+    } finally {
+      setIsResetting(false);
     }
   };
 
@@ -323,6 +346,28 @@ export default function AdminDashboard() {
     if (u.coMentorGroups?.length > 0) return u.coMentorGroups[0].groupName;
     if (u.menteeGroups?.length > 0) return u.menteeGroups[0].groupName;
     return 'None';
+  };
+
+  const handleExportCSV = async (endpoint, defaultFilename) => {
+    setIsExporting(true);
+    try {
+      const res = await api.get(endpoint, { responseType: 'blob' });
+      const blob = new Blob([res.data], { type: 'text/csv;charset=utf-8;' });
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.setAttribute('download', defaultFilename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+      toast({ title: 'Export Successful', description: `Downloaded ${defaultFilename}`, variant: 'success' });
+    } catch (err) {
+      console.error('Export error:', err);
+      toast({ title: 'Export Failed', description: err.response?.data?.message || 'Error generating export file', variant: 'error' });
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   if (loading || !config) {
@@ -610,32 +655,8 @@ export default function AdminDashboard() {
                       </Card>
                     </div>
 
-                    {/* Right: Danger Zone */}
+                    {/* Right Column: Platform Overview & System Status */}
                     <div className="lg:col-span-4 flex flex-col gap-8">
-                      <div className="bg-surface/80 backdrop-blur-xl rounded-3xl p-6 shadow-sm relative overflow-hidden border border-error/20">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-error rounded-t-3xl" />
-                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-error/5 rounded-full blur-2xl pointer-events-none" />
-                        <div className="flex items-center gap-3 mb-5 mt-2">
-                          <span className="material-symbols-outlined text-error">warning</span>
-                          <h2 className="text-base font-semibold text-error">Danger Zone</h2>
-                        </div>
-                        <p className="text-sm text-on-surface-variant leading-relaxed mb-6">
-                          This is irreversible. It permanently deletes all users, groups, allocations, and feedback for the current academic year.
-                        </p>
-                        <button
-                          type="button"
-                          onClick={handleReset}
-                          className="w-full h-12 flex items-center justify-center gap-2 rounded-xl bg-error-container text-on-error-container font-semibold text-sm hover:bg-error hover:text-on-error transition-colors duration-300"
-                        >
-                          <span className="material-symbols-outlined text-[18px]">delete_forever</span>
-                          Execute Reset
-                        </button>
-                        <div className="mt-5 p-4 bg-surface-container-lowest rounded-xl border border-dashed border-outline-variant/60 flex items-start gap-3">
-                          <span className="material-symbols-outlined text-outline text-[18px] mt-0.5">info</span>
-                          <p className="text-[11px] text-outline leading-snug">Export current cycle data before proceeding with a database wipe.</p>
-                        </div>
-                      </div>
-
                       {/* Stats Widget */}
                       <div className="bg-primary text-on-primary rounded-3xl p-6 shadow-lg relative overflow-hidden" style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2), 0 12px 24px rgba(0,50,125,0.2)' }}>
                         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '24px 24px' }} />
@@ -662,9 +683,178 @@ export default function AdminDashboard() {
                           </div>
                         </div>
                       </div>
+
+                      {/* Official Data Exports Card */}
+                      <div className="bg-surface rounded-3xl p-6 border border-outline-variant/30 flex flex-col gap-4 shadow-sm">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                            <span className="material-symbols-outlined text-[18px]">file_download</span>
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-semibold text-on-surface">Data Exports</h3>
+                            <p className="text-[11px] text-on-surface-variant">Official tables & spreadsheets</p>
+                          </div>
+                        </div>
+                        <p className="text-xs text-on-surface-variant leading-relaxed">
+                          Download master sheets formatted for official institute administration and reporting.
+                        </p>
+                        
+                        <div className="space-y-2 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => handleExportCSV('/admin/export/groups?format=roster', `smp_official_groups_roster_${config?.currentAcademicYear || 'latest'}.csv`)}
+                            disabled={isExporting}
+                            className="w-full flex items-center justify-between p-3 rounded-xl bg-surface-container-low hover:bg-surface-container-high border border-outline-variant/40 text-left transition-colors group text-xs font-semibold text-on-surface"
+                          >
+                            <span className="flex items-center gap-2">
+                              <span className="material-symbols-outlined text-[18px] text-primary">table_chart</span>
+                              Official Groups Roster
+                            </span>
+                            <span className="material-symbols-outlined text-[16px] text-on-surface-variant group-hover:translate-x-0.5 transition-transform">download</span>
+                          </button>
+                          
+                          <button
+                            type="button"
+                            onClick={() => handleExportCSV('/admin/export/users', `smp_all_users_${config?.currentAcademicYear || 'latest'}.csv`)}
+                            disabled={isExporting}
+                            className="w-full flex items-center justify-between p-3 rounded-xl bg-surface-container-low hover:bg-surface-container-high border border-outline-variant/40 text-left transition-colors group text-xs font-semibold text-on-surface"
+                          >
+                            <span className="flex items-center gap-2">
+                              <span className="material-symbols-outlined text-[18px] text-tertiary">group</span>
+                              All Registered Users
+                            </span>
+                            <span className="material-symbols-outlined text-[16px] text-on-surface-variant group-hover:translate-x-0.5 transition-transform">download</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleExportCSV('/admin/export/groups?format=members', `smp_group_members_mapping_${config?.currentAcademicYear || 'latest'}.csv`)}
+                            disabled={isExporting}
+                            className="w-full flex items-center justify-between p-3 rounded-xl bg-surface-container-low hover:bg-surface-container-high border border-outline-variant/40 text-left transition-colors group text-xs font-semibold text-on-surface"
+                          >
+                            <span className="flex items-center gap-2">
+                              <span className="material-symbols-outlined text-[18px] text-emerald-600">view_list</span>
+                              Member-by-Row Table
+                            </span>
+                            <span className="material-symbols-outlined text-[16px] text-on-surface-variant group-hover:translate-x-0.5 transition-transform">download</span>
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </form>
+
+                {/* ── BOTTOM: GITHUB-STYLE DANGER ZONE ── */}
+                <div className="mt-12 pt-8 border-t border-error/20">
+                  <div className="bg-error/[0.03] border-2 border-error/30 rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-sm">
+                    <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-error via-rose-500 to-error" />
+                    <div className="absolute -top-12 -right-12 w-40 h-40 bg-error/5 rounded-full blur-3xl pointer-events-none" />
+
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-error/10 border border-error/25 flex items-center justify-center text-error shrink-0">
+                          <span className="material-symbols-outlined text-[24px]">warning</span>
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2.5 flex-wrap">
+                            <h3 className="text-lg font-bold text-error">Danger Zone</h3>
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-error/15 text-error border border-error/30">
+                              Destructive Action
+                            </span>
+                          </div>
+                          <p className="text-sm text-on-surface-variant mt-1.5 max-w-2xl leading-relaxed">
+                            Permanently wipe all student records, allocations, groups, questionnaire responses, meetings, and feedback for the current academic cycle. Admin credentials will remain intact.
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setResetConfirmationInput('');
+                          setShowResetModal(true);
+                        }}
+                        className="shrink-0 h-12 px-6 flex items-center justify-center gap-2 rounded-xl bg-error/10 hover:bg-error text-error hover:text-on-error font-semibold text-sm border border-error/30 hover:border-error transition-all duration-200 shadow-sm hover:shadow-error/20 hover:shadow-lg"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">delete_forever</span>
+                        Reset Database...
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ── GITHUB-STYLE RESET DATABASE MODAL ── */}
+                {showResetModal && (
+                  <Modal
+                    onClose={() => {
+                      if (!isResetting) {
+                        setShowResetModal(false);
+                        setResetConfirmationInput('');
+                      }
+                    }}
+                    title="Reset Platform Database"
+                  >
+                    <div className="p-6 sm:p-8 space-y-6">
+                      {/* Warning Notice */}
+                      <div className="p-4 rounded-2xl bg-error/10 border border-error/30 flex items-start gap-3.5 text-error">
+                        <span className="material-symbols-outlined text-[24px] mt-0.5 shrink-0">emergency_home</span>
+                        <div className="text-xs sm:text-sm leading-relaxed">
+                          <strong className="block text-error font-bold mb-1">Warning: This action is permanent and cannot be undone.</strong>
+                          This will immediately delete all <span className="font-semibold underline">students, groups, allocations, questionnaire responses, meeting records, and feedback</span>.
+                        </div>
+                      </div>
+
+                      {/* Confirmation Prompt */}
+                      <div className="space-y-3">
+                        <label className="block text-xs sm:text-sm text-on-surface leading-relaxed">
+                          Please type <strong className="font-mono bg-surface-container-high px-2 py-0.5 rounded border border-outline-variant/40 text-error select-all">RESET DATABASE</strong> below to confirm:
+                        </label>
+                        <input
+                          type="text"
+                          value={resetConfirmationInput}
+                          onChange={(e) => setResetConfirmationInput(e.target.value)}
+                          placeholder="RESET DATABASE"
+                          disabled={isResetting}
+                          autoFocus
+                          className="w-full bg-surface-container-low text-on-surface font-mono text-sm px-4 py-3.5 rounded-xl border border-outline-variant/50 focus:outline-none focus:border-error focus:ring-2 focus:ring-error/20 transition-all placeholder:text-outline-variant uppercase"
+                        />
+                      </div>
+
+                      {/* Modal Actions */}
+                      <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowResetModal(false);
+                            setResetConfirmationInput('');
+                          }}
+                          disabled={isResetting}
+                          className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-outline-variant/40 text-on-surface-variant font-medium text-sm hover:bg-surface-container-low transition-colors disabled:opacity-50"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleReset}
+                          disabled={resetConfirmationInput.trim().toUpperCase() !== 'RESET DATABASE' || isResetting}
+                          className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-error text-on-error font-semibold text-sm hover:bg-error/90 disabled:opacity-35 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-error/20"
+                        >
+                          {isResetting ? (
+                            <>
+                              <span className="w-4 h-4 border-2 border-on-error/30 border-t-on-error rounded-full animate-spin" />
+                              Resetting Database...
+                            </>
+                          ) : (
+                            <>
+                              <span className="material-symbols-outlined text-[18px]">delete_forever</span>
+                              I understand, delete all data
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </Modal>
+                )}
               </motion.div>
             )}
 
@@ -748,17 +938,41 @@ export default function AdminDashboard() {
                 <PageHeader
                   breadcrumb="Groups"
                   title="Mentorship Groups"
-                  description="View and manage all mentor-mentee group allocations."
+                  description="View, manage, and export all mentor-mentee group allocations."
                   action={
-                    <motion.button
-                      whileHover={{ scale: 1.02, y: -1 }}
-                      whileTap={{ scale: 0.97 }}
-                      onClick={() => setShowCreateGroup(true)}
-                      className="h-12 px-8 flex items-center gap-2 rounded-full bg-primary text-on-primary font-semibold text-sm shadow-[0_8px_16px_rgba(0,50,125,0.2)]"
-                    >
-                      <span className="material-symbols-outlined text-[18px]">add</span>
-                      Create Group
-                    </motion.button>
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <motion.button
+                        whileHover={{ scale: 1.02, y: -1 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => handleExportCSV('/admin/export/groups?format=roster', `smp_groups_roster_${config?.currentAcademicYear || 'latest'}.csv`)}
+                        disabled={isExporting}
+                        className="h-11 px-4 flex items-center gap-2 rounded-xl border border-outline-variant/60 bg-surface hover:bg-surface-container-high text-on-surface font-semibold text-xs transition-colors shadow-sm disabled:opacity-50"
+                        title="Download Official Institute Table with Lead Mentors, Co-Mentors, and Mentees (Name & Roll)"
+                      >
+                        <span className="material-symbols-outlined text-[18px] text-primary">table_chart</span>
+                        Export Official Roster
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.02, y: -1 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => handleExportCSV('/admin/export/groups?format=members', `smp_group_members_${config?.currentAcademicYear || 'latest'}.csv`)}
+                        disabled={isExporting}
+                        className="h-11 px-4 flex items-center gap-2 rounded-xl border border-outline-variant/60 bg-surface hover:bg-surface-container-high text-on-surface font-semibold text-xs transition-colors shadow-sm disabled:opacity-50"
+                        title="Download Row-by-Row Member Assignment List"
+                      >
+                        <span className="material-symbols-outlined text-[18px] text-tertiary">download</span>
+                        Export Members List
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.02, y: -1 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => setShowCreateGroup(true)}
+                        className="h-11 px-5 flex items-center gap-2 rounded-xl bg-primary text-on-primary font-semibold text-xs shadow-[0_8px_16px_rgba(0,50,125,0.2)]"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">add</span>
+                        Create Group
+                      </motion.button>
+                    </div>
                   }
                 />
                 <div className="mb-6">
@@ -825,7 +1039,20 @@ export default function AdminDashboard() {
                 <PageHeader
                   breadcrumb="Users"
                   title="User Directory"
-                  description="Search and inspect all registered participants."
+                  description="Search, inspect, and export all registered participants."
+                  action={
+                    <motion.button
+                      whileHover={{ scale: 1.02, y: -1 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => handleExportCSV('/admin/export/users', `smp_all_users_${config?.currentAcademicYear || 'latest'}.csv`)}
+                      disabled={isExporting}
+                      className="h-11 px-5 flex items-center gap-2 rounded-xl border border-outline-variant/60 bg-surface hover:bg-surface-container-high text-on-surface font-semibold text-xs transition-colors shadow-sm disabled:opacity-50"
+                      title="Download Master Sheet of All Users (Roll, Name, Role, Group, Questionnaire status)"
+                    >
+                      <span className="material-symbols-outlined text-[18px] text-primary">download</span>
+                      Export Users CSV
+                    </motion.button>
+                  }
                 />
                 <Card className="overflow-hidden">
                   <div className="p-6 border-b border-outline-variant/20 flex flex-col sm:flex-row justify-between items-center gap-4">

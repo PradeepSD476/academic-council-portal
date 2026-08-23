@@ -80,6 +80,16 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER_LC }}/smp-backend:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER_LC }}/smp-backend:${{ github.sha }}
 
+      - name: Build and Push SMP Allocation Engine Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./smp/allocation_engine
+          file: ./smp/allocation_engine/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER_LC }}/smp-allocation:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER_LC }}/smp-allocation:${{ github.sha }}
+
   deploy:
     name: Deploy to Production
     needs: build-and-push
