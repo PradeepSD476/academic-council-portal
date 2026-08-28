@@ -103,6 +103,12 @@ const createPost = async (formData) => {
       data = {};
     }
 
+    if (response.status === 413) {
+      const payloadErrorMsg = "Post content is too large. Please reduce image sizes or text length.";
+      toast.error(payloadErrorMsg);
+      return { success: false, error: "PayloadTooLarge", message: payloadErrorMsg };
+    }
+
     const message = data?.message || "Something went wrong while creating the post.";
 
     if (response.status === 201 && data?.success) {
@@ -148,6 +154,12 @@ const updatePost = async (postId, formData) => {
         "Content-Type": "application/json",
       },
     });
+
+    if (response.status === 413) {
+      const payloadErrorMsg = "Post content is too large. Please reduce image sizes or text length.";
+      toast.error(payloadErrorMsg);
+      return { success: false, error: "PayloadTooLarge", message: payloadErrorMsg };
+    }
 
     let data = {};
     try {
