@@ -3,7 +3,7 @@ export const checkEmailValidity = (email) => {
     return { valid: false, error: "email is required" };
   }
   
-  if (!email.endsWith('@iitp.ac.in')) {
+  if (!email.toLowerCase().endsWith('@iitp.ac.in')) {
     const error = new Error('Invalid Email Address.')
     throw error;
   }

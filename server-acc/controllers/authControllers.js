@@ -6,8 +6,8 @@ import sendOTP from '../utils/mail/sendOTP.js';
 import { checkEmailValidity } from '../utils/checkValidEmail.js';
 
 export const Login = async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
+  const { email: rawEmail, password } = req.body;
+  if (!rawEmail || !password) {
     return res.status(401).json({
       success: false,
       error: "MISSING_PARAMETERS",
@@ -15,6 +15,7 @@ export const Login = async (req, res) => {
     }
     )
   }
+  const email = rawEmail.toLowerCase();
   try {
     const user = await prisma.user.findUnique({
       where: {
@@ -83,14 +84,15 @@ export const Login = async (req, res) => {
 
 
 export const Register = async (req, res) => {
-  const { displayName, email, password, confirmPassword, otp } = req.body;
-  if (!displayName || !email || !password || !confirmPassword || !otp) {
+  const { displayName, email: rawEmail, password, confirmPassword, otp } = req.body;
+  if (!displayName || !rawEmail || !password || !confirmPassword || !otp) {
     return res.status(401).json({
       success: false,
       error: "MISSING_PARAMETERS",
       message: "Missing Required Fields..."
     })
   }
+  const email = rawEmail.toLowerCase();
   if (password !== confirmPassword) {
     return res.status(400).json({
       success: false,
@@ -203,14 +205,15 @@ export const LogoutUser = async (req, res) => {
 };
 
 export const sendEmailVerification = async (req, res) => {
-  const { type, email } = req.body;
-  if (!type || !email) {
+  const { type, email: rawEmail } = req.body;
+  if (!type || !rawEmail) {
     return res.status(401).json({
       success: false,
       error: "MISSING_PARAMETERS",
       message: "Missing Required Fields..."
     })
   }
+  const email = rawEmail.toLowerCase();
 
   try {
     // checkEmailValidity throws on invalid emails — catch it early for a clear 400
@@ -338,14 +341,15 @@ export const GetMe = async (req, res) => {
 }
 
 export const forgotPassword = async (req, res) => {
-  const { email } = req.body;
-  if (!email) {
+  const { email: rawEmail } = req.body;
+  if (!rawEmail) {
     return res.status(400).json({
       success: false,
       error: "MISSING_PARAMETERS",
       message: "Email is required."
     });
   }
+  const email = rawEmail.toLowerCase();
 
   try {
     const user = await prisma.user.findUnique({
@@ -424,14 +428,15 @@ export const forgotPassword = async (req, res) => {
 };
 
 export const verifyResetOtp = async (req, res) => {
-  const { email, otp } = req.body;
-  if (!email || !otp) {
+  const { email: rawEmail, otp } = req.body;
+  if (!rawEmail || !otp) {
     return res.status(400).json({
       success: false,
       error: "MISSING_PARAMETERS",
       message: "Email and OTP are required."
     });
   }
+  const email = rawEmail.toLowerCase();
 
   try {
     const verification = await prisma.verification.findFirst({

@@ -13,7 +13,7 @@ export const checkAuth = async (req, res, next) => {
     }
     try {
         const decoded = jwt.verify(token, process.env.SECRET_KEY);
-        const userEmail = decoded.email;
+        const userEmail = decoded.email?.toLowerCase();
         if (!userEmail) {
             return res.status(400).json({
                 success: false,

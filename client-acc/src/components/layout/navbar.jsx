@@ -28,6 +28,7 @@ function Navbar() {
     { name: "ACC Team", path: "/team" },
     { name: "Academic Administrators", path: "/administrators" },
     { name: "FAQs", path: "/faq" },
+    { name: "SMP Portal", path: "/smp/", external: true },
   ];
 
   const handleLogout = async () => {
@@ -84,6 +85,19 @@ function Navbar() {
           <div className="hidden lg:flex items-center gap-6 xl:gap-8">
             {menuItems.map((item) => {
               const isActive = location.pathname === item.path;
+              if (item.external) {
+                return (
+                  <a
+                    key={item.name}
+                    href={item.path}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[13.5px] py-1 transition-colors duration-150 relative cursor-pointer text-slate-600 hover:text-slate-950 font-medium"
+                  >
+                    <span>{item.name}</span>
+                  </a>
+                );
+              }
               return (
                 <Link
                   key={item.name}
@@ -219,16 +233,28 @@ function Navbar() {
             <ul className="px-5 py-4 space-y-1">
               {menuItems.map((item) => (
                 <li key={item.name}>
-                  <Link
-                    to={item.path}
-                    onClick={() => setIsOpen(false)}
-                    className={`block py-2 text-sm font-medium transition-colors ${location.pathname === item.path
-                        ? "text-slate-950 font-bold border-l-2 border-blue-600 pl-2.5"
-                        : "text-slate-600 hover:text-slate-950"
-                      }`}
-                  >
-                    {item.name}
-                  </Link>
+                  {item.external ? (
+                    <a
+                      href={item.path}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => setIsOpen(false)}
+                      className="block py-2 text-sm font-medium transition-colors text-slate-600 hover:text-slate-950"
+                    >
+                      {item.name}
+                    </a>
+                  ) : (
+                    <Link
+                      to={item.path}
+                      onClick={() => setIsOpen(false)}
+                      className={`block py-2 text-sm font-medium transition-colors ${location.pathname === item.path
+                          ? "text-slate-950 font-bold border-l-2 border-blue-600 pl-2.5"
+                          : "text-slate-600 hover:text-slate-950"
+                        }`}
+                    >
+                      {item.name}
+                    </Link>
+                  )}
                 </li>
               ))}
 
