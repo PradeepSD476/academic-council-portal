@@ -3,8 +3,12 @@ export default function careerVaultTemplate({
     experienceType,
     experienceTitle,
 }) {
+    const safeName = name || 'Student';
+    const safeTitle = experienceTitle || 'Experience';
+    const subject = `${safeName} | ${safeTitle}`;
+
     return {
-        subject: `${name} shared their ${experienceType} experience`,
+        subject: subject,
 
         text: `
 Hello,
