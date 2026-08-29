@@ -208,7 +208,7 @@ export const deletePost = async (req, res) => {
 export const editPost = async (req, res) => {
     const postId = req.params.id;
     const user = req.user;
-    const { title, description, experienceType, status, domain } = req.body;
+    const { title, description, experienceType, status, domain, company } = req.body;
     if (!postId) {
         return res.status(400).json({
             success: false,
@@ -248,7 +248,7 @@ export const editPost = async (req, res) => {
         })
 
         if(status === "PUBLISHED"){
-            notifyOnNewPost({ displayName: post.uploadedBy.displayName, experienceTitle: title, experienceType: experienceType })
+            notifyOnNewPost({ displayName: post.uploadedBy.displayName, experienceTitle: title, experienceType: experienceType, company: company })
         }
 
         return res.status(201).json({
