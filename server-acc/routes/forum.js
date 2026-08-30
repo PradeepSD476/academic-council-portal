@@ -1,7 +1,7 @@
 import express from 'express';
 import { checkAnnouncementAdmin } from '../middlewares/checkAnnouncementAdmin.js';
 import { checkAuth } from '../middlewares/checkAuth.js';
-import { addComment, addpost, deleteComment, deletePost, editPost, getAllPosts, getComments, togglePostBookmark, togglePostLike } from '../controllers/ForumController.js';
+import { addComment, addpost, deleteComment, deletePost, editPost, getAllPosts, getComments, togglePostBookmark, togglePostLike, addOrUpdateResume, deleteResume } from '../controllers/ForumController.js';
 import { orMiddleware } from '../middlewares/Combinators/orMiddleware.js';
 import { checkCareerAdmin } from '../middlewares/checkCareerAdmin.js';
 import { addPostEligibility } from '../middlewares/Forum/addPost.js';
@@ -15,7 +15,9 @@ router.post('/posts', checkAuth, orMiddleware(checkCareerAdmin, addPostEligibili
 router.patch('/posts/:id', checkAuth, orMiddleware(checkCareerAdmin, checkPostOwnership), editPost);
 router.delete('/posts/:id', checkAuth, orMiddleware(checkCareerAdmin, checkPostOwnership), deletePost);
 
-
+// Admin: resume endpoints
+router.put('/posts/:id/resume', checkAuth, checkCareerAdmin, addOrUpdateResume);
+router.delete('/posts/:id/resume', checkAuth, checkCareerAdmin, deleteResume);
 
 // Public: only PUBLISHED posts shown on homepage / career vault
 router.get('/posts', checkAuth, getAllPosts);

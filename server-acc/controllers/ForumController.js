@@ -5,6 +5,9 @@ import notifyOnNewPost from '../utils/mail/sendExperiencePost.js';
 import sendCommentNotification from '../utils/mail/sendCommentNotification.js';
 import sendReplyNotification from '../utils/mail/sendReplyNotification.js';
 
+import { getPublicUrl } from '../utils/signedUrl.js';
+import { storage } from '../config/minio.js';
+
 // Public endpoint: returns posts by status (default: PUBLISHED) with server-side pagination
 export const getAllPosts = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
@@ -70,10 +73,31 @@ export const getAllPosts = async (req, res) => {
             })
         ]);
 
+        const resultWithUrls = await Promise.all(
+            result.map(async (post) => {
+                let resolvedResumeUrl = null;
+                if (post.resumeUrl) {
+                    try {
+                        resolvedResumeUrl = await getPublicUrl({
+                            bucketName: process.env.MINIO_BUCKET_NAME,
+                            filePath: post.resumeUrl,
+                        });
+                    } catch(err) {
+                        console.error("Failed to resolve presigned URL for resume", err);
+                    }
+                }
+                return {
+                    ...post,
+                    resumeUrl: resolvedResumeUrl || post.resumeUrl,
+                    resumeFilePath: post.resumeUrl
+                };
+            })
+        );
+
         return res.status(200).json({
             success: true,
             message: "Data fetched Successfully",
-            data: result,
+            data: resultWithUrls,
             pagination: {
                 total,
                 page,
@@ -120,7 +144,7 @@ export const getAllPosts = async (req, res) => {
 
 
 export const addpost = async (req, res) => {
-    const { title, description, status, experienceType, domain } = req.body;
+    const { title, description, status, experienceType, domain, resumeUrl } = req.body;
     const user = req.user;
     if (!title || !description) {
         return res.status(400).json({
@@ -137,6 +161,7 @@ export const addpost = async (req, res) => {
                 status: status,
                 experienceType: experienceType,
                 domain: domain,
+                resumeUrl: resumeUrl || null,
                 uploadedById: user.id
             }
         })
@@ -208,7 +233,7 @@ export const deletePost = async (req, res) => {
 export const editPost = async (req, res) => {
     const postId = req.params.id;
     const user = req.user;
-    const { title, description, experienceType, status, domain, company } = req.body;
+    const { title, description, experienceType, status, domain, resumeUrl } = req.body;
     if (!postId) {
         return res.status(400).json({
             success: false,
@@ -234,21 +259,34 @@ export const editPost = async (req, res) => {
                 message: "post not found."
             })
         }
+        const dataToUpdate = {
+            title,
+            description,
+            experienceType,
+            status,
+            domain
+        };
+        if (resumeUrl !== undefined) {
+            // Delete old resume from MinIO if it's replaced
+            if (post.resumeUrl && post.resumeUrl !== resumeUrl) {
+                try {
+                    await storage.removeObject(process.env.MINIO_BUCKET_NAME, post.resumeUrl);
+                } catch (err) {
+                    console.error("Failed to delete old resume from MinIO during update:", err);
+                }
+            }
+            dataToUpdate.resumeUrl = resumeUrl;
+        }
+
         const updatedPost = await prisma.experience.update({
             where: {
                 id: parseInt(postId),
             },
-            data: {
-                title,
-                description,
-                experienceType,
-                status,
-                domain
-            }
+            data: dataToUpdate
         })
 
         if(status === "PUBLISHED"){
-            notifyOnNewPost({ displayName: post.uploadedBy.displayName, experienceTitle: title, experienceType: experienceType, company: company })
+            notifyOnNewPost({ displayName: post.uploadedBy?.displayName || 'Anonymous', experienceTitle: title, experienceType: experienceType, company: domain || 'N/A' })
         }
 
         return res.status(201).json({
@@ -650,3 +688,70 @@ export const togglePostBookmark = async (req, res) => {
         });
     }
 }
+
+export const addOrUpdateResume = async (req, res) => {
+    const postId = parseInt(req.params.id);
+    const { resumeUrl } = req.body;
+    
+    if (!postId || !resumeUrl) {
+        return res.status(400).json({ success: false, message: "Missing postId or resumeUrl." });
+    }
+
+    try {
+        const post = await prisma.experience.findUnique({ where: { id: postId } });
+        if (!post) {
+            return res.status(404).json({ success: false, message: "Post not found." });
+        }
+        
+        if (post.resumeUrl && post.resumeUrl !== resumeUrl) {
+            try {
+                await storage.removeObject(process.env.MINIO_BUCKET_NAME, post.resumeUrl);
+            } catch (err) {
+                console.error("Failed to delete old resume from MinIO:", err);
+            }
+        }
+        
+        const updatedPost = await prisma.experience.update({
+            where: { id: postId },
+            data: { resumeUrl: resumeUrl }
+        });
+
+        return res.status(200).json({ success: true, message: "Resume updated successfully.", data: updatedPost });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: "Server error." });
+    }
+};
+
+export const deleteResume = async (req, res) => {
+    const postId = parseInt(req.params.id);
+    
+    if (!postId) {
+        return res.status(400).json({ success: false, message: "Missing postId." });
+    }
+
+    try {
+        const post = await prisma.experience.findUnique({ where: { id: postId } });
+        if (!post) {
+            return res.status(404).json({ success: false, message: "Post not found." });
+        }
+        
+        if (post.resumeUrl) {
+            try {
+                await storage.removeObject(process.env.MINIO_BUCKET_NAME, post.resumeUrl);
+            } catch (err) {
+                console.error("Failed to delete resume from MinIO:", err);
+            }
+        }
+        
+        const updatedPost = await prisma.experience.update({
+            where: { id: postId },
+            data: { resumeUrl: null }
+        });
+
+        return res.status(200).json({ success: true, message: "Resume deleted successfully.", data: updatedPost });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: "Server error." });
+    }
+};

@@ -21,6 +21,9 @@ import {
   publishPost,
   saveDraft,
 } from "../lib/Post_Functions";
+import { getFilePath } from "../lib/getFilePath";
+import { forumApi } from "../api/forumApi";
+import toast from "react-hot-toast";
 
 const DOMAIN_OPTIONS = [
   { value: "CS", label: "CS" },
@@ -77,6 +80,8 @@ const AdminPostEditor = () => {
 
   const [selectedPost, setSelectedPost] = useState(null);
   const [isLoadingPost, setIsLoadingPost] = useState(Number(id) !== -1);
+  const [resumeFile, setResumeFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -208,13 +213,8 @@ const AdminPostEditor = () => {
   };
 
   const handlePublish = async () => {
-    const preservedDescription = getPreservedEditorHtml();
-    const payload = {
-      ...formData,
-      content: preservedDescription,
-      description: preservedDescription,
-      status: "PUBLISHED",
-    };
+    const payload = await getPayloadWithResume("PUBLISHED");
+    if (!payload) return;
 
     const response = await publishPost(Number(id), payload);
 
@@ -224,18 +224,73 @@ const AdminPostEditor = () => {
   };
 
   const handleSaveDraft = async () => {
-    const preservedDescription = getPreservedEditorHtml();
-    const payload = {
-      ...formData,
-      content: preservedDescription,
-      description: preservedDescription,
-      status: "DRAFT",
-    };
+    const payload = await getPayloadWithResume("DRAFT");
+    if (!payload) return;
 
     const response = await saveDraft(Number(id), payload);
 
     if (response?.success) {
       navigate("/admin/manage-posts");
+    }
+  };
+
+  const getPayloadWithResume = async (status) => {
+    const preservedDescription = getPreservedEditorHtml();
+    const payload = {
+      ...formData,
+      content: preservedDescription,
+      description: preservedDescription,
+      status: status,
+    };
+
+    if (resumeFile) {
+      if (resumeFile.type !== "application/pdf") {
+        toast.error("Resume must be a PDF file.");
+        return null;
+      }
+      if (resumeFile.size > 5 * 1024 * 1024) {
+        toast.error("Resume size must be less than 5MB.");
+        return null;
+      }
+      
+      setIsUploading(true);
+      try {
+        const uploadResult = await getFilePath({ file: resumeFile, folder: "resumes" });
+        if (uploadResult?.filePath) {
+          payload.resumeUrl = uploadResult.filePath;
+        } else {
+          toast.error("Failed to upload resume. Please try again.");
+          return null;
+        }
+      } catch (err) {
+        toast.error("Error uploading resume. Please check your storage service.");
+        return null;
+      } finally {
+        setIsUploading(false);
+      }
+    }
+
+    return payload;
+  };
+
+  const handleRemoveResume = async () => {
+    if (Number(id) === -1) return; // New post, no resume to delete from server yet
+    if (!window.confirm("Are you sure you want to permanently delete the attached resume?")) return;
+    
+    setIsUploading(true);
+    try {
+      const response = await forumApi.deleteResume(id);
+      if (response?.data?.success) {
+        setSelectedPost((prev) => ({ ...prev, resumeUrl: null }));
+        toast.success("Resume removed successfully.");
+      } else {
+        toast.error("Failed to remove resume.");
+      }
+    } catch (err) {
+      toast.error("Error removing resume.");
+      console.error(err);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -269,18 +324,20 @@ const AdminPostEditor = () => {
           <button
             type="button"
             onClick={handleSaveDraft}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-50 hover:text-slate-950 transition cursor-pointer shadow-2xs"
+            disabled={isUploading}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-50 hover:text-slate-950 transition cursor-pointer shadow-2xs disabled:opacity-60"
           >
             <Save size={14} />
-            <span>Save Draft</span>
+            <span>{isUploading ? "Uploading..." : "Save Draft"}</span>
           </button>
           <button
             type="button"
             onClick={handlePublish}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-xs transition cursor-pointer"
+            disabled={isUploading}
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-xs transition cursor-pointer disabled:opacity-60"
           >
             <CheckCircle size={14} />
-            <span>Publish Post</span>
+            <span>{isUploading ? "Uploading..." : "Publish Post"}</span>
           </button>
         </div>
       </div>
@@ -339,6 +396,41 @@ const AdminPostEditor = () => {
                 </option>
               ))}
             </select>
+          </div>
+          <div className="space-y-1.5">
+            <label className="flex items-center justify-between gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider">
+              <div className="flex items-center gap-2">
+                <FileText size={14} className="text-blue-600" />
+                <span>Resume (Optional)</span>
+              </div>
+              {selectedPost?.resumeUrl && (
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Attached</span>
+                  <a 
+                    href={selectedPost.resumeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[9px] text-blue-600 hover:text-white bg-blue-50 hover:bg-blue-500 px-2 py-0.5 rounded-full border border-blue-200 transition"
+                  >
+                    View
+                  </a>
+                  <button 
+                    type="button" 
+                    onClick={handleRemoveResume}
+                    disabled={isUploading}
+                    className="text-[9px] text-red-600 hover:text-white bg-red-50 hover:bg-red-500 px-2 py-0.5 rounded-full border border-red-200 transition disabled:opacity-50"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+            </label>
+            <input
+              type="file"
+              accept=".pdf"
+              onChange={(e) => setResumeFile(e.target.files[0] || null)}
+              className="w-full text-sm mb-4 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100"
+            />
           </div>
         </div>
 

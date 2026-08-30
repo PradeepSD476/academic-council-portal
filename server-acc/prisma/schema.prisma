@@ -39,6 +39,7 @@ model Experience {
   updatedAt      DateTime       @updatedAt
   uploadedById   Int
   domain         String?
+  resumeUrl      String?
   comments       Comment[]
   uploadedBy     User           @relation(fields: [uploadedById], references: [id])
   likes          Like[]
