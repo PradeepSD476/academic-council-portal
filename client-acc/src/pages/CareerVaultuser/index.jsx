@@ -9,6 +9,8 @@ import AuthContext from "../../context/auth/authContext";
 import CommentSection from "./CommentSection";
 import NativeRichTextEditor from "./NativeRichTextEditor";
 import { forumApi } from "../../api/forumApi";
+import { getFilePath } from "../../lib/getFilePath";
+import { FileText } from "lucide-react";
 
 void motion;
 
@@ -37,6 +39,7 @@ const CreatePostModal = ({ onClose, onSubmitted }) => {
   const [experienceType, setExperienceType] = useState("");
   const [domain, setDomain] = useState("");
   const [description, setDescription] = useState("");
+  const [resumeFile, setResumeFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
   // Lock background body scroll when modal is active
@@ -56,9 +59,28 @@ const CreatePostModal = ({ onClose, onSubmitted }) => {
     const strippedDesc = description.replace(/<[^>]*>/g, "").trim();
     if (!strippedDesc) return toast.error("Please write something in the description.");
 
+    if (resumeFile && resumeFile.type !== "application/pdf") {
+      return toast.error("Resume must be a PDF file.");
+    }
+    if (resumeFile && resumeFile.size > 5 * 1024 * 1024) {
+      return toast.error("Resume size must be less than 5MB.");
+    }
+
     setSubmitting(true);
     try {
-      await forumApi.submitPost({ title: title.trim(), description, experienceType, domain, status: "DRAFT" });
+      let resumeUrl = null;
+      if (resumeFile) {
+        const uploadResult = await getFilePath({ file: resumeFile, folder: "resumes" });
+        if (uploadResult?.filePath) {
+          resumeUrl = uploadResult.filePath;
+        } else {
+          toast.error("Failed to upload resume. Please try again.");
+          setSubmitting(false);
+          return;
+        }
+      }
+
+      await forumApi.submitPost({ title: title.trim(), description, experienceType, domain, status: "DRAFT", resumeUrl });
       toast.success("Post submitted! It will appear publicly after admin review.");
       onSubmitted();
       onClose();
@@ -183,6 +205,23 @@ const CreatePostModal = ({ onClose, onSubmitted }) => {
                     placeholder="Describe your experience in detail — preparation tips, interview process, key learnings…"
                   />
                 </div>
+              </div>
+
+              {/* Resume */}
+              <div className="flex flex-col gap-1.5 mt-2">
+                <label htmlFor="post-resume" className="text-xs font-semibold text-slate-600">
+                  Resume (Optional)
+                </label>
+                <div className="w-full border border-slate-200 rounded-xl px-3 py-2 bg-sky-50/50">
+                  <input
+                    id="post-resume"
+                    type="file"
+                    accept=".pdf"
+                    onChange={(e) => setResumeFile(e.target.files[0] || null)}
+                    className="w-full text-sm text-[var(--color-primary)] transition file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[var(--color-primary)]/10 file:text-[var(--color-primary)] hover:file:bg-[var(--color-primary)]/20"
+                  />
+                </div>
+                <span className="text-[10px] text-slate-400">PDF only, max 5MB</span>
               </div>
             </div>
 
@@ -331,6 +370,7 @@ const CareerVault = () => {
     likes: p._count?.likes ?? 0,
     likedBy: p.likes?.map((l) => l.userId) || [],
     isBookmarked: (p.bookmarks?.length || 0) > 0,
+    resumeUrl: p.resumeUrl,
   }), []);
 
   const fetchPosts = useCallback(async () => {
@@ -757,6 +797,19 @@ const CareerVault = () => {
                     >
                       Share thoughts
                     </button>
+
+                    {/* Resume Button */}
+                    {exp.resumeUrl && (
+                      <a
+                        href={exp.resumeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--color-secondary)]/10 text-[var(--color-secondary)] hover:bg-[var(--color-secondary)]/20 transition-colors ml-auto font-bold text-xs"
+                      >
+                        <FileText size={14} />
+                        View Resume
+                      </a>
+                    )}
                   </div>
                 </div>
 

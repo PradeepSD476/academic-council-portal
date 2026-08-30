@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Edit2, FileText, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { deletePost, getAllPosts } from "../../lib/Post_Functions";
+import { forumApi } from "../../api/forumApi";
+import { getFilePath } from "../../lib/getFilePath";
+import toast from "react-hot-toast";
 
 const PAGE_SIZE = 10;
 
@@ -14,6 +17,12 @@ const ManagePost = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Resume Modal State
+  const [showResumeModal, setShowResumeModal] = useState(false);
+  const [activeResumePost, setActiveResumePost] = useState(null);
+  const [resumeFile, setResumeFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -48,6 +57,48 @@ const ManagePost = () => {
 
     if (response?.success) {
       setPosts((prev) => prev.filter((item) => item.id !== postId));
+    }
+  };
+
+  const handleOpenResumeModal = (post) => {
+    setActiveResumePost(post);
+    setResumeFile(null);
+    setShowResumeModal(true);
+  };
+
+  const handleResumeSubmit = async () => {
+    if (!resumeFile) return toast.error("Please select a PDF file.");
+    if (resumeFile.type !== "application/pdf") return toast.error("File must be PDF.");
+    if (resumeFile.size > 5 * 1024 * 1024) return toast.error("File size must be < 5MB.");
+    
+    setIsUploading(true);
+    try {
+      const uploadResult = await getFilePath({ file: resumeFile, folder: "resumes" });
+      if (uploadResult?.filePath) {
+        await forumApi.addOrUpdateResume(activeResumePost.id, uploadResult.filePath);
+        toast.success("Resume updated successfully!");
+        setPosts((prev) => prev.map(p => p.id === activeResumePost.id ? { ...p, resumeUrl: uploadResult.filePath } : p));
+        setShowResumeModal(false);
+      } else {
+        toast.error("Failed to upload resume to storage.");
+      }
+    } catch (err) {
+      toast.error("Error updating resume.");
+      console.error(err);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeleteResume = async (postId) => {
+    if (!window.confirm("Are you sure you want to delete this resume?")) return;
+    try {
+      await forumApi.deleteResume(postId);
+      toast.success("Resume deleted successfully!");
+      setPosts((prev) => prev.map(p => p.id === postId ? { ...p, resumeUrl: null } : p));
+    } catch (err) {
+      toast.error("Failed to delete resume.");
+      console.error(err);
     }
   };
 
@@ -112,6 +163,9 @@ const ManagePost = () => {
                   Date
                 </th>
                 <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
+                  Resume
+                </th>
+                <th className="px-6 py-3.5 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
                   Status
                 </th>
                 <th className="px-6 py-3.5 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">
@@ -165,6 +219,23 @@ const ManagePost = () => {
                     {/*Post Data*/}
                     <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-500 font-medium">
                       {new Date(item.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    </td>
+
+                    {/*Resume*/}
+                    <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-500 font-medium">
+                      {item.resumeUrl ? (
+                        <div className="flex flex-col gap-1">
+                          <span className="text-emerald-600 font-semibold text-[10px] uppercase">Attached</span>
+                          <div className="flex gap-2">
+                            <button onClick={() => handleOpenResumeModal(item)} className="text-blue-600 hover:underline" title="Update Resume">Update</button>
+                            <button onClick={() => handleDeleteResume(item.id)} className="text-red-600 hover:underline" title="Delete Resume">Delete</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button onClick={() => handleOpenResumeModal(item)} className="text-slate-600 hover:text-[var(--color-primary)] bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded text-[10px] font-bold uppercase transition" title="Add Resume">
+                          + Add
+                        </button>
+                      )}
                     </td>
 
                     {/*Status*/}
@@ -253,6 +324,41 @@ const ManagePost = () => {
           </div>
         </div>
       </div>
+
+      {/* Resume Modal */}
+      {showResumeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            <h2 className="text-lg font-bold text-slate-900 mb-4">
+              {activeResumePost?.resumeUrl ? "Update Resume" : "Add Resume"}
+            </h2>
+            <p className="text-sm text-slate-500 mb-4">
+              Post: <span className="font-semibold text-slate-700">{activeResumePost?.title}</span>
+            </p>
+            <input
+              type="file"
+              accept=".pdf"
+              onChange={(e) => setResumeFile(e.target.files[0] || null)}
+              className="w-full text-sm mb-4 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[var(--color-primary)]/10 file:text-[var(--color-primary)] hover:file:bg-[var(--color-primary)]/20"
+            />
+            <div className="flex justify-end gap-3 mt-4">
+              <button
+                onClick={() => setShowResumeModal(false)}
+                className="px-4 py-2 text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleResumeSubmit}
+                disabled={isUploading}
+                className="px-4 py-2 text-sm font-bold text-white bg-[var(--color-secondary)] hover:opacity-90 rounded-lg transition disabled:opacity-50"
+              >
+                {isUploading ? "Uploading..." : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

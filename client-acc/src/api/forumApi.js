@@ -21,6 +21,9 @@ export const forumApi = {
 
   deletePost: (id) => api.delete(`/posts/${id}`),
 
+  addOrUpdateResume: (postId, resumeUrl) => api.put(`/posts/${postId}/resume`, { resumeUrl }),
+  deleteResume: (postId) => api.delete(`/posts/${postId}/resume`),
+
   toggleLike: (id) => api.post(`/posts/toggle-like/${id}`),
   toggleBookmark: (id) => api.post(`/posts/toggle-bookmark/${id}`),
 
