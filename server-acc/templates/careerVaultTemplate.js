@@ -4,10 +4,9 @@ export default function careerVaultTemplate({
     experienceTitle,
     company,
 }) {
+    const safeName = name || 'Student';
     const safeTitle = experienceTitle || 'Experience';
-    const subject = (company && company.trim() !== '') 
-        ? `${company} | ${safeTitle}` 
-        : `${safeTitle}`;
+    const subject = `${safeName} | ${safeTitle}`;
 
     return {
         subject: subject,
