@@ -35,13 +35,14 @@ const AuthState = ({ children }) => {
 
     const login = async (email, password) => {
         setLoading(true);
+        const normalizedEmail = (email || "").trim().toLowerCase();
         try {
             const response = await fetch(
                 `${import.meta.env.VITE_API_URL}/v1/auth/login`,
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ email, password }),
+                    body: JSON.stringify({ email: normalizedEmail, password }),
                     credentials: "include",
                 }
             );
@@ -75,13 +76,14 @@ const AuthState = ({ children }) => {
 
     const register = async (displayName, email, password, confirmPassword, otp) => {
         setLoading(true);
+        const normalizedEmail = (email || "").trim().toLowerCase();
         try {
             const response = await fetch(
                 `${import.meta.env.VITE_API_URL}/v1/auth/register`,
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ displayName, email, password, confirmPassword, otp }),
+                    body: JSON.stringify({ displayName, email: normalizedEmail, password, confirmPassword, otp }),
                     credentials: "include",
                 }
             );

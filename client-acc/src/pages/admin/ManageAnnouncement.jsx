@@ -35,6 +35,17 @@ const ManageAnnouncement = () => {
   };
   const [formData, setFormData] = useState(initialFormState);
 
+  // Lock background body scroll when modal is open
+  useEffect(() => {
+    if (isModalOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isModalOpen]);
+
   const fetchAnnouncements = async () => {
     setLoading(true);
     try {
@@ -272,89 +283,87 @@ const ManageAnnouncement = () => {
 
       {/* --- ADD/EDIT MODAL --- */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-          <div className="bg-white/95 backdrop-blur-xl shadow-xs border border-slate-200 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden text-[var(--color-primary)]">
-            <div className="px-6 py-4 bg-white/95 backdrop-blur-xl shadow-xs border-b border-slate-200 flex justify-between items-center">
-              <h3 className="text-lg font-bold text-[var(--color-primary)]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-3 sm:p-6 overflow-hidden" onClick={closeModal}>
+          <div className="bg-white/95 backdrop-blur-xl border border-slate-200 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-lg h-[88vh] max-h-[750px] flex flex-col overflow-hidden text-[var(--color-primary)] my-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="px-4 sm:px-6 py-3.5 sm:py-4 bg-white/95 backdrop-blur-xl border-b border-slate-200 flex justify-between items-center shrink-0">
+              <h3 className="text-base sm:text-lg font-bold text-[var(--color-primary)]">
                 {editMode ? 'Edit Announcement' : 'New Announcement'}
               </h3>
               <button
+                type="button"
                 onClick={closeModal}
-                className="p-1.5 rounded-full hover:bg-white/10 text-slate-500 hover:text-white transition-colors cursor-pointer"
+                className="p-1.5 rounded-full hover:bg-slate-100 text-slate-500 hover:text-[var(--color-primary)] transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Title *</label>
-                <input 
-                  type="text" 
-                  name="title" 
-                  required
-                  value={formData.title} 
-                  onChange={handleChange}
-                  className="w-full px-3.5 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition"
-                  placeholder="e.g. End Semester Exam Schedule Released"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Description *</label>
-                <textarea 
-                  name="description" 
-                  required
-                  rows="4"
-                  value={formData.description} 
-                  onChange={handleChange}
-                  className="w-full px-3.5 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition resize-none"
-                  placeholder="Enter the full announcement details and instructions here..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Category Type</label>
-                <select
-                  name="type"
-                  value={formData.type}
-                  onChange={handleChange}
-                  className="w-full px-3.5 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] focus:border-[var(--color-secondary)] focus:outline-none text-sm transition cursor-pointer"
-                >
-                  {ANNOUNCEMENT_TYPE_OPTIONS.map((option) => (
-                    <option key={option} value={option} className="bg-sky-100 text-[var(--color-primary)]">
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* File Upload Section */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Attachment / PDF</label>
-                <div className="relative group">
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden min-h-0">
+              <div className="p-4 sm:p-6 space-y-4 flex-1 overflow-y-auto min-h-0 scrollbar-thin">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Title *</label>
                   <input 
-                    type="file" 
-                    onChange={(e) => setSelectedFile(e.target.files[0])}
-                    className="block w-full text-xs text-slate-500
-                      file:mr-3 file:py-2 file:px-3
-                      file:rounded-xl file:border-0
-                      file:text-xs file:font-bold
-                      file:bg-[var(--color-secondary)]/15 file:text-[var(--color-secondary)]
-                      hover:file:bg-[var(--color-secondary)]/25 cursor-pointer bg-white/90 border border-slate-200 rounded-xl p-1"
+                    type="text" 
+                    name="title" 
+                    required
+                    value={formData.title} 
+                    onChange={handleChange}
+                    className="w-full px-3.5 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition"
+                    placeholder="e.g. End Semester Exam Schedule Released"
                   />
-                  {editMode && !selectedFile && formData.filePath && (
-                    <p className="text-[10px] text-slate-500 mt-1 truncate">Current: {formData.filePath.split('/').pop()}</p>
-                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Description *</label>
+                  <textarea 
+                    name="description" 
+                    required
+                    rows="4"
+                    value={formData.description} 
+                    onChange={handleChange}
+                    className="w-full px-3.5 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition resize-none"
+                    placeholder="Enter the full announcement details and instructions here..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Category Type</label>
+                  <select
+                    name="type"
+                    value={formData.type}
+                    onChange={handleChange}
+                    className="w-full px-3.5 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] focus:border-[var(--color-secondary)] focus:outline-none text-sm transition cursor-pointer"
+                  >
+                    {ANNOUNCEMENT_TYPE_OPTIONS.map((option) => (
+                      <option key={option} value={option} className="bg-sky-100 text-[var(--color-primary)]">
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* File Upload Section */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Attachment / PDF</label>
+                  <div className="relative group">
+                    <input 
+                      type="file" 
+                      onChange={(e) => setSelectedFile(e.target.files[0])}
+                      className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[var(--color-secondary)]/15 file:text-[var(--color-secondary)] hover:file:bg-[var(--color-secondary)]/25 cursor-pointer"
+                    />
+                    {editMode && !selectedFile && formData.filePath && (
+                      <p className="text-[10px] text-slate-500 mt-1 truncate">Current: {formData.filePath.split('/').pop()}</p>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-slate-200 flex justify-end gap-3">
+              <div className="p-4 border-t border-slate-200 flex justify-end gap-3 bg-white/95 backdrop-blur-md shrink-0">
                 <button 
                   type="button" 
                   onClick={closeModal}
                   disabled={isUploading}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 border border-slate-200 rounded-xl hover:bg-white/5 transition cursor-pointer"
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer"
                 >
                   Cancel
                 </button>

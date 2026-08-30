@@ -104,6 +104,14 @@ function Navbar() {
                 </Link>
               );
             })}
+
+            {/* SMP Module Link */}
+            <a
+              href="/smp/"
+              className="text-[13.5px] py-1 text-slate-600 hover:text-slate-950 font-medium transition-colors duration-150 cursor-pointer"
+            >
+              SMP
+            </a>
           </div>
 
           {/* Desktop Auth Section */}
@@ -231,6 +239,17 @@ function Navbar() {
                   </Link>
                 </li>
               ))}
+
+              {/* SMP Module Link (mobile) */}
+              <li>
+                <a
+                  href="/smp/"
+                  onClick={() => setIsOpen(false)}
+                  className="block py-2 text-sm font-medium text-slate-600 hover:text-slate-950 transition-colors"
+                >
+                  SMP
+                </a>
+              </li>
 
               <li className="pt-4 border-t border-slate-100">
                 {!isAuthenticated ? (

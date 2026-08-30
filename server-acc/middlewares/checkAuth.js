@@ -1,5 +1,7 @@
 import prisma from '../config/db.js';
-import jwt from 'jsonwebtoken'
+import jwt from 'jsonwebtoken';
+import { parseRollNumber } from '../utils/extractDetails.js';
+
 export const checkAuth = async (req, res, next) => {
     const token = req.cookies.token;
     console.log("token",token)
@@ -21,9 +23,12 @@ export const checkAuth = async (req, res, next) => {
                 message: "Token does not contain a valid email address."
             })
         }
-        const user = await prisma.user.findUnique({
+        const user = await prisma.user.findFirst({
             where: {
-                email: userEmail
+                email: {
+                    equals: userEmail.trim().toLowerCase(),
+                    mode: 'insensitive'
+                }
             }
         })
         if (!user) {
@@ -33,6 +38,7 @@ export const checkAuth = async (req, res, next) => {
                 message: "No user account found for the provided token."
             })
         }
+
         await prisma.user.update({
             where:{
                 id: user.id,

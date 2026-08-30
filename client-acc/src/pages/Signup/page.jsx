@@ -19,7 +19,8 @@ function SignUp() {
   const [otpLoading, setOtpLoading] = useState(false);
 
   const handleSendOTP = async () => {
-    if (!email.endsWith("@iitp.ac.in")) {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail.endsWith("@iitp.ac.in")) {
       toast.error("Only @iitp.ac.in email addresses are allowed.");
       return;
     }
@@ -29,7 +30,7 @@ function SignUp() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email,
+          email: cleanEmail,
           type: "EMAIL_VERIFICATION",
         }),
       });
@@ -40,6 +41,7 @@ function SignUp() {
         toast.error(data.message || data.error || "Failed to send OTP. Please try again.");
       } else {
         setOtpSent(true);
+        setEmail(cleanEmail);
         toast.success("OTP sent to your email.");
       }
     } catch (err) {
@@ -56,7 +58,7 @@ function SignUp() {
       return;
     }
 
-    register(displayName, email, password, confirmPassword, otp);
+    register(displayName, email.trim().toLowerCase(), password, confirmPassword, otp);
   };
 
   return (

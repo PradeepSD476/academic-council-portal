@@ -39,6 +39,15 @@ const CreatePostModal = ({ onClose, onSubmitted }) => {
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  // Lock background body scroll when modal is active
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim()) return toast.error("Please enter a title.");
@@ -64,116 +73,121 @@ const CreatePostModal = ({ onClose, onSubmitted }) => {
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4"
+        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-3 sm:p-6 overflow-clip"
+        data-lenis-prevent
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       >
-        <motion.div
-          className="bg-white/95 backdrop-blur-xl shadow-xs border border-slate-200 rounded-3xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh] overflow-hidden text-[var(--color-primary)]"
+        <motion.form
+          onSubmit={handleSubmit}
+          className="bg-white/95 backdrop-blur-xl border border-slate-200 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl h-[88vh] max-h-[800px] flex flex-col overflow-clip text-[var(--color-primary)] my-auto"
           initial={{ opacity: 0, scale: 0.94, y: 24 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.94, y: 24 }}
           transition={{ duration: 0.25, ease: "easeOut" }}
+          onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+          {/* Pinned Header */}
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-200 bg-white/90 backdrop-blur-md shrink-0">
             <div className="flex items-center gap-2">
-              <PenSquare size={20} className="text-[var(--color-secondary)]" />
-              <h2 className="text-lg font-bold text-[var(--color-primary)]">Share Your Experience</h2>
+              <PenSquare size={18} className="text-[var(--color-secondary)] sm:w-5 sm:h-5" />
+              <h2 className="text-base sm:text-lg font-bold text-[var(--color-primary)]">Share Your Experience</h2>
             </div>
             <button
+              type="button"
               onClick={onClose}
               className="p-1.5 rounded-full hover:bg-sky-50 text-slate-500 hover:text-[var(--color-primary)] transition-colors cursor-pointer"
               aria-label="Close"
             >
-              <X size={20} />
+              <X size={18} className="sm:w-5 sm:h-5" />
             </button>
           </div>
 
-          {/* Body */}
-          <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-y-auto p-6 gap-4">
-            <div className="bg-[var(--color-secondary)]/10 border border-[var(--color-secondary)]/20 rounded-xl px-4 py-3 text-xs text-[var(--color-secondary)]">
-              📋 Your post will be reviewed by an admin before it goes public. You will see it appear on the Career Vault once approved.
-            </div>
-
-            {/* Section 1: Basic Information */}
-            <div className="p-4 rounded-2xl border border-slate-200 bg-white/90 flex flex-col gap-4">
-              <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">1. Basic Information</h3>
-              
-              {/* Title */}
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="post-title" className="text-xs font-semibold text-slate-600">
-                  Title <span className="text-[var(--color-secondary)]">*</span>
-                </label>
-                <input
-                  id="post-title"
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. My internship experience at Google"
-                  maxLength={150}
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-[var(--color-primary)] placeholder-slate-400 focus:outline-none focus:border-[var(--color-secondary)] transition bg-sky-50/50"
-                />
+          {/* Scrollable Content Body and Pinned Sticky Footer */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 scrollbar-thin">
+              <div className="bg-[var(--color-secondary)]/10 border border-[var(--color-secondary)]/20 rounded-xl px-3.5 py-2.5 sm:px-4 sm:py-3 text-xs text-[var(--color-secondary)]">
+                📋 Your post will be reviewed by an admin before it goes public. You will see it appear on the Career Vault once approved.
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4">
-                {/* Experience Type */}
-                <div className="flex flex-col gap-1.5 flex-1">
-                  <label htmlFor="post-type" className="text-xs font-semibold text-slate-600">
-                    Experience Type <span className="text-[var(--color-secondary)]">*</span>
+              {/* Section 1: Basic Information */}
+              <div className="p-3.5 sm:p-4 rounded-2xl border border-slate-200 bg-white/90 flex flex-col gap-3.5 sm:gap-4">
+                <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">1. Basic Information</h3>
+                
+                {/* Title */}
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="post-title" className="text-xs font-semibold text-slate-600">
+                    Title <span className="text-[var(--color-secondary)]">*</span>
                   </label>
-                  <select
-                    id="post-type"
-                    value={experienceType}
-                    onChange={(e) => setExperienceType(e.target.value)}
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-[var(--color-primary)] focus:outline-none focus:border-[var(--color-secondary)] bg-sky-50/50 transition"
-                  >
-                    <option value="" className="bg-sky-100 text-slate-500">Select type…</option>
-                    {EXPERIENCE_TYPES.map((t) => (
-                      <option key={t.value} value={t.value} className="bg-sky-100 text-[var(--color-primary)]">{t.label}</option>
-                    ))}
-                  </select>
+                  <input
+                    id="post-title"
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="e.g. My internship experience at Google"
+                    maxLength={150}
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-[var(--color-primary)] placeholder-slate-400 focus:outline-none focus:border-[var(--color-secondary)] transition bg-sky-50/50"
+                  />
                 </div>
 
-                {/* Domain */}
-                <div className="flex flex-col gap-1.5 flex-1">
-                  <label htmlFor="post-domain" className="text-xs font-semibold text-slate-600">
-                    Domain <span className="text-[var(--color-secondary)]">*</span>
-                  </label>
-                  <select
-                    id="post-domain"
-                    value={domain}
-                    onChange={(e) => setDomain(e.target.value)}
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-[var(--color-primary)] focus:outline-none focus:border-[var(--color-secondary)] bg-sky-50/50 transition"
-                  >
-                    <option value="" disabled className="bg-sky-100 text-slate-500">Select domain...</option>
-                    {DOMAINS.map((d) => (
-                      <option key={d.value} value={d.value} className="bg-sky-100 text-[var(--color-primary)]">{d.label}</option>
-                    ))}
-                  </select>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  {/* Experience Type */}
+                  <div className="flex flex-col gap-1.5">
+                    <label htmlFor="post-type" className="text-xs font-semibold text-slate-600">
+                      Experience Type <span className="text-[var(--color-secondary)]">*</span>
+                    </label>
+                    <select
+                      id="post-type"
+                      value={experienceType}
+                      onChange={(e) => setExperienceType(e.target.value)}
+                      className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-[var(--color-primary)] focus:outline-none focus:border-[var(--color-secondary)] bg-sky-50/50 transition"
+                    >
+                      <option value="" className="bg-sky-100 text-slate-500">Select type…</option>
+                      {EXPERIENCE_TYPES.map((t) => (
+                        <option key={t.value} value={t.value} className="bg-sky-100 text-[var(--color-primary)]">{t.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Domain */}
+                  <div className="flex flex-col gap-1.5">
+                    <label htmlFor="post-domain" className="text-xs font-semibold text-slate-600">
+                      Domain <span className="text-[var(--color-secondary)]">*</span>
+                    </label>
+                    <select
+                      id="post-domain"
+                      value={domain}
+                      onChange={(e) => setDomain(e.target.value)}
+                      className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-[var(--color-primary)] focus:outline-none focus:border-[var(--color-secondary)] bg-sky-50/50 transition"
+                    >
+                      <option value="" disabled className="bg-sky-100 text-slate-500">Select domain...</option>
+                      {DOMAINS.map((d) => (
+                        <option key={d.value} value={d.value} className="bg-sky-100 text-[var(--color-primary)]">{d.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 2: Story Content */}
+              <div className="p-3.5 sm:p-4 rounded-2xl border border-slate-200 bg-white/90 flex flex-col gap-3.5 sm:gap-4">
+                <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">2. Story Content</h3>
+                
+                {/* Rich Text Editor */}
+                <div className="flex flex-col gap-1.5">
+                  <NativeRichTextEditor
+                    value={description}
+                    onChange={setDescription}
+                    minHeight="160px"
+                    placeholder="Describe your experience in detail — preparation tips, interview process, key learnings…"
+                  />
                 </div>
               </div>
             </div>
 
-            {/* Section 2: Story Content */}
-            <div className="p-4 rounded-2xl border border-slate-200 bg-white/90 flex flex-col gap-4 flex-1">
-              <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">2. Story Content</h3>
-              
-              {/* Rich Text Editor */}
-              <div className="flex flex-col gap-1.5 flex-1">
-                <NativeRichTextEditor
-                  value={description}
-                  onChange={setDescription}
-                  minHeight="200px"
-                  placeholder="Describe your experience in detail — preparation tips, interview process, key learnings…"
-                />
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-200">
+            {/* Pinned Sticky Footer */}
+            <div className="flex items-center justify-end gap-3 px-4 sm:px-6 py-3 border-t border-slate-200 bg-white/95 backdrop-blur-md shrink-0">
               <button
                 type="button"
                 onClick={onClose}
@@ -196,8 +210,7 @@ const CreatePostModal = ({ onClose, onSubmitted }) => {
                 )}
               </button>
             </div>
-          </form>
-        </motion.div>
+          </motion.form>
       </motion.div>
     </AnimatePresence>
   );

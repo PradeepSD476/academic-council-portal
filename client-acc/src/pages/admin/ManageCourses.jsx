@@ -34,6 +34,17 @@ const ManageCourses = () => {
     allowedBranches: []
   };
 
+  // Lock background body scroll when modal is open
+  useEffect(() => {
+    if (isModalOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isModalOpen]);
+
   const branchOptions = [
     { value: "AI", label: "AI" },
     { value: "CS", label: "CS" },
@@ -369,138 +380,141 @@ const ManageCourses = () => {
 
       {/* --- ADD / EDIT MODAL --- */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-          <div className="bg-white/95 backdrop-blur-xl shadow-xs border border-slate-200 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto text-[var(--color-primary)]">
-            <div className="sticky top-0 bg-white/95 backdrop-blur-xl shadow-xs px-6 py-4 border-b border-slate-200 flex items-center justify-between z-10">
-              <h2 className="text-lg font-bold text-[var(--color-primary)]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-3 sm:p-6 overflow-hidden" onClick={() => setIsModalOpen(false)}>
+          <div className="bg-white/95 backdrop-blur-xl border border-slate-200 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl h-[88vh] max-h-[800px] flex flex-col overflow-hidden text-[var(--color-primary)] my-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-200 flex items-center justify-between bg-white/90 backdrop-blur-md shrink-0">
+              <h2 className="text-base sm:text-lg font-bold text-[var(--color-primary)]">
                 {modalMode === 'add' ? 'Add New Course' : 'Edit Course'}
               </h2>
               <button
+                type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="p-1.5 rounded-full hover:bg-white/10 text-slate-500 hover:text-white transition-colors cursor-pointer"
+                className="p-1.5 rounded-full hover:bg-slate-100 text-slate-500 hover:text-[var(--color-primary)] transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Course Code *</label>
-                  <input
-                    required
-                    name="courseCode"
-                    value={formData.courseCode}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition"
-                    placeholder="e.g. CS101"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Course Name *</label>
-                  <input
-                    required
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition"
-                    placeholder="e.g. Data Structures"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Description</label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  rows="3"
-                  className="w-full px-3 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition resize-y"
-                  placeholder="Brief course description..."
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Instructor *</label>
-                  <input
-                    required
-                    name="instructor"
-                    value={formData.instructor}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition"
-                    placeholder="Faculty Name"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Credits *</label>
-                  <input
-                    required
-                    type="number"
-                    step="any"
-                    name="credits"
-                    value={formData.credits}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition"
-                    placeholder="e.g. 4"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Program *</label>
-                  <div className="w-full px-3 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-slate-600 text-sm font-semibold">
-                    BTECH
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden min-h-0">
+              <div className="p-4 sm:p-6 space-y-4 flex-1 overflow-y-auto min-h-0 scrollbar-thin">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1.5">Course Code *</label>
+                    <input
+                      required
+                      name="courseCode"
+                      value={formData.courseCode}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition"
+                      placeholder="e.g. CS101"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1.5">Course Name *</label>
+                    <input
+                      required
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition"
+                      placeholder="e.g. Data Structures"
+                    />
                   </div>
                 </div>
+
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Academic Year *</label>
-                  <input
-                    required
-                    type="number"
-                    name="academicYear"
-                    value={formData.academicYear}
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Description</label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition"
-                    placeholder="e.g. 1 for 1st year"
+                    rows="3"
+                    className="w-full px-3 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition resize-y"
+                    placeholder="Brief course description..."
                   />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1.5">Instructor *</label>
+                    <input
+                      required
+                      name="instructor"
+                      value={formData.instructor}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition"
+                      placeholder="Faculty Name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1.5">Credits *</label>
+                    <input
+                      required
+                      type="number"
+                      step="any"
+                      name="credits"
+                      value={formData.credits}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition"
+                      placeholder="e.g. 4"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1.5">Program *</label>
+                    <div className="w-full px-3 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-slate-600 text-sm font-semibold">
+                      BTECH
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1.5">Academic Year *</label>
+                    <input
+                      required
+                      type="number"
+                      name="academicYear"
+                      value={formData.academicYear}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition"
+                      placeholder="e.g. 1 for 1st year"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                    Allowed Branches *
+                  </label>
+
+                  <Select
+                    isMulti
+                    options={branchOptions}
+                    styles={customSelectStyles}
+                    placeholder="Select allowed branches"
+                    closeMenuOnSelect={false}
+                    value={branchOptions.filter(opt =>
+                      formData.allowedBranches.includes(opt.value)
+                    )}
+                    onChange={(selected) =>
+                      setFormData(prev => ({
+                        ...prev,
+                        allowedBranches: (selected || []).map(opt => opt.value)
+                      }))
+                    }
+                  />
+
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    Select one or more branches eligible for this course
+                  </p>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">
-                  Allowed Branches *
-                </label>
-
-                <Select
-                  isMulti
-                  options={branchOptions}
-                  styles={customSelectStyles}
-                  placeholder="Select allowed branches"
-                  closeMenuOnSelect={false}
-                  value={branchOptions.filter(opt =>
-                    formData.allowedBranches.includes(opt.value)
-                  )}
-                  onChange={(selected) =>
-                    setFormData(prev => ({
-                      ...prev,
-                      allowedBranches: (selected || []).map(opt => opt.value)
-                    }))
-                  }
-                />
-
-                <p className="text-[11px] text-slate-500 mt-1">
-                  Select one or more branches eligible for this course
-                </p>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 mt-4">
+              <div className="flex justify-end gap-3 p-4 border-t border-slate-200 bg-white/95 backdrop-blur-md shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 border border-slate-200 rounded-xl hover:bg-sky-50 transition cursor-pointer"
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer"
                 >
                   Cancel
                 </button>
