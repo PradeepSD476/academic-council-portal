@@ -109,7 +109,7 @@ const CommentSection = ({ experience, currentUserId, currentUserName, onCommentA
   };
 
   return (
-    <div className="bg-sky-50/50 rounded-2xl p-4 border border-slate-200/80">
+    <div className="bg-sky-50/50 rounded-2xl p-4 border border-slate-200/80" data-lenis-prevent>
       {/* Comments List */}
       <div className="space-y-4 mb-4">
         {comments.map((comment) => (

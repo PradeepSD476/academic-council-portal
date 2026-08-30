@@ -4,20 +4,20 @@ export const parseRollNumber = (rollNo) => {
   }
 
   const rollUpper = rollNo.toUpperCase();
-  
+
   const yearCode = rollUpper.substring(0, 2);
   const programCode = rollUpper.substring(2, 4);
   const branchCode = rollUpper.substring(4, 6);
-  
+
   const admissionYear = 2000 + parseInt(yearCode);
 
-  const programs = {
-    '01': "BTECH",
-    '02': "BTECH+MTECH",
-    "03": "BTECH+MBA",
-    "11": "MTECH"
+  // Only allow BTech and Dual Degree program codes (01, 02, 03)
+  const allowedPrograms = ['01', '02', '03', '11'];
+  if (!allowedPrograms.includes(programCode)) {
+    return { valid: false, error: `Only BTech/Dual Degree programs (01, 02, 03) are allowed. Got: ${programCode}` };
   }
 
+  // All 01, 02, 03 map to BTECH in the system
   const program = 'BTECH';
   const branchName = branchCode;
 

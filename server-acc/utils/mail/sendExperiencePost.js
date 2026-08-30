@@ -11,8 +11,8 @@ const getEmailReciever = async () => {
 	}
 }
 
-export async function sendCareerVaultMail({ to, name, experienceTitle, experienceType }) {
-  const { subject, html, text } = careerVaultTemplate({ name, experienceTitle, experienceType });
+export async function sendCareerVaultMail({ to, name, experienceTitle, experienceType, company }) {
+  const { subject, html, text } = careerVaultTemplate({ name, experienceTitle, experienceType, company });
 
   const info = await transporter.sendMail({
     from: `"Academic & Career Council" <${process.env.SMTP_USER}>`,
@@ -30,12 +30,12 @@ function sleep(ms) {
 }
 
 
-export default async function notifyOnNewPost({ displayName, experienceTitle, experienceType }) {
+export default async function notifyOnNewPost({ displayName, experienceTitle, experienceType, company }) {
 	try {
 		const recievers = await getEmailReciever();
 		for (const val of recievers) {
 			try {
-				await sendCareerVaultMail({ to: val.email, name: displayName, experienceTitle: experienceTitle, experienceType: experienceType })
+				await sendCareerVaultMail({ to: val.email, name: displayName, experienceTitle: experienceTitle, experienceType: experienceType, company: company })
 				await sleep(300);
 			} catch (mailErr) {
 				console.error(mailErr)

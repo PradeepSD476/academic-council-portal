@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import axios from "axios";
 import ScholarshipCard from "./components/ScholarshipCard";
 import {
@@ -36,7 +36,37 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [advancedDrawerOpen, setAdvancedDrawerOpen] = useState(false);
+  const debounceRef = useRef(null);
+
+  // Debounced search: updates searchTerm 400ms after user stops typing
+  const handleSearchChange = useCallback((value) => {
+    setSearchInput(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setSearchTerm(value);
+      setPage(1);
+    }, 400);
+  }, []);
+
+  // Debounced filter change for text inputs (state, income)
+  const debouncedFilterRef = useRef(null);
+  const handleDebouncedFilterChange = useCallback((name, value) => {
+    setFilters((prev) => ({ ...prev, [name]: value }));
+    if (debouncedFilterRef.current) clearTimeout(debouncedFilterRef.current);
+    debouncedFilterRef.current = setTimeout(() => {
+      setPage(1);
+    }, 400);
+  }, []);
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (debouncedFilterRef.current) clearTimeout(debouncedFilterRef.current);
+    };
+  }, []);
 
   const [filters, setFilters] = useState({
     category: "",
@@ -47,6 +77,17 @@ const Index = () => {
     branch: "",
     activeStatus: "",
   });
+
+  // Lock background body scroll when drawer is open
+  useEffect(() => {
+    if (advancedDrawerOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [advancedDrawerOpen]);
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -108,6 +149,7 @@ const Index = () => {
       activeStatus: "",
     });
     setSearchTerm("");
+    setSearchInput("");
     setPage(1);
   };
 
@@ -159,17 +201,15 @@ const Index = () => {
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
           <input
             type="text"
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setPage(1);
-            }}
+            value={searchInput}
+            onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Search by title, provider, or keywords..."
             className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-slate-200 bg-white/90 text-[var(--color-primary)] placeholder-slate-400 focus:outline-none focus:border-[var(--color-secondary)] text-xs transition"
           />
           {searchTerm && (
             <button
               onClick={() => {
+                setSearchInput("");
                 setSearchTerm("");
                 setPage(1);
               }}
@@ -470,7 +510,7 @@ const Index = () => {
                 <input
                   type="text"
                   value={filters.state}
-                  onChange={(e) => handleFilterChange("state", e.target.value)}
+                  onChange={(e) => handleDebouncedFilterChange("state", e.target.value)}
                   placeholder="e.g. Bihar, UP, All India"
                   className="w-full bg-white/90 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-[var(--color-primary)] placeholder-slate-400 focus:outline-none focus:border-[var(--color-secondary)]"
                 />
@@ -484,7 +524,7 @@ const Index = () => {
                 <input
                   type="text"
                   value={filters.income}
-                  onChange={(e) => handleFilterChange("income", e.target.value)}
+                  onChange={(e) => handleDebouncedFilterChange("income", e.target.value)}
                   placeholder="e.g. 800000 or 8 LPA"
                   className="w-full bg-white/90 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-[var(--color-primary)] placeholder-slate-400 focus:outline-none focus:border-[var(--color-secondary)]"
                 />

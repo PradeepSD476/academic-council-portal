@@ -37,6 +37,7 @@ export default function AskACC({ onClose }) {
       role="dialog"
       aria-label="AskACC Chatbot"
       aria-modal="true"
+      data-lenis-prevent
       className="
         fixed bottom-24 right-4 z-[9999]
         w-[92vw] sm:w-[410px] h-[82vh] sm:h-[620px] max-h-[720px]

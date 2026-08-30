@@ -10,7 +10,7 @@ import {
   Loader2,
   ExternalLink,
   UploadCloud,
-} from "lucide-react"; // Import your GCS utility
+} from "lucide-react";
 import toast from "react-hot-toast";
 
 const ManageResources = () => {
@@ -38,18 +38,24 @@ const ManageResources = () => {
   };
   const [formData, setFormData] = useState(initialFormState);
 
+  // Lock background body scroll when modal is open
+  useEffect(() => {
+    if (isModalOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isModalOpen]);
 
   // --- Data Fetching ---
   const fetchAllCourses = async () => {
     try {
-
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/v1/courses?limit=500`,
-        {
-          withCredentials: true
-        }
+        { withCredentials: true }
       );
-
       if (response.data && response.data.data) {
         setCourses(response.data.data);
       }
@@ -61,22 +67,16 @@ const ManageResources = () => {
   const fetchResources = async () => {
     setLoading(true);
     try {
-
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL
-        }/v1/resources/all?page=${page}&limit=${limit}`,
-        {
-          withCredentials: true
-        }
+        `${import.meta.env.VITE_API_URL}/v1/resources/all?page=${page}&limit=${limit}`,
+        { withCredentials: true }
       );
-
       if (response.data && response.data.data) {
-        toast.success("Resources Fetched.")
         setResources(response.data.data);
         setHasMore(response.data.data.length === limit);
       }
     } catch (error) {
-      toast.error("failed to fetch resources.")
+      toast.error("Failed to fetch resources.");
       console.error("Failed to fetch resources:", error);
     } finally {
       setLoading(false);
@@ -94,7 +94,6 @@ const ManageResources = () => {
     setIsUploading(true);
 
     try {
-
       let finalFilePath = formData.filePath;
 
       if (selectedFile) {
@@ -105,12 +104,11 @@ const ManageResources = () => {
         if (uploadResult?.filePath) {
           finalFilePath = uploadResult.filePath;
         } else {
-          toast.error("failed to upload")
+          toast.error("Failed to upload file");
           throw new Error("File upload to GCS failed.");
         }
       }
 
-      // 2. Prepare API Payload
       const selectedCourse = courses.find(
         (c) => c.id === parseInt(formData.courseId)
       );
@@ -121,15 +119,12 @@ const ManageResources = () => {
           filePath: finalFilePath,
           courseId: parseInt(formData.courseId),
         };
-        // Clean payload for backend consistency
         delete editPayload.courseCode;
 
         await axios.patch(
           `${import.meta.env.VITE_API_URL}/v1/resources/${currentId}`,
           editPayload,
-          {
-            withCredentials: true
-          }
+          { withCredentials: true }
         );
         toast.success("Resource Updated Successfully!");
       } else {
@@ -137,17 +132,14 @@ const ManageResources = () => {
           ...formData,
           filePath: finalFilePath,
           courseCode: selectedCourse ? selectedCourse.courseCode : "",
-          notifyUsers: notifyUsers
+          notifyUsers: notifyUsers,
         };
-        // Prisma uses courseId or courseCode; adjust based on your controller logic
         delete addPayload.courseId;
 
         await axios.post(
           `${import.meta.env.VITE_API_URL}/v1/resources`,
           addPayload,
-          {
-            withCredentials: true
-          }
+          { withCredentials: true }
         );
         toast.success("Resource Created Successfully!");
       }
@@ -164,12 +156,9 @@ const ManageResources = () => {
 
   const handleDelete = async (id) => {
     try {
-
       await axios.delete(
         `${import.meta.env.VITE_API_URL}/v1/resources/${id}`,
-        {
-          withCredentials: true
-        }
+        { withCredentials: true }
       );
       fetchResources();
     } catch (error) {
@@ -271,10 +260,7 @@ const ManageResources = () => {
               </thead>
               <tbody className="divide-y divide-neutral-800/70">
                 {resources.map((res) => (
-                  <tr
-                    key={res.id}
-                    className="hover:bg-white/5 transition-colors"
-                  >
+                  <tr key={res.id} className="hover:bg-white/5 transition-colors">
                     <td className="px-6 py-4">
                       <div className="text-sm font-bold text-[var(--color-primary)] leading-snug">
                         {res.title}
@@ -361,149 +347,145 @@ const ManageResources = () => {
 
       {/* --- Modal Section --- */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-          <div className="bg-white/95 backdrop-blur-xl shadow-xs border border-slate-200 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden text-[var(--color-primary)]">
-            <div className="px-6 py-4 bg-white/95 backdrop-blur-xl shadow-xs border-b border-slate-200 flex justify-between items-center">
-              <h3 className="text-lg font-bold text-[var(--color-primary)]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-3 sm:p-6 overflow-hidden" onClick={closeModal}>
+          <div className="bg-white/95 backdrop-blur-xl border border-slate-200 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-lg h-[88vh] max-h-[750px] flex flex-col overflow-hidden text-[var(--color-primary)] my-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="px-4 sm:px-6 py-3.5 sm:py-4 bg-white/95 backdrop-blur-xl border-b border-slate-200 flex justify-between items-center shrink-0">
+              <h3 className="text-base sm:text-lg font-bold text-[var(--color-primary)]">
                 {editMode ? "Edit Resource" : "Add New Resource"}
               </h3>
               <button
+                type="button"
                 onClick={closeModal}
-                className="p-1.5 rounded-full hover:bg-white/10 text-slate-500 hover:text-white transition-colors cursor-pointer"
+                className="p-1.5 rounded-full hover:bg-slate-100 text-slate-500 hover:text-[var(--color-primary)] transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">
-                  Title *
-                </label>
-                <input
-                  type="text"
-                  name="title"
-                  required
-                  value={formData.title}
-                  onChange={handleChange}
-                  placeholder="e.g. Endsem 2024 PYQ with Solutions"
-                  className="w-full px-3.5 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">
-                  Associated Course *
-                </label>
-                <select
-                  name="courseId"
-                  required
-                  value={formData.courseId}
-                  onChange={handleChange}
-                  className="w-full px-3.5 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] focus:border-[var(--color-secondary)] focus:outline-none text-sm transition cursor-pointer"
-                >
-                  <option value="" className="bg-sky-100 text-slate-500">Select a Course</option>
-                  {courses.map((course) => (
-                    <option key={course.id} value={course.id} className="bg-sky-100 text-[var(--color-primary)]">
-                      {course.courseCode} - {course.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden min-h-0">
+              <div className="p-4 sm:p-6 space-y-4 flex-1 overflow-y-auto min-h-0 scrollbar-thin">
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1.5">
-                    Resource Type
+                    Title *
+                  </label>
+                  <input
+                    type="text"
+                    name="title"
+                    required
+                    value={formData.title}
+                    onChange={handleChange}
+                    placeholder="e.g. Endsem 2024 PYQ with Solutions"
+                    className="w-full px-3.5 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                    Associated Course *
                   </label>
                   <select
-                    name="resourceType"
-                    value={formData.resourceType}
+                    name="courseId"
+                    required
+                    value={formData.courseId}
                     onChange={handleChange}
                     className="w-full px-3.5 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] focus:border-[var(--color-secondary)] focus:outline-none text-sm transition cursor-pointer"
                   >
-                    <option value="LECTURE_SLIDE" className="bg-sky-100 text-[var(--color-primary)]">Lecture Slides</option>
-                    <option value="NOTES" className="bg-sky-100 text-[var(--color-primary)]">Handwritten Notes</option>
-                    <option value="PYQ" className="bg-sky-100 text-[var(--color-primary)]">Previous Year Questions</option>
-                    <option value="TUTORIAL" className="bg-sky-100 text-[var(--color-primary)]">Tutorial Sheets</option>
-                    <option value="ASSIGNMENT" className="bg-sky-100 text-[var(--color-primary)]">Assignments</option>
-                    <option value="BOOK" className="bg-sky-100 text-[var(--color-primary)]">Reference Books</option>
-                    <option value="LAB_MANUAL" className="bg-sky-100 text-[var(--color-primary)]">Lab Manual</option>
-                    <option value="LAB_ASSIGNMENT" className="bg-sky-100 text-[var(--color-primary)]">Lab Assignments</option>
-                    <option value="PROJECT" className="bg-sky-100 text-[var(--color-primary)]">Project Guidelines</option>
-                    <option value="SYLLABUS" className="bg-sky-100 text-[var(--color-primary)]">Course Syllabus</option>
-                    <option value="QUESTION_BANK" className="bg-sky-100 text-[var(--color-primary)]">Question Bank</option>
-                    <option value="REFERENCE_MATERIAL" className="bg-sky-100 text-[var(--color-primary)]">Reference Material</option>
-                    <option value="PRESENTATION" className="bg-sky-100 text-[var(--color-primary)]">Presentations</option>
-                    <option value="VIDEO_LECTURE" className="bg-sky-100 text-[var(--color-primary)]">Video Lectures</option>
-                    <option value="SOFTWARE" className="bg-sky-100 text-[var(--color-primary)]">Software / Tools</option>
-                    <option value="DATASET" className="bg-sky-100 text-[var(--color-primary)]">Datasets</option>
-                    <option value="READING_MATERIAL" className="bg-sky-100 text-[var(--color-primary)]">Reading Material</option>
-                    <option value="CASE_STUDY" className="bg-sky-100 text-[var(--color-primary)]">Case Studies</option>
-                    <option value="EXAM_NOTICE" className="bg-sky-100 text-[var(--color-primary)]">Exam Notices</option>
-                    <option value="TIME_TABLE" className="bg-sky-100 text-[var(--color-primary)]">Time Table</option>
-                    <option value="OTHER" className="bg-sky-100 text-[var(--color-primary)]">Other</option>
+                    <option value="" className="bg-sky-100 text-slate-500">Select a Course</option>
+                    {courses.map((course) => (
+                      <option key={course.id} value={course.id} className="bg-sky-100 text-[var(--color-primary)]">
+                        {course.courseCode} - {course.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">
-                    Upload File
-                  </label>
-                  <div className="relative group">
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                      Resource Type
+                    </label>
+                    <select
+                      name="resourceType"
+                      value={formData.resourceType}
+                      onChange={handleChange}
+                      className="w-full px-3.5 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] focus:border-[var(--color-secondary)] focus:outline-none text-sm transition cursor-pointer"
+                    >
+                      <option value="LECTURE_SLIDE" className="bg-sky-100 text-[var(--color-primary)]">Lecture Slides</option>
+                      <option value="NOTES" className="bg-sky-100 text-[var(--color-primary)]">Handwritten Notes</option>
+                      <option value="PYQ" className="bg-sky-100 text-[var(--color-primary)]">Previous Year Questions</option>
+                      <option value="TUTORIAL" className="bg-sky-100 text-[var(--color-primary)]">Tutorial Sheets</option>
+                      <option value="ASSIGNMENT" className="bg-sky-100 text-[var(--color-primary)]">Assignments</option>
+                      <option value="BOOK" className="bg-sky-100 text-[var(--color-primary)]">Reference Books</option>
+                      <option value="LAB_MANUAL" className="bg-sky-100 text-[var(--color-primary)]">Lab Manual</option>
+                      <option value="LAB_ASSIGNMENT" className="bg-sky-100 text-[var(--color-primary)]">Lab Assignments</option>
+                      <option value="PROJECT" className="bg-sky-100 text-[var(--color-primary)]">Project Guidelines</option>
+                      <option value="SYLLABUS" className="bg-sky-100 text-[var(--color-primary)]">Course Syllabus</option>
+                      <option value="QUESTION_BANK" className="bg-sky-100 text-[var(--color-primary)]">Question Bank</option>
+                      <option value="REFERENCE_MATERIAL" className="bg-sky-100 text-[var(--color-primary)]">Reference Material</option>
+                      <option value="PRESENTATION" className="bg-sky-100 text-[var(--color-primary)]">Presentations</option>
+                      <option value="VIDEO_LECTURE" className="bg-sky-100 text-[var(--color-primary)]">Video Lectures</option>
+                      <option value="SOFTWARE" className="bg-sky-100 text-[var(--color-primary)]">Software / Tools</option>
+                      <option value="DATASET" className="bg-sky-100 text-[var(--color-primary)]">Datasets</option>
+                      <option value="READING_MATERIAL" className="bg-sky-100 text-[var(--color-primary)]">Reading Material</option>
+                      <option value="CASE_STUDY" className="bg-sky-100 text-[var(--color-primary)]">Case Studies</option>
+                      <option value="EXAM_NOTICE" className="bg-sky-100 text-[var(--color-primary)]">Exam Notices</option>
+                      <option value="TIME_TABLE" className="bg-sky-100 text-[var(--color-primary)]">Time Table</option>
+                      <option value="OTHER" className="bg-sky-100 text-[var(--color-primary)]">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                      Upload File
+                    </label>
                     <input
                       type="file"
                       onChange={(e) => setSelectedFile(e.target.files[0])}
-                      className="block w-full text-xs text-slate-500
-                          file:mr-3 file:py-2 file:px-3
-                          file:rounded-xl file:border-0
-                          file:text-xs file:font-bold
-                          file:bg-[var(--color-secondary)]/15 file:text-[var(--color-secondary)]
-                          hover:file:bg-[var(--color-secondary)]/25 cursor-pointer bg-white/90 border border-slate-200 rounded-xl p-1"
+                      className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[var(--color-secondary)]/15 file:text-[var(--color-secondary)] hover:file:bg-[var(--color-secondary)]/25 cursor-pointer"
                     />
-                    {editMode && !selectedFile && (
+                    {editMode && !selectedFile && formData.filePath && (
                       <p className="text-[10px] text-slate-500 mt-1 truncate">
                         Current: {formData.filePath.split("/").pop()}
                       </p>
                     )}
                   </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">
-                  Description
-                </label>
-                <textarea
-                  name="description"
-                  rows="3"
-                  value={formData.description}
-                  onChange={handleChange}
-                  placeholder="Additional notes, semester, instructor details..."
-                  className="w-full px-3.5 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition resize-none"
-                />
-              </div>
-
-              {!editMode && (
-                <div className="flex items-center gap-2.5 bg-white/90 border border-slate-200 p-3 rounded-xl">
-                  <input
-                    type="checkbox"
-                    id="notifyUsers"
-                    checked={notifyUsers}
-                    onChange={(e) => setNotifyUsers(e.target.checked)}
-                    className="w-4 h-4 rounded accent-[var(--color-secondary)] cursor-pointer"
-                  />
-                  <label htmlFor="notifyUsers" className="text-xs text-slate-600 font-semibold cursor-pointer">
-                    Notify enrolled students via in-app alert
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                    Description
                   </label>
+                  <textarea
+                    name="description"
+                    rows="3"
+                    value={formData.description}
+                    onChange={handleChange}
+                    placeholder="Additional notes, semester, instructor details..."
+                    className="w-full px-3.5 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition resize-none"
+                  />
                 </div>
-              )}
 
-              <div className="pt-4 border-t border-slate-200 flex justify-end gap-3">
+                {!editMode && (
+                  <div className="flex items-center gap-2.5 bg-white/90 border border-slate-200 p-3 rounded-xl">
+                    <input
+                      type="checkbox"
+                      id="notifyUsers"
+                      checked={notifyUsers}
+                      onChange={(e) => setNotifyUsers(e.target.checked)}
+                      className="w-4 h-4 rounded accent-[var(--color-secondary)] cursor-pointer"
+                    />
+                    <label htmlFor="notifyUsers" className="text-xs text-slate-600 font-semibold cursor-pointer">
+                      Notify enrolled students via in-app alert
+                    </label>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-4 border-t border-slate-200 flex justify-end gap-3 bg-white/95 backdrop-blur-md shrink-0">
                 <button
                   type="button"
                   onClick={closeModal}
                   disabled={isUploading}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 border border-slate-200 rounded-xl hover:bg-white/5 transition cursor-pointer"
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50 transition cursor-pointer"
                 >
                   Cancel
                 </button>

@@ -1,16 +1,17 @@
 export default function careerVaultTemplate({
-    name,
-    experienceType,
-    experienceTitle,
+  name,
+  experienceType,
+  experienceTitle,
+  company,
 }) {
-    const safeName = name || 'Student';
-    const safeTitle = experienceTitle || 'Experience';
-    const subject = `${safeName} | ${safeTitle}`;
+  const safeName = name || 'Student';
+  const safeTitle = experienceTitle || 'Experience';
+  const subject = `${safeName} | ${safeTitle}`;
 
-    return {
-        subject: subject,
+  return {
+    subject: subject,
 
-        text: `
+    text: `
 Hello,
 
 ${name} has shared their ${experienceType} experience on the Academic & Career Council portal.
@@ -27,7 +28,7 @@ Academic & Career Council
 Indian Institute of Technology Patna
     `.trim(),
 
-        html: `
+    html: `
       <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
         <h2 style="color: #0b5ed7;">New Career Vault Experience</h2>
 
@@ -89,5 +90,5 @@ Indian Institute of Technology Patna
         </p>
       </div>
     `,
-    };
+  };
 }

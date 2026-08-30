@@ -15,7 +15,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
   const [resetToken, setResetToken] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Reset state when modal closes
+  // Reset state and lock body scroll when modal opens/closes
   useEffect(() => {
     if (!isOpen) {
       setTimeout(() => {
@@ -26,16 +26,24 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
         setConfirmPassword("");
         setResetToken("");
       }, 300);
+    } else {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
     }
   }, [isOpen]);
 
   const handleSendOtp = async (e) => {
     e.preventDefault();
-    if (!email) return toast.error("Please enter your email.");
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail) return toast.error("Please enter your email.");
     setLoading(true);
     try {
-      const res = await authApi.forgotPassword(email);
+      const res = await authApi.forgotPassword(cleanEmail);
       if (res.data.success) {
+        setEmail(cleanEmail);
         toast.success("OTP sent to your email!");
         setStep(2);
       }
@@ -48,11 +56,13 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
 
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
+    const cleanEmail = email.trim().toLowerCase();
     if (otp.length !== 6) return toast.error("Please enter a 6-digit OTP.");
     setLoading(true);
     try {
-      const res = await authApi.verifyResetOtp(email, otp);
+      const res = await authApi.verifyResetOtp(cleanEmail, otp);
       if (res.data.success) {
+        setEmail(cleanEmail);
         toast.success("OTP verified!");
         setResetToken(res.data.resetToken);
         setStep(3);
@@ -89,7 +99,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm overflow-y-auto"
           onClick={(e) => {
             if (e.target === e.currentTarget) onClose();
           }}
@@ -98,7 +108,8 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
             initial={{ scale: 0.95, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-            className="w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 shadow-2xl relative"
+            className="w-full max-w-md bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-2xl relative my-auto max-h-[92vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={onClose}
@@ -227,7 +238,7 @@ function SignIn() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    login(email, password);
+    login(email.trim().toLowerCase(), password);
   };
 
   return (

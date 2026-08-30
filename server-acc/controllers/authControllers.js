@@ -1,9 +1,10 @@
 import prisma from '../config/db.js';
 import jwt from "jsonwebtoken"
-import bcrypt, { hash } from "bcryptjs";
+import bcrypt from "bcryptjs";
 import crypto from 'crypto';
 import sendOTP from '../utils/mail/sendOTP.js';
 import { checkEmailValidity } from '../utils/checkValidEmail.js';
+import { parseRollNumber } from '../utils/extractDetails.js';
 
 export const Login = async (req, res) => {
   const { email, password } = req.body;
@@ -12,22 +13,27 @@ export const Login = async (req, res) => {
       success: false,
       error: "MISSING_PARAMETERS",
       message: "Missing Required Fields..."
-    }
-    )
+    });
   }
+
+  const normalizedEmail = email.trim().toLowerCase();
+
   try {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.user.findFirst({
       where: {
-        email: email
+        email: {
+          equals: normalizedEmail,
+          mode: 'insensitive'
+        }
       }
-    })
+    });
 
     if (!user) {
       return res.status(404).json({
         success: false,
         error: "NOT_FOUND",
         message: "User not Found, Please Register to login..."
-      })
+      });
     }
 
     let passwordMatched = await bcrypt.compare(password, user.password);
@@ -41,12 +47,32 @@ export const Login = async (req, res) => {
         success: false,
         error: "UNAUTHORIZED",
         message: "Invalid Credentials..."
-      })
+      });
     }
 
-    const token = jwt.sign({ email: user.email }, process.env.SECRET_KEY, {
+    // Auto-heal missing profile details (rollNo, branchName, admissionYear, program) for legacy accounts
+    if (!user.branchName || !user.admissionYear || !user.rollNo) {
+      const emailMatch = user.email.match(/^[a-z0-9._%+-]+_([0-9]{4}[a-z]{2}[0-9]{2})@iitp\.ac\.in$/i);
+      if (emailMatch && emailMatch[1]) {
+        const rollDetails = parseRollNumber(emailMatch[1]);
+        if (rollDetails.valid) {
+          const updated = await prisma.user.update({
+            where: { id: user.id },
+            data: {
+              rollNo: rollDetails.rollNo,
+              branchName: rollDetails.branchName,
+              admissionYear: rollDetails.admissionYear,
+              program: rollDetails.program,
+            }
+          });
+          Object.assign(user, updated);
+        }
+      }
+    }
+
+    const token = jwt.sign({ email: user.email.toLowerCase() }, process.env.SECRET_KEY, {
       expiresIn: "2d",
-    })
+    });
 
     res.cookie("token", token, {
       httpOnly: true,
@@ -54,7 +80,7 @@ export const Login = async (req, res) => {
       secure: false,
       sameSite: "lax",
       path: "/",
-    })
+    });
 
     return res.status(200).json({
       success: true,
@@ -70,17 +96,16 @@ export const Login = async (req, res) => {
         admissionYear: user.admissionYear,
         program: user.program,
       }
-    })
+    });
   } catch (err) {
-    console.log(err)
+    console.error(err);
     return res.status(500).json({
       success: false,
       error: "Authentication Service Error",
       message: "Unable to verify authentication due to a server error. Please try again."
     });
   }
-}
-
+};
 
 export const Register = async (req, res) => {
   const { displayName, email, password, confirmPassword, otp } = req.body;
@@ -89,14 +114,14 @@ export const Register = async (req, res) => {
       success: false,
       error: "MISSING_PARAMETERS",
       message: "Missing Required Fields..."
-    })
+    });
   }
   if (password !== confirmPassword) {
     return res.status(400).json({
       success: false,
       error: "BadRequest",
       message: "Both passwords didn't match..."
-    })
+    });
   }
 
   if (otp.length !== 6) {
@@ -104,16 +129,32 @@ export const Register = async (req, res) => {
       success: false,
       error: "BadRequest",
       message: "Invalid OTP, OTP must contain six characters..."
-    })
+    });
   }
 
+  let emailDetails;
+  try {
+    emailDetails = checkEmailValidity(email);
+  } catch (err) {
+    return res.status(400).json({
+      success: false,
+      error: err.code || "INVALID_EMAIL",
+      message: err.message || "Invalid email address format."
+    });
+  }
+
+  const normalizedEmail = emailDetails.email;
+  const rollDetails = parseRollNumber(emailDetails.rollNumber);
   const hashedPassword = await bcrypt.hash(password, 10);
 
   try {
     await prisma.$transaction(async (tx) => {
       const verification = await tx.verification.findFirst({
         where: {
-          email,
+          email: {
+            equals: normalizedEmail,
+            mode: 'insensitive'
+          },
           type: "EMAIL_VERIFICATION",
           expiringAt: { gt: new Date() },
         },
@@ -146,20 +187,25 @@ export const Register = async (req, res) => {
 
       await tx.user.create({
         data: {
-          email,
+          email: normalizedEmail,
           password: hashedPassword,
-          displayName
+          displayName,
+          rollNo: rollDetails.valid ? rollDetails.rollNo : undefined,
+          branchName: rollDetails.valid ? rollDetails.branchName : undefined,
+          admissionYear: rollDetails.valid ? rollDetails.admissionYear : undefined,
+          program: rollDetails.valid ? rollDetails.program : undefined,
         }
-      })
-    })
+      });
+    });
+
     res.status(201).json({
       success: true,
       message: "User Registered Successfully, Please Proceed to Login...",
-    })
+    });
   } catch (error) {
-    console.log(error);
+    console.error(error);
 
-    // OTP validation errors — surface the specific message to the client
+    // OTP validation errors
     if (error.code === "OTP_INVALID_OR_EXPIRED" || error.code === "OTP_INCORRECT" || error.code === "OTP_ALREADY_USED") {
       return res.status(400).json({
         success: false,
@@ -183,7 +229,7 @@ export const Register = async (req, res) => {
       message: "Unable to register user due to a server error. Please try again."
     });
   }
-}
+};
 
 export const LogoutUser = async (req, res) => {
   try {
@@ -209,28 +255,34 @@ export const sendEmailVerification = async (req, res) => {
       success: false,
       error: "MISSING_PARAMETERS",
       message: "Missing Required Fields..."
-    })
+    });
   }
 
   try {
-    // checkEmailValidity throws on invalid emails — catch it early for a clear 400
+    let emailDetails;
     try {
-      checkEmailValidity(email);
-    } catch {
+      emailDetails = checkEmailValidity(email);
+    } catch (validationErr) {
       return res.status(400).json({
         success: false,
-        error: 'NOT_ALLOWED',
-        message: 'Only @iitp.ac.in email addresses are allowed to register.',
+        error: validationErr.code || 'NOT_ALLOWED',
+        message: validationErr.message || 'Only valid @iitp.ac.in email addresses are allowed to register.',
       });
     }
 
+    const normalizedEmail = emailDetails.email;
+
     const verification = await prisma.verification.findFirst({
       where: {
-        email: email,
+        email: {
+          equals: normalizedEmail,
+          mode: 'insensitive'
+        },
         type: type,
         expiringAt: { gt: new Date() }
       }
-    })
+    });
+
     if (verification) {
       return res.status(409).json({
         success: false,
@@ -240,7 +292,6 @@ export const sendEmailVerification = async (req, res) => {
     }
 
     const chars = "23456789";
-
     const length = 6;
     const bytes = crypto.randomBytes(length);
     let otp = "";
@@ -250,34 +301,33 @@ export const sendEmailVerification = async (req, res) => {
     }
 
     const hashedOTP = await bcrypt.hash(otp, 10);
-
-    const localPart = email.split('@')[0];
+    const localPart = normalizedEmail.split('@')[0];
     const name = localPart.split('_')[0];
 
-    await sendOTP({ to: email, name: name, otp: otp })
+    await sendOTP({ to: normalizedEmail, name: name, otp: otp });
 
-    const newVerification = await prisma.verification.create({
+    await prisma.verification.create({
       data: {
-        email: email,
+        email: normalizedEmail,
         type: type,
         expiringAt: new Date(Date.now() + 5 * 60 * 1000),
         otpHash: hashedOTP,
       }
-    })
+    });
+
     return res.status(200).json({
       success: true,
       message: "OTP Sent Successfully..."
-    })
+    });
   } catch (error) {
-    console.log(error);
-
+    console.error(error);
     return res.status(500).json({
       success: false,
       error: "EMAIL_SERVICE_ERROR",
       message: "Failed to send OTP. Please try again in a moment."
     });
   }
-}
+};
 
 export const GetMe = async (req, res) => {
   try {
@@ -301,8 +351,13 @@ export const GetMe = async (req, res) => {
       });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: decoded.email }
+    const user = await prisma.user.findFirst({
+      where: {
+        email: {
+          equals: decoded.email,
+          mode: 'insensitive'
+        }
+      }
     });
 
     if (!user) {
@@ -335,7 +390,7 @@ export const GetMe = async (req, res) => {
       message: "Unable to retrieve session. Please try again."
     });
   }
-}
+};
 
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
@@ -347,13 +402,20 @@ export const forgotPassword = async (req, res) => {
     });
   }
 
+  const normalizedEmail = email.trim().toLowerCase();
+
   try {
-    const user = await prisma.user.findUnique({
-      where: { email }
+    const user = await prisma.user.findFirst({
+      where: {
+        email: {
+          equals: normalizedEmail,
+          mode: 'insensitive'
+        }
+      }
     });
 
     if (!user) {
-      // Return 200 even if user not found to prevent email enumeration
+      // Prevent email enumeration
       return res.status(200).json({
         success: true,
         message: "If the email exists, an OTP has been sent."
@@ -363,7 +425,10 @@ export const forgotPassword = async (req, res) => {
     // Rate limiting: check if an OTP was sent in the last 1 minute
     const recentVerification = await prisma.verification.findFirst({
       where: {
-        email,
+        email: {
+          equals: normalizedEmail,
+          mode: 'insensitive'
+        },
         type: "PASSWORD_RESET",
         createdAt: { gt: new Date(Date.now() - 60 * 1000) }
       }
@@ -380,7 +445,10 @@ export const forgotPassword = async (req, res) => {
     // Delete any existing PASSWORD_RESET otps for this email to invalidate them
     await prisma.verification.deleteMany({
       where: {
-        email,
+        email: {
+          equals: normalizedEmail,
+          mode: 'insensitive'
+        },
         type: "PASSWORD_RESET"
       }
     });
@@ -395,19 +463,19 @@ export const forgotPassword = async (req, res) => {
     }
 
     const hashedOTP = await bcrypt.hash(otp, 10);
-    const localPart = email.split('@')[0];
+    const localPart = normalizedEmail.split('@')[0];
     const name = localPart.split('_')[0];
 
     await prisma.verification.create({
       data: {
-        email,
+        email: normalizedEmail,
         type: "PASSWORD_RESET",
         expiringAt: new Date(Date.now() + 10 * 60 * 1000), // 10 mins expiry
         otpHash: hashedOTP,
       }
     });
 
-    await sendOTP({ to: email, name: name, otp: otp });
+    await sendOTP({ to: normalizedEmail, name: name, otp: otp });
 
     return res.status(200).json({
       success: true,
@@ -433,10 +501,15 @@ export const verifyResetOtp = async (req, res) => {
     });
   }
 
+  const normalizedEmail = email.trim().toLowerCase();
+
   try {
     const verification = await prisma.verification.findFirst({
       where: {
-        email,
+        email: {
+          equals: normalizedEmail,
+          mode: 'insensitive'
+        },
         type: "PASSWORD_RESET",
         expiringAt: { gt: new Date() }
       }
@@ -466,7 +539,7 @@ export const verifyResetOtp = async (req, res) => {
 
     // Issue a short-lived token specifically for resetting the password (15 mins)
     const resetToken = jwt.sign(
-      { email, purpose: "PASSWORD_RESET" }, 
+      { email: normalizedEmail, purpose: "PASSWORD_RESET" }, 
       process.env.SECRET_KEY, 
       { expiresIn: "15m" }
     );
@@ -515,11 +588,32 @@ export const resetPassword = async (req, res) => {
       });
     }
 
+    const normalizedEmail = decoded.email.trim().toLowerCase();
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
+    const user = await prisma.user.findFirst({
+      where: {
+        email: {
+          equals: normalizedEmail,
+          mode: 'insensitive'
+        }
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: "USER_NOT_FOUND",
+        message: "User account not found."
+      });
+    }
+
     await prisma.user.update({
-      where: { email: decoded.email },
-      data: { password: hashedPassword }
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        email: normalizedEmail // Normalize saved email to lowercase
+      }
     });
 
     return res.status(200).json({
