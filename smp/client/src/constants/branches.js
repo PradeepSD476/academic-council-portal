@@ -15,7 +15,7 @@ export const STANDARDIZED_BRANCHES = [
   'Metallurgical & Materials Engineering',
   'Engineering Physics',
   'Chemical Science & Technology',
-  'BS Economics'
+  'Economics'
 ];
 
 export const ROLL_BRANCH_MAP = {
@@ -34,7 +34,7 @@ export const ROLL_BRANCH_MAP = {
   MM: 'Metallurgical & Materials Engineering',
   PH: 'Engineering Physics',
   EP: 'Engineering Physics',
-  ES: 'BS Economics',
+  ES: 'Economics',
 };
 
 /**
