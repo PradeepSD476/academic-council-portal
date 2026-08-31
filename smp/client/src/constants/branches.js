@@ -8,13 +8,14 @@ export const STANDARDIZED_BRANCHES = [
   'Artificial Intelligence & Data Science',
   'Mathematics & Computing',
   'Electronics & Communication Engineering',
-  'Electrical Engineering',
+  'Electrical & Electronics Engineering',
   'Mechanical Engineering',
   'Civil Engineering',
-  'Chemical & Biochemical Engineering',
+  'Chemical Engineering',
   'Metallurgical & Materials Engineering',
   'Engineering Physics',
-  'Earth & Environmental Sciences',
+  'Chemical Science & Technology',
+  'BS Economics'
 ];
 
 export const ROLL_BRANCH_MAP = {
@@ -24,16 +25,16 @@ export const ROLL_BRANCH_MAP = {
   MT: 'Mathematics & Computing',
   EC: 'Electronics & Communication Engineering',
   VL: 'Electronics & Communication Engineering',
-  EE: 'Electrical Engineering',
+  EE: 'Electrical & Electronics Engineering',
   ME: 'Mechanical Engineering',
   CE: 'Civil Engineering',
   ST: 'Civil Engineering',
-  CB: 'Chemical & Biochemical Engineering',
-  CT: 'Chemical & Biochemical Engineering',
+  CB: 'Chemical Engineering',
+  CT: 'Chemical Science & Technology',
   MM: 'Metallurgical & Materials Engineering',
   PH: 'Engineering Physics',
   EP: 'Engineering Physics',
-  ES: 'Earth & Environmental Sciences',
+  ES: 'BS Economics',
 };
 
 /**
