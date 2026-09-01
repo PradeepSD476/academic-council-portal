@@ -35,17 +35,17 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const sendSignupOtp = async (data) => {
+  const sendSignupOtp = async (email) => {
     try {
-      await api.post('/auth/signup/otp', data);
+      await api.post('/auth/signup/otp', { email });
     } catch (error) {
       throw error.response?.data?.message || 'Failed to send OTP. Please try again.';
     }
   };
 
-  const signup = async (name, email, rollNumber, password, otp) => {
+  const signup = async (name, email, password, otp) => {
     try {
-      const response = await api.post('/auth/signup', { name, email, rollNumber, password, otp });
+      const response = await api.post('/auth/signup', { name, email, password, otp });
       setUser(response.data);
       return response.data;
     } catch (error) {

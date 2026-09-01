@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/ui/toast';
 import { motion } from 'framer-motion';
@@ -7,9 +7,8 @@ import { Link, useNavigate } from 'react-router-dom';
 function FloatingInput({ label, id, icon, error, type = 'text', value, onChange, ...props }) {
   return (
     <div>
-      <div className={`relative bg-surface-container-low rounded-2xl px-5 py-3 border-2 transition-all duration-300 ${
-        error ? 'border-error' : 'border-transparent focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/20'
-      }`}>
+      <div className={`relative bg-surface-container-low rounded-2xl px-5 py-3 border-2 transition-all duration-300 ${error ? 'border-error' : 'border-transparent focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/20'
+        }`}>
         <label
           className={`block text-[11px] uppercase tracking-wider font-semibold mb-1 ${error ? 'text-error' : 'text-outline'}`}
           htmlFor={id}
@@ -37,9 +36,8 @@ function FloatingPasswordInput({ label, id, error, value, onChange, ...props }) 
   const [show, setShow] = useState(false);
   return (
     <div>
-      <div className={`relative bg-surface-container-lowest rounded-2xl px-5 py-3 border-2 transition-all duration-300 shadow-sm ${
-        error ? 'border-error' : 'border-primary focus-within:ring-4 focus-within:ring-primary/20'
-      }`}>
+      <div className={`relative bg-surface-container-lowest rounded-2xl px-5 py-3 border-2 transition-all duration-300 shadow-sm ${error ? 'border-error' : 'border-primary focus-within:ring-4 focus-within:ring-primary/20'
+        }`}>
         <label
           className={`block text-[11px] uppercase tracking-wider font-semibold mb-1 ${error ? 'text-error' : 'text-primary'}`}
           htmlFor={id}
@@ -94,7 +92,7 @@ export default function ForgotPassword() {
   const onSendOtp = async (e) => {
     if (e) e.preventDefault();
     if (!email) return toast({ title: 'Email required', description: 'Please enter your email.', variant: 'error' });
-    
+
     setLoading(true);
     try {
       await sendResetPasswordOtp(email);
@@ -158,7 +156,7 @@ export default function ForgotPassword() {
           <form onSubmit={onSendOtp} className="space-y-6">
             <FloatingInput
               label="Academic Email" id="email" icon="mail" type="email"
-              placeholder="jane.doe@iitpatna.ac.in" value={email} onChange={e => setEmail(e.target.value)}
+              placeholder="name_2401xx36@iitp.ac.in" value={email} onChange={e => setEmail(e.target.value)}
             />
             <div className="pt-2">
               <motion.button type="submit" disabled={loading} whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}

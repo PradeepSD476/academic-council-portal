@@ -206,6 +206,9 @@ export default function AdminDashboard() {
   const [resetConfirmationInput, setResetConfirmationInput] = useState('');
   const [isResetting, setIsResetting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [deleteUserTarget, setDeleteUserTarget] = useState(null);
+  const [deleteConfirmInput, setDeleteConfirmInput] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchConfig = async () => { try { const res = await api.get('/admin/config'); setConfig(res.data); } catch (err) {} };
   const fetchGroups = async () => { try { const res = await api.get(`/admin/groups?page=${groupsPage}&search=${groupsSearch}`); if (res.data.data) { setGroupsData(res.data); } else { setGroupsData({ data: res.data, meta: { total: res.data.length, page: 1, totalPages: 1 } }); } } catch (err) {} };
@@ -1092,14 +1095,26 @@ export default function AdminDashboard() {
                               {u.response ? <Badge variant="green">Onboarded</Badge> : <Badge variant="yellow">Pending</Badge>}
                             </td>
                             <td className="px-6 py-4 text-right">
-                              <motion.button
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.9 }}
-                                onClick={() => setSelectedUser(u)}
-                                className="p-2 rounded-xl text-on-surface-variant hover:text-primary hover:bg-primary/5 transition-colors"
-                              >
-                                <span className="material-symbols-outlined text-[18px]">visibility</span>
-                              </motion.button>
+                              <div className="flex items-center justify-end gap-1">
+                                <motion.button
+                                  whileHover={{ scale: 1.1 }}
+                                  whileTap={{ scale: 0.9 }}
+                                  onClick={() => setSelectedUser(u)}
+                                  className="p-2 rounded-xl text-on-surface-variant hover:text-primary hover:bg-primary/5 transition-colors"
+                                  title="View details"
+                                >
+                                  <span className="material-symbols-outlined text-[18px]">visibility</span>
+                                </motion.button>
+                                <motion.button
+                                  whileHover={{ scale: 1.1 }}
+                                  whileTap={{ scale: 0.9 }}
+                                  onClick={() => { setDeleteUserTarget(u); setDeleteConfirmInput(''); }}
+                                  className="p-2 rounded-xl text-on-surface-variant hover:text-error hover:bg-error/5 transition-colors"
+                                  title="Delete user"
+                                >
+                                  <span className="material-symbols-outlined text-[18px]">person_remove</span>
+                                </motion.button>
+                              </div>
                             </td>
                           </motion.tr>
                         ))}
@@ -1113,6 +1128,85 @@ export default function AdminDashboard() {
                     <PaginationControls meta={usersData.meta} setPage={setUsersPage} />
                   </div>
                 </Card>
+
+                {/* Delete User Confirmation Modal */}
+                <AnimatePresence>
+                  {deleteUserTarget && (
+                    <motion.div
+                      className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+                      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                      onClick={() => setDeleteUserTarget(null)}
+                    >
+                      <motion.div
+                        variants={modalVariants} initial="hidden" animate="show" exit="exit"
+                        onClick={(e) => e.stopPropagation()}
+                        className="bg-surface rounded-3xl shadow-2xl border border-outline-variant/20 w-full max-w-md overflow-hidden"
+                      >
+                        <div className="p-6 border-b border-outline-variant/15">
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="w-12 h-12 bg-error/10 text-error rounded-2xl flex items-center justify-center">
+                              <span className="material-symbols-outlined text-[24px]">warning</span>
+                            </div>
+                            <div>
+                              <h3 className="text-lg font-bold text-on-surface">Delete User</h3>
+                              <p className="text-xs text-on-surface-variant">This action is permanent and cannot be undone.</p>
+                            </div>
+                          </div>
+                          <div className="bg-error/5 border border-error/15 rounded-xl p-4 text-sm text-on-surface space-y-2">
+                            <p>You are about to permanently delete:</p>
+                            <div className="font-semibold">{deleteUserTarget.name} ({deleteUserTarget.rollNumber})</div>
+                            <p className="text-xs text-on-surface-variant">This will remove their account, questionnaire, group memberships, feedback, meeting records, and free up their roll number for re-registration.</p>
+                          </div>
+                        </div>
+                        <div className="p-6 space-y-4">
+                          <div>
+                            <label className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2 block">
+                              Type <span className="text-error font-bold">DELETE</span> to confirm
+                            </label>
+                            <input
+                              type="text"
+                              value={deleteConfirmInput}
+                              onChange={(e) => setDeleteConfirmInput(e.target.value)}
+                              placeholder="DELETE"
+                              className="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-error/50 transition-shadow"
+                              autoFocus
+                            />
+                          </div>
+                          <div className="flex gap-3">
+                            <button
+                              onClick={() => setDeleteUserTarget(null)}
+                              className="flex-1 py-3 rounded-xl border border-outline-variant/30 text-on-surface font-semibold text-sm hover:bg-surface-container transition-colors"
+                            >
+                              Cancel
+                            </button>
+                            <motion.button
+                              whileTap={{ scale: 0.97 }}
+                              disabled={deleteConfirmInput !== 'DELETE' || isDeleting}
+                              onClick={async () => {
+                                setIsDeleting(true);
+                                try {
+                                  const res = await api.delete(`/admin/users/${deleteUserTarget.id}`);
+                                  toast({ title: 'User Deleted', description: res.data.message, variant: 'success' });
+                                  setDeleteUserTarget(null);
+                                  fetchUsers();
+                                  fetchUnassigned();
+                                } catch (err) {
+                                  toast({ title: 'Delete Failed', description: err.response?.data?.message || 'Server error', variant: 'error' });
+                                } finally {
+                                  setIsDeleting(false);
+                                }
+                              }}
+                              className="flex-1 py-3 rounded-xl bg-error text-on-error font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-error/90 transition-colors shadow-sm"
+                            >
+                              <span className="material-symbols-outlined text-[18px]">delete_forever</span>
+                              {isDeleting ? 'Deleting...' : 'Permanently Delete'}
+                            </motion.button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </motion.div>
             )}
 

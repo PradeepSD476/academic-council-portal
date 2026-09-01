@@ -58,6 +58,19 @@ export const validateInstituteEmail = (email) => {
 };
 
 /**
+ * Extracts and uppercases roll number from an IIT Patna student email.
+ * Email format: name_2401ai36@iitp.ac.in -> 2401AI36
+ * Returns null if the email doesn't match the student email pattern.
+ */
+export const extractRollFromEmail = (email) => {
+    if (!email || typeof email !== 'string') return null;
+    const cleanEmail = email.trim().toLowerCase();
+    const match = cleanEmail.match(/^[a-z0-9._%+-]+_([0-9]{4}[a-z]{2}[0-9]{2})@iitp\.ac\.in$/i);
+    if (!match) return null;
+    return match[1].toUpperCase();
+};
+
+/**
  * Validates an IIT Patna roll number for SMP:
  * - Must strictly match 8 alphanumeric characters: YY PP BB NN
  * - Program code PP must be B.Tech associated ('01', '02', '03')

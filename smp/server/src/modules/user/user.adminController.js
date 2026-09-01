@@ -128,3 +128,105 @@ export const getUnassignedUsers = async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error fetching unassigned users' });
     }
 };
+
+/**
+ * Gracefully deletes a user and all their dependent records.
+ * Handles: QuestionnaireResponse, Feedback (given & received), Meeting attendance,
+ * Group memberships (mentor/co-mentor/mentee), OTPs, and the User record itself.
+ */
+export const deleteUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const user = await prisma.user.findUnique({
+            where: { id },
+            include: {
+                mentorGroups: true,
+                coMentorGroups: true,
+                menteeGroups: true,
+            }
+        });
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        if (user.role === 'ADMIN') {
+            return res.status(403).json({ success: false, message: 'Cannot delete admin users' });
+        }
+
+        // 1. Delete questionnaire response
+        await prisma.questionnaireResponse.deleteMany({ where: { userId: id } });
+
+        // 2. Delete all feedback given and received
+        await prisma.feedback.deleteMany({
+            where: { OR: [{ fromUserId: id }, { toUserId: id }] }
+        });
+
+        // 3. Remove user from meeting attendance arrays using MongoDB $pull
+        // Find all meetings where this user is an attendee
+        const meetingsAttended = await prisma.meeting.findMany({
+            where: { attendeeIds: { has: id } },
+            select: { id: true }
+        });
+
+        for (const meeting of meetingsAttended) {
+            await prisma.meeting.update({
+                where: { id: meeting.id },
+                data: {
+                    attendeeIds: {
+                        set: (await prisma.meeting.findUnique({ where: { id: meeting.id }, select: { attendeeIds: true } }))
+                            .attendeeIds.filter(aid => aid !== id)
+                    }
+                }
+            });
+        }
+
+        // 4. Disconnect from all groups
+        // Mentor groups: unset mentorId
+        for (const group of user.mentorGroups) {
+            await prisma.group.update({
+                where: { id: group.id },
+                data: { mentor: { disconnect: true } }
+            });
+        }
+
+        // Co-mentor groups: disconnect from many-to-many
+        if (user.coMentorGroups.length > 0) {
+            await prisma.user.update({
+                where: { id },
+                data: {
+                    coMentorGroups: {
+                        disconnect: user.coMentorGroups.map(g => ({ id: g.id }))
+                    }
+                }
+            });
+        }
+
+        // Mentee groups: disconnect from many-to-many
+        if (user.menteeGroups.length > 0) {
+            await prisma.user.update({
+                where: { id },
+                data: {
+                    menteeGroups: {
+                        disconnect: user.menteeGroups.map(g => ({ id: g.id }))
+                    }
+                }
+            });
+        }
+
+        // 5. Delete all OTP records for this user's email
+        await prisma.oTP.deleteMany({ where: { email: user.email } });
+
+        // 6. Delete the user
+        await prisma.user.delete({ where: { id } });
+
+        res.json({
+            success: true,
+            message: `User ${user.name} (${user.rollNumber}) has been deleted successfully along with all associated data.`
+        });
+    } catch (error) {
+        console.error('Delete user error:', error);
+        res.status(500).json({ success: false, message: 'Server error deleting user' });
+    }
+};

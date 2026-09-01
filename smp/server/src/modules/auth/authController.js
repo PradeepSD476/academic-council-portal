@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../../lib/prisma.js';
 import { getPublicUrl } from '../../utils/signedUrl.js';
 import { sendMail } from '../../utils/mailer.js';
-import { validateInstituteEmail, validateSmpRollNumber } from '../../utils/rollValidator.js';
+import { validateInstituteEmail, validateSmpRollNumber, extractRollFromEmail } from '../../utils/rollValidator.js';
 
 const generateOTP = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
@@ -26,7 +26,7 @@ const generateTokenAndSetCookie = (res, id, role) => {
 };
 
 export const sendSignupOtp = async (req, res) => {
-    const { email, rollNumber } = req.body;
+    const { email } = req.body;
     try {
         const emailValidation = validateInstituteEmail(email);
         if (!emailValidation.valid) {
@@ -34,14 +34,19 @@ export const sendSignupOtp = async (req, res) => {
         }
         const cleanEmail = emailValidation.email;
 
+        // Derive roll number from the verified email
+        const derivedRoll = extractRollFromEmail(cleanEmail);
+        if (!derivedRoll) {
+            return res.status(400).json({ message: 'Could not extract roll number from email. Ensure your email follows the format: name_rollnumber@iitp.ac.in' });
+        }
+
         const config = await prisma.systemConfig.findFirst();
-        const rollValidation = validateSmpRollNumber(rollNumber, config, 'registration');
+        const rollValidation = validateSmpRollNumber(derivedRoll, config, 'registration');
         if (!rollValidation.valid) {
             return res.status(403).json({ message: rollValidation.message });
         }
-        const cleanRollNumber = rollValidation.rollNumber;
 
-        const userExists = await prisma.user.findFirst({ where: { OR: [{ email: cleanEmail }, { rollNumber: cleanRollNumber }] } });
+        const userExists = await prisma.user.findFirst({ where: { OR: [{ email: cleanEmail }, { rollNumber: derivedRoll }] } });
         if (userExists) return res.status(400).json({ message: 'User already exists' });
 
         // Check cooldown per email
@@ -77,7 +82,7 @@ export const sendSignupOtp = async (req, res) => {
 };
 
 export const signup = async (req, res) => {
-    const { name, email, rollNumber, password, otp } = req.body;
+    const { name, email, password, otp } = req.body;
 
     if (!otp) {
         return res.status(400).json({ message: 'OTP is required' });
@@ -88,6 +93,12 @@ export const signup = async (req, res) => {
         return res.status(400).json({ message: emailValidation.message });
     }
     const cleanEmail = emailValidation.email;
+
+    // Derive roll number from the verified email
+    const derivedRoll = extractRollFromEmail(cleanEmail);
+    if (!derivedRoll) {
+        return res.status(400).json({ message: 'Could not extract roll number from email. Ensure your email follows the format: name_rollnumber@iitp.ac.in' });
+    }
 
     try {
         const otpRecord = await prisma.oTP.findFirst({
@@ -108,18 +119,17 @@ export const signup = async (req, res) => {
         }
 
         const config = await prisma.systemConfig.findFirst();
-        const rollValidation = validateSmpRollNumber(rollNumber, config, 'registration');
+        const rollValidation = validateSmpRollNumber(derivedRoll, config, 'registration');
         if (!rollValidation.valid) {
             return res.status(403).json({ message: rollValidation.message });
         }
-        const cleanRollNumber = rollValidation.rollNumber;
 
-        const userExists = await prisma.user.findFirst({ where: { OR: [{ email: cleanEmail }, { rollNumber: cleanRollNumber }] } });
+        const userExists = await prisma.user.findFirst({ where: { OR: [{ email: cleanEmail }, { rollNumber: derivedRoll }] } });
         if (userExists) return res.status(400).json({ message: 'User already exists' });
 
         const salt = await bcrypt.genSalt(10);
         const passwordHash = await bcrypt.hash(password, salt);
-        const user = await prisma.user.create({ data: { name, email: cleanEmail, rollNumber: cleanRollNumber, passwordHash } });
+        const user = await prisma.user.create({ data: { name, email: cleanEmail, rollNumber: derivedRoll, passwordHash } });
 
         // Cleanup OTP
         await prisma.oTP.deleteMany({ where: { email: cleanEmail, purpose: 'SIGNUP' } });

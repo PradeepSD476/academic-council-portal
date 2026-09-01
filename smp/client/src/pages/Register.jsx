@@ -9,14 +9,6 @@ import { Link, useNavigate } from 'react-router-dom';
 
 const signupSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
-  rollNumber: z
-    .string()
-    .trim()
-    .toUpperCase()
-    .regex(
-      /^[0-9]{2}(01|02|03)[A-Za-z]{2}[0-9]{2}$/,
-      'Must be an 8-character B.Tech or Dual-Degree roll number (e.g. 2401AI36)'
-    ),
   email: z
     .string()
     .trim()
@@ -27,15 +19,18 @@ const signupSchema = z.object({
       { message: 'Must be an official @iitp.ac.in email address' }
     ),
   password: z.string().min(6, 'Password must be at least 6 characters'),
+  confirmPassword: z.string().min(1, 'Please confirm your password'),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword'],
 });
 
 // Floating label input (register style from Stitch)
 function FloatingInput({ label, id, icon, error, type = 'text', inputRef, ...props }) {
   return (
     <div>
-      <div className={`relative bg-surface-container-low rounded-2xl px-5 py-3 border-2 transition-all duration-300 ${
-        error ? 'border-error' : 'border-transparent focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/20'
-      }`}>
+      <div className={`relative bg-surface-container-low rounded-2xl px-5 py-3 border-2 transition-all duration-300 ${error ? 'border-error' : 'border-transparent focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/20'
+        }`}>
         <label
           className={`block text-[11px] uppercase tracking-wider font-semibold mb-1 ${error ? 'text-error' : 'text-outline'}`}
           htmlFor={id}
@@ -63,9 +58,8 @@ function FloatingPasswordInput({ label, id, error, inputRef, ...props }) {
   const [show, setShow] = useState(false);
   return (
     <div>
-      <div className={`relative bg-surface-container-lowest rounded-2xl px-5 py-3 border-2 transition-all duration-300 shadow-sm ${
-        error ? 'border-error' : 'border-primary focus-within:ring-4 focus-within:ring-primary/20'
-      }`}>
+      <div className={`relative bg-surface-container-lowest rounded-2xl px-5 py-3 border-2 transition-all duration-300 shadow-sm ${error ? 'border-error' : 'border-primary focus-within:ring-4 focus-within:ring-primary/20'
+        }`}>
         <label
           className={`block text-[11px] uppercase tracking-wider font-semibold mb-1 ${error ? 'text-error' : 'text-primary'}`}
           htmlFor={id}
@@ -123,7 +117,7 @@ export default function Register() {
   const onSendOtp = async (data) => {
     setLoading(true);
     try {
-      await sendSignupOtp({ email: data.email, rollNumber: data.rollNumber });
+      await sendSignupOtp(data.email);
       setFormData(data);
       setStep(2);
       setCooldown(60);
@@ -139,7 +133,7 @@ export default function Register() {
     if (cooldown > 0 || !formData) return;
     setLoading(true);
     try {
-      await sendSignupOtp({ email: formData.email, rollNumber: formData.rollNumber });
+      await sendSignupOtp(formData.email);
       setCooldown(60);
       toast({ title: 'OTP Resent', description: 'Check your email for the new verification code.', variant: 'success' });
     } catch (err) {
@@ -156,7 +150,7 @@ export default function Register() {
     }
     setLoading(true);
     try {
-      await signup(formData.name, formData.email, formData.rollNumber, formData.password, otp);
+      await signup(formData.name, formData.email, formData.password, otp);
       toast({ title: 'Account Created!', description: 'Welcome to the Mentorship Program!', variant: 'success' });
     } catch (err) {
       toast({ title: 'Signup Failed', description: err, variant: 'error' });
@@ -211,28 +205,16 @@ export default function Register() {
           {/* Form */}
           {step === 1 ? (
             <form onSubmit={handleSubmit(onSendOtp)} className="space-y-6">
-              {/* Name & Roll Number Row */}
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1">
-                  <FloatingInput
-                    label="Full Name"
-                    id="fullName"
-                    icon="person_outline"
-                    placeholder="Jane Doe"
-                    error={errors.name?.message}
-                    {...register('name')}
-                  />
-                </div>
-                <div className="flex-1">
-                  <FloatingInput
-                    label="Roll Number"
-                    id="rollNumber"
-                    icon="badge"
-                    placeholder="24BCS1001"
-                    error={errors.rollNumber?.message}
-                    {...register('rollNumber')}
-                  />
-                </div>
+              {/* Name */}
+              <div className="flex-1">
+                <FloatingInput
+                  label="Full Name"
+                  id="fullName"
+                  icon="person_outline"
+                  placeholder="Jane Doe"
+                  error={errors.name?.message}
+                  {...register('name')}
+                />
               </div>
 
               {/* Email */}
@@ -241,7 +223,7 @@ export default function Register() {
                 id="email"
                 icon="mail"
                 type="email"
-                placeholder="jane.doe@iitpatna.ac.in"
+                placeholder="jane_2401AIXX@iitp.ac.in"
                 error={errors.email?.message}
                 {...register('email')}
               />
@@ -253,6 +235,15 @@ export default function Register() {
                 placeholder="••••••••"
                 error={errors.password?.message}
                 {...register('password')}
+              />
+
+              {/* Confirm Password */}
+              <FloatingPasswordInput
+                label="Confirm Password"
+                id="confirmPassword"
+                placeholder="••••••••"
+                error={errors.confirmPassword?.message}
+                {...register('confirmPassword')}
               />
 
               {/* Submit */}
@@ -287,7 +278,7 @@ export default function Register() {
               </p>
             </form>
           ) : (
-            <motion.form 
+            <motion.form
               initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
               onSubmit={onVerifyAndRegister} className="space-y-6"
             >

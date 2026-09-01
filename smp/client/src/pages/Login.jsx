@@ -22,11 +22,10 @@ function PasswordInput({ label, error, id, ...props }) {
         <input
           id={id}
           type={show ? 'text' : 'password'}
-          className={`w-full bg-surface-container-lowest border-2 rounded-full py-4 pl-6 pr-12 text-on-surface font-body-md placeholder:text-outline-variant focus:outline-none focus:ring-4 transition-all duration-300 ${
-            error
+          className={`w-full bg-surface-container-lowest border-2 rounded-full py-4 pl-6 pr-12 text-on-surface font-body-md placeholder:text-outline-variant focus:outline-none focus:ring-4 transition-all duration-300 ${error
               ? 'border-error focus:ring-error/20'
               : 'border-primary focus:border-primary focus:ring-primary/20 shadow-[0_0_0_4px_rgba(0,50,125,0.08)]'
-          }`}
+            }`}
           {...props}
         />
         <button
@@ -53,11 +52,10 @@ function EmailInput({ label, error, id, ...props }) {
         <input
           id={id}
           type="email"
-          className={`w-full bg-surface-container-low border-2 rounded-full py-4 pl-6 pr-12 text-on-surface font-body-md placeholder:text-outline-variant focus:outline-none focus:ring-4 transition-all duration-300 ${
-            error
+          className={`w-full bg-surface-container-low border-2 rounded-full py-4 pl-6 pr-12 text-on-surface font-body-md placeholder:text-outline-variant focus:outline-none focus:ring-4 transition-all duration-300 ${error
               ? 'border-error focus:ring-error/20'
               : 'border-transparent focus:border-primary focus:ring-primary/20'
-          }`}
+            }`}
           {...props}
         />
         <span className="material-symbols-outlined absolute right-5 top-1/2 -translate-y-1/2 text-outline-variant group-focus-within:text-primary transition-colors text-[20px]">mail</span>
@@ -136,7 +134,7 @@ export default function Login() {
             <EmailInput
               label="Email"
               id="email"
-              placeholder="name@iitpatna.ac.in"
+              placeholder="name_2401xx36@iitp.ac.in"
               error={errors.email?.message}
               {...register('email')}
             />
