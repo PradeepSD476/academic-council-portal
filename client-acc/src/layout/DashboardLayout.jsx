@@ -54,7 +54,7 @@ export default function DashboardLayout() {
   }, [location.pathname, isAdmin, isFaculty, isCareerAdmin]);
 
   return (
-    <div className="flex min-h-[calc(100vh-64px)] bg-[#F8FAFC] text-slate-800 relative">
+    <div className="flex h-[calc(100vh-64px)] bg-[#F8FAFC] text-slate-800 relative overflow-hidden">
       {/* Mobile Sidebar Toggle Button */}
       <button
         onClick={() => setOpen(!open)}
@@ -81,7 +81,9 @@ export default function DashboardLayout() {
       {/* Sidebar */}
       <aside
         className={`
-            fixed md:sticky top-16 left-0 h-[calc(100vh-64px)] w-64 bg-white border-r border-slate-200 flex flex-col z-50 shrink-0
+            fixed top-16 left-0 h-[calc(100vh-64px)] w-64 z-50
+            md:static md:h-full md:z-auto
+            bg-white border-r border-slate-200 flex flex-col shrink-0
             transition-transform duration-200 ease-in-out
             ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
@@ -280,7 +282,7 @@ export default function DashboardLayout() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 min-w-0 bg-[#F8FAFC] overflow-y-auto">
+      <main className="flex-1 min-w-0 h-full bg-[#F8FAFC] overflow-y-auto" data-lenis-prevent>
         <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
           <Outlet />
         </div>

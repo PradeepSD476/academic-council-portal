@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect, useRef, useMemo, useCallback } 
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronDown, ChevronUp, MessageSquare, ArrowBigUp,
-  PenSquare, X, Trash2, ChevronLeft, ChevronRight, MessageCircle, Search, Bookmark, BookmarkCheck,
+  PenSquare, X, Trash2, ChevronLeft, ChevronRight, MessageCircle, Search, Bookmark, BookmarkCheck, ArrowLeft,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import AuthContext from "../../context/auth/authContext";
@@ -33,8 +33,8 @@ const DOMAINS = [
   { value: "Other", label: "Other" },
 ];
 
-// ─── Create Post Modal ────────────────────────────────────────────────────────
-const CreatePostModal = ({ onClose, onSubmitted }) => {
+// ─── Create Post View (Full Page) ────────────────────────────────────────────
+const CreatePostView = ({ onBack, onSubmitted }) => {
   const [title, setTitle] = useState("");
   const [experienceType, setExperienceType] = useState("");
   const [domain, setDomain] = useState("");
@@ -42,13 +42,9 @@ const CreatePostModal = ({ onClose, onSubmitted }) => {
   const [resumeFile, setResumeFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Lock background body scroll when modal is active
   useEffect(() => {
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
+    const scrollContainer = document.querySelector('[data-lenis-prevent]');
+    if (scrollContainer) scrollContainer.scrollTop = 0;
   }, []);
 
   const handleSubmit = async (e) => {
@@ -83,7 +79,7 @@ const CreatePostModal = ({ onClose, onSubmitted }) => {
       await forumApi.submitPost({ title: title.trim(), description, experienceType, domain, status: "DRAFT", resumeUrl });
       toast.success("Post submitted! It will appear publicly after admin review.");
       onSubmitted();
-      onClose();
+      onBack();
     } catch (err) {
       const msg = err?.response?.data?.message || "Failed to submit post. Please try again.";
       toast.error(msg);
@@ -93,165 +89,162 @@ const CreatePostModal = ({ onClose, onSubmitted }) => {
   };
 
   return (
-    <AnimatePresence>
-      <motion.div
-        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-3 sm:p-6 overflow-clip"
-        data-lenis-prevent
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      >
-        <motion.form
-          onSubmit={handleSubmit}
-          className="bg-white/95 backdrop-blur-xl border border-slate-200 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl h-[88vh] max-h-[800px] flex flex-col overflow-clip text-[var(--color-primary)] my-auto"
-          initial={{ opacity: 0, scale: 0.94, y: 24 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.94, y: 24 }}
-          transition={{ duration: 0.25, ease: "easeOut" }}
-          onClick={(e) => e.stopPropagation()}
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <button
+          type="button"
+          onClick={onBack}
+          className="flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-[var(--color-primary)] transition-colors cursor-pointer mb-4"
         >
-          {/* Pinned Header */}
-          <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-200 bg-white/90 backdrop-blur-md shrink-0">
-            <div className="flex items-center gap-2">
-              <PenSquare size={18} className="text-[var(--color-secondary)] sm:w-5 sm:h-5" />
-              <h2 className="text-base sm:text-lg font-bold text-[var(--color-primary)]">Share Your Experience</h2>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-1.5 rounded-full hover:bg-sky-50 text-slate-500 hover:text-[var(--color-primary)] transition-colors cursor-pointer"
-              aria-label="Close"
-            >
-              <X size={18} className="sm:w-5 sm:h-5" />
-            </button>
+          <ArrowLeft size={16} />
+          Back to Career Vault
+        </button>
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-[3px] h-6 bg-[var(--color-secondary)] rounded-full shadow-[0_0_8px_var(--color-secondary)]" />
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[var(--color-primary)] tracking-tight">
+            Share Your Experience
+          </h1>
+        </div>
+        <p className="text-slate-500 text-sm ml-4">
+          Share your placement, internship, or startup journey to help fellow students.
+        </p>
+      </div>
+
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Info Banner */}
+        <div className="bg-[var(--color-secondary)]/10 border border-[var(--color-secondary)]/20 rounded-xl px-4 py-3 text-xs text-[var(--color-secondary)]">
+          📋 Your post will be reviewed by an admin before it goes public. You will see it appear on the Career Vault once approved.
+        </div>
+
+        {/* Section 1: Basic Information */}
+        <div className="p-5 rounded-2xl border border-slate-200 bg-white/95 backdrop-blur-xl shadow-xs flex flex-col gap-4">
+          <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">1. Basic Information</h3>
+
+          {/* Title */}
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="post-title" className="text-xs font-semibold text-slate-600">
+              Title <span className="text-[var(--color-secondary)]">*</span>
+            </label>
+            <input
+              id="post-title"
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. My internship experience at Google"
+              maxLength={150}
+              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-[var(--color-primary)] placeholder-slate-400 focus:outline-none focus:border-[var(--color-secondary)] transition bg-sky-50/50"
+            />
           </div>
 
-          {/* Scrollable Content Body and Pinned Sticky Footer */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 scrollbar-thin">
-              <div className="bg-[var(--color-secondary)]/10 border border-[var(--color-secondary)]/20 rounded-xl px-3.5 py-2.5 sm:px-4 sm:py-3 text-xs text-[var(--color-secondary)]">
-                📋 Your post will be reviewed by an admin before it goes public. You will see it appear on the Career Vault once approved.
-              </div>
-
-              {/* Section 1: Basic Information */}
-              <div className="p-3.5 sm:p-4 rounded-2xl border border-slate-200 bg-white/90 flex flex-col gap-3.5 sm:gap-4">
-                <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">1. Basic Information</h3>
-                
-                {/* Title */}
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="post-title" className="text-xs font-semibold text-slate-600">
-                    Title <span className="text-[var(--color-secondary)]">*</span>
-                  </label>
-                  <input
-                    id="post-title"
-                    type="text"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="e.g. My internship experience at Google"
-                    maxLength={150}
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-[var(--color-primary)] placeholder-slate-400 focus:outline-none focus:border-[var(--color-secondary)] transition bg-sky-50/50"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  {/* Experience Type */}
-                  <div className="flex flex-col gap-1.5">
-                    <label htmlFor="post-type" className="text-xs font-semibold text-slate-600">
-                      Experience Type <span className="text-[var(--color-secondary)]">*</span>
-                    </label>
-                    <select
-                      id="post-type"
-                      value={experienceType}
-                      onChange={(e) => setExperienceType(e.target.value)}
-                      className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-[var(--color-primary)] focus:outline-none focus:border-[var(--color-secondary)] bg-sky-50/50 transition"
-                    >
-                      <option value="" className="bg-sky-100 text-slate-500">Select type…</option>
-                      {EXPERIENCE_TYPES.map((t) => (
-                        <option key={t.value} value={t.value} className="bg-sky-100 text-[var(--color-primary)]">{t.label}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Domain */}
-                  <div className="flex flex-col gap-1.5">
-                    <label htmlFor="post-domain" className="text-xs font-semibold text-slate-600">
-                      Domain <span className="text-[var(--color-secondary)]">*</span>
-                    </label>
-                    <select
-                      id="post-domain"
-                      value={domain}
-                      onChange={(e) => setDomain(e.target.value)}
-                      className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-[var(--color-primary)] focus:outline-none focus:border-[var(--color-secondary)] bg-sky-50/50 transition"
-                    >
-                      <option value="" disabled className="bg-sky-100 text-slate-500">Select domain...</option>
-                      {DOMAINS.map((d) => (
-                        <option key={d.value} value={d.value} className="bg-sky-100 text-[var(--color-primary)]">{d.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Section 2: Story Content */}
-              <div className="p-3.5 sm:p-4 rounded-2xl border border-slate-200 bg-white/90 flex flex-col gap-3.5 sm:gap-4">
-                <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">2. Story Content</h3>
-                
-                {/* Rich Text Editor */}
-                <div className="flex flex-col gap-1.5">
-                  <NativeRichTextEditor
-                    value={description}
-                    onChange={setDescription}
-                    minHeight="160px"
-                    placeholder="Describe your experience in detail — preparation tips, interview process, key learnings…"
-                  />
-                </div>
-              </div>
-
-              {/* Resume */}
-              <div className="flex flex-col gap-1.5 mt-2">
-                <label htmlFor="post-resume" className="text-xs font-semibold text-slate-600">
-                  Resume (Optional)
-                </label>
-                <div className="w-full border border-slate-200 rounded-xl px-3 py-2 bg-sky-50/50">
-                  <input
-                    id="post-resume"
-                    type="file"
-                    accept=".pdf"
-                    onChange={(e) => setResumeFile(e.target.files[0] || null)}
-                    className="w-full text-sm text-[var(--color-primary)] transition file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[var(--color-primary)]/10 file:text-[var(--color-primary)] hover:file:bg-[var(--color-primary)]/20"
-                  />
-                </div>
-                <span className="text-[10px] text-slate-400">PDF only, max 5MB</span>
-              </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Experience Type */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="post-type" className="text-xs font-semibold text-slate-600">
+                Experience Type <span className="text-[var(--color-secondary)]">*</span>
+              </label>
+              <select
+                id="post-type"
+                value={experienceType}
+                onChange={(e) => setExperienceType(e.target.value)}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-[var(--color-primary)] focus:outline-none focus:border-[var(--color-secondary)] bg-sky-50/50 transition"
+              >
+                <option value="" className="bg-sky-100 text-slate-500">Select type…</option>
+                {EXPERIENCE_TYPES.map((t) => (
+                  <option key={t.value} value={t.value} className="bg-sky-100 text-[var(--color-primary)]">{t.label}</option>
+                ))}
+              </select>
             </div>
 
-            {/* Pinned Sticky Footer */}
-            <div className="flex items-center justify-end gap-3 px-4 sm:px-6 py-3 border-t border-slate-200 bg-white/95 backdrop-blur-md shrink-0">
+            {/* Domain */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="post-domain" className="text-xs font-semibold text-slate-600">
+                Domain <span className="text-[var(--color-secondary)]">*</span>
+              </label>
+              <select
+                id="post-domain"
+                value={domain}
+                onChange={(e) => setDomain(e.target.value)}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-[var(--color-primary)] focus:outline-none focus:border-[var(--color-secondary)] bg-sky-50/50 transition"
+              >
+                <option value="" disabled className="bg-sky-100 text-slate-500">Select domain...</option>
+                {DOMAINS.map((d) => (
+                  <option key={d.value} value={d.value} className="bg-sky-100 text-[var(--color-primary)]">{d.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Section 2: Story Content */}
+        <div className="p-5 rounded-2xl border border-slate-200 bg-white/95 backdrop-blur-xl shadow-xs flex flex-col gap-4">
+          <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">2. Your Story</h3>
+          <NativeRichTextEditor
+            value={description}
+            onChange={setDescription}
+            minHeight="280px"
+            placeholder="Describe your experience in detail — preparation tips, interview process, key learnings…"
+          />
+        </div>
+
+        {/* Section 3: Resume Upload */}
+        <div className="p-5 rounded-2xl border border-slate-200 bg-white/95 backdrop-blur-xl shadow-xs flex flex-col gap-4">
+          <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">3. Resume (Optional)</h3>
+          <p className="text-xs text-slate-500 -mt-2">
+            Attach your resume to give readers context on your profile. PDF only, max 5MB.
+          </p>
+          <div className="w-full border border-dashed border-slate-300 rounded-xl px-4 py-4 bg-sky-50/50 hover:border-[var(--color-secondary)] transition-colors">
+            <input
+              id="post-resume"
+              type="file"
+              accept=".pdf"
+              onChange={(e) => setResumeFile(e.target.files[0] || null)}
+              className="w-full text-sm text-[var(--color-primary)] transition file:mr-4 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[var(--color-primary)]/10 file:text-[var(--color-primary)] hover:file:bg-[var(--color-primary)]/20 file:cursor-pointer"
+            />
+          </div>
+          {resumeFile && (
+            <div className="flex items-center gap-2 text-xs text-slate-600 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+              <FileText size={14} className="text-emerald-600 shrink-0" />
+              <span className="truncate">{resumeFile.name}</span>
+              <span className="text-slate-400 shrink-0">({(resumeFile.size / 1024).toFixed(0)} KB)</span>
               <button
                 type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 border border-slate-200 rounded-xl hover:bg-sky-50 transition cursor-pointer"
+                onClick={() => setResumeFile(null)}
+                className="ml-auto text-slate-400 hover:text-red-500 transition-colors cursor-pointer"
               >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={submitting}
-                className="px-5 py-2 text-xs font-bold bg-[var(--color-secondary)] hover:opacity-90 text-white rounded-xl shadow-xs transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
-              >
-                {submitting ? (
-                  <>
-                    <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
-                    Submitting…
-                  </>
-                ) : (
-                  "Submit for Review"
-                )}
+                <X size={14} />
               </button>
             </div>
-          </motion.form>
-      </motion.div>
-    </AnimatePresence>
+          )}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center justify-end gap-3 pt-2 pb-4">
+          <button
+            type="button"
+            onClick={onBack}
+            className="px-5 py-2.5 text-xs font-semibold text-slate-600 border border-slate-200 rounded-xl hover:bg-sky-50 transition cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={submitting}
+            className="px-6 py-2.5 text-xs font-bold bg-[var(--color-secondary)] hover:opacity-90 text-white rounded-xl shadow-xs transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
+          >
+            {submitting ? (
+              <>
+                <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
+                Submitting…
+              </>
+            ) : (
+              "Submit for Review"
+            )}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 };
 
@@ -577,15 +570,17 @@ const CareerVault = () => {
     }
   };
 
+  if (showCreateModal) {
+    return (
+      <CreatePostView
+        onBack={() => setShowCreateModal(false)}
+        onSubmitted={fetchPosts}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {showCreateModal && (
-        <CreatePostModal
-          onClose={() => setShowCreateModal(false)}
-          onSubmitted={fetchPosts}
-        />
-      )}
-
       {/* Header */}
       <div>
         <div className="flex items-center gap-3 mb-2">
