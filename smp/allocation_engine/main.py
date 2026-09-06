@@ -38,8 +38,6 @@ def run_allocation_pipeline():
     y1_users = list(db.User.find({"rollNumber": {"$regex": f"^{y1_prefix}"}}))
     y2_users = list(db.User.find({"rollNumber": {"$regex": f"^{y2_prefix}"}}))
 
-    df_comentors = pd.DataFrame(y2_users)
-
     y1_ids = [u['_id'] for u in y1_users]
     y2_ids = [u['_id'] for u in y2_users]
 
@@ -58,12 +56,24 @@ def run_allocation_pipeline():
         print("No 1st-year mentee data found. Exiting.")
         return
 
-    print(f"Strict filtering applied: {len(df_juniors)} Mentees (1st Yr), {len(df_comentors)} Co-Mentors (2nd Yr).")
+    # Build df_comentors ONLY from users who submitted questionnaire responses,
+    # merged with their User doc data (e.g. _id) so group-writing logic works.
+    # This guarantees df_comentors and X_comentors have identical row counts.
+    if not comentor_res.empty:
+        respondent_user_ids = set(comentor_res['userId'].tolist())
+        responding_users = [u for u in y2_users if u['_id'] in respondent_user_ids]
+        df_comentors = pd.DataFrame(responding_users).reset_index(drop=True)
+        # Align comentor_res row order to match df_comentors by userId
+        comentor_res = comentor_res.set_index('userId').loc[df_comentors['_id']].reset_index()
+    else:
+        df_comentors = pd.DataFrame(columns=['_id'])
+
+    print(f"Strict filtering applied: {len(df_juniors)} Mentees (1st Yr), {len(df_comentors)} Co-Mentors (2nd Yr) with responses.")
 
     # 4. Encoding
     print("Encoding features...")
     X_juniors = preprocess_questionnaire_data(df_juniors, config["weights_juniors"])
-    X_comentors = preprocess_questionnaire_data(comentor_res, config["weights_seniors"]) if not comentor_res.empty else pd.DataFrame(index=df_comentors.index)
+    X_comentors = preprocess_questionnaire_data(comentor_res, config["weights_seniors"]) if not comentor_res.empty else pd.DataFrame()
 
     # 5. Cluster Mentees dynamically
     print("Clustering 1st-year mentees...")
