@@ -182,7 +182,7 @@ export default function DashboardLayout() {
                 <SidebarItem
                   to="/dashboard/level-up"
                   icon={<TrendingUp size={16} />}
-                  iconColor="text-rose-600 bg-rose-50 border-rose-100"
+                  iconColor="text-blue-600 bg-blue-50 border-blue-100"
                   label="Level Up"
                   onClick={() => setOpen(false)}
                 />
@@ -246,7 +246,7 @@ export default function DashboardLayout() {
               <SidebarItem
                 to="/admin/level-up"
                 icon={<TrendingUp size={16} />}
-                iconColor="text-rose-600 bg-rose-50 border-rose-100"
+                iconColor="text-blue-600 bg-blue-50 border-blue-100"
                 label="Level Up"
                 onClick={() => setOpen(false)}
               />
@@ -268,7 +268,7 @@ export default function DashboardLayout() {
               <SidebarItem
                 to="/admin/level-up"
                 icon={<TrendingUp size={16} />}
-                iconColor="text-rose-600 bg-rose-50 border-rose-100"
+                iconColor="text-blue-600 bg-blue-50 border-blue-100"
                 label="Level Up"
                 onClick={() => setOpen(false)}
               />
@@ -290,7 +290,7 @@ export default function DashboardLayout() {
               <SidebarItem
                 to="/admin/level-up"
                 icon={<TrendingUp size={16} />}
-                iconColor="text-rose-600 bg-rose-50 border-rose-100"
+                iconColor="text-blue-600 bg-blue-50 border-blue-100"
                 label="Level Up"
                 onClick={() => setOpen(false)}
               />

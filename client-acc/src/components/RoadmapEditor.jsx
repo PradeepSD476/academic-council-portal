@@ -119,6 +119,17 @@ const RoadmapEditor = ({
     }
   };
 
+  const ensureTrailingParagraph = () => {
+    if (!editorRef.current) return;
+    const lastChild = editorRef.current.lastElementChild;
+    if (!lastChild || lastChild.tagName === "IMG" || lastChild.tagName === "FIGURE") {
+      const p = document.createElement("p");
+      p.innerHTML = "<br>";
+      editorRef.current.appendChild(p);
+      handleEditorInput();
+    }
+  };
+
   const insertImage = () => {
     if (!imageUrl) {
       toast.error("Please provide an image URL or upload an image file.");
@@ -134,10 +145,11 @@ const RoadmapEditor = ({
       alignClass = "w-full block my-4 rounded-xl shadow-xs";
     }
 
-    const imgTag = `<img src="${imageUrl}" class="${alignClass}" alt="Roadmap Image" />`;
+    const imgTag = `<img src="${imageUrl}" class="${alignClass}" alt="Roadmap Image" /><p><br></p>`;
     if (editorRef.current) {
       editorRef.current.focus();
       document.execCommand("insertHTML", false, imgTag);
+      ensureTrailingParagraph();
       handleEditorInput();
     }
 
@@ -159,7 +171,7 @@ const RoadmapEditor = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <FileText className="text-rose-600" size={24} />
+            <FileText className="text-blue-600" size={24} />
             <span>Chapter Editor</span>
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -182,7 +194,7 @@ const RoadmapEditor = ({
             type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-lg shadow-xs transition cursor-pointer disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-xs transition cursor-pointer disabled:opacity-60"
           >
             <CheckCircle size={14} />
             <span>{isSaving ? "Saving..." : "Save Chapter"}</span>
@@ -196,7 +208,7 @@ const RoadmapEditor = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-2 space-y-1.5">
             <label className="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider">
-              <Type size={14} className="text-rose-600" />
+              <Type size={14} className="text-blue-600" />
               <span>Chapter Title</span>
             </label>
             <input
@@ -204,13 +216,13 @@ const RoadmapEditor = ({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Chapter 1: Getting Started with Next.js"
-              className="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-slate-900 placeholder-slate-400 focus:border-rose-600 focus:ring-2 focus:ring-rose-600/10 focus:outline-none text-sm font-semibold"
+              className="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 focus:outline-none text-sm font-semibold"
             />
           </div>
 
           <div className="space-y-1.5">
             <label className="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider">
-              <FileText size={14} className="text-rose-600" />
+              <FileText size={14} className="text-blue-600" />
               <span>Est. Read Duration</span>
             </label>
             <input
@@ -218,7 +230,7 @@ const RoadmapEditor = ({
               value={duration}
               onChange={(e) => setDuration(e.target.value)}
               placeholder="e.g. 10 mins"
-              className="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-slate-900 placeholder-slate-400 focus:border-rose-600 focus:ring-2 focus:ring-rose-600/10 focus:outline-none text-sm"
+              className="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 focus:outline-none text-sm"
             />
           </div>
         </div>
@@ -318,7 +330,7 @@ const RoadmapEditor = ({
               <button
                 type="button"
                 onClick={() => setShowImageModal(true)}
-                className="px-2.5 py-1 text-xs font-bold bg-rose-50 border border-rose-200 text-rose-600 rounded hover:bg-rose-100 flex items-center gap-1 cursor-pointer"
+                className="px-2.5 py-1 text-xs font-bold bg-blue-50 border border-blue-200 text-blue-600 rounded hover:bg-blue-100 flex items-center gap-1 cursor-pointer"
                 title="Insert Image"
               >
                 <ImageIcon size={13} />
@@ -328,7 +340,17 @@ const RoadmapEditor = ({
           </div>
 
           {/* Editable Canvas */}
-          <div className="rounded-xl border border-slate-200 bg-white min-h-[350px] p-5 focus-within:border-rose-600 transition shadow-2xs">
+          <div 
+            className="rounded-xl border border-slate-200 bg-white min-h-[350px] p-5 focus-within:border-blue-600 transition shadow-2xs cursor-text"
+            onClick={(e) => {
+              if (e.target === e.currentTarget || e.target === editorRef.current) {
+                ensureTrailingParagraph();
+                if (editorRef.current) {
+                  editorRef.current.focus();
+                }
+              }
+            }}
+          >
             <div
               ref={editorRef}
               contentEditable
@@ -347,7 +369,7 @@ const RoadmapEditor = ({
           <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <ImageIcon size={18} className="text-rose-600" />
+                <ImageIcon size={18} className="text-blue-600" />
                 <span>Insert & Position Image</span>
               </h3>
               <button
@@ -368,10 +390,10 @@ const RoadmapEditor = ({
                   accept="image/*"
                   onChange={handleImageFileUpload}
                   disabled={isUploadingImage}
-                  className="text-xs w-full text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-rose-50 file:text-rose-700 file:font-bold hover:file:bg-rose-100 cursor-pointer"
+                  className="text-xs w-full text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 file:font-bold hover:file:bg-blue-100 cursor-pointer"
                 />
                 {isUploadingImage && (
-                  <p className="text-[11px] text-rose-600 font-semibold mt-1">
+                  <p className="text-[11px] text-blue-600 font-semibold mt-1">
                     Uploading image to MinIO...
                   </p>
                 )}
@@ -405,7 +427,7 @@ const RoadmapEditor = ({
                     onClick={() => setImageAlignment("center")}
                     className={`flex items-center justify-center gap-1 p-2 rounded-lg border text-xs font-semibold transition cursor-pointer ${
                       imageAlignment === "center"
-                        ? "bg-rose-50 border-rose-600 text-rose-700"
+                        ? "bg-blue-50 border-blue-600 text-blue-700"
                         : "bg-white border-slate-200 text-slate-600"
                     }`}
                   >
@@ -417,7 +439,7 @@ const RoadmapEditor = ({
                     onClick={() => setImageAlignment("left")}
                     className={`flex items-center justify-center gap-1 p-2 rounded-lg border text-xs font-semibold transition cursor-pointer ${
                       imageAlignment === "left"
-                        ? "bg-rose-50 border-rose-600 text-rose-700"
+                        ? "bg-blue-50 border-blue-600 text-blue-700"
                         : "bg-white border-slate-200 text-slate-600"
                     }`}
                   >
@@ -429,7 +451,7 @@ const RoadmapEditor = ({
                     onClick={() => setImageAlignment("right")}
                     className={`flex items-center justify-center gap-1 p-2 rounded-lg border text-xs font-semibold transition cursor-pointer ${
                       imageAlignment === "right"
-                        ? "bg-rose-50 border-rose-600 text-rose-700"
+                        ? "bg-blue-50 border-blue-600 text-blue-700"
                         : "bg-white border-slate-200 text-slate-600"
                     }`}
                   >
@@ -441,7 +463,7 @@ const RoadmapEditor = ({
                     onClick={() => setImageAlignment("full")}
                     className={`flex items-center justify-center gap-1 p-2 rounded-lg border text-xs font-semibold transition cursor-pointer ${
                       imageAlignment === "full"
-                        ? "bg-rose-50 border-rose-600 text-rose-700"
+                        ? "bg-blue-50 border-blue-600 text-blue-700"
                         : "bg-white border-slate-200 text-slate-600"
                     }`}
                   >
@@ -462,7 +484,7 @@ const RoadmapEditor = ({
               <button
                 type="button"
                 onClick={insertImage}
-                className="px-4 py-1.5 text-xs font-bold bg-rose-600 text-white rounded-lg hover:bg-rose-700 shadow-xs cursor-pointer"
+                className="px-4 py-1.5 text-xs font-bold bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-xs cursor-pointer"
               >
                 Insert Image
               </button>

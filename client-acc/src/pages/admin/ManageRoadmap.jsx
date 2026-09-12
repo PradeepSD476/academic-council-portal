@@ -194,11 +194,11 @@ export default function ManageRoadmap() {
       {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-bold text-rose-600 uppercase tracking-wider">
+          <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">
             ADMINISTRATIVE MANAGEMENT
           </span>
           <h1 className="text-2xl md:text-3xl font-extrabold text-slate-950 tracking-tight flex items-center gap-2.5">
-            <BookOpen className="text-rose-600" size={28} />
+            <BookOpen className="text-blue-600" size={28} />
             <span>Manage Level Up Roadmaps</span>
           </h1>
           <p className="text-slate-500 text-xs sm:text-sm mt-0.5">
@@ -208,7 +208,7 @@ export default function ManageRoadmap() {
 
         <button
           onClick={() => setShowRoadmapModal(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer self-start sm:self-auto"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer self-start sm:self-auto"
         >
           <Plus size={16} />
           <span>+ Create New Roadmap</span>
@@ -222,7 +222,7 @@ export default function ManageRoadmap() {
         </div>
       ) : roadmaps.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 mx-auto flex items-center justify-center">
+          <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 mx-auto flex items-center justify-center">
             <BookOpen size={24} />
           </div>
           <h3 className="text-base font-bold text-slate-900">No Roadmaps Found</h3>
@@ -231,7 +231,7 @@ export default function ManageRoadmap() {
           </p>
           <button
             onClick={() => setShowRoadmapModal(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-600 text-white font-bold text-xs rounded-lg cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-lg cursor-pointer"
           >
             <Plus size={14} />
             <span>Create Roadmap</span>
@@ -259,8 +259,8 @@ export default function ManageRoadmap() {
                     <span
                       className={`text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
                         selectedRoadmap?.id === r.id
-                          ? "bg-slate-800 text-rose-400 border-slate-700"
-                          : "bg-rose-50 text-rose-700 border-rose-100"
+                          ? "bg-slate-800 text-blue-400 border-slate-700"
+                          : "bg-blue-50 text-blue-700 border-blue-100"
                       }`}
                     >
                       {r.domain || "CS"}
@@ -280,7 +280,7 @@ export default function ManageRoadmap() {
                     size={18}
                     className={
                       selectedRoadmap?.id === r.id
-                        ? "text-rose-400"
+                        ? "text-blue-400"
                         : "text-slate-400"
                     }
                   />
@@ -295,7 +295,7 @@ export default function ManageRoadmap() {
               <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4 shadow-2xs">
                 <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
                   <div>
-                    <span className="text-[10px] font-extrabold text-rose-600 bg-rose-50 border border-rose-100 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                    <span className="text-[10px] font-extrabold text-blue-600 bg-blue-50 border border-blue-100 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                       {selectedRoadmap.domain}
                     </span>
                     <h2 className="text-xl font-bold text-slate-900 mt-1">
@@ -309,14 +309,14 @@ export default function ManageRoadmap() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setShowSectionModal(true)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-bold text-xs rounded-lg transition cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 font-bold text-xs rounded-lg transition cursor-pointer"
                     >
                       <FolderPlus size={14} />
                       <span>+ Add Section</span>
                     </button>
                     <button
                       onClick={() => handleDeleteRoadmap(selectedRoadmap.id)}
-                      className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
                       title="Delete Roadmap"
                     >
                       <Trash2 size={16} />
@@ -333,7 +333,7 @@ export default function ManageRoadmap() {
                       </p>
                       <button
                         onClick={() => setShowSectionModal(true)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-rose-600 text-white font-bold text-xs rounded-md cursor-pointer"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white font-bold text-xs rounded-md cursor-pointer"
                       >
                         <FolderPlus size={13} />
                         <span>Add First Section</span>
@@ -362,12 +362,12 @@ export default function ManageRoadmap() {
                               }}
                               className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-md hover:bg-slate-50 transition cursor-pointer shadow-2xs"
                             >
-                              <FilePlus size={13} className="text-rose-600" />
+                              <FilePlus size={13} className="text-blue-600" />
                               <span>+ Chapter</span>
                             </button>
                             <button
                               onClick={() => handleDeleteSection(sec.id)}
-                              className="text-slate-400 hover:text-rose-600 transition"
+                              className="text-slate-400 hover:text-blue-600 transition"
                               title="Delete Section"
                             >
                               <Trash2 size={14} />
@@ -388,7 +388,7 @@ export default function ManageRoadmap() {
                                 className="flex items-center justify-between px-4 py-3 hover:bg-slate-50 transition"
                               >
                                 <div className="flex items-center gap-3">
-                                  <span className="w-6 h-6 rounded-full bg-rose-50 text-rose-600 text-xs font-bold flex items-center justify-center border border-rose-100">
+                                  <span className="w-6 h-6 rounded-full bg-blue-50 text-blue-600 text-xs font-bold flex items-center justify-center border border-blue-100">
                                     {chIdx + 1}
                                   </span>
                                   <div>
@@ -414,7 +414,7 @@ export default function ManageRoadmap() {
                                   </button>
                                   <button
                                     onClick={() => handleDeleteChapter(chap.id)}
-                                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition"
+                                    className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition"
                                     title="Delete Chapter"
                                   >
                                     <Trash2 size={14} />
@@ -442,7 +442,7 @@ export default function ManageRoadmap() {
             className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl border border-slate-100"
           >
             <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <BookOpen size={18} className="text-rose-600" />
+              <BookOpen size={18} className="text-blue-600" />
               <span>Create New Roadmap Track</span>
             </h3>
 
@@ -498,7 +498,7 @@ export default function ManageRoadmap() {
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 text-xs font-bold bg-rose-600 text-white rounded-lg hover:bg-rose-700 shadow-xs"
+                className="px-4 py-2 text-xs font-bold bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-xs"
               >
                 Create Track
               </button>
@@ -515,7 +515,7 @@ export default function ManageRoadmap() {
             className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl border border-slate-100"
           >
             <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <FolderPlus size={18} className="text-rose-600" />
+              <FolderPlus size={18} className="text-blue-600" />
               <span>Add Roadmap Section</span>
             </h3>
 
@@ -543,7 +543,7 @@ export default function ManageRoadmap() {
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 text-xs font-bold bg-rose-600 text-white rounded-lg hover:bg-rose-700 shadow-xs"
+                className="px-4 py-2 text-xs font-bold bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-xs"
               >
                 Add Section
               </button>
