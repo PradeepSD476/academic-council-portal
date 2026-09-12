@@ -6,3 +6,6 @@ academic-council-portal-gcs.json
 firebase-service-account-key.json
 
 *Zone.Identifier
+
+# Seed file — local dev only, never commit
+prisma/seed.js
