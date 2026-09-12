@@ -14,6 +14,7 @@ export const getAllRoadmaps = async (req, res) => {
                 id: true,
                 title: true,
                 slug: true,
+                content: true,
                 order: true,
                 duration: true,
               },

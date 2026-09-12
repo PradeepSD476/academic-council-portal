@@ -15,10 +15,9 @@ export const getPublicUrl = async ({ bucketName, filePath }) => {
         60 * 60
     );
 
-    const publicUrl = url.replace('http://minio-acc:9000', `${process.env.PUBLIC_DOMAIN}/media`)
+    const publicUrl = url.replace(/http:\/\/[^/]+/, `${process.env.PUBLIC_DOMAIN || 'http://localhost:800'}/media`);
 
     return publicUrl;
-
 }
 
 export const getUploadSignedUrl = async ({ fileName, contentType, folder }) => {
@@ -28,15 +27,18 @@ export const getUploadSignedUrl = async ({ fileName, contentType, folder }) => {
         throw error;
     }
     const objectName = `${folder}/${Date.now()}-${fileName}`;
-    const bucketName = process.env.MINIO_BUCKET_NAME;
-    console.log("\x1b[34m%s\x1b[0m", "Checkpoint: 1/server/utils/signedUrl.js")
+    const bucketName = process.env.MINIO_BUCKET_NAME || 'iitp-media';
     const url = await storage.presignedPutObject(
         bucketName,
         objectName,
         5 * 60
     );
-    console.log("\x1b[34m%s\x1b[0m", "Checkpoint: 2/server/utils/signedUrl.js")
-    const signedURL = url.replace('http://minio-acc:9000', `${process.env.PUBLIC_DOMAIN}/media`)
-    console.log(signedURL)
+    
+    // In local environment without Nginx proxy, upload directly to MinIO endpoint
+    let signedURL = url;
+    if (process.env.NODE_ENV === 'production' && process.env.PUBLIC_DOMAIN) {
+      signedURL = url.replace(/http:\/\/[^/]+/, `${process.env.PUBLIC_DOMAIN}/media`);
+    }
+    
     return { signedURL, filePath: objectName };
 }

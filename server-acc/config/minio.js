@@ -4,8 +4,8 @@ import * as Minio from "minio";
 
 
 const storage = new Minio.Client({
-  endPoint: process.env.MINIO_ENDPOINT,
-  port: process.env.MINIO_PORT,
+  endPoint: process.env.MINIO_ENDPOINT || 'localhost',
+  port: parseInt(process.env.MINIO_PORT, 10) || 9000,
   useSSL: false,
   accessKey: process.env.MINIO_ACCESS_KEY,
   secretKey: process.env.MINIO_SECRET_KEY,
@@ -27,6 +27,23 @@ async function ensureBucket() {
   } else {
     await storage.makeBucket(bucketName, "us-east-1");
     console.log(`Bucket "${bucketName}" created`);
+  }
+
+  try {
+    const policy = {
+      Version: "2012-10-17",
+      Statement: [
+        {
+          Effect: "Allow",
+          Principal: { AWS: ["*"] },
+          Action: ["s3:GetObject"],
+          Resource: [`arn:aws:s3:::${bucketName}/*`],
+        },
+      ],
+    };
+    await storage.setBucketPolicy(bucketName, JSON.stringify(policy));
+  } catch (err) {
+    console.warn("Set bucket policy warning:", err.message);
   }
 }
 

@@ -43,6 +43,9 @@ const RoadmapEditor = ({
     setTitle(initialTitle);
     setDuration(initialDuration);
     setContent(initialContent);
+    if (editorRef.current && initialContent) {
+      editorRef.current.innerHTML = initialContent;
+    }
   }, [initialTitle, initialContent, initialDuration]);
 
   useEffect(() => {
@@ -90,17 +93,26 @@ const RoadmapEditor = ({
       return;
     }
 
+    // Set local Base64 Data URL immediately so image insertion works reliably
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setImageUrl(event.target.result);
+      }
+    };
+    reader.readAsDataURL(file);
+
     setIsUploadingImage(true);
     try {
       const result = await getFilePath({ file, folder: "roadmap_images" });
       if (result?.filePath) {
-        setImageUrl(result.filePath);
-        toast.success("Image uploaded successfully!");
-      } else {
-        toast.error("Image upload failed.");
+        const fullServerUrl = result.filePath.startsWith("http")
+          ? result.filePath
+          : `http://localhost:9000/iitp-media/${result.filePath}`;
+        setImageUrl(fullServerUrl);
+        toast.success("Image uploaded to server storage!");
       }
     } catch (error) {
-      toast.error("Error uploading image.");
       console.error(error);
     } finally {
       setIsUploadingImage(false);
