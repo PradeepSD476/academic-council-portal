@@ -41,9 +41,8 @@ def run_mentor_allocation():
 
     # 3. Fetch 3rd Year Mentors
     y3_users = list(db.User.find({"rollNumber": {"$regex": f"^{y3_prefix}"}}))
-    df_mentors = pd.DataFrame(y3_users)
-    
-    if df_mentors.empty:
+
+    if not y3_users:
         print("No 3rd year mentors registered yet. Exiting.")
         return
         
@@ -54,7 +53,26 @@ def run_mentor_allocation():
         "academicYear": academic_year
     })))
 
-    print(f"Loaded {len(df_mentors)} Mentors. Reconstructing group centroids...")
+    # Build df_mentors ONLY from users who submitted questionnaire responses,
+    # so it stays aligned with X_mentors row-for-row.
+    if not mentor_res.empty:
+        respondent_ids = set(mentor_res['userId'].tolist())
+        responding_users = [u for u in y3_users if u['_id'] in respondent_ids]
+        df_mentors = pd.DataFrame(responding_users).reset_index(drop=True)
+        # Align mentor_res row order to match df_mentors by userId
+        mentor_res = mentor_res.set_index('userId').loc[df_mentors['_id']].reset_index()
+    else:
+        df_mentors = pd.DataFrame(columns=['_id'])
+
+    if df_mentors.empty:
+        print("No 3rd year mentors have completed onboarding. Exiting.")
+        return
+
+    non_respondents = len(y3_users) - len(df_mentors)
+    if non_respondents > 0:
+        print(f"⚠️  {non_respondents} 3rd-year users skipped (no questionnaire response).")
+
+    print(f"Loaded {len(df_mentors)} Mentors with responses. Reconstructing group centroids...")
 
     # 4. Reconstruct Centroids from Group Mentees
     group_centroids = []
@@ -88,7 +106,7 @@ def run_mentor_allocation():
 
     # 5. Encode Mentor Features
     print("Encoding mentor features...")
-    X_mentors = preprocess_questionnaire_data(mentor_res, config["weights_seniors"]) if not mentor_res.empty else pd.DataFrame(index=df_mentors.index)
+    X_mentors = preprocess_questionnaire_data(mentor_res, config["weights_seniors"]) if not mentor_res.empty else pd.DataFrame()
     
     # 6. Assign Mentors to Groups
     print("Assigning Mentors to groups...")
