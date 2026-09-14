@@ -38,11 +38,29 @@ export default function LevelUp() {
   const [roadmaps, setRoadmaps] = useState([]);
   const [activeRoadmap, setActiveRoadmap] = useState(null);
   const [activeChapter, setActiveChapter] = useState(null);
-  const [completedChapterIds, setCompletedChapterIds] = useState([]);
+  const [completedChapterIds, setCompletedChapterIds] = useState(() => {
+    try {
+      const saved = localStorage.getItem("acc_completed_chapters");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDomainFilter, setSelectedDomainFilter] = useState("ALL");
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        "acc_completed_chapters",
+        JSON.stringify(completedChapterIds)
+      );
+    } catch (e) {
+      console.error("Failed to save progress", e);
+    }
+  }, [completedChapterIds]);
 
   useEffect(() => {
     loadRoadmapData();
@@ -105,11 +123,14 @@ export default function LevelUp() {
   };
 
   const toggleChapterComplete = (chapId) => {
-    setCompletedChapterIds((prev) =>
-      prev.includes(chapId)
-        ? prev.filter((id) => id !== chapId)
-        : [...prev, chapId]
-    );
+    const isCompleted = completedChapterIds.includes(chapId);
+    if (isCompleted) {
+      setCompletedChapterIds((prev) => prev.filter((id) => id !== chapId));
+      toast.success("Chapter marked as incomplete.");
+    } else {
+      setCompletedChapterIds((prev) => [...prev, chapId]);
+      toast.success("Chapter marked as complete! 🎉");
+    }
   };
 
   // Find all chapters in flat list for next/prev navigation
@@ -300,7 +321,7 @@ export default function LevelUp() {
 
                     {/* Action Button */}
                     <div className="pt-6">
-                      <div className="w-full py-2.5 px-4 bg-slate-900 group-hover:bg-blue-600 text-white rounded-2xl text-xs font-bold flex items-center justify-between transition shadow-xs">
+                      <div className="w-full py-2.5 px-4 bg-blue-600 group-hover:bg-blue-700 text-white rounded-2xl text-xs font-bold flex items-center justify-between transition shadow-xs group-hover:shadow-md">
                         <span>
                           {completedCount > 0 ? "Continue Learning" : "Explore Roadmap"}
                         </span>
@@ -322,12 +343,12 @@ export default function LevelUp() {
       {roadmapSlug && (
         <div className="space-y-6 animate-in fade-in duration-200">
           {/* Sticky Ceiling Header Bar */}
-          <div className="bg-slate-900 text-white rounded-2xl p-4 shadow-md border border-slate-800 flex items-center justify-between gap-3 sticky top-0 z-30">
+          <div className="bg-white text-slate-900 rounded-2xl p-4 shadow-sm border border-slate-200/90 flex items-center justify-between gap-3 sticky top-0 z-30">
             <div className="flex items-center gap-3 min-w-0">
               {/* Back to All Roadmaps Button */}
               <button
                 onClick={() => navigate("/dashboard/level-up")}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold transition cursor-pointer shrink-0"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-bold transition cursor-pointer shrink-0"
               >
                 <ArrowLeft size={14} />
                 <span className="hidden sm:inline">All Roadmaps</span>
@@ -336,23 +357,23 @@ export default function LevelUp() {
               {/* Mobile Chapter Tree Drawer Button */}
               <button
                 onClick={() => setShowMobileSidebar(!showMobileSidebar)}
-                className="lg:hidden p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition cursor-pointer shrink-0"
+                className="lg:hidden p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition cursor-pointer shrink-0"
                 title="Toggle Chapter Menu"
               >
                 <List size={18} />
               </button>
 
               <div className="min-w-0">
-                <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold uppercase tracking-wider truncate">
-                  <span className="text-blue-400 font-bold truncate">
+                <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                  <span className="text-blue-600 font-extrabold">
                     {activeRoadmap?.title}
                   </span>
-                  <span>/</span>
-                  <span className="truncate">
+                  <span className="text-slate-300">/</span>
+                  <span className="text-slate-600 font-semibold">
                     {activeChapter?.section?.title || "Overview"}
                   </span>
                 </div>
-                <h2 className="text-xs sm:text-sm font-bold text-white truncate leading-tight">
+                <h2 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-snug break-words">
                   {activeChapter?.title || "Select a Chapter"}
                 </h2>
               </div>
@@ -364,8 +385,8 @@ export default function LevelUp() {
                 onClick={() => toggleChapterComplete(activeChapter.id)}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer shrink-0 ${
                   completedChapterIds.includes(activeChapter.id)
-                    ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                    : "bg-blue-600 hover:bg-blue-500 text-white shadow-xs"
+                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
+                    : "bg-blue-600 hover:bg-blue-700 text-white shadow-xs"
                 }`}
               >
                 <CheckCircle2 size={14} />
@@ -378,10 +399,10 @@ export default function LevelUp() {
             )}
           </div>
 
-          {/* 2-Column Grid Layout: Main Chapter Content on Left (col-span-8), Chapters Tree on Right (col-span-4) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative">
+          {/* 2-Column Grid Layout: Main Chapter Content on Left (col-span-9), Chapters Tree on Right (col-span-3) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start relative">
             {/* Left Column: Documentation Article View */}
-            <main className="lg:col-span-8 space-y-6">
+            <main className="lg:col-span-9 space-y-6">
               {activeChapter ? (
                 <div className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-10 shadow-2xs space-y-8 min-h-[600px]">
                   {/* Article Title Header */}
@@ -462,7 +483,7 @@ export default function LevelUp() {
             {/* Right Sub-Sidebar: Sections & Chapters Tree */}
             <aside
               className={`
-                lg:col-span-4 bg-slate-900 text-white rounded-3xl border border-slate-800 p-5 shadow-xl space-y-5
+                lg:col-span-3 bg-white text-slate-900 rounded-3xl border border-slate-200/90 p-4 shadow-sm space-y-4
                 lg:sticky lg:top-20 max-h-[calc(100vh-140px)] overflow-y-auto scrollbar-thin
                 ${
                   showMobileSidebar
@@ -471,19 +492,19 @@ export default function LevelUp() {
                 }
               `}
             >
-              <div className="border-b border-slate-800 pb-3 flex items-center justify-between">
+              <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
                 <div>
-                  <span className="text-[9px] font-extrabold uppercase tracking-wider text-blue-400 block">
+                  <span className="text-[9px] font-extrabold uppercase tracking-wider text-blue-600 block">
                     {activeRoadmap?.domain || "CS"} TRACK
                   </span>
-                  <h3 className="text-sm font-extrabold text-white truncate">
+                  <h3 className="text-sm font-extrabold text-slate-900 leading-snug break-words">
                     {activeRoadmap?.title}
                   </h3>
                 </div>
                 {showMobileSidebar && (
                   <button
                     onClick={() => setShowMobileSidebar(false)}
-                    className="text-xs text-slate-400 hover:text-white"
+                    className="text-xs text-slate-400 hover:text-slate-700"
                   >
                     ✕
                   </button>
@@ -494,7 +515,7 @@ export default function LevelUp() {
               <div className="space-y-5">
                 {activeRoadmap?.sections?.map((sec, secIdx) => (
                   <div key={sec.id} className="space-y-2">
-                    <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider px-1">
+                    <h4 className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider px-1 leading-snug break-words">
                       SECTION {secIdx + 1}: {sec.title}
                     </h4>
 
@@ -508,10 +529,10 @@ export default function LevelUp() {
                             onClick={() => handleSelectChapter(chap)}
                             className={`w-full p-2.5 rounded-xl border text-left transition flex items-center gap-2.5 cursor-pointer ${
                               isSelected
-                                ? "bg-blue-600 text-white border-blue-500 font-bold shadow-md"
+                                ? "bg-blue-600 text-white border-blue-600 font-bold shadow-md"
                                 : isDone
-                                ? "bg-emerald-950/40 text-emerald-300 border-emerald-800/40 hover:bg-emerald-900/40"
-                                : "bg-slate-800/40 text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white"
+                                ? "bg-emerald-50 text-emerald-900 border-emerald-200 hover:bg-emerald-100"
+                                : "bg-slate-50 text-slate-700 border-slate-200/80 hover:bg-slate-100 hover:text-slate-900 hover:border-slate-300"
                             }`}
                           >
                             <span
@@ -519,17 +540,25 @@ export default function LevelUp() {
                                 isSelected
                                   ? "bg-white text-blue-600"
                                   : isDone
-                                  ? "bg-emerald-500 text-slate-950"
-                                  : "bg-slate-700 text-slate-300"
+                                  ? "bg-emerald-600 text-white"
+                                  : "bg-slate-200 text-slate-700 font-bold"
                               }`}
                             >
                               {isDone ? <Check size={12} /> : chIdx + 1}
                             </span>
                             <div className="min-w-0 flex-1">
-                              <p className="text-xs truncate font-medium">
+                              <p className="text-xs font-medium leading-snug break-words">
                                 {chap.title}
                               </p>
-                              <span className="text-[9px] opacity-70 block">
+                              <span
+                                className={`text-[9px] block ${
+                                  isSelected
+                                    ? "text-blue-100"
+                                    : isDone
+                                    ? "text-emerald-700/80"
+                                    : "text-slate-400"
+                                }`}
+                              >
                                 {chap.duration || "10 mins"}
                               </span>
                             </div>

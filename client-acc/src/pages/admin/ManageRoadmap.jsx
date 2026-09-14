@@ -251,7 +251,7 @@ export default function ManageRoadmap() {
                   onClick={() => setSelectedRoadmap(r)}
                   className={`p-4 rounded-xl border transition cursor-pointer flex items-center justify-between ${
                     selectedRoadmap?.id === r.id
-                      ? "bg-slate-900 text-white border-slate-900 shadow-md"
+                      ? "bg-blue-50 text-blue-950 border-blue-300 shadow-xs font-semibold"
                       : "bg-white text-slate-800 border-slate-200 hover:border-slate-300"
                   }`}
                 >
@@ -259,7 +259,7 @@ export default function ManageRoadmap() {
                     <span
                       className={`text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
                         selectedRoadmap?.id === r.id
-                          ? "bg-slate-800 text-blue-400 border-slate-700"
+                          ? "bg-blue-100 text-blue-700 border-blue-200"
                           : "bg-blue-50 text-blue-700 border-blue-100"
                       }`}
                     >
@@ -269,7 +269,7 @@ export default function ManageRoadmap() {
                     <p
                       className={`text-xs line-clamp-1 ${
                         selectedRoadmap?.id === r.id
-                          ? "text-slate-400"
+                          ? "text-blue-700/70"
                           : "text-slate-500"
                       }`}
                     >
@@ -280,7 +280,7 @@ export default function ManageRoadmap() {
                     size={18}
                     className={
                       selectedRoadmap?.id === r.id
-                        ? "text-blue-400"
+                        ? "text-blue-600"
                         : "text-slate-400"
                     }
                   />
