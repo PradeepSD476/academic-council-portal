@@ -15,10 +15,9 @@ export const getPublicUrl = async ({ bucketName, filePath }) => {
         60 * 60
     );
 
-    const publicUrl = url.replace('http://minio-acc:9000', `${process.env.PUBLIC_DOMAIN}/media`)
+    const publicUrl = url.replace('http://minio-acc:9000', `${process.env.PUBLIC_DOMAIN}/media`);
 
     return publicUrl;
-
 }
 
 export const getUploadSignedUrl = async ({ fileName, contentType, folder }) => {
@@ -29,14 +28,13 @@ export const getUploadSignedUrl = async ({ fileName, contentType, folder }) => {
     }
     const objectName = `${folder}/${Date.now()}-${fileName}`;
     const bucketName = process.env.MINIO_BUCKET_NAME;
-    console.log("\x1b[34m%s\x1b[0m", "Checkpoint: 1/server/utils/signedUrl.js")
     const url = await storage.presignedPutObject(
         bucketName,
         objectName,
         5 * 60
     );
-    console.log("\x1b[34m%s\x1b[0m", "Checkpoint: 2/server/utils/signedUrl.js")
-    const signedURL = url.replace('http://minio-acc:9000', `${process.env.PUBLIC_DOMAIN}/media`)
-    console.log(signedURL)
+    
+    const signedURL = url.replace('http://minio-acc:9000', `${process.env.PUBLIC_DOMAIN}/media`);
+    
     return { signedURL, filePath: objectName };
 }

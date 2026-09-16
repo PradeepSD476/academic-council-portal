@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   Briefcase,
   Landmark,
+  TrendingUp,
 } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import AuthContext from "../context/auth/authContext";
@@ -178,6 +179,13 @@ export default function DashboardLayout() {
                   label="Finance Vault"
                   onClick={() => setOpen(false)}
                 />
+                <SidebarItem
+                  to="/dashboard/level-up"
+                  icon={<TrendingUp size={16} />}
+                  iconColor="text-blue-600 bg-blue-50 border-blue-100"
+                  label="Level Up"
+                  onClick={() => setOpen(false)}
+                />
               </>
             )}
 
@@ -235,6 +243,13 @@ export default function DashboardLayout() {
                 label="Finance Vault"
                 onClick={() => setOpen(false)}
               />
+              <SidebarItem
+                to="/admin/level-up"
+                icon={<TrendingUp size={16} />}
+                iconColor="text-blue-600 bg-blue-50 border-blue-100"
+                label="Level Up"
+                onClick={() => setOpen(false)}
+              />
             </>
           )}
 
@@ -250,6 +265,13 @@ export default function DashboardLayout() {
                 label="Career Vault"
                 onClick={() => setOpen(false)}
               />
+              <SidebarItem
+                to="/admin/level-up"
+                icon={<TrendingUp size={16} />}
+                iconColor="text-blue-600 bg-blue-50 border-blue-100"
+                label="Level Up"
+                onClick={() => setOpen(false)}
+              />
             </>
           )}
 
@@ -263,6 +285,13 @@ export default function DashboardLayout() {
                 icon={<Landmark size={16} />}
                 iconColor="text-purple-600 bg-purple-50 border-purple-100"
                 label="Finance Vault"
+                onClick={() => setOpen(false)}
+              />
+              <SidebarItem
+                to="/admin/level-up"
+                icon={<TrendingUp size={16} />}
+                iconColor="text-blue-600 bg-blue-50 border-blue-100"
+                label="Level Up"
                 onClick={() => setOpen(false)}
               />
             </>

@@ -15,6 +15,7 @@ import dashboardRoutes from './routes/dashboard.js'
 import { checkAuth } from './middlewares/checkAuth.js'
 import forumRoutes from './routes/forum.js'
 import financeVaultRoutes from './routes/financeVault.js'
+import roadmapRoutes from './routes/roadmap.js'
 
 dotenv.config();
 
@@ -64,6 +65,7 @@ app.use('/api/v1', userRoutes);
 app.use('/api/v1', dashboardRoutes);
 app.use('/api/v1', forumRoutes);
 app.use('/api/v1/finance-vault', financeVaultRoutes);
+app.use('/api/v1', roadmapRoutes);
 
 server.listen(PORT, () => {
   console.log(`Server is running on PORT: ${PORT}`);

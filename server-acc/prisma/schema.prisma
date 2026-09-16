@@ -257,3 +257,38 @@ enum GenderEligibility {
   MALE
   FEMALE
 }
+
+model Roadmap {
+  id          Int              @id @default(autoincrement())
+  title       String
+  slug        String           @unique
+  description String?
+  domain      String?
+  icon        String?
+  isPublished Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  sections    RoadmapSection[]
+}
+
+model RoadmapSection {
+  id        Int              @id @default(autoincrement())
+  roadmapId Int
+  title     String
+  order     Int              @default(0)
+  roadmap   Roadmap          @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  chapters  RoadmapChapter[]
+}
+
+model RoadmapChapter {
+  id        Int            @id @default(autoincrement())
+  sectionId Int
+  title     String
+  slug      String
+  content   String         @db.Text
+  order     Int            @default(0)
+  duration  String?
+  section   RoadmapSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@unique([sectionId, slug])
+}
