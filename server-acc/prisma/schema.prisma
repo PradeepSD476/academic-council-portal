@@ -27,6 +27,20 @@ model User {
   likes               Like[]
   uploadedResources   Resource[]
   bookmarks           Bookmark[]
+
+  // Research Vault
+  researchExperiences    StudentResearchExperience[]       @relation("ResearchExperienceUploader")
+  researchDiscussions    ResearchDiscussion[]
+  researchDiscussionReplies ResearchDiscussionReply[]
+  researchResources      ResearchResource[]
+  researchPositions      ResearchOpenPosition[]
+  researchInterest       ResearchInterest?
+  researchFacultyFollows ResearchFacultyFollow[]
+  researchAreaFollows    ResearchAreaFollow[]
+  researchExperienceLikes ResearchExperienceLike[]
+  researchExperienceBookmarks ResearchExperienceBookmark[]
+  researchDiscussionVotes ResearchDiscussionVote[]
+  researchReplyVotes     ResearchReplyVote[]
 }
 
 model Experience {
@@ -192,6 +206,7 @@ enum Role {
   FACULTY
   CAREER_ADMIN
   FINANCE_ADMIN
+  RESEARCH_ADMIN
 }
 
 enum VerificationType {
@@ -250,6 +265,260 @@ enum FinanceCategory {
   GRANT
   FEE_REIMBURSEMENT
   OTHER
+}
+
+// ── Research Vault ──────────────────────────────────────────────────────────
+
+model ResearchArea {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+
+  facultyProfiles FacultyProfileResearchArea[]
+  experiences     StudentResearchExperienceResearchArea[]
+  discussions     ResearchDiscussionResearchArea[]
+  resources       ResearchResourceResearchArea[]
+  followers       ResearchAreaFollow[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FacultyProfile {
+  id            Int      @id @default(autoincrement())
+  name          String
+  slug          String   @unique
+  designation   String?
+  department    String?
+  email         String?
+  phone         String?
+  photoURL      String?
+  website       String?
+  biography     String   @db.Text?
+  publications  String   @db.Text?
+  isActive      Boolean  @default(true)
+
+  researchAreas FacultyProfileResearchArea[]
+  experiences   StudentResearchExperience[]
+  followers     ResearchFacultyFollow[]
+  positions     ResearchOpenPosition[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FacultyProfileResearchArea {
+  facultyProfileId Int
+  researchAreaId   Int
+
+  facultyProfile FacultyProfile @relation(fields: [facultyProfileId], references: [id], onDelete: Cascade)
+  researchArea   ResearchArea   @relation(fields: [researchAreaId], references: [id], onDelete: Cascade)
+
+  @@id([facultyProfileId, researchAreaId])
+}
+
+model StudentResearchExperience {
+  id             Int      @id @default(autoincrement())
+  title          String
+  description    String   @db.Text
+  labName        String?
+  guideName      String?
+  duration       String?
+  prerequisites  String?
+  keyLearnings   String?
+  outcome        String?
+  status         ContentStatus @default(DRAFT)
+  facultyId      Int?
+
+  faculty  FacultyProfile?               @relation(fields: [facultyId], references: [id])
+  uploadedById Int
+  uploadedBy   User                       @relation("ResearchExperienceUploader", fields: [uploadedById], references: [id])
+  researchAreas StudentResearchExperienceResearchArea[]
+  likes         ResearchExperienceLike[]
+  bookmarks     ResearchExperienceBookmark[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model StudentResearchExperienceResearchArea {
+  experienceId  Int
+  researchAreaId Int
+
+  experience   StudentResearchExperience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  researchArea ResearchArea              @relation(fields: [researchAreaId], references: [id], onDelete: Cascade)
+
+  @@id([experienceId, researchAreaId])
+}
+
+model ResearchExperienceLike {
+  id           Int @id @default(autoincrement())
+  experienceId Int
+  userId       Int
+
+  experience StudentResearchExperience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  user       User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([experienceId, userId])
+}
+
+model ResearchExperienceBookmark {
+  id           Int @id @default(autoincrement())
+  experienceId Int
+  userId       Int
+
+  experience StudentResearchExperience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  user       User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([experienceId, userId])
+}
+
+model ResearchDiscussion {
+  id         Int      @id @default(autoincrement())
+  title      String
+  content    String   @db.Text
+  isResolved Boolean  @default(false)
+  uploadedById Int
+  uploadedBy   User   @relation(fields: [uploadedById], references: [id])
+
+  researchAreas ResearchDiscussionResearchArea[]
+  replies       ResearchDiscussionReply[]
+  votes         ResearchDiscussionVote[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ResearchDiscussionResearchArea {
+  discussionId   Int
+  researchAreaId Int
+
+  discussion   ResearchDiscussion @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+  researchArea ResearchArea       @relation(fields: [researchAreaId], references: [id], onDelete: Cascade)
+
+  @@id([discussionId, researchAreaId])
+}
+
+model ResearchDiscussionReply {
+  id           Int      @id @default(autoincrement())
+  content      String   @db.Text
+  discussionId Int
+  parentId     Int?
+  uploadedById Int
+
+  discussion ResearchDiscussion         @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+  parent     ResearchDiscussionReply?   @relation("ReplyParent", fields: [parentId], references: [id])
+  replies    ResearchDiscussionReply[]  @relation("ReplyParent")
+  uploadedBy User                       @relation(fields: [uploadedById], references: [id])
+  votes      ResearchReplyVote[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ResearchDiscussionVote {
+  id           Int @id @default(autoincrement())
+  discussionId Int
+  userId       Int
+  value        Int @default(1)
+
+  discussion ResearchDiscussion @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([discussionId, userId])
+}
+
+model ResearchReplyVote {
+  id      Int @id @default(autoincrement())
+  replyId Int
+  userId  Int
+  value   Int @default(1)
+
+  reply ResearchDiscussionReply @relation(fields: [replyId], references: [id], onDelete: Cascade)
+  user  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([replyId, userId])
+}
+
+model ResearchResource {
+  id           Int      @id @default(autoincrement())
+  title        String
+  description  String?
+  url          String?
+  filePath     String?
+  resourceType String   @default("GUIDE")
+  viewCount    Int      @default(0)
+  downloadCount Int     @default(0)
+  uploadedById Int?
+  uploadedBy   User?    @relation(fields: [uploadedById], references: [id])
+
+  researchAreas ResearchResourceResearchArea[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ResearchResourceResearchArea {
+  resourceId     Int
+  researchAreaId Int
+
+  resource     ResearchResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  researchArea ResearchArea     @relation(fields: [researchAreaId], references: [id], onDelete: Cascade)
+
+  @@id([resourceId, researchAreaId])
+}
+
+model ResearchOpenPosition {
+  id              Int      @id @default(autoincrement())
+  title           String
+  description     String   @db.Text?
+  positionType    String   @default("RA")
+  eligibility     String?
+  applicationUrl  String?
+  deadline        DateTime?
+  isActive        Boolean  @default(true)
+  facultyId       Int?
+
+  faculty  FacultyProfile? @relation(fields: [facultyId], references: [id])
+  uploadedById Int
+  uploadedBy   User         @relation(fields: [uploadedById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ResearchInterest {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @unique
+  department   String?
+  subArea      String?
+  projectType  String?
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model ResearchFacultyFollow {
+  id             Int @id @default(autoincrement())
+  userId         Int
+  facultyProfileId Int
+
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  facultyProfile FacultyProfile @relation(fields: [facultyProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, facultyProfileId])
+}
+
+model ResearchAreaFollow {
+  id             Int @id @default(autoincrement())
+  userId         Int
+  researchAreaId Int
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  researchArea ResearchArea @relation(fields: [researchAreaId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, researchAreaId])
 }
 
 enum GenderEligibility {
