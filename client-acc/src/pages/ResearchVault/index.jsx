@@ -511,12 +511,14 @@ export default function ResearchVault() {
                       }`}
                     >
                       <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] flex items-center justify-center text-white font-semibold text-sm">
+                        <div className="w-10 h-10 flex-shrink-0 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] flex items-center justify-center text-white font-semibold text-sm">
                           {getInitials(faculty.name, 'F')}
                         </div>
-                        <div className="min-w-0">
-                          <p className="font-semibold text-slate-900 truncate">{faculty.name}</p>
-                          <p className="text-xs text-slate-500 truncate">{faculty.designation}{faculty.department ? ` · ${faculty.department}` : ''}</p>
+                        <div className="min-w-0 flex items-center">
+                          <div>
+                            <p className="font-semibold text-slate-900 truncate leading-snug">{faculty.name}</p>
+                            <p className="text-xs text-slate-500 truncate leading-snug">{faculty.designation}{faculty.department ? ` · ${faculty.department}` : ''}</p>
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
