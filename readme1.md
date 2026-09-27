@@ -13,6 +13,7 @@ Research Vault is an authenticated module in the ACC Portal for discovering facu
 - [Demo data](#demo-data)
 - [Validation](#validation)
 - [Recent updates (Discussion tab)](#recent-updates-discussion-tab)
+- [Recent updates (Following tab & avatar initials)](#recent-updates-following-tab--avatar-initials)
 
 ## Routes
 
@@ -31,7 +32,7 @@ The Research Vault home is integrated with the dashboard and contains Faculty, E
 
 - **Faculty directory:** search by name or research area; filter by department, area, and current openings. Faculty cards link to contact details, publications, areas, and openings.
 - **Research matching:** submit any combination of department, topic, and project type. The API ranks up to five faculty by weighted department, research-area, and active-opening matches and returns match reasons.
-- **Following:** follow/unfollow faculty and research areas. The **Following** tab aggregates recent published experiences, open positions, discussions, and resources related to those follows. This is an in-app feed, not push or email notifications.
+- **Following:** follow/unfollow faculty and research areas. The **Following** tab aggregates recent published experiences, open positions, discussions, and resources related to those follows. This is an in-app feed, not push or email notifications. **Multi-select filters:** click faculty cards or research-area tags to toggle them as active filters; the feed updates to show only activity matching the selected faculty/areas (supports multiple simultaneous selections). A filter indicator above the feed shows all active filters with individual remove buttons and a "Clear all" option.
 - **Experiences:** browse published student experiences and submit structured experiences. Student submissions start as drafts and appear in the admin moderation queue.
 - **Discussion:** compact question list with search, research-area/status filters, and sorting by newest, reply count, or upvotes. The list requests 20 questions at a time using a cursor and does not render reply bodies.
 - **Question detail:** displays the question and up to three initial replies, supports Top/New/Oldest reply sorting, and loads additional replies in batches of 20. Sticky navigation links to the previous/next question and back to the list. The question author or a Research Vault admin can accept one reply; accepting it marks the question resolved. Replies remain open after resolution.
@@ -119,7 +120,7 @@ Reply pagination accepts `cursor`, `limit` (default 20, maximum 50), and `sort=t
 | `POST /discussions/:id/replies/:replyId/accept` | Accept an answer; question author/admin only |
 | `POST /interest-matching` | Save interests and retrieve ranked faculty matches |
 | `GET /follow` | Read the current user's faculty/area follows |
-| `GET /follow/updates` | Read recent activity for followed faculty/areas |
+| `GET /follow/updates` | Read recent activity for followed faculty/areas. Optional: `facultyIds=1,2,3` and `areaIds=4,5` comma-separated query params to filter by specific faculty/research areas. When `facultyIds` is provided without `areaIds`, the faculty's research areas are automatically included. |
 | `POST /follow/faculty`, `DELETE /follow/faculty/:id` | Follow/unfollow faculty |
 | `POST /follow/area`, `DELETE /follow/area/:id` | Follow/unfollow research areas |
 
@@ -240,3 +241,25 @@ server-acc: npx prisma migrate status
 ```
 
 Cursor sorting, question navigation, reply batches, vote toggles, accepted-answer permissions, and local seed content were also exercised against the local PostgreSQL database.
+
+## Recent updates (Following tab & avatar initials)
+
+### Following tab — multi-select activity filters
+
+The **Following** tab now supports interactive filtering of the "Recent Activity" feed:
+
+- **Click to select:** Clicking a faculty card or research-area tag toggles it as an active filter. Multiple items can be selected simultaneously.
+- **Multi-select:** Combine any number of faculty members and research areas. The feed shows activity matching **all selected filters** (OR logic within each group, AND across groups).
+- **Visual feedback:** Active filters are highlighted with a colored ring/border and show a "Selected" badge.
+- **Filter indicator:** A pill above the activity list displays all active filters with individual ✕ remove buttons and a "Clear all" button.
+- **Re-click to deselect:** Clicking a selected faculty/tag removes it from the filter.
+- **Backend support:** `GET /follow/updates` now accepts `facultyIds` and `areaIds` as comma-separated query parameters. When faculty filters are applied, the backend automatically includes those faculty's research areas in the area filter, so discussions/resources tagged with those areas also appear.
+
+### Avatar initials — consistent name parsing across the app
+
+A shared `getInitials(name, fallback)` utility (`client-acc/src/lib/utils.js`) now computes avatar initials consistently:
+
+- **Strips common titles:** `Dr.`, `Prof.`, `Mr.`, `Ms.`, `Mrs.`, `Miss`, `Mx.` (case-insensitive) before computing initials.
+- **First + last name:** "Neha Agarwal" → **NA**, "Vikram Singh Rathore" → **VR** (first word + last word).
+- **Single name fallback:** Uses first letter of the only name part.
+- **Applied everywhere:** Research Vault Following tab, Navbar user avatar, DashboardLayout sidebar avatar, Admin ManageUsers table/cards.
