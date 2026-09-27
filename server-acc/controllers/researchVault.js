@@ -1,7 +1,7 @@
 import prisma from '../config/db.js';
 
 const userSummary = {
-  select: { id: true, displayName: true, photoURL: true, role: true }
+  select: { id: true, displayName: true, rollNo: true, photoURL: true, role: true }
 };
 
 const fail = (status, message) => Object.assign(new Error(message), { status });
@@ -101,12 +101,44 @@ const experienceWhere = (query, includeDrafts = false) => {
 const discussionWhere = (query) => {
   const where = {};
   if (query.areaId) where.researchAreas = { some: { researchAreaId: parseId(query.areaId) } };
-  if (query.resolved === 'true' || query.resolved === 'false') where.isResolved = query.resolved === 'true';
+  if (query.tag) where.researchAreas = { some: { researchArea: { slug: String(query.tag) } } };
+  if (query.unanswered === 'true' || query.status === 'needs-reply') {
+    where.isResolved = false;
+    where.replies = { none: {} };
+  } else if (query.resolved === 'true' || query.resolved === 'false' || query.status === 'resolved') {
+    where.isResolved = query.resolved === 'false' ? false : true;
+  }
   if (query.search) where.OR = [
     { title: { contains: query.search, mode: 'insensitive' } },
     { content: { contains: query.search, mode: 'insensitive' } }
   ];
   return where;
+};
+
+const questionSortOrder = (sort) => {
+  if (sort === 'replies') return [{ replies: { _count: 'desc' } }, { createdAt: 'desc' }, { id: 'desc' }];
+  if (sort === 'upvoted') return [{ votes: { _count: 'desc' } }, { createdAt: 'desc' }, { id: 'desc' }];
+  return [{ createdAt: 'desc' }, { id: 'desc' }];
+};
+
+const replySortOrder = (sort) => {
+  if (sort === 'oldest') return [{ createdAt: 'asc' }, { id: 'asc' }];
+  if (sort === 'newest') return [{ createdAt: 'desc' }, { id: 'desc' }];
+  return [{ isAccepted: 'desc' }, { votes: { _count: 'desc' } }, { createdAt: 'desc' }, { id: 'desc' }];
+};
+
+const encodeCursor = (id, sort, kind) => Buffer.from(JSON.stringify({ id, sort, kind })).toString('base64url');
+const decodeCursor = (value, sort, kind) => {
+  if (!value) return null;
+  try {
+    const cursor = JSON.parse(Buffer.from(value, 'base64url').toString('utf8'));
+    if (!Number.isInteger(cursor.id) || cursor.id < 1 || cursor.sort !== sort || cursor.kind !== kind) {
+      throw new Error('Invalid cursor');
+    }
+    return { id: cursor.id };
+  } catch {
+    throw fail(400, 'Invalid pagination cursor.');
+  }
 };
 
 const replaceAreas = (areaIds) => ({ deleteMany: {}, create: areaLinks(areaIds) });
@@ -226,10 +258,20 @@ export const getResearchDiscussions = handle(async (req) => {
   const { page, limit, skip } = pagination(req.query);
   const where = discussionWhere(req.query);
   const [data, total] = await Promise.all([
-    prisma.researchDiscussion.findMany({ where, include: discussionInclude, orderBy: [{ isResolved: 'asc' }, { createdAt: 'desc' }], skip, take: limit }),
+    prisma.researchDiscussion.findMany({
+      where,
+      include: {
+        ...discussionInclude,
+        votes: { where: { userId: req.user.id }, select: { id: true } }
+      },
+      orderBy: [{ isResolved: 'asc' }, { createdAt: 'desc' }], skip, take: limit
+    }),
     prisma.researchDiscussion.count({ where })
   ]);
-  return { data, page, limit, total, totalPages: Math.ceil(total / limit) };
+  return {
+    data: data.map(({ votes, ...discussion }) => ({ ...discussion, hasVoted: votes.length > 0 })),
+    page, limit, total, totalPages: Math.ceil(total / limit)
+  };
 });
 
 export const getResearchDiscussionById = handle(async (req) => {
@@ -285,15 +327,89 @@ export const createResearchDiscussionReply = handle(async (req) => {
   return { status: 201, data: reply };
 });
 
+export const acceptResearchDiscussionReply = handle(async (req) => {
+  const discussionId = parseId(req.params.id);
+  const replyId = parseId(req.params.replyId);
+  const discussion = await prisma.researchDiscussion.findUnique({
+    where: { id: discussionId },
+    select: { id: true, uploadedById: true }
+  });
+  if (!discussion) throw fail(404, 'Discussion not found.');
+  if (discussion.uploadedById !== req.user.id && !isAdmin(req.user)) {
+    throw fail(403, 'Only the question author or a Research Vault admin can accept an answer.');
+  }
+
+  const reply = await prisma.researchDiscussionReply.findUnique({
+    where: { id: replyId },
+    select: { id: true, discussionId: true }
+  });
+  if (!reply || reply.discussionId !== discussionId) throw fail(404, 'Reply not found in this discussion.');
+
+  const data = await prisma.$transaction(async (transaction) => {
+    await transaction.researchDiscussionReply.updateMany({
+      where: { discussionId },
+      data: { isAccepted: false }
+    });
+    const acceptedReply = await transaction.researchDiscussionReply.update({
+      where: { id: replyId },
+      data: { isAccepted: true },
+      include: { uploadedBy: userSummary }
+    });
+    await transaction.researchDiscussion.update({
+      where: { id: discussionId },
+      data: { isResolved: true }
+    });
+    return acceptedReply;
+  });
+
+  return { data };
+});
+
 export const voteResearchDiscussion = handle(async (req) => {
   const discussionId = parseId(req.params.id);
   const value = Number(req.body.value) < 0 ? -1 : 1;
-  const vote = await prisma.researchDiscussionVote.upsert({
-    where: { discussionId_userId: { discussionId, userId: req.user.id } },
-    create: { discussionId, userId: req.user.id, value },
-    update: { value }
+  const where = { discussionId_userId: { discussionId, userId: req.user.id } };
+  const existingVote = await prisma.researchDiscussionVote.findUnique({ where });
+
+  if (existingVote?.value === value) {
+    await prisma.researchDiscussionVote.delete({ where });
+  } else if (existingVote) {
+    await prisma.researchDiscussionVote.update({ where, data: { value } });
+  } else {
+    await prisma.researchDiscussionVote.create({ data: { discussionId, userId: req.user.id, value } });
+  }
+
+  const [voteCount, currentVote] = await Promise.all([
+    prisma.researchDiscussionVote.count({ where: { discussionId } }),
+    prisma.researchDiscussionVote.findUnique({ where })
+  ]);
+  return { data: { voteCount, hasVoted: Boolean(currentVote) } };
+});
+
+export const voteResearchReply = handle(async (req) => {
+  const discussionId = parseId(req.params.id);
+  const replyId = parseId(req.params.replyId);
+  const reply = await prisma.researchDiscussionReply.findUnique({
+    where: { id: replyId },
+    select: { discussionId: true }
   });
-  return { data: vote };
+  if (!reply || reply.discussionId !== discussionId) throw fail(404, 'Reply not found in this discussion.');
+
+  const where = { replyId_userId: { replyId, userId: req.user.id } };
+  const existingVote = await prisma.researchReplyVote.findUnique({ where });
+  if (existingVote?.value === 1) {
+    await prisma.researchReplyVote.delete({ where });
+  } else if (existingVote) {
+    await prisma.researchReplyVote.update({ where, data: { value: 1 } });
+  } else {
+    await prisma.researchReplyVote.create({ data: { replyId, userId: req.user.id, value: 1 } });
+  }
+
+  const [voteCount, currentVote] = await Promise.all([
+    prisma.researchReplyVote.count({ where: { replyId } }),
+    prisma.researchReplyVote.findUnique({ where })
+  ]);
+  return { data: { voteCount, hasVoted: Boolean(currentVote) } };
 });
 
 export const getResearchResources = handle(async (req) => {
@@ -472,6 +588,83 @@ export const followFaculty = handle(async (req) => {
   return { status: 201, data };
 });
 
+export const getResearchFollows = handle(async (req) => {
+  const [facultyFollows, areaFollows] = await Promise.all([
+    prisma.researchFacultyFollow.findMany({ where: { userId: req.user.id }, select: { facultyProfileId: true } }),
+    prisma.researchAreaFollow.findMany({ where: { userId: req.user.id }, select: { researchAreaId: true } })
+  ]);
+  return {
+    data: {
+      facultyIds: facultyFollows.map(({ facultyProfileId }) => facultyProfileId),
+      areaIds: areaFollows.map(({ researchAreaId }) => researchAreaId)
+    }
+  };
+});
+
+export const getFollowingUpdates = handle(async (req) => {
+  const [facultyFollows, areaFollows] = await Promise.all([
+    prisma.researchFacultyFollow.findMany({ where: { userId: req.user.id }, select: { facultyProfileId: true } }),
+    prisma.researchAreaFollow.findMany({ where: { userId: req.user.id }, select: { researchAreaId: true } })
+  ]);
+  const facultyIds = facultyFollows.map(({ facultyProfileId }) => facultyProfileId);
+  const areaIds = areaFollows.map(({ researchAreaId }) => researchAreaId);
+  if (!facultyIds.length && !areaIds.length) return { data: [] };
+
+  const activityAreas = { researchAreas: { include: { researchArea: true } } };
+  const areaSource = (entries) => entries.map(({ researchArea }) => researchArea.name).join(', ');
+  const areaFilter = areaIds.length ? [{ researchAreas: { some: { researchAreaId: { in: areaIds } } } }] : [];
+  const facultyFilter = facultyIds.length ? [{ facultyId: { in: facultyIds } }] : [];
+  const discussionFilter = areaIds.length ? { researchAreas: { some: { researchAreaId: { in: areaIds } } } } : null;
+
+  const [experiences, positions, discussions, resources] = await Promise.all([
+    prisma.studentResearchExperience.findMany({
+      where: { status: 'PUBLISHED', OR: [...facultyFilter, ...areaFilter] },
+      include: { ...activityAreas, faculty: { select: { name: true } } },
+      orderBy: { createdAt: 'desc' }, take: 20
+    }),
+    facultyIds.length ? prisma.researchOpenPosition.findMany({
+      where: { isActive: true, facultyId: { in: facultyIds } },
+      include: { faculty: { select: { name: true } } },
+      orderBy: { createdAt: 'desc' }, take: 20
+    }) : Promise.resolve([]),
+    discussionFilter ? prisma.researchDiscussion.findMany({
+      where: discussionFilter,
+      include: { ...activityAreas, uploadedBy: userSummary },
+      orderBy: { createdAt: 'desc' }, take: 20
+    }) : Promise.resolve([]),
+    areaIds.length ? prisma.researchResource.findMany({
+      where: { researchAreas: { some: { researchAreaId: { in: areaIds } } } },
+      include: activityAreas,
+      orderBy: { createdAt: 'desc' }, take: 20
+    }) : Promise.resolve([])
+  ]);
+
+  const data = [
+    ...experiences.map((item) => ({
+      id: `experience-${item.id}`, type: 'experience', title: item.title,
+      detail: item.description, source: item.faculty?.name || areaSource(item.researchAreas),
+      createdAt: item.createdAt
+    })),
+    ...positions.map((item) => ({
+      id: `position-${item.id}`, type: 'position', title: item.title,
+      detail: item.description, source: item.faculty?.name || 'Followed faculty',
+      createdAt: item.createdAt
+    })),
+    ...discussions.map((item) => ({
+      id: `discussion-${item.id}`, type: 'discussion', title: item.title,
+      detail: item.content, source: areaSource(item.researchAreas) || item.uploadedBy?.displayName || 'Followed research area',
+      createdAt: item.createdAt
+    })),
+    ...resources.map((item) => ({
+      id: `resource-${item.id}`, type: 'resource', title: item.title,
+      detail: item.description, source: areaSource(item.researchAreas),
+      createdAt: item.createdAt
+    }))
+  ].sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt)).slice(0, 30);
+
+  return { data };
+});
+
 export const unfollowFaculty = handle(async (req) => {
   await prisma.researchFacultyFollow.deleteMany({ where: { userId: req.user.id, facultyProfileId: parseId(req.params.id) } });
   return { message: 'Faculty follow removed.' };
@@ -550,6 +743,158 @@ export const getResearchAnalytics = handle(async () => {
     data: {
       facultyCount, experienceCount, pendingExperiences, discussionCount, unansweredDiscussions,
       topResources: resources, topFaculty: faculty, researchAreas
+    }
+  };
+});
+
+export const getQuestionList = handle(async (req) => {
+  const sort = ['newest', 'replies', 'upvoted'].includes(req.query.sort) ? req.query.sort : 'newest';
+  const limit = Math.min(50, Math.max(1, Number.parseInt(req.query.limit, 10) || 20));
+  const cursor = decodeCursor(req.query.cursor, sort, 'question');
+  const where = discussionWhere(req.query);
+  const [rows, total] = await Promise.all([
+    prisma.researchDiscussion.findMany({
+      where,
+      orderBy: questionSortOrder(sort),
+      ...(cursor ? { cursor, skip: 1 } : {}),
+      take: limit + 1,
+      include: {
+        uploadedBy: userSummary,
+        researchAreas: { include: { researchArea: true } },
+        votes: { where: { userId: req.user.id }, select: { id: true } },
+        _count: { select: { replies: true, votes: true } }
+      }
+    }),
+    prisma.researchDiscussion.count({ where })
+  ]);
+
+  const hasMore = rows.length > limit;
+  const page = rows.slice(0, limit).map(({ votes, _count, ...question }) => ({
+    ...question,
+    hasVoted: votes.length > 0,
+    replyCount: _count.replies,
+    voteCount: _count.votes
+  }));
+  const last = page.at(-1);
+  return {
+    data: {
+      items: page,
+      total,
+      has_more: hasMore,
+      next_cursor: hasMore && last ? encodeCursor(last.id, sort, 'question') : null
+    }
+  };
+});
+
+export const getQuestionDetail = handle(async (req) => {
+  const id = parseId(req.params.id);
+  const sort = ['newest', 'replies', 'upvoted'].includes(req.query.sort) ? req.query.sort : 'newest';
+  const listWhere = discussionWhere(req.query);
+
+  const question = await prisma.researchDiscussion.findFirst({
+    where: { AND: [listWhere, { id }] },
+    include: {
+      uploadedBy: userSummary,
+      researchAreas: { include: { researchArea: true } },
+      votes: { where: { userId: req.user.id }, select: { id: true } },
+      _count: { select: { replies: true, votes: true } }
+    }
+  });
+  if (!question) throw fail(404, 'Question not found.');
+
+  const [replyCount, initialReplies, previous, next, total, position] = await Promise.all([
+    prisma.researchDiscussionReply.count({ where: { discussionId: id } }),
+    prisma.researchDiscussionReply.findMany({
+      where: { discussionId: id, parentId: null },
+      orderBy: replySortOrder('top'),
+      take: 3,
+      include: {
+        uploadedBy: userSummary,
+        votes: { where: { userId: req.user.id }, select: { id: true } },
+        _count: { select: { votes: true, replies: true } }
+      }
+    }),
+    prisma.researchDiscussion.findMany({ where: listWhere, orderBy: questionSortOrder(sort), cursor: { id }, skip: 1, take: -1, select: { id: true } }),
+    prisma.researchDiscussion.findMany({ where: listWhere, orderBy: questionSortOrder(sort), cursor: { id }, skip: 1, take: 1, select: { id: true } }),
+    prisma.researchDiscussion.count({ where: listWhere }),
+    sort === 'newest'
+      ? prisma.researchDiscussion.count({
+        where: {
+          AND: [listWhere, {
+            OR: [
+              { createdAt: { gt: question.createdAt } },
+              { createdAt: question.createdAt, id: { gt: id } }
+            ]
+          }]
+        }
+      })
+      : Promise.resolve(null)
+  ]);
+
+  const replies = initialReplies.map(({ votes, _count, ...reply }) => ({
+    ...reply,
+    hasVoted: votes.length > 0,
+    voteCount: _count.votes,
+    childReplyCount: _count.replies
+  }));
+  const lastReply = replies.at(-1);
+  const { votes, _count, ...questionData } = question;
+
+  return {
+    data: {
+      ...questionData,
+      hasVoted: votes.length > 0,
+      voteCount: _count.votes,
+      replyCount,
+      replies,
+      replies_has_more: replyCount > replies.length,
+      replies_next_cursor: lastReply ? encodeCursor(lastReply.id, 'top', 'reply') : null,
+      previous_id: previous[0]?.id || null,
+      next_id: next[0]?.id || null,
+      position: position === null ? null : position + 1,
+      total
+    }
+  };
+});
+
+export const getQuestionReplies = handle(async (req) => {
+  const discussionId = parseId(req.params.id);
+  const sort = ['top', 'newest', 'oldest'].includes(req.query.sort) ? req.query.sort : 'top';
+  const limit = Math.min(50, Math.max(1, Number.parseInt(req.query.limit, 10) || 20));
+  const cursor = decodeCursor(req.query.cursor, sort, 'reply');
+  const discussionExists = await prisma.researchDiscussion.findUnique({ where: { id: discussionId }, select: { id: true } });
+  if (!discussionExists) throw fail(404, 'Question not found.');
+
+  const where = { discussionId, parentId: null };
+  const [rows, total] = await Promise.all([
+    prisma.researchDiscussionReply.findMany({
+      where,
+      orderBy: replySortOrder(sort),
+      ...(cursor ? { cursor, skip: 1 } : {}),
+      take: limit + 1,
+      include: {
+        uploadedBy: userSummary,
+        votes: { where: { userId: req.user.id }, select: { id: true } },
+        _count: { select: { votes: true, replies: true } }
+      }
+    }),
+    prisma.researchDiscussionReply.count({ where })
+  ]);
+
+  const hasMore = rows.length > limit;
+  const page = rows.slice(0, limit).map(({ votes, _count, ...reply }) => ({
+    ...reply,
+    hasVoted: votes.length > 0,
+    voteCount: _count.votes,
+    childReplyCount: _count.replies
+  }));
+  const last = page.at(-1);
+  return {
+    data: {
+      items: page,
+      total,
+      has_more: hasMore,
+      next_cursor: hasMore && last ? encodeCursor(last.id, sort, 'reply') : null
     }
   };
 });

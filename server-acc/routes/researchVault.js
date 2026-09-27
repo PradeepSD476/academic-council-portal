@@ -11,12 +11,17 @@ import {
     updateResearchExperience,
     deleteResearchExperience,
     getResearchDiscussions,
+    getQuestionList,
+    getQuestionDetail,
+    getQuestionReplies,
     getResearchDiscussionById,
     createResearchDiscussion,
     updateResearchDiscussion,
     deleteResearchDiscussion,
     createResearchDiscussionReply,
+    acceptResearchDiscussionReply,
     voteResearchDiscussion,
+    voteResearchReply,
     getResearchResources,
     recordResearchResourceView,
     recordResearchResourceDownload,
@@ -27,6 +32,8 @@ import {
     getResearchAreas,
     createResearchArea,
     getInterestMatch,
+    getResearchFollows,
+    getFollowingUpdates,
     followFaculty,
     unfollowFaculty,
     followResearchArea,
@@ -47,8 +54,11 @@ router.get('/faculty', getFacultyProfiles);
 router.get('/faculty/:id', getFacultyProfileById);
 router.get('/experiences', getResearchExperiences);
 router.get('/experiences/:id', getResearchExperienceById);
-router.get('/discussions', getResearchDiscussions);
+router.get('/discussions', checkAuth, getResearchDiscussions);
 router.get('/discussions/:id', getResearchDiscussionById);
+router.get('/questions', checkAuth, getQuestionList);
+router.get('/questions/:id', checkAuth, getQuestionDetail);
+router.get('/questions/:id/replies', checkAuth, getQuestionReplies);
 router.get('/resources', getResearchResources);
 router.post('/resources/:id/view', recordResearchResourceView);
 router.post('/resources/:id/download', recordResearchResourceDownload);
@@ -63,8 +73,12 @@ router.put('/experiences/:id', checkAuth, updateResearchExperience);
 router.post('/discussions', checkAuth, createResearchDiscussion);
 router.put('/discussions/:id', checkAuth, updateResearchDiscussion);
 router.post('/discussions/:id/replies', checkAuth, createResearchDiscussionReply);
+router.post('/discussions/:id/replies/:replyId/accept', checkAuth, acceptResearchDiscussionReply);
 router.post('/discussions/:id/vote', checkAuth, voteResearchDiscussion);
+router.post('/discussions/:id/replies/:replyId/vote', checkAuth, voteResearchReply);
 router.post('/interest-matching', checkAuth, getInterestMatch);
+router.get('/follow', checkAuth, getResearchFollows);
+router.get('/follow/updates', checkAuth, getFollowingUpdates);
 router.post('/follow/faculty', checkAuth, followFaculty);
 router.delete('/follow/faculty/:id', checkAuth, unfollowFaculty);
 router.post('/follow/area', checkAuth, followResearchArea);

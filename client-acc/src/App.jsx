@@ -39,6 +39,8 @@ import LevelUp from "./pages/student/LevelUp.jsx";
 import ManageRoadmap from "./pages/admin/ManageRoadmap.jsx";
 import ResearchVault from "./pages/ResearchVault/index.jsx";
 import ResearchVaultAdmin from "./pages/ResearchVault/ResearchVaultAdmin.jsx";
+import ResearchQuestionList from "./pages/ResearchVault/ResearchQuestionList.jsx";
+import ResearchQuestionDetail from "./pages/ResearchVault/ResearchQuestionDetail.jsx";
 const AppRoutes = () => {
   return (
     <Routes>
@@ -85,6 +87,8 @@ const AppRoutes = () => {
 
 <Route path="finance-vault" element={<FinanceVault />} />
 <Route path="research-vault" element={<ResearchVault />} />
+<Route path="research-vault/questions" element={<ResearchQuestionList />} />
+<Route path="research-vault/questions/:questionId" element={<ResearchQuestionDetail />} />
 
 <Route
   path="finance-vault/:id"

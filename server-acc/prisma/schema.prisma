@@ -414,6 +414,8 @@ model ResearchDiscussion {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@index([createdAt, id])
+  @@index([isResolved, createdAt, id])
   @@schema("research_vault")
 }
 
@@ -425,6 +427,7 @@ model ResearchDiscussionResearchArea {
   researchArea ResearchArea       @relation(fields: [researchAreaId], references: [id], onDelete: Cascade)
 
   @@id([discussionId, researchAreaId])
+  @@index([researchAreaId, discussionId])
   @@schema("research_vault")
 }
 
@@ -434,6 +437,7 @@ model ResearchDiscussionReply {
   discussionId Int
   parentId     Int?
   uploadedById Int
+  isAccepted   Boolean  @default(false)
 
   discussion ResearchDiscussion         @relation(fields: [discussionId], references: [id], onDelete: Cascade)
   parent     ResearchDiscussionReply?   @relation("ReplyParent", fields: [parentId], references: [id])
@@ -443,6 +447,7 @@ model ResearchDiscussionReply {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@index([discussionId, parentId, createdAt])
   @@schema("research_vault")
 }
 

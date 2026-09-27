@@ -1,4 +1,6 @@
 import 'dotenv/config';
+import { randomBytes } from 'node:crypto';
+import bcrypt from 'bcryptjs';
 import { PrismaClient } from '@prisma/client';
 
 const databaseUrl = process.env.POSTGRES_DATABASE_URL;
@@ -32,11 +34,12 @@ async function saveExperience(contributorId, facultyId, areaIds, values) {
 }
 
 async function saveDiscussion(contributorId, areaIds, values) {
+  const { legacyTitle, ...discussionData } = values;
   const existing = await prisma.researchDiscussion.findFirst({
-    where: { title: values.title, uploadedById: contributorId }
+    where: { title: { in: [values.title, ...(legacyTitle ? [legacyTitle] : [])] }, uploadedById: contributorId }
   });
   const relation = areaRelation(areaIds, Boolean(existing));
-  const data = { ...values, researchAreas: relation };
+  const data = { ...discussionData, researchAreas: relation };
   if (existing) {
     return prisma.researchDiscussion.update({ where: { id: existing.id }, data });
   }
@@ -64,6 +67,19 @@ async function main() {
   if (!contributor) {
     throw new Error('Create a local portal account first, then rerun this seed command.');
   }
+
+  const sahilEmail = 'sahil.2501ct20@example.invalid';
+  const sahil = await prisma.user.upsert({
+    where: { email: sahilEmail },
+    update: { displayName: 'Sahil', rollNo: '2501CT20' },
+    create: {
+      email: sahilEmail,
+      displayName: 'Sahil',
+      rollNo: '2501CT20',
+      password: await bcrypt.hash(randomBytes(32).toString('hex'), 10),
+      role: 'STUDENT'
+    }
+  });
 
   const areas = {};
   const areaData = [
@@ -154,20 +170,66 @@ async function main() {
   });
 
   const discussion = await saveDiscussion(contributor.id, [areaSlugs[1]], {
-    title: 'Demo: How should I prepare for a first robotics lab project?',
+    title: 'How should I prepare for a first robotics lab project?',
+    legacyTitle: 'Demo: How should I prepare for a first robotics lab project?',
     content: 'I am interested in a short summer project involving mobile robots. Which fundamentals and starter tasks would be most useful before contacting a lab?',
     isResolved: false
   });
 
-  const replyContent = 'Demo reply: Start with a small simulation, review coordinate frames and basic control, then ask the lab which tools its current projects use.';
+  const replyContent = 'Starting with a small simulation helped me understand coordinate frames and basic control. After that, ask the lab which tools its current projects use.';
+  const legacyReplyContent = 'Demo reply: Start with a small simulation, review coordinate frames and basic control, then ask the lab which tools its current projects use.';
   const existingReply = await prisma.researchDiscussionReply.findFirst({
-    where: { discussionId: discussion.id, uploadedById: contributor.id, content: replyContent }
+    where: { discussionId: discussion.id, uploadedById: contributor.id, content: { in: [replyContent, legacyReplyContent] } }
   });
-  if (!existingReply) {
+  if (existingReply && existingReply.content !== replyContent) {
+    await prisma.researchDiscussionReply.update({ where: { id: existingReply.id }, data: { content: replyContent } });
+  } else if (!existingReply) {
     await prisma.researchDiscussionReply.create({
       data: { discussionId: discussion.id, uploadedById: contributor.id, content: replyContent }
     });
   }
+
+  await prisma.researchDiscussionReply.deleteMany({
+    where: { discussionId: discussion.id, uploadedById: contributor.id, content: 'hello' }
+  });
+
+  const otherUserReplyContent = 'I started with a small simulator first; it made coordinate frames and basic control much easier to understand before trying ROS 2.';
+  const legacyOtherUserReplyContent = 'Demo reply from Sahil: I started with a small simulator first; it made coordinate frames and basic control much easier to understand before trying ROS 2.';
+  const existingOtherUserReply = await prisma.researchDiscussionReply.findFirst({
+    where: { discussionId: discussion.id, uploadedById: sahil.id, content: { in: [otherUserReplyContent, legacyOtherUserReplyContent] } }
+  });
+  if (existingOtherUserReply && existingOtherUserReply.content !== otherUserReplyContent) {
+    await prisma.researchDiscussionReply.update({ where: { id: existingOtherUserReply.id }, data: { content: otherUserReplyContent } });
+  } else if (!existingOtherUserReply) {
+    await prisma.researchDiscussionReply.create({
+      data: { discussionId: discussion.id, uploadedById: sahil.id, content: otherUserReplyContent }
+    });
+  }
+
+  const sahilDiscussion = await saveDiscussion(sahil.id, [areaSlugs[1]], {
+    title: 'Should I start with ROS 2 or simulation for a robotics project?',
+    legacyTitle: 'Demo: Should I start with ROS 2 or simulation for a robotics project?',
+    content: 'Hi, I am exploring autonomous robotics for a summer project. Would it be more useful to begin with ROS 2 tutorials or first build a small robot simulation?',
+    isResolved: true
+  });
+  const sahilReplyContent = 'A small simulation is a good first step. It lets you practise coordinate frames and control before adding ROS 2 tools.';
+  const legacySahilReplyContent = 'Demo reply: A small simulation is a good first step. It lets you practise coordinate frames and control before adding ROS 2 tools.';
+  const sahilReply = await prisma.researchDiscussionReply.findFirst({
+    where: { discussionId: sahilDiscussion.id, uploadedById: contributor.id, content: { in: [sahilReplyContent, legacySahilReplyContent] } }
+  });
+  if (sahilReply && sahilReply.content !== sahilReplyContent) {
+    await prisma.researchDiscussionReply.update({ where: { id: sahilReply.id }, data: { content: sahilReplyContent } });
+  } else if (!sahilReply) {
+    await prisma.researchDiscussionReply.create({
+      data: { discussionId: sahilDiscussion.id, uploadedById: contributor.id, content: sahilReplyContent }
+    });
+  }
+
+  await saveDiscussion(sahil.id, [areaSlugs[1]], {
+    title: 'What should I learn before approaching a robotics lab?',
+    content: 'I know basic Python and linear algebra. Which robotics fundamentals should I focus on before asking a lab about a short project?',
+    isResolved: false
+  });
 
   await saveResource([areaSlugs[0]], {
     title: 'Demo guide: Writing a concise research introduction email',
@@ -198,7 +260,7 @@ async function main() {
     await prisma.researchOpenPosition.create({ data: positionData });
   }
 
-  console.log(`Research Vault demo data is ready. Seeded 3 faculty profiles, ${areaData.length} research-area tags, published and pending experiences, a discussion, a resource, and an opening.`);
+  console.log(`Research Vault demo data is ready. Seeded 3 faculty profiles, ${areaData.length} research-area tags, published and pending experiences, discussions from the local contributor and Sahil (2501CT20), a resource, and an opening.`);
 }
 
 main()
