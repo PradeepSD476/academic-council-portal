@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Users, Shield, ChevronLeft, ChevronRight, Loader2, Wifi } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getInitials } from '../../lib/utils';
 
 const ManageUsers = () => {
   const [users, setUsers] = useState([]);
@@ -132,7 +133,7 @@ const ManageUsers = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10 bg-[var(--color-secondary)]/15 border border-[var(--color-secondary)]/30 text-[var(--color-secondary)] rounded-xl flex items-center justify-center font-bold text-sm">
-                            {user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}
+                            {getInitials(user.displayName, 'U')}
                           </div>
                           <div className="ml-3.5 min-w-0">
                             <div className="text-sm font-bold text-[var(--color-primary)] leading-snug">
@@ -179,7 +180,7 @@ const ManageUsers = () => {
                 <div key={user.id} className="p-4 flex flex-col gap-3 hover:bg-white/5 transition-colors">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-9 w-9 bg-[var(--color-secondary)]/15 border border-[var(--color-secondary)]/30 text-[var(--color-secondary)] rounded-xl flex items-center justify-center font-bold text-xs">
-                      {user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}
+                      {getInitials(user.displayName, 'U')}
                     </div>
                     <div className="ml-3 min-w-0">
                       <div className="text-sm font-bold text-[var(--color-primary)] truncate">

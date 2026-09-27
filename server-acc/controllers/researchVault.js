@@ -606,15 +606,37 @@ export const getFollowingUpdates = handle(async (req) => {
     prisma.researchFacultyFollow.findMany({ where: { userId: req.user.id }, select: { facultyProfileId: true } }),
     prisma.researchAreaFollow.findMany({ where: { userId: req.user.id }, select: { researchAreaId: true } })
   ]);
-  const facultyIds = facultyFollows.map(({ facultyProfileId }) => facultyProfileId);
-  const areaIds = areaFollows.map(({ researchAreaId }) => researchAreaId);
-  if (!facultyIds.length && !areaIds.length) return { data: [] };
+  const followedFacultyIds = facultyFollows.map(({ facultyProfileId }) => facultyProfileId);
+  const followedAreaIds = areaFollows.map(({ researchAreaId }) => researchAreaId);
+  if (!followedFacultyIds.length && !followedAreaIds.length) return { data: [] };
+
+  const filterFacultyIds = req.query.facultyIds ? req.query.facultyIds.split(',').map(id => parseInt(id)).filter(id => !isNaN(id)) : [];
+  const filterAreaIds = req.query.areaIds ? req.query.areaIds.split(',').map(id => parseInt(id)).filter(id => !isNaN(id)) : [];
+
+  let facultyIds = filterFacultyIds.length ? filterFacultyIds : followedFacultyIds;
+  let areaIds = filterAreaIds.length ? filterAreaIds : followedAreaIds;
+
+  if (filterFacultyIds.length > 0 && filterAreaIds.length === 0) {
+    const facultyAreas = await prisma.facultyProfile.findMany({
+      where: { id: { in: facultyIds } },
+      select: { researchAreas: { select: { researchAreaId: true } } }
+    });
+    const facultyAreaIds = facultyAreas.flatMap(f => f.researchAreas.map(ra => ra.researchAreaId));
+    areaIds = [...new Set([...areaIds, ...facultyAreaIds])];
+  }
+
+  console.log('[Backend getFollowingUpdates] filterFacultyIds:', filterFacultyIds, 'filterAreaIds:', filterAreaIds);
+  console.log('[Backend] final facultyIds:', facultyIds, 'final areaIds:', areaIds);
+  console.log('[Backend] followedFacultyIds:', followedFacultyIds, 'followedAreaIds:', followedAreaIds);
 
   const activityAreas = { researchAreas: { include: { researchArea: true } } };
   const areaSource = (entries) => entries.map(({ researchArea }) => researchArea.name).join(', ');
   const areaFilter = areaIds.length ? [{ researchAreas: { some: { researchAreaId: { in: areaIds } } } }] : [];
   const facultyFilter = facultyIds.length ? [{ facultyId: { in: facultyIds } }] : [];
   const discussionFilter = areaIds.length ? { researchAreas: { some: { researchAreaId: { in: areaIds } } } } : null;
+
+  console.log('[Backend] areaFilter:', JSON.stringify(areaFilter), 'facultyFilter:', JSON.stringify(facultyFilter));
+  console.log('[Backend] discussionFilter:', JSON.stringify(discussionFilter));
 
   const [experiences, positions, discussions, resources] = await Promise.all([
     prisma.studentResearchExperience.findMany({
@@ -638,6 +660,11 @@ export const getFollowingUpdates = handle(async (req) => {
       orderBy: { createdAt: 'desc' }, take: 20
     }) : Promise.resolve([])
   ]);
+
+  console.log('[Backend] experiences:', experiences.length, experiences.map(e => ({ id: e.id, facultyId: e.facultyId, areas: e.researchAreas?.map(ra => ra.researchAreaId) })));
+  console.log('[Backend] positions:', positions.length, positions.map(p => ({ id: p.id, facultyId: p.facultyId })));
+  console.log('[Backend] discussions:', discussions.length, discussions.map(d => ({ id: d.id, areas: d.researchAreas?.map(ra => ra.researchAreaId) })));
+  console.log('[Backend] resources:', resources.length, resources.map(r => ({ id: r.id, areas: r.researchAreas?.map(ra => ra.researchAreaId) })));
 
   const data = [
     ...experiences.map((item) => ({

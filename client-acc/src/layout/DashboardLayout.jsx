@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import AuthContext from "../context/auth/authContext";
+import { getInitials } from "../lib/utils";
 import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
 
 export default function DashboardLayout() {
@@ -128,7 +129,7 @@ export default function DashboardLayout() {
 
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
-              {user?.displayName?.charAt(0)?.toUpperCase() || "S"}
+              {getInitials(user?.displayName, 'S')}
             </div>
             <div className="overflow-hidden min-w-0 pr-4">
               <p className="text-xs font-bold text-slate-950 truncate leading-tight">
