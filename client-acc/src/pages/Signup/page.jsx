@@ -20,10 +20,6 @@ function SignUp() {
 
   const handleSendOTP = async () => {
     const cleanEmail = email.trim().toLowerCase();
-    if (!cleanEmail.endsWith("@iitp.ac.in")) {
-      toast.error("Only @iitp.ac.in email addresses are allowed.");
-      return;
-    }
     setOtpLoading(true);
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/v1/auth/send-otp`, {

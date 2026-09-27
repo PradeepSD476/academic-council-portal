@@ -48,15 +48,19 @@ services:
       - acc-net
       
   minio-acc:
-    image: minio/minio
+    image: localstack/localstack:2.3.0
     container_name: acc-minio
-    command: server /data --console-address ":9001"
-    restart: unless-stopped
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      - SERVICES=s3
+      - DEBUG=1
+      - AWS_ACCESS_KEY_ID=minioadmin
+      - AWS_SECRET_ACCESS_KEY=minioadmin123
+      - AWS_DEFAULT_REGION=us-east-1
+    ports:
+      - "4566:4566"
+      - "4510-4559:4510-4559"
     volumes:
-      - minio_data:/data
+      - minio_data:/var/lib/localstack
     networks:
       - acc-net
 

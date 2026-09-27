@@ -1,6 +1,6 @@
 import { createElement, useContext, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Activity, Bookmark, BookOpen, BookSearch, BriefcaseBusiness, Check, CheckCircle2, CircleHelp, ExternalLink, FlaskConical, Search, Send, ThumbsUp, UserRoundCheck, UserRoundPlus, UsersRound, X } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Activity, Bookmark, BookOpen, BookSearch, BriefcaseBusiness, Check, CheckCircle2, CircleHelp, ExternalLink, FlaskConical, MessageCircle, Search, Send, ThumbsUp, UserRoundCheck, UserRoundPlus, UsersRound, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import AuthContext from '../../context/auth/authContext';
 import { researchVaultApi } from '../../api/researchVaultApi';
@@ -19,8 +19,11 @@ const errorMessage = (error) => error.response?.data?.message || 'The request co
 
 export default function ResearchVault() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialSection = searchParams.get('section');
+  const validSections = ['faculty', 'experiences', 'discussions', 'resources', 'positions', 'following'];
   const { user } = useContext(AuthContext);
-  const [section, setSection] = useState('faculty');
+  const [section, setSection] = useState(validSections.includes(initialSection) ? initialSection : 'faculty');
   const [areas, setAreas] = useState([]);
   const [items, setItems] = useState([]);
   const [facultyOptions, setFacultyOptions] = useState([]);
@@ -222,9 +225,9 @@ export default function ResearchVault() {
         </div>
       </header>
 
-      <nav className="vault-tabs flex items-center gap-2 overflow-x-auto px-1 pb-1 scrollbar-none" aria-label="Research Vault sections">
+      <nav className="vault-tabs flex items-center gap-2 overflow-x-auto px-1 pb-1 scrollbar-thin" aria-label="Research Vault sections">
         {sections.map(({ id, label, icon: Icon }) => (
-          <button key={id} onClick={() => { if (id === 'discussions') { navigate('/dashboard/research-vault/questions'); return; } setSection(id); setItems([]); setLoading(true); setSearch(''); setDiscussionStatus('all'); setAreaId(''); setAreaSearch(''); setAreaPickerOpen(false); }} className={`inline-flex shrink-0 items-center gap-2 rounded-2xl border px-4 py-2 text-xs font-bold whitespace-nowrap transition-all duration-200 ${section === id ? 'is-active bg-[var(--color-secondary)] text-white shadow-[0_4px_16px_var(--color-secondary-glow)] scale-[1.02]' : 'border-slate-200 bg-white/95 text-slate-500 shadow-xs hover:border-slate-300 hover:bg-white/90 hover:text-[var(--color-primary)]'}`}>
+          <button key={id} onClick={() => { if (id === 'discussions') { navigate('/dashboard/research-vault/questions'); return; } setSection(id); navigate(`/dashboard/research-vault?section=${id}`, { replace: true }); setItems([]); setLoading(true); setSearch(''); setDiscussionStatus('all'); setAreaId(''); setAreaSearch(''); setAreaPickerOpen(false); }} className={`inline-flex shrink-0 items-center gap-2 rounded-2xl border px-4 py-2 text-xs font-bold whitespace-nowrap transition-all duration-200 ${section === id ? 'is-active bg-[var(--color-secondary)] text-white shadow-[0_4px_16px_var(--color-secondary-glow)] scale-[1.02]' : 'border-slate-200 bg-white/95 text-slate-500 shadow-xs hover:border-slate-300 hover:bg-white/90 hover:text-[var(--color-primary)]'}`}>
             {createElement(Icon, { size: 16 })} {label}
           </button>
         ))}
@@ -353,10 +356,29 @@ function TagList({ areas, onFollow, followedAreaIds, compact = false }) {
 
 const authorLabel = (author) => [author?.displayName || 'ACC student', author?.rollNo].filter(Boolean).join(' · ');
 
+const relativeTime = (value) => {
+  const seconds = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 1000));
+  if (seconds < 60) return 'just now';
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+  if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+  return new Date(value).toLocaleDateString();
+};
+
 function DiscussionItem({ discussion, currentUserId, onReply, onVote, onAcceptAnswer, onFollow, followedAreaIds }) {
   const [replyText, setReplyText] = useState('');
+  const [replyTo, setReplyTo] = useState(null);
   const isOwnDiscussion = discussion.uploadedBy?.id === currentUserId;
   const hasAcceptedAnswer = discussion.replies?.some((reply) => reply.isAccepted) || false;
+
+  const toggleReplyVote = async (replyId) => {
+    try {
+      await researchVaultApi.voteReply(discussion.id, replyId);
+      setRefreshVersion((version) => version + 1);
+    } catch (error) {
+      toast.error(errorMessage(error));
+    }
+  };
 
   return (
     <article className={`border-b border-slate-200 py-5 first:pt-1 ${isOwnDiscussion ? '!bg-blue-50/70 border-l-4 border-l-blue-600 pl-4 ring-1 ring-blue-200' : ''}`}>
@@ -376,14 +398,35 @@ function DiscussionItem({ discussion, currentUserId, onReply, onVote, onAcceptAn
       {discussion.replies?.length > 0 && <div className="mt-4 space-y-3 border-t border-slate-200 pt-4">{discussion.replies.map((entry) => {
         const isOwnReply = entry.uploadedBy?.id === currentUserId;
         return (
-          <div key={entry.id} className={`w-[calc(100%-2rem)] rounded-xl border px-3 py-2 ${isOwnReply ? 'ml-auto border-blue-200 bg-blue-50/80 text-right' : 'mr-auto border-emerald-200 bg-emerald-50/40 text-left'}`}>
+          <div key={entry.id} className={`w-[calc(100%-2rem)] rounded-xl border px-3 py-3 ${isOwnReply ? 'ml-auto border-blue-200 bg-blue-50/80 text-right' : 'mr-auto border-emerald-200 bg-emerald-50/40 text-left'}`}>
             {entry.isAccepted && <p className="mb-2 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-bold uppercase text-emerald-800"><CheckCircle2 size={12} /> Accepted answer</p>}
-            <p className="text-sm text-slate-700">{entry.content}</p>
-            <p className={`mt-1 text-[11px] font-medium ${isOwnReply ? 'text-blue-700' : 'text-slate-500'}`}>{authorLabel(entry.uploadedBy)}{entry.uploadedBy?.role === 'FACULTY' ? ' · Verified faculty' : ''}</p>
-            {isOwnDiscussion && !hasAcceptedAnswer && <button type="button" onClick={() => onAcceptAnswer(discussion.id, entry.id)} className={`mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--color-primary-accent)] hover:text-[var(--color-secondary)] ${isOwnReply ? 'justify-end' : ''}`}><CheckCircle2 size={13} /> Mark as answer</button>}
+            <header className="flex flex-wrap items-center gap-2 mb-2 justify-end">
+              <span className={`font-semibold text-sm ${isOwnReply ? 'text-blue-900' : 'text-slate-900'}`}>{entry.uploadedBy?.displayName || 'ACC student'}</span>
+              {entry.uploadedBy?.rollNo && <span className="text-xs text-slate-500">{entry.uploadedBy.rollNo}</span>}
+              <time className="text-xs text-slate-400" dateTime={entry.createdAt}>{relativeTime(entry.createdAt)}</time>
+              {entry.uploadedBy?.role === 'FACULTY' && <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-800"><UserRoundCheck size={10} /> Verified faculty</span>}
+            </header>
+            <p className="text-sm leading-6 text-slate-700">{entry.content}</p>
+            <footer className="mt-3 flex items-center gap-4 pt-2 border-t border-slate-100 justify-end">
+              <button onClick={() => toggleReplyVote(entry.id)} aria-pressed={entry.hasVoted || false} className={`inline-flex items-center gap-1.5 text-xs font-semibold transition-colors ${entry.hasVoted ? 'text-[var(--color-secondary)]' : 'text-slate-600 hover:text-[var(--color-primary-accent)]'}`}><ThumbsUp size={14} fill={entry.hasVoted ? 'currentColor' : 'none'} /> {entry.voteCount || 0}</button>
+              <button onClick={() => setReplyTo(entry.id)} className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-[var(--color-primary-accent)]"><MessageCircle size={14} /> Reply</button>
+              {isOwnDiscussion && !hasAcceptedAnswer && <button type="button" onClick={() => onAcceptAnswer(discussion.id, entry.id)} className={`inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--color-primary-accent)] hover:text-[var(--color-secondary)]`}><CheckCircle2 size={13} /> Mark as answer</button>}
+            </footer>
             {entry.replies?.map((child) => {
               const isOwnNestedReply = child.uploadedBy?.id === currentUserId;
-              return <div key={child.id} className={`mt-2 w-[calc(100%-1.5rem)] rounded-lg border px-3 py-2 ${isOwnNestedReply ? 'ml-auto border-blue-200 bg-blue-50/80 text-right' : 'mr-auto border-emerald-200 bg-emerald-50/40 text-left'}`}><p className="text-sm text-slate-600">{child.content}</p><p className={`mt-1 text-[11px] font-medium ${isOwnNestedReply ? 'text-blue-700' : 'text-slate-500'}`}>{authorLabel(child.uploadedBy)}</p></div>;
+              return (
+                <div key={child.id} className={`mt-2 w-[calc(100%-1.5rem)] rounded-lg border px-3 py-3 ${isOwnNestedReply ? 'ml-auto border-blue-200 bg-blue-50/80 text-right' : 'mr-auto border-emerald-200 bg-emerald-50/40 text-left'}`}>
+                  <header className="flex flex-wrap items-center gap-2 mb-2 justify-end">
+                    <span className={`font-semibold text-sm ${isOwnNestedReply ? 'text-blue-900' : 'text-slate-900'}`}>{child.uploadedBy?.displayName || 'ACC student'}</span>
+                    {child.uploadedBy?.rollNo && <span className="text-xs text-slate-500">{child.uploadedBy.rollNo}</span>}
+                    <time className="text-xs text-slate-400" dateTime={child.createdAt}>{relativeTime(child.createdAt)}</time>
+                  </header>
+                  <p className="text-sm text-slate-600">{child.content}</p>
+                  <footer className="mt-2 flex items-center gap-3 pt-2 border-t border-slate-100 justify-end">
+                    <button onClick={() => toggleReplyVote(child.id)} aria-pressed={child.hasVoted || false} className={`inline-flex items-center gap-1.5 text-xs font-semibold ${child.hasVoted ? 'text-blue-700' : 'text-slate-500 hover:text-blue-700'}`}><ThumbsUp size={14} fill={child.hasVoted ? 'currentColor' : 'none'} /> {child.voteCount || 0}</button>
+                  </footer>
+                </div>
+              );
             })}
           </div>
         );
