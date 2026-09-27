@@ -12,6 +12,7 @@ Research Vault is an authenticated module in the ACC Portal for discovering facu
 - [Local development](#local-development)
 - [Demo data](#demo-data)
 - [Validation](#validation)
+- [Recent updates (Discussion tab)](#recent-updates-discussion-tab)
 
 ## Routes
 
@@ -37,6 +38,36 @@ The Research Vault home is integrated with the dashboard and contains Faculty, E
 - **Votes:** discussion and reply votes toggle per user. Counts and current-user vote state come from the API.
 - **Resources and openings:** browse admin-curated resources and active research positions. Resource opens are counted for admin analytics.
 - **Author identity:** discussions and replies show display name and roll number. The signed-in user's messages are blue/right-aligned; other users' replies are sage/left-aligned.
+
+## Recent updates (Discussion tab)
+
+The Discussion tab (`/dashboard/research-vault/questions`) has been completely refactored to match the visual design system of the other five tabs (Faculty, Experiences, Resources, Open positions, Following):
+
+### Visual consistency
+- **Persistent header:** Now uses the same accent bar + icon + "Research Vault" title as other tabs. The page-specific title ("Discussion — Questions and answers from the research community.") appears as a secondary heading below it.
+- **Tab navigation:** Full pill-style tab bar (Faculty, Experiences, Discussion, Resources, Open positions, Following) is present with Discussion highlighted. Tabs navigate via `?section=` query params for deep linking.
+- **Filter row styling:** Reuses the `vault-toolbar` component with identical input/dropdown styling (rounded-xl, border-slate-200, bg-white/90, focus:border-[var(--color-secondary)]).
+- **Extended sort options:** Newest, Oldest, Most replies, Most upvoted, **Unanswered first** (Discussion-specific).
+- **Clear filters button:** Appears automatically when any filter differs from defaults (search, tag, status, or sort). Resets all filters to defaults on click.
+
+### New features
+- **Ask a question button** in header (matches "Share an experience" pattern from Experiences tab).
+- **Modal form** with title, Markdown-supported content, optional research area dropdown, and "Post Question" submit. On success, the list auto-refreshes via `refreshVersion` state.
+
+### Comment/answer card redesign (standard chat UI)
+- **Author header** (top-left): Bold name, secondary rollNo, timestamp, optional "Verified faculty" badge.
+- **Content** (primary focus): Left-aligned, full-width, readable `text-sm leading-6`.
+- **Footer** (below content): Like button + count, Reply button, optional "Mark as answer" (for question author).
+- **Alignment by ownership:**
+  - Own replies: right-aligned (`ml-auto`), blue border/background, `text-right`
+  - Others' replies: left-aligned (`mr-auto`), emerald border/background, `text-left`
+- Applied to both `DiscussionItem` (list view) and `ResearchQuestionDetail` (detail view).
+
+### Technical improvements
+- Email validation bypass for testing (`TEST_EMAIL_BYPASS=true` in `.env` allows any email format).
+- Docker Compose updated to use LocalStack for S3-compatible storage (MinIO replacement).
+- Mock discussion seeded from user Sahil (2501CT20) with research areas: Machine Learning, Computer Vision, NLP.
+- `refreshVersion` state triggers list re-fetch after posting a question.
 
 ## Administration
 
@@ -72,7 +103,7 @@ Base URL: `/api/v1/vault`
 | `POST /resources/:id/view` | Increment resource view count |
 | `POST /resources/:id/download` | Increment resource download count |
 
-Question list parameters include `cursor`, `limit` (default 20, maximum 50), `sort=newest|replies|upvoted`, `tag=<area-slug>`, `search`, `unanswered=true`, and `resolved=true`. The response includes `items`, `total`, `has_more`, and `next_cursor`.
+Question list parameters include `cursor`, `limit` (default 20, maximum 50), `sort=newest|replies|upvoted|oldest|unanswered`, `tag=<area-slug>`, `search`, `unanswered=true`, and `resolved=true`. The response includes `items`, `total`, `has_more`, and `next_cursor`.
 
 Reply pagination accepts `cursor`, `limit` (default 20, maximum 50), and `sort=top|newest|oldest`. Question detail returns up to three top replies for initial rendering. Cursor values are opaque and tied to their sort order; start again without a cursor when changing sort.
 
