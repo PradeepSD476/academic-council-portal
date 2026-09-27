@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "seed:research-vault": "node prisma/seedResearchVault.js"
   },
   "keywords": [],
   "author": "",

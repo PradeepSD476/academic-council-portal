@@ -5,6 +5,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("POSTGRES_DATABASE_URL")
+  schemas  = ["public", "research_vault"]
 }
 
 model User {
@@ -41,6 +42,7 @@ model User {
   researchExperienceBookmarks ResearchExperienceBookmark[]
   researchDiscussionVotes ResearchDiscussionVote[]
   researchReplyVotes     ResearchReplyVote[]
+  @@schema("public")
 }
 
 model Experience {
@@ -58,6 +60,7 @@ model Experience {
   uploadedBy     User           @relation(fields: [uploadedById], references: [id])
   likes          Like[]
   bookmarks      Bookmark[]
+  @@schema("public")
 }
 
 model Bookmark {
@@ -72,6 +75,7 @@ model Bookmark {
   @@unique([userId, postId])
   @@index([postId])
   @@index([userId])
+  @@schema("public")
 }
 
 model Comment {
@@ -92,6 +96,7 @@ model Comment {
   @@index([rootId])
   @@index([parentId])
   @@index([postId, rootId])
+  @@schema("public")
 }
 
 model Like {
@@ -105,6 +110,7 @@ model Like {
 
   @@unique([userId, postId])
   @@index([postId])
+  @@schema("public")
 }
 
 model Verification {
@@ -118,6 +124,7 @@ model Verification {
 
   @@index([email])
   @@index([expiringAt])
+  @@schema("public")
 }
 
 model Course {
@@ -133,6 +140,7 @@ model Course {
   credits       Decimal    @db.Decimal
   instructor    String
   resources     Resource[]
+  @@schema("public")
 }
 
 model Resource {
@@ -147,6 +155,7 @@ model Resource {
   updatedAt    DateTime     @updatedAt
   course       Course?      @relation(fields: [courseId], references: [id])
   uploadedBy   User?        @relation(fields: [uploadedById], references: [id])
+  @@schema("public")
 }
 
 model Announcement {
@@ -161,6 +170,7 @@ model Announcement {
   updatedAt      DateTime @updatedAt
   type           String   @default("GENERAL")
   uploadedBy     User?    @relation(fields: [uploadedById], references: [id])
+  @@schema("public")
 }
 
 model FinanceVault {
@@ -196,6 +206,7 @@ model FinanceVault {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@schema("public")
 }
 
 enum Role {
@@ -207,12 +218,14 @@ enum Role {
   CAREER_ADMIN
   FINANCE_ADMIN
   RESEARCH_ADMIN
+  @@schema("public")
 }
 
 enum VerificationType {
   EMAIL_VERIFICATION
   PASSWORD_RESET
   LOGIN_OTP
+  @@schema("public")
 }
 
 enum Program {
@@ -220,17 +233,20 @@ enum Program {
   BTECH
   PHD
   MSC
+  @@schema("public")
 }
 
 enum ContentStatus {
   DRAFT
   PUBLISHED
+  @@schema("public")
 }
 
 enum ExperienceType {
   INTERNSHIP
   PLACEMENT
   STARTUP
+  @@schema("public")
 }
 
 enum ResourceType {
@@ -255,6 +271,7 @@ enum ResourceType {
   EXAM_NOTICE
   TIME_TABLE
   OTHER
+  @@schema("public")
 }
 
 enum FinanceCategory {
@@ -265,6 +282,7 @@ enum FinanceCategory {
   GRANT
   FEE_REIMBURSEMENT
   OTHER
+  @@schema("public")
 }
 
 // ── Research Vault ──────────────────────────────────────────────────────────
@@ -283,6 +301,7 @@ model ResearchArea {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@schema("research_vault")
 }
 
 model FacultyProfile {
@@ -295,9 +314,10 @@ model FacultyProfile {
   phone         String?
   photoURL      String?
   website       String?
-  biography     String   @db.Text?
-  publications  String   @db.Text?
+  biography     String?  @db.Text
+  publications  String?  @db.Text
   isActive      Boolean  @default(true)
+  profileViewCount Int   @default(0)
 
   researchAreas FacultyProfileResearchArea[]
   experiences   StudentResearchExperience[]
@@ -306,6 +326,7 @@ model FacultyProfile {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@schema("research_vault")
 }
 
 model FacultyProfileResearchArea {
@@ -316,6 +337,7 @@ model FacultyProfileResearchArea {
   researchArea   ResearchArea   @relation(fields: [researchAreaId], references: [id], onDelete: Cascade)
 
   @@id([facultyProfileId, researchAreaId])
+  @@schema("research_vault")
 }
 
 model StudentResearchExperience {
@@ -340,6 +362,7 @@ model StudentResearchExperience {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@schema("research_vault")
 }
 
 model StudentResearchExperienceResearchArea {
@@ -350,6 +373,7 @@ model StudentResearchExperienceResearchArea {
   researchArea ResearchArea              @relation(fields: [researchAreaId], references: [id], onDelete: Cascade)
 
   @@id([experienceId, researchAreaId])
+  @@schema("research_vault")
 }
 
 model ResearchExperienceLike {
@@ -361,6 +385,7 @@ model ResearchExperienceLike {
   user       User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([experienceId, userId])
+  @@schema("research_vault")
 }
 
 model ResearchExperienceBookmark {
@@ -372,6 +397,7 @@ model ResearchExperienceBookmark {
   user       User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([experienceId, userId])
+  @@schema("research_vault")
 }
 
 model ResearchDiscussion {
@@ -388,6 +414,7 @@ model ResearchDiscussion {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@schema("research_vault")
 }
 
 model ResearchDiscussionResearchArea {
@@ -398,6 +425,7 @@ model ResearchDiscussionResearchArea {
   researchArea ResearchArea       @relation(fields: [researchAreaId], references: [id], onDelete: Cascade)
 
   @@id([discussionId, researchAreaId])
+  @@schema("research_vault")
 }
 
 model ResearchDiscussionReply {
@@ -415,6 +443,7 @@ model ResearchDiscussionReply {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@schema("research_vault")
 }
 
 model ResearchDiscussionVote {
@@ -427,6 +456,7 @@ model ResearchDiscussionVote {
   user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([discussionId, userId])
+  @@schema("research_vault")
 }
 
 model ResearchReplyVote {
@@ -439,6 +469,7 @@ model ResearchReplyVote {
   user  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([replyId, userId])
+  @@schema("research_vault")
 }
 
 model ResearchResource {
@@ -457,6 +488,7 @@ model ResearchResource {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@schema("research_vault")
 }
 
 model ResearchResourceResearchArea {
@@ -467,12 +499,13 @@ model ResearchResourceResearchArea {
   researchArea ResearchArea     @relation(fields: [researchAreaId], references: [id], onDelete: Cascade)
 
   @@id([resourceId, researchAreaId])
+  @@schema("research_vault")
 }
 
 model ResearchOpenPosition {
   id              Int      @id @default(autoincrement())
   title           String
-  description     String   @db.Text?
+  description     String?  @db.Text
   positionType    String   @default("RA")
   eligibility     String?
   applicationUrl  String?
@@ -486,6 +519,7 @@ model ResearchOpenPosition {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@schema("research_vault")
 }
 
 model ResearchInterest {
@@ -497,6 +531,7 @@ model ResearchInterest {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  @@schema("research_vault")
 }
 
 model ResearchFacultyFollow {
@@ -508,6 +543,7 @@ model ResearchFacultyFollow {
   facultyProfile FacultyProfile @relation(fields: [facultyProfileId], references: [id], onDelete: Cascade)
 
   @@unique([userId, facultyProfileId])
+  @@schema("research_vault")
 }
 
 model ResearchAreaFollow {
@@ -519,12 +555,14 @@ model ResearchAreaFollow {
   researchArea ResearchArea @relation(fields: [researchAreaId], references: [id], onDelete: Cascade)
 
   @@unique([userId, researchAreaId])
+  @@schema("research_vault")
 }
 
 enum GenderEligibility {
   ALL
   MALE
   FEMALE
+  @@schema("public")
 }
 
 model Roadmap {
@@ -538,6 +576,7 @@ model Roadmap {
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   sections    RoadmapSection[]
+  @@schema("public")
 }
 
 model RoadmapSection {
@@ -547,6 +586,7 @@ model RoadmapSection {
   order     Int              @default(0)
   roadmap   Roadmap          @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
   chapters  RoadmapChapter[]
+  @@schema("public")
 }
 
 model RoadmapChapter {
@@ -560,4 +600,5 @@ model RoadmapChapter {
   section   RoadmapSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 
   @@unique([sectionId, slug])
+  @@schema("public")
 }

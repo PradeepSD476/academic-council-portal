@@ -37,6 +37,8 @@ import AddScholarship from "./pages/FinanceVault/admin/AddScholarship.jsx";
 import EditScholarship from "./pages/FinanceVault/admin/EditScholarship.jsx";
 import LevelUp from "./pages/student/LevelUp.jsx";
 import ManageRoadmap from "./pages/admin/ManageRoadmap.jsx";
+import ResearchVault from "./pages/ResearchVault/index.jsx";
+import ResearchVaultAdmin from "./pages/ResearchVault/ResearchVaultAdmin.jsx";
 const AppRoutes = () => {
   return (
     <Routes>
@@ -65,6 +67,7 @@ const AppRoutes = () => {
               "FACULTY",
               "CAREER_ADMIN",
               "FINANCE_ADMIN",
+              "RESEARCH_ADMIN",
               ]}
           >
             <DashboardLayout />
@@ -81,6 +84,7 @@ const AppRoutes = () => {
 <Route path="career-vault" element={<CareerVault />} />
 
 <Route path="finance-vault" element={<FinanceVault />} />
+<Route path="research-vault" element={<ResearchVault />} />
 
 <Route
   path="finance-vault/:id"
@@ -103,6 +107,7 @@ const AppRoutes = () => {
               "FACULTY",
                 "CAREER_ADMIN",
               "FINANCE_ADMIN",
+              "RESEARCH_ADMIN",
 
             ]}
           >
@@ -110,6 +115,14 @@ const AppRoutes = () => {
             </ProtectedRoute>
         }
       >
+        <Route
+          path="research-vault"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY", "RESEARCH_ADMIN"]}>
+              <ResearchVaultAdmin />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="dashboard"
           element={

@@ -1,0 +1,189 @@
+import 'dotenv/config';
+import { PrismaClient } from '@prisma/client';
+
+const databaseUrl = process.env.POSTGRES_DATABASE_URL;
+if (!databaseUrl) throw new Error('POSTGRES_DATABASE_URL is required.');
+
+const parsedDatabaseUrl = new URL(databaseUrl);
+if (!['localhost', '127.0.0.1'].includes(parsedDatabaseUrl.hostname) || parsedDatabaseUrl.pathname !== '/acc_dev') {
+  throw new Error('Refusing to seed: this script only runs against local acc_dev on localhost.');
+}
+
+const prisma = new PrismaClient();
+const areaSlugs = ['artificial-intelligence', 'robotics', 'computational-biology'];
+
+const areaRelation = (slugs, replace = false) => ({
+  ...(replace ? { deleteMany: {} } : {}),
+  create: slugs.map((slug) => ({ researchArea: { connect: { slug } } }))
+});
+
+async function saveExperience(contributorId, facultyId, areaIds, values) {
+  const existing = await prisma.studentResearchExperience.findFirst({
+    where: { title: values.title, uploadedById: contributorId }
+  });
+  const relation = areaRelation(areaIds, Boolean(existing));
+  const data = { ...values, facultyId, researchAreas: relation };
+  if (existing) {
+    return prisma.studentResearchExperience.update({ where: { id: existing.id }, data });
+  }
+  return prisma.studentResearchExperience.create({
+    data: { ...data, uploadedById: contributorId }
+  });
+}
+
+async function saveDiscussion(contributorId, areaIds, values) {
+  const existing = await prisma.researchDiscussion.findFirst({
+    where: { title: values.title, uploadedById: contributorId }
+  });
+  const relation = areaRelation(areaIds, Boolean(existing));
+  const data = { ...values, researchAreas: relation };
+  if (existing) {
+    return prisma.researchDiscussion.update({ where: { id: existing.id }, data });
+  }
+  return prisma.researchDiscussion.create({
+    data: { ...data, uploadedById: contributorId }
+  });
+}
+
+async function saveResource(areaIds, values) {
+  const existing = await prisma.researchResource.findFirst({ where: { title: values.title } });
+  const relation = areaRelation(areaIds, Boolean(existing));
+  const data = { ...values, researchAreas: relation };
+  if (existing) {
+    return prisma.researchResource.update({ where: { id: existing.id }, data });
+  }
+  return prisma.researchResource.create({ data });
+}
+
+async function main() {
+  const contributor = await prisma.user.findFirst({
+    where: { role: { in: ['RESEARCH_ADMIN', 'SUPER_ADMIN', 'FACULTY'] } },
+    select: { id: true }
+  }) || await prisma.user.findFirst({ select: { id: true }, orderBy: { id: 'asc' } });
+
+  if (!contributor) {
+    throw new Error('Create a local portal account first, then rerun this seed command.');
+  }
+
+  const areas = {};
+  const areaData = [
+    { name: 'Artificial Intelligence', slug: areaSlugs[0], description: 'Machine learning, language technologies, and responsible AI.' },
+    { name: 'Robotics', slug: areaSlugs[1], description: 'Autonomous systems, sensing, and human-robot interaction.' },
+    { name: 'Computational Biology', slug: areaSlugs[2], description: 'Computational methods for biological and biomedical data.' }
+  ];
+
+  for (const area of areaData) {
+    areas[area.slug] = await prisma.researchArea.upsert({
+      where: { slug: area.slug },
+      update: { name: area.name, description: area.description },
+      create: area
+    });
+  }
+
+  const facultyData = [
+    {
+      name: 'Dr. Asha Rao (Demo)', slug: 'demo-asha-rao', designation: 'Associate Professor', department: 'Computer Science and Engineering',
+      email: 'asha.rao@example.edu', website: 'https://example.edu',
+      biography: 'Demo profile for testing the Research Vault faculty directory, filters, and matching form.',
+      publications: 'Demo publication: Efficient Learning for Resource-Constrained Systems (2025).',
+      areas: [areaSlugs[0], areaSlugs[1]]
+    },
+    {
+      name: 'Dr. Kabir Shah (Demo)', slug: 'demo-kabir-shah', designation: 'Assistant Professor', department: 'Electrical and Electronics Engineering',
+      email: 'kabir.shah@example.edu', website: 'https://example.edu',
+      biography: 'Demo profile focused on sensing, embedded intelligence, and autonomous platforms.',
+      publications: 'Demo publication: Robust Sensing for Small Autonomous Robots (2024).',
+      areas: [areaSlugs[1], areaSlugs[0]]
+    },
+    {
+      name: 'Dr. Noor Iqbal (Demo)', slug: 'demo-noor-iqbal', designation: 'Assistant Professor', department: 'Biological Sciences',
+      email: 'noor.iqbal@example.edu', website: 'https://example.edu',
+      biography: 'Demo profile for testing cross-disciplinary research discovery.',
+      publications: 'Demo publication: Interpretable Models for Cellular Data (2025).',
+      areas: [areaSlugs[2]]
+    }
+  ];
+
+  const faculty = {};
+  for (const { areas: slugs, ...profile } of facultyData) {
+    faculty[profile.slug] = await prisma.facultyProfile.upsert({
+      where: { slug: profile.slug },
+      update: { ...profile, researchAreas: areaRelation(slugs, true) },
+      create: { ...profile, researchAreas: areaRelation(slugs) }
+    });
+  }
+
+  await saveExperience(contributor.id, faculty['demo-asha-rao'].id, [areaSlugs[0]], {
+    title: 'Demo: Evaluating small language models for campus services',
+    description: 'A sample published experience for checking the student feed. We compared compact language models on a small, anonymized question set, documented failure cases, and presented recommendations to the lab.',
+    labName: 'Applied AI Lab (Demo)', guideName: 'Dr. Asha Rao (Demo)', duration: '8 weeks',
+    prerequisites: 'Python basics and curiosity about evaluation.',
+    keyLearnings: 'Dataset quality and carefully chosen baselines matter more than model size for this task.',
+    outcome: 'A reproducible evaluation notebook and a short internal report.', status: 'PUBLISHED'
+  });
+
+  await saveExperience(contributor.id, faculty['demo-kabir-shah'].id, [areaSlugs[1]], {
+    title: 'Demo: Indoor robot mapping from low-cost sensors (Pending)',
+    description: 'A sample draft submission to test the admin moderation queue and publish action.',
+    labName: 'Autonomous Systems Lab (Demo)', guideName: 'Dr. Kabir Shah (Demo)', duration: 'Summer project',
+    prerequisites: 'Basic programming and linear algebra.',
+    keyLearnings: 'Sensor calibration was essential before comparing mapping approaches.',
+    outcome: 'A draft demo submission awaiting review.', status: 'DRAFT'
+  });
+
+  const discussion = await saveDiscussion(contributor.id, [areaSlugs[1]], {
+    title: 'Demo: How should I prepare for a first robotics lab project?',
+    content: 'I am interested in a short summer project involving mobile robots. Which fundamentals and starter tasks would be most useful before contacting a lab?',
+    isResolved: false
+  });
+
+  const replyContent = 'Demo reply: Start with a small simulation, review coordinate frames and basic control, then ask the lab which tools its current projects use.';
+  const existingReply = await prisma.researchDiscussionReply.findFirst({
+    where: { discussionId: discussion.id, uploadedById: contributor.id, content: replyContent }
+  });
+  if (!existingReply) {
+    await prisma.researchDiscussionReply.create({
+      data: { discussionId: discussion.id, uploadedById: contributor.id, content: replyContent }
+    });
+  }
+
+  await saveResource([areaSlugs[0]], {
+    title: 'Demo guide: Writing a concise research introduction email',
+    description: 'A sample resource entry for testing the resource list, category label, and view counter.',
+    url: 'https://example.edu/research-email-guide',
+    resourceType: 'COLD_EMAILING',
+    uploadedById: contributor.id
+  });
+
+  const positionTitle = 'Demo: Summer research assistant in autonomous systems';
+  const position = await prisma.researchOpenPosition.findFirst({
+    where: { title: positionTitle, facultyId: faculty['demo-kabir-shah'].id }
+  });
+  const positionData = {
+    title: positionTitle,
+    description: 'Sample opening for testing the open positions view. Students will prototype and evaluate a small indoor navigation task.',
+    positionType: 'SUMMER',
+    eligibility: 'Open to undergraduate students with basic Python experience.',
+    applicationUrl: 'https://example.edu/research-opportunities',
+    deadline: new Date('2026-12-15T00:00:00.000Z'),
+    facultyId: faculty['demo-kabir-shah'].id,
+    uploadedById: contributor.id,
+    isActive: true
+  };
+  if (position) {
+    await prisma.researchOpenPosition.update({ where: { id: position.id }, data: positionData });
+  } else {
+    await prisma.researchOpenPosition.create({ data: positionData });
+  }
+
+  console.log('Research Vault demo data is ready. Seeded 3 faculty profiles, 3 areas, published and pending experiences, a discussion, a resource, and an opening.');
+}
+
+main()
+  .catch((error) => {
+    console.error('Research Vault seed failed:', error.message);
+    process.exitCode = 1;
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

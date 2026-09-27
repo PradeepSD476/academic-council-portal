@@ -16,6 +16,7 @@ import { checkAuth } from './middlewares/checkAuth.js'
 import forumRoutes from './routes/forum.js'
 import financeVaultRoutes from './routes/financeVault.js'
 import roadmapRoutes from './routes/roadmap.js'
+import researchVaultRoutes from './routes/researchVault.js'
 
 dotenv.config();
 
@@ -65,6 +66,7 @@ app.use('/api/v1', userRoutes);
 app.use('/api/v1', dashboardRoutes);
 app.use('/api/v1', forumRoutes);
 app.use('/api/v1/finance-vault', financeVaultRoutes);
+app.use('/api/v1/vault', researchVaultRoutes);
 app.use('/api/v1', roadmapRoutes);
 
 server.listen(PORT, () => {

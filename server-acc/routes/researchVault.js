@@ -18,10 +18,14 @@ import {
     createResearchDiscussionReply,
     voteResearchDiscussion,
     getResearchResources,
+    recordResearchResourceView,
+    recordResearchResourceDownload,
+    getResearchModerationQueue,
     createResearchResource,
     updateResearchResource,
     deleteResearchResource,
     getResearchAreas,
+    createResearchArea,
     getInterestMatch,
     followFaculty,
     unfollowFaculty,
@@ -46,8 +50,12 @@ router.get('/experiences/:id', getResearchExperienceById);
 router.get('/discussions', getResearchDiscussions);
 router.get('/discussions/:id', getResearchDiscussionById);
 router.get('/resources', getResearchResources);
+router.post('/resources/:id/view', recordResearchResourceView);
+router.post('/resources/:id/download', recordResearchResourceDownload);
 router.get('/areas', getResearchAreas);
+router.post('/areas', checkAuth, checkResearchAdmin, createResearchArea);
 router.get('/positions', getOpenPositions);
+router.get('/admin/experiences', checkAuth, checkResearchAdmin, getResearchModerationQueue);
 
 // Auth-protected routes
 router.post('/experiences', checkAuth, createResearchExperience);
