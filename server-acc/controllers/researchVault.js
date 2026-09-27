@@ -359,8 +359,14 @@ export const deleteResearchResource = handle(async (req) => {
 });
 
 export const getResearchAreas = handle(async (req) => {
+  const search = String(req.query.search || '').trim();
   const data = await prisma.researchArea.findMany({
-    where: req.query.search ? { name: { contains: req.query.search, mode: 'insensitive' } } : {},
+    where: search ? {
+      OR: [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } }
+      ]
+    } : {},
     orderBy: { name: 'asc' }
   });
   return { data };
@@ -374,17 +380,85 @@ export const createResearchArea = handle(async (req) => {
   return { status: 201, data };
 });
 
+const normalizeMatchText = (value) => String(value || '')
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, ' ')
+  .trim();
+
+const relevanceScore = (query, candidate) => {
+  if (!query || !candidate) return 0;
+  const normalizedQuery = normalizeMatchText(query);
+  const normalizedCandidate = normalizeMatchText(candidate);
+  if (!normalizedQuery || !normalizedCandidate) return 0;
+  if (normalizedQuery === normalizedCandidate) return 1;
+
+  const terms = normalizedQuery.split(' ').filter((term) => term.length > 1);
+  if (!terms.length) return normalizedCandidate.includes(normalizedQuery) ? 0.8 : 0;
+  const matchedTerms = terms.filter((term) => normalizedCandidate.includes(term));
+  return matchedTerms.length / terms.length;
+};
+
+const positionTypeAliases = {
+  'summer research': ['SUMMER', 'SUMMER_RESEARCH'],
+  thesis: ['THESIS', 'THESIS_SLOT'],
+  'reading project': ['READING', 'READING_PROJECT'],
+  'ra ship': ['RA', 'RA_SHIP', 'RESEARCH_ASSISTANTSHIP']
+};
+
 export const getInterestMatch = handle(async (req) => {
-  const { department, subArea, projectType } = req.body;
+  const department = String(req.body.department || '').trim();
+  const subArea = String(req.body.subArea || '').trim();
+  const projectType = String(req.body.projectType || '').trim();
+  if (!department && !subArea && !projectType) {
+    throw fail(400, 'Choose at least one interest to get faculty recommendations.');
+  }
+
   await prisma.researchInterest.upsert({
     where: { userId: req.user.id },
-    create: { userId: req.user.id, department, subArea, projectType },
-    update: { department, subArea, projectType }
+    create: { userId: req.user.id, department: department || null, subArea: subArea || null, projectType: projectType || null },
+    update: { department: department || null, subArea: subArea || null, projectType: projectType || null }
   });
-  const where = { isActive: true };
-  if (department) where.department = { contains: department, mode: 'insensitive' };
-  if (subArea) where.researchAreas = { some: { researchArea: { name: { contains: subArea, mode: 'insensitive' } } } };
-  const data = await prisma.facultyProfile.findMany({ where, include: facultyInclude, orderBy: { name: 'asc' }, take: 5 });
+
+  const faculty = await prisma.facultyProfile.findMany({
+    where: { isActive: true },
+    include: facultyInclude,
+    orderBy: { name: 'asc' }
+  });
+  const normalizedProjectType = normalizeMatchText(projectType);
+  const expectedPositionTypes = positionTypeAliases[normalizedProjectType] || [];
+  const possiblePoints = (department ? 4 : 0) + (subArea ? 6 : 0) + (projectType ? 2 : 0);
+
+  const data = faculty.map((profile) => {
+    const departmentMatch = relevanceScore(department, profile.department);
+    const profileAreas = profile.researchAreas.map(({ researchArea }) => researchArea);
+    const areaMatches = subArea
+      ? profileAreas
+        .map((area) => ({ area, score: relevanceScore(subArea, `${area.name} ${area.description || ''}`) }))
+        .filter(({ score }) => score > 0)
+        .sort((left, right) => right.score - left.score)
+      : [];
+    const areaMatch = areaMatches[0]?.score || 0;
+    const matchingPositions = projectType && expectedPositionTypes.length
+      ? profile.positions.filter((position) => expectedPositionTypes.includes(normalizeMatchText(position.positionType).replaceAll(' ', '_')))
+      : [];
+    const projectMatch = matchingPositions.length ? 1 : 0;
+    const points = departmentMatch * 4 + areaMatch * 6 + projectMatch * 2;
+    const matchReasons = [];
+
+    if (departmentMatch) matchReasons.push(`Department: ${profile.department}`);
+    if (areaMatches.length) matchReasons.push(`Research area: ${areaMatches[0].area.name}`);
+    if (matchingPositions.length) matchReasons.push(`Has an active ${projectType} opening`);
+
+    return {
+      ...profile,
+      matchScore: Math.round((points / possiblePoints) * 100),
+      matchReasons
+    };
+  })
+    .filter((profile) => profile.matchScore > 0)
+    .sort((left, right) => right.matchScore - left.matchScore || left.name.localeCompare(right.name))
+    .slice(0, 5);
+
   return { data };
 });
 

@@ -69,7 +69,29 @@ async function main() {
   const areaData = [
     { name: 'Artificial Intelligence', slug: areaSlugs[0], description: 'Machine learning, language technologies, and responsible AI.' },
     { name: 'Robotics', slug: areaSlugs[1], description: 'Autonomous systems, sensing, and human-robot interaction.' },
-    { name: 'Computational Biology', slug: areaSlugs[2], description: 'Computational methods for biological and biomedical data.' }
+    { name: 'Computational Biology', slug: areaSlugs[2], description: 'Computational methods for biological and biomedical data.' },
+    { name: 'Data Science and Analytics', slug: 'data-science-analytics', description: 'Statistical learning, data mining, and large-scale analytics.' },
+    { name: 'Computer Systems and Networks', slug: 'computer-systems-networks', description: 'Operating systems, distributed systems, networking, and cloud computing.' },
+    { name: 'Cybersecurity and Privacy', slug: 'cybersecurity-privacy', description: 'Secure systems, applied cryptography, and privacy-preserving technologies.' },
+    { name: 'Algorithms and Theoretical Computer Science', slug: 'algorithms-theory', description: 'Algorithms, complexity, formal methods, and theoretical foundations.' },
+    { name: 'Microelectronics and VLSI', slug: 'microelectronics-vlsi', description: 'Semiconductor devices, integrated circuits, and chip design.' },
+    { name: 'Communications and Signal Processing', slug: 'communications-signal-processing', description: 'Wireless communications, signal processing, and information theory.' },
+    { name: 'Power and Energy Systems', slug: 'power-energy-systems', description: 'Power electronics, smart grids, renewable energy, and storage.' },
+    { name: 'Control and Automation', slug: 'control-automation', description: 'Control theory, industrial automation, and autonomous systems.' },
+    { name: 'Materials Science and Engineering', slug: 'materials-science-engineering', description: 'Functional materials, characterization, and materials design.' },
+    { name: 'Nanotechnology', slug: 'nanotechnology', description: 'Nanoscale materials, devices, and fabrication.' },
+    { name: 'Thermal and Fluid Sciences', slug: 'thermal-fluid-sciences', description: 'Heat transfer, fluid mechanics, and energy conversion.' },
+    { name: 'Mechanical Design and Manufacturing', slug: 'mechanical-design-manufacturing', description: 'Product design, manufacturing processes, and mechanical systems.' },
+    { name: 'Civil and Structural Engineering', slug: 'civil-structural-engineering', description: 'Structures, geotechnics, construction, and infrastructure.' },
+    { name: 'Environmental and Water Systems', slug: 'environment-water-systems', description: 'Environmental engineering, water resources, and sustainable systems.' },
+    { name: 'Chemical and Process Engineering', slug: 'chemical-process-engineering', description: 'Process systems, reaction engineering, and separations.' },
+    { name: 'Biotechnology and Bioengineering', slug: 'biotechnology-bioengineering', description: 'Biological systems, biomaterials, and engineering applications.' },
+    { name: 'Physics and Photonics', slug: 'physics-photonics', description: 'Optics, photonics, condensed matter, and experimental physics.' },
+    { name: 'Quantum Science and Technology', slug: 'quantum-science-technology', description: 'Quantum information, devices, and foundational science.' },
+    { name: 'Mathematics and Scientific Computing', slug: 'mathematics-scientific-computing', description: 'Applied mathematics, numerical methods, and scientific computing.' },
+    { name: 'Chemistry and Molecular Science', slug: 'chemistry-molecular-science', description: 'Chemical sciences, synthesis, catalysis, and molecular analysis.' },
+    { name: 'Economics and Public Policy', slug: 'economics-public-policy', description: 'Economic analysis, public systems, and evidence-based policy.' },
+    { name: 'Humanities and Social Sciences', slug: 'humanities-social-sciences', description: 'Human behavior, society, communication, and interdisciplinary studies.' }
   ];
 
   for (const area of areaData) {
@@ -176,7 +198,7 @@ async function main() {
     await prisma.researchOpenPosition.create({ data: positionData });
   }
 
-  console.log('Research Vault demo data is ready. Seeded 3 faculty profiles, 3 areas, published and pending experiences, a discussion, a resource, and an opening.');
+  console.log(`Research Vault demo data is ready. Seeded 3 faculty profiles, ${areaData.length} research-area tags, published and pending experiences, a discussion, a resource, and an opening.`);
 }
 
 main()

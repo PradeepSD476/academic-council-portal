@@ -1,5 +1,5 @@
-import { createElement, useEffect, useState } from 'react';
-import { Bookmark, BookOpen, BriefcaseBusiness, Check, CircleHelp, ExternalLink, FlaskConical, Search, Send, Sparkles, ThumbsUp, UserRoundPlus } from 'lucide-react';
+import { createElement, useEffect, useRef, useState } from 'react';
+import { Bookmark, BookOpen, BookSearch, BriefcaseBusiness, Check, CircleHelp, ExternalLink, FlaskConical, Search, Send, ThumbsUp, UserRoundPlus, UsersRound } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { researchVaultApi } from '../../api/researchVaultApi';
 
@@ -22,16 +22,29 @@ export default function ResearchVault() {
   const [search, setSearch] = useState('');
   const [department, setDepartment] = useState('');
   const [areaId, setAreaId] = useState('');
+  const [areaSearch, setAreaSearch] = useState('');
+  const [areaPickerOpen, setAreaPickerOpen] = useState(false);
+  const areaPickerRef = useRef(null);
   const [openingsOnly, setOpeningsOnly] = useState(false);
   const [refreshVersion, setRefreshVersion] = useState(0);
   const [loading, setLoading] = useState(true);
   const [interest, setInterest] = useState({ department: '', subArea: '', projectType: '' });
   const [matches, setMatches] = useState([]);
+  const [matchSearched, setMatchSearched] = useState(false);
+  const [matching, setMatching] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
 
   useEffect(() => {
     researchVaultApi.getAreas().then((response) => setAreas(responseData(response))).catch(() => {});
     researchVaultApi.getFaculty({ limit: 100 }).then((response) => setFacultyOptions(responseData(response))).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const closeOnOutsidePointer = (event) => {
+      if (!areaPickerRef.current?.contains(event.target)) setAreaPickerOpen(false);
+    };
+    document.addEventListener('pointerdown', closeOnOutsidePointer);
+    return () => document.removeEventListener('pointerdown', closeOnOutsidePointer);
   }, []);
 
   useEffect(() => {
@@ -69,10 +82,14 @@ export default function ResearchVault() {
 
   const findMatches = async (event) => {
     event.preventDefault();
+    setMatching(true);
     try {
       setMatches(responseData(await researchVaultApi.matchInterest(interest)));
+      setMatchSearched(true);
     } catch (error) {
       toast.error(errorMessage(error));
+    } finally {
+      setMatching(false);
     }
   };
 
@@ -117,12 +134,12 @@ export default function ResearchVault() {
 
   return (
     <div className="research-vault-theme mx-auto max-w-7xl space-y-6 pb-12 text-slate-900">
-      <header className="border-b border-slate-200 pb-5">
+      <header>
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <div className="mb-2 flex items-center gap-3">
-              <div className="accent-bar h-6 rounded-full shadow-[0_0_8px_var(--color-secondary-glow)]" />
-              <h1 className="flex items-center gap-2.5 text-2xl font-extrabold tracking-tight text-[var(--color-primary)] md:text-3xl"><FlaskConical size={26} className="text-[var(--color-secondary)]" /> Research Vault</h1>
+              <div className="accent-bar h-6 rounded-full shadow-[0_0_8px_var(--color-secondary)]" />
+              <h1 className="flex items-center gap-2.5 text-2xl font-extrabold tracking-tight text-[var(--color-primary)] md:text-3xl"><BookSearch size={26} className="text-[var(--color-secondary)]" /> Research Vault</h1>
             </div>
             <p className="ml-4 text-sm text-slate-500">Find a research group, learn from student experiences, and get practical guidance for your next step.</p>
           </div>
@@ -136,7 +153,7 @@ export default function ResearchVault() {
 
       <nav className="vault-tabs flex items-center gap-2 overflow-x-auto px-1 pb-1 scrollbar-none" aria-label="Research Vault sections">
         {sections.map(({ id, label, icon: Icon }) => (
-          <button key={id} onClick={() => { setSection(id); setSearch(''); setAreaId(''); }} className={`inline-flex shrink-0 items-center gap-2 rounded-2xl border px-4 py-2 text-xs font-bold whitespace-nowrap transition-all duration-200 ${section === id ? 'is-active bg-[var(--color-secondary)] text-white shadow-[0_4px_16px_var(--color-secondary-glow)] scale-[1.02]' : 'border-slate-200 bg-white/95 text-slate-500 shadow-xs hover:border-slate-300 hover:bg-white/90 hover:text-[var(--color-primary)]'}`}>
+          <button key={id} onClick={() => { setSection(id); setSearch(''); setAreaId(''); setAreaSearch(''); setAreaPickerOpen(false); }} className={`inline-flex shrink-0 items-center gap-2 rounded-2xl border px-4 py-2 text-xs font-bold whitespace-nowrap transition-all duration-200 ${section === id ? 'is-active bg-[var(--color-secondary)] text-white shadow-[0_4px_16px_var(--color-secondary-glow)] scale-[1.02]' : 'border-slate-200 bg-white/95 text-slate-500 shadow-xs hover:border-slate-300 hover:bg-white/90 hover:text-[var(--color-primary)]'}`}>
             {createElement(Icon, { size: 16 })} {label}
           </button>
         ))}
@@ -152,10 +169,38 @@ export default function ResearchVault() {
         )}
         {section === 'faculty' && <label className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-3 py-2.5 text-xs font-semibold text-slate-700"><input type="checkbox" checked={openingsOnly} onChange={(event) => setOpeningsOnly(event.target.checked)} className="accent-emerald-800" /> Current openings</label>}
         {section !== 'positions' && (
-          <select value={areaId} onChange={(event) => setAreaId(event.target.value)} className="rounded-xl border border-slate-200 bg-white/90 px-3 py-2.5 text-xs font-semibold text-[var(--color-primary)] outline-none focus:border-[var(--color-secondary)] sm:w-56">
-            <option value="">All research areas</option>
-            {areas.map((area) => <option key={area.id} value={area.id}>{area.name}</option>)}
-          </select>
+          <div ref={areaPickerRef} className="relative sm:w-56">
+            <input
+              role="combobox"
+              aria-label="Search research areas"
+              aria-expanded={areaPickerOpen}
+              aria-controls="research-area-options"
+              aria-autocomplete="list"
+              value={areaId ? areas.find((area) => String(area.id) === areaId)?.name || areaSearch : areaSearch}
+              onFocus={() => setAreaPickerOpen(true)}
+              onChange={(event) => { setAreaSearch(event.target.value); setAreaId(''); setAreaPickerOpen(true); }}
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') setAreaPickerOpen(false);
+                if (event.key === 'Enter' && areaPickerOpen) {
+                  event.preventDefault();
+                  const firstMatch = areas.filter((area) => `${area.name} ${area.description || ''}`.toLowerCase().includes(areaSearch.trim().toLowerCase()))[0];
+                  if (firstMatch) {
+                    setAreaId(String(firstMatch.id));
+                    setAreaSearch(firstMatch.name);
+                    setAreaPickerOpen(false);
+                  }
+                }
+              }}
+              placeholder="All research areas"
+              className="w-full rounded-xl border border-slate-200 bg-white/90 px-3 py-2.5 text-xs font-semibold text-[var(--color-primary)] outline-none focus:border-[var(--color-secondary)]"
+            />
+            {areaId && <button type="button" aria-label="Clear research area filter" onClick={() => { setAreaId(''); setAreaSearch(''); setAreaPickerOpen(false); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900">×</button>}
+            {areaPickerOpen && <div id="research-area-options" role="listbox" className="absolute z-30 mt-1 max-h-64 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl">
+              <button type="button" role="option" aria-selected={!areaId} onClick={() => { setAreaId(''); setAreaSearch(''); setAreaPickerOpen(false); }} className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-600 hover:bg-blue-50 hover:text-[var(--color-primary-accent)]">All research areas</button>
+              {areas.filter((area) => `${area.name} ${area.description || ''}`.toLowerCase().includes(areaSearch.trim().toLowerCase())).slice(0, 8).map((area) => <button type="button" role="option" aria-selected={String(area.id) === areaId} key={area.id} onClick={() => { setAreaId(String(area.id)); setAreaSearch(area.name); setAreaPickerOpen(false); }} className="block w-full rounded-lg px-3 py-2 text-left text-xs text-slate-700 hover:bg-blue-50 hover:text-[var(--color-primary-accent)]">{area.name}</button>)}
+              {areaSearch.trim() && areas.every((area) => !`${area.name} ${area.description || ''}`.toLowerCase().includes(areaSearch.trim().toLowerCase())) && <p className="px-3 py-2 text-xs text-slate-500">No matching areas. Try another term or clear the filter.</p>}
+            </div>}
+          </div>
         )}
       </div>
 
@@ -174,15 +219,31 @@ export default function ResearchVault() {
               {faculty.publications && <details className="mt-3 text-sm"><summary className="cursor-pointer font-semibold text-slate-700">Publications and work</summary><p className="mt-2 whitespace-pre-wrap text-slate-600">{faculty.publications}</p></details>}
             </article>)}</VaultList>
           <aside className="self-start rounded-3xl border-2 border-[var(--color-secondary)]/30 bg-gradient-to-b from-white/95 via-sky-50/25 to-blue-50/35 p-5 shadow-[0_12px_35px_rgba(11,30,63,0.06)]">
-            <p className="flex items-center gap-2 text-sm font-bold text-emerald-950"><Sparkles size={16} /> Find a research match</p>
-            <p className="mt-2 text-xs leading-5 text-slate-600">Tell us what you want to explore and we’ll suggest relevant faculty.</p>
+            <p className="flex items-center gap-2 text-sm font-bold text-emerald-950"><UsersRound size={16} /> Find a research match</p>
+            <p className="mt-2 text-xs leading-5 text-slate-600">Choose any interests. Recommendations are ranked by research-area fit, department, and active openings.</p>
             <form onSubmit={findMatches} className="mt-4 space-y-3">
-              <input value={interest.department} onChange={(event) => setInterest({ ...interest, department: event.target.value })} placeholder="Department" className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm" />
-              <input value={interest.subArea} onChange={(event) => setInterest({ ...interest, subArea: event.target.value })} placeholder="Research area" className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm" />
-              <select value={interest.projectType} onChange={(event) => setInterest({ ...interest, projectType: event.target.value })} className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"><option value="">Project type</option><option>Summer research</option><option>Thesis</option><option>Reading project</option><option>RA-ship</option></select>
-              <button className="w-full rounded-md bg-emerald-800 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-900">Show matches</button>
+              <input value={interest.department} onChange={(event) => setInterest({ ...interest, department: event.target.value })} placeholder="Department (e.g. Electrical)" aria-label="Preferred department" className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-[var(--color-primary)] outline-none focus:border-[var(--color-secondary)]" />
+              <input value={interest.subArea} onChange={(event) => setInterest({ ...interest, subArea: event.target.value })} placeholder="Research area (e.g. robotics)" aria-label="Research area of interest" className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-[var(--color-primary)] outline-none focus:border-[var(--color-secondary)]" />
+              <select value={interest.projectType} onChange={(event) => setInterest({ ...interest, projectType: event.target.value })} aria-label="Preferred project type" className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-[var(--color-primary)] outline-none focus:border-[var(--color-secondary)]"><option value="">Any project type</option><option value="SUMMER_RESEARCH">Summer research</option><option value="THESIS">Thesis</option><option value="READING_PROJECT">Reading project</option><option value="RA_SHIP">Research assistantship</option></select>
+              <button disabled={matching || (!interest.department.trim() && !interest.subArea.trim() && !interest.projectType)} className="w-full rounded-xl bg-[var(--color-secondary)] px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary-accent)] disabled:cursor-not-allowed disabled:opacity-50">{matching ? 'Finding matches...' : 'Find faculty matches'}</button>
             </form>
-            {matches.length > 0 && <div className="mt-4 border-t border-emerald-200 pt-3">{matches.map((match) => <p key={match.id} className="py-1 text-sm font-semibold text-slate-800">{match.name}<span className="block text-xs font-normal text-slate-500">{match.department}</span></p>)}</div>}
+            {matchSearched && <div className="mt-4 border-t border-blue-100 pt-3">
+              <p className="mb-1 text-xs font-semibold text-slate-600">{matches.length ? `${matches.length} recommended faculty, ranked by fit` : 'No close matches yet. Try a broader department or research-area term.'}</p>
+              <ul className="divide-y divide-blue-100">
+                {matches.map((match) => <li key={match.id} className="py-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm font-bold text-slate-900">{match.name}</p>
+                    <span className="shrink-0 rounded-full border border-blue-200 bg-blue-50 px-2 py-1 text-[10px] font-bold text-blue-800">{match.matchScore}% fit</span>
+                  </div>
+                  <p className="mt-0.5 text-xs text-slate-500">{match.department || match.designation || 'Faculty'}</p>
+                  <p className="mt-2 text-xs leading-5 text-slate-600">{match.matchReasons.join(' · ')}</p>
+                  <div className="mt-2 flex items-center gap-3">
+                    <button onClick={() => follow('faculty', match.id)} className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--color-primary-accent)] hover:text-[var(--color-secondary)]"><UserRoundPlus size={13} /> Follow</button>
+                    {match.email && <a href={`mailto:${match.email}`} className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--color-primary-accent)] hover:text-[var(--color-secondary)]">Contact <ExternalLink size={12} /></a>}
+                  </div>
+                </li>)}
+              </ul>
+            </div>}
           </aside>
         </div>
       )}
