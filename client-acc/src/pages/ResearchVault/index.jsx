@@ -260,12 +260,13 @@ export default function ResearchVault() {
         </div>
       </header>
 
-      <nav className="vault-tabs flex items-center gap-2 overflow-x-auto px-1 pb-1 scrollbar-thin" aria-label="Research Vault sections">
+      <nav className="vault-tabs flex items-center gap-2 overflow-x-auto px-1 pb-1 scrollbar-thin -ml-1" aria-label="Research Vault sections" style={{ scrollbarWidth: 'thin', scrollbarColor: 'var(--color-secondary) transparent' }}>
         {sections.map(({ id, label, icon: Icon }) => (
           <button key={id} onClick={() => { if (id === 'discussions') { navigate('/dashboard/research-vault/questions'); return; } setSection(id); navigate(`/dashboard/research-vault?section=${id}`, { replace: true }); setItems([]); setLoading(true); setSearch(''); setDiscussionStatus('all'); setAreaId(''); setAreaSearch(''); setAreaPickerOpen(false); }} className={`inline-flex shrink-0 items-center gap-2 rounded-2xl border px-4 py-2 text-xs font-bold whitespace-nowrap transition-all duration-200 ${section === id ? 'is-active bg-[var(--color-secondary)] text-white shadow-[0_4px_16px_var(--color-secondary-glow)] scale-[1.02]' : 'border-slate-200 bg-white/95 text-slate-500 shadow-xs hover:border-slate-300 hover:bg-white/90 hover:text-[var(--color-primary)]'}`}>
             {createElement(Icon, { size: 16 })} {label}
           </button>
         ))}
+        <div className="shrink-0 w-8 lg:w-0" aria-hidden="true" />
       </nav>
 
       <div className="vault-toolbar flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur-xl sm:p-4 md:flex-row md:items-center">
@@ -504,26 +505,24 @@ export default function ResearchVault() {
                       }}
                       aria-pressed={isSelected}
                       title={isSelected ? `Remove ${faculty.name} from filter` : `Add ${faculty.name} to filter`}
-                      className={`w-full flex items-center justify-between gap-3 rounded-xl border p-3 shadow-sm transition-all duration-150 cursor-pointer ${
+                      className={`w-full flex flex-col sm:flex-row items-center justify-between gap-3 rounded-xl border p-3 shadow-sm transition-all duration-150 cursor-pointer ${
                         isSelected
                           ? 'border-[var(--color-secondary)] bg-[var(--color-secondary)]/5 ring-2 ring-[var(--color-secondary)]/20'
                           : 'border-slate-200 bg-white/95 hover:border-[var(--color-secondary)] hover:bg-slate-50/50'
                       }`}
                     >
-                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="flex items-center gap-3 min-w-0 flex-1 sm:flex-nowrap">
                         <div className="w-10 h-10 flex-shrink-0 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] flex items-center justify-center text-white font-semibold text-sm">
                           {getInitials(faculty.name, 'F')}
                         </div>
-                        <div className="min-w-0 flex items-center">
-                          <div>
-                            <p className="font-semibold text-slate-900 truncate leading-snug">{faculty.name}</p>
-                            <p className="text-xs text-slate-500 truncate leading-snug">{faculty.designation}{faculty.department ? ` · ${faculty.department}` : ''}</p>
-                          </div>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-slate-900 truncate leading-snug">{faculty.name}</p>
+                          <p className="text-xs text-slate-500 truncate leading-snug">{faculty.designation}{faculty.department ? ` · ${faculty.department}` : ''}</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
                         {isSelected && (
-                          <span className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold text-white bg-[var(--color-secondary)]">
+                          <span className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold text-white bg-[var(--color-secondary)] hidden sm:inline-flex">
                             <X size={12} className="mr-1" /> Selected
                           </span>
                         )}
@@ -532,7 +531,7 @@ export default function ResearchVault() {
                           onClick={(e) => { e.preventDefault(); e.stopPropagation(); follow('faculty', fid, faculty.name); }}
                           aria-pressed={followedFacultyIds.has(fid)}
                           title={`Unfollow ${faculty.name}`}
-                          className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-[var(--color-secondary)] hover:text-[var(--color-primary-accent)]"
+                          className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-[var(--color-secondary)] hover:text-[var(--color-primary-accent)] whitespace-nowrap"
                         >
                           <UserRoundCheck size={13} /> Following
                         </button>
