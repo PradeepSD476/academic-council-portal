@@ -1,5 +1,5 @@
 import { createElement, useContext, useEffect, useState } from 'react';
-import { ArrowLeft, BookSearch, Search, ThumbsUp, BookOpen, Bookmark, BriefcaseBusiness, FlaskConical, Activity, MessageCircle, ChevronDown, Send, X } from 'lucide-react';
+import { ArrowLeft, BookSearch, CircleHelp, Search, ThumbsUp, BookOpen, Bookmark, BriefcaseBusiness, FlaskConical, Activity, MessageCircle, ChevronDown, Send, X } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import AuthContext from '../../context/auth/authContext';
@@ -11,7 +11,7 @@ const errorMessage = (error) => error.response?.data?.message || 'Could not load
 const sections = [
   { id: 'faculty', label: 'Faculty', icon: FlaskConical },
   { id: 'experiences', label: 'Experiences', icon: BookOpen },
-  { id: 'discussions', label: 'Discussion', icon: BookSearch },
+  { id: 'discussions', label: 'Discussion', icon: CircleHelp },
   { id: 'resources', label: 'Resources', icon: Bookmark },
   { id: 'positions', label: 'Open positions', icon: BriefcaseBusiness },
   { id: 'following', label: 'Following', icon: Activity },
@@ -45,6 +45,7 @@ export default function ResearchQuestionList() {
   const [formOpen, setFormOpen] = useState(false);
   const [refreshVersion, setRefreshVersion] = useState(0);
   const [followedFacultyIds, setFollowedFacultyIds] = useState(() => new Set());
+  const submitQuestion = submitQuestionFactory(setFormOpen, setRefreshVersion);
   const [followedAreaIds, setFollowedAreaIds] = useState(() => new Set());
   const [relevantAreas, setRelevantAreas] = useState([]);
 
@@ -328,7 +329,10 @@ export default function ResearchQuestionList() {
   );
 }
 
-async function submitQuestion(event) {
+// Lives inside the component below so it can close the modal and trigger a
+// list refresh via state — a module-scope version of this function crashed at
+// runtime with a ReferenceError (no access to component state setters).
+const submitQuestionFactory = (setFormOpen, setRefreshVersion) => async (event) => {
   event.preventDefault();
   const form = event.currentTarget;
   const data = Object.fromEntries(new FormData(form).entries());
@@ -341,7 +345,7 @@ async function submitQuestion(event) {
   } catch (error) {
     toast.error(errorMessage(error));
   }
-}
+};
 
 function VaultList({ loading, empty, children }) {
   if (loading) return <div className="academic-card flex min-h-48 items-center justify-center rounded-3xl p-8 text-center text-sm text-slate-500">Loading Research Vault...</div>;
