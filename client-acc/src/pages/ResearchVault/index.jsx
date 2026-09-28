@@ -18,6 +18,35 @@ const sections = [
 const responseData = (response) => response.data?.data || [];
 const errorMessage = (error) => error.response?.data?.message || 'The request could not be completed.';
 
+// Module-level helper functions for resource type display
+const formatResourceType = (type) => {
+  if (!type) return 'Resource';
+  return type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+};
+
+const getResourceTypeIcon = (type) => {
+  switch (type) {
+    case 'GUIDE': return <BookOpen size={12} />;
+    case 'SOP_WRITING': return <FileText size={12} />;
+    case 'COLD_EMAILING': return <Send size={12} />;
+    case 'PHD_APPLICATIONS': return <BriefcaseBusiness size={12} />;
+    case 'GRANT_WRITING': return <FileText size={12} />;
+    default: return <Bookmark size={12} />;
+  }
+};
+
+const getResourceTypeBadgeClass = (type) => {
+  const base = 'inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border';
+  switch (type) {
+    case 'GUIDE': return `${base} bg-emerald-50 text-emerald-800 border-emerald-200`;
+    case 'SOP_WRITING': return `${base} bg-blue-50 text-blue-800 border-blue-200`;
+    case 'COLD_EMAILING': return `${base} bg-purple-50 text-purple-800 border-purple-200`;
+    case 'PHD_APPLICATIONS': return `${base} bg-amber-50 text-amber-800 border-amber-200`;
+    case 'GRANT_WRITING': return `${base} bg-rose-50 text-rose-800 border-rose-200`;
+    default: return `${base} bg-slate-50 text-slate-700 border-slate-200`;
+  }
+};
+
 export default function ResearchVault() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -104,59 +133,7 @@ export default function ResearchVault() {
       if (!followingAreaPickerRef.current?.contains(event.target)) setFollowingAreaPickerOpen(false);
     };
     document.addEventListener('pointerdown', closeOnOutsidePointer);
-    // Helper functions for resource type display
-  const formatResourceType = (type) => {
-    if (!type) return 'Resource';
-    return type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-  };
-
-  const getResourceTypeIcon = (type) => {
-    switch (type) {
-      case 'GUIDE': return <BookOpen size={12} />;
-      case 'SOP_WRITING': return <FileText size={12} />;
-      case 'COLD_EMAILING': return <Send size={12} />;
-      case 'PHD_APPLICATIONS': return <BriefcaseBusiness size={12} />;
-      case 'GRANT_WRITING': return <FileText size={12} />;
-      default: return <Bookmark size={12} />;
-    }
-  };
-
-  const getResourceTypeBadgeClass = (type) => {
-    const base = 'inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border';
-    switch (type) {
-      case 'GUIDE': return `${base} bg-emerald-50 text-emerald-800 border-emerald-200`;
-      case 'SOP_WRITING': return `${base} bg-blue-50 text-blue-800 border-blue-200`;
-      case 'COLD_EMAILING': return `${base} bg-purple-50 text-purple-800 border-purple-200`;
-      case 'PHD_APPLICATIONS': return `${base} bg-amber-50 text-amber-800 border-amber-200`;
-      case 'GRANT_WRITING': return `${base} bg-rose-50 text-rose-800 border-rose-200`;
-      default: return `${base} bg-slate-50 text-slate-700 border-slate-200`;
-    }
-  };
-
-  // Submit resource for moderation (non-admin users)
-  const submitResource = async (e) => {
-    e.preventDefault();
-    setSubmittingResource(true);
-    try {
-      const payload = {
-        ...resourceForm,
-        researchAreaIds: resourceForm.researchAreaId ? [Number(resourceForm.researchAreaId)] : [],
-        status: 'PENDING_REVIEW'
-      };
-      delete payload.researchAreaId;
-      await researchVaultApi.createResource(payload);
-      toast.success('Resource submitted for review! It will appear after admin approval.');
-      setResourceFormOpen(false);
-      setResourceForm({ title: '', description: '', url: '', resourceType: 'GUIDE', researchAreaId: '' });
-      setRefreshVersion((v) => v + 1);
-    } catch (error) {
-      toast.error(errorMessage(error));
-    } finally {
-      setSubmittingResource(false);
-    }
-  };
-
-  return () => document.removeEventListener('pointerdown', closeOnOutsidePointer);
+    return () => document.removeEventListener('pointerdown', closeOnOutsidePointer);
   }, []);
 
 useEffect(() => {
@@ -304,6 +281,29 @@ useEffect(() => {
         : item));
     } catch (error) {
       toast.error(errorMessage(error));
+    }
+};
+
+  // Submit resource for moderation (non-admin users)
+  const submitResource = async (e) => {
+    e.preventDefault();
+    setSubmittingResource(true);
+    try {
+      const payload = {
+        ...resourceForm,
+        researchAreaIds: resourceForm.researchAreaId ? [Number(resourceForm.researchAreaId)] : [],
+        status: 'PENDING_REVIEW'
+      };
+      delete payload.researchAreaId;
+      await researchVaultApi.createResource(payload);
+      toast.success('Resource submitted for review! It will appear after admin approval.');
+      setResourceFormOpen(false);
+      setResourceForm({ title: '', description: '', url: '', resourceType: 'GUIDE', researchAreaId: '' });
+      setRefreshVersion((v) => v + 1);
+    } catch (error) {
+      toast.error(errorMessage(error));
+    } finally {
+      setSubmittingResource(false);
     }
   };
 
@@ -919,7 +919,7 @@ const relativeTime = (value) => {
 
 function DiscussionItem({ discussion, currentUserId, onReply, onVote, onAcceptAnswer, onFollow, followedAreaIds, setRefreshVersion }) {
   const [replyText, setReplyText] = useState('');
-  const [replyTo, setReplyTo] = useState(null);
+  const [_replyTo, setReplyTo] = useState(null);
   const isOwnDiscussion = discussion.uploadedBy?.id === currentUserId;
   const hasAcceptedAnswer = discussion.replies?.some((reply) => reply.isAccepted) || false;
 
