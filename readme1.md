@@ -316,6 +316,27 @@ A shared `getInitials(name, fallback)` utility (`client-acc/src/lib/utils.js`) n
 - Submissions enforce a pending cap of 10, http/https-only URL validation, ownership-scoped 404s, and pending-only edits/withdrawals.
 - Migrations: `20260929000000_resource_status_and_views` and `20260930000000_resource_source_type_and_custom_areas` (see [Data model and migrations](#data-model-and-migrations)).
 
+### File storage: uploads and downloads
+
+Resource files live in **S3-compatible object storage, not on the backend's local disk**. The `acc-minio` container runs LocalStack in S3-emulation mode, reachable as `minio-acc:4566` inside the Docker network (port `4566` is published to the host). Objects are stored in the auto-created `acc-media` bucket (see `server-acc/config/minio.js`, which creates it at boot when missing), and bytes persist in the named Docker volume `academic-council-portal_minio_data`, so files survive container restarts.
+
+**Upload path (presigned PUT — the browser uploads directly to storage; the backend never proxies file bytes):**
+
+1. Client asks the backend for an upload URL: `POST /api/v1/upload/get-upload-url` (mounted in `server-acc/server.js` from `routes/signedURL.js`, `checkAuth`-protected) with `{ filename, contentType, folder }`.
+2. `utils/signedUrl.js#getUploadSignedUrl` calls `storage.presignedPutObject(...)` and returns `{ signedUrl, filePath }`, where `filePath` is the object key — e.g. `research-vault/1727635941023-sop-guide.pdf` (`folder/Date.now()-filename`).
+3. The client helper `client-acc/src/lib/getFilePath.js` `PUT`s the raw `File` to the signed URL with the matching `Content-Type`, then returns `{ filePath }` for the caller to save on the record.
+4. Creating/updating a resource with a `filePath` is enough: the backend derives `sourceType='FILE'` server-side from `filePath`/`url` (clients cannot set `sourceType` directly).
+
+This is the same flow already used by Announcements (`ManageAnnouncement.jsx`), Forum posts (`Editor.jsx`), roadmaps (`RoadmapEditor.jsx`), and course resources (`ManageResources.jsx`, folder `resources/`).
+
+**Download path (what "Open PDF" / "Download" actually resolve to):**
+
+- A card builds its action URL as `${API_URL}/v1/vault/resources/:id/download` (plus `?inline=1` for **Open PDF**).
+- `downloadResearchResourceHandler` (`server-acc/controllers/researchVault.js`) looks the resource up by id (approved only), increments `downloadCount`, then calls `storage.getObject(bucketName /* 'acc-media' */, resource.filePath)` and **streams the object straight to the response** with `Content-Disposition: attachment` (or `inline` for the PDF view), a sanitized filename, and `X-Content-Type-Options: nosniff`.
+- So a `filePath` of `research-vault/research-email-guide.pdf` resolves to the S3 object `acc-media/research-vault/research-email-guide.pdf` — verified live: the endpoint returned the exact byte count stored in the bucket, body beginning with `%PDF`.
+
+**Current status:** the storage layer and both paths are real and working, but the Research Vault admin page does not yet use the presigned-PUT flow — its resource form (`ResearchVaultAdmin.jsx`) has a plain "Stored file path" text input, so `filePath` values are pasted manually (or created via API). The seeded demo files are not placeholders: `prisma/seed-resources.make-files.py` generates valid PDF/DOCX bytes and uploads them into `acc-media/research-vault/` with `awslocal s3api put-object`, and `seedResources.js` records matching `filePath`/`fileSize`/`mimeType`/`format` values. Wiring the file picker into the admin form is the remaining piece.
+
 ### Deployment fixes
 
 - `nginx-acc/conf.d/default.conf` now resolves upstreams through Docker's embedded DNS (`resolver 127.0.0.11 valid=10s`) via variables, so recreating `backend-acc` no longer leaves nginx proxying to a stale IP. Previously every `--force-recreate` of the backend caused 502s until nginx was manually restarted; now it self-heals within one resolver TTL. Verified empirically: backend recreated, 502 → 200 in ~12s with no nginx restart.
