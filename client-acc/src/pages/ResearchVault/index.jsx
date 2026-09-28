@@ -94,7 +94,7 @@ export default function ResearchVault() {
     return () => document.removeEventListener('pointerdown', closeOnOutsidePointer);
   }, []);
 
-  useEffect(() => {
+useEffect(() => {
     let active = true;
     setLoading(true);
     const params = { search, ...(areaId ? { areaId } : {}) };
@@ -108,15 +108,16 @@ export default function ResearchVault() {
               ...(discussionStatus === 'needs-reply' ? { unanswered: 'true' } : {}),
               ...(discussionStatus === 'resolved' ? { resolved: 'true' } : {})
             })
-          : section === 'resources'
-            ? researchVaultApi.getResources(params)
-            : section === 'positions'
-              ? researchVaultApi.getPositions({ search, department })
-              : researchVaultApi.getFollowingUpdates({
-                  ...(followingAreaId ? { areaId: followingAreaId } : {}),
-                  ...(activeFacultyFilters.length > 0 ? { facultyIds: activeFacultyFilters.join(',') } : {}),
-                  ...(activeAreaFilters.length > 0 ? { areaIds: activeAreaFilters.join(',') } : {}),
-                });
+            : section === 'resources'
+              ? researchVaultApi.getResources(params)
+              : section === 'positions'
+                ? researchVaultApi.getPositions({ search, department })
+                : researchVaultApi.getFollowingUpdates({
+                    ...(followingAreaId ? { areaId: followingAreaId } : {}),
+                    // Filter logic: OR within same type (multiple facultyIds = any of them), AND across types (facultyIds AND areaIds)
+                    ...(activeFacultyFilters.length > 0 ? { facultyIds: activeFacultyFilters.join(',') } : {}),
+                    ...(activeAreaFilters.length > 0 ? { areaIds: activeAreaFilters.join(',') } : {}),
+                  });
     request.then((response) => {
       const data = responseData(response);
       console.log('[Following] activeFacultyFilters:', activeFacultyFilters, 'activeAreaFilters:', activeAreaFilters, 'items:', data.length, data.map(d => ({ id: d.id, type: d.type, source: d.source })));
@@ -429,10 +430,13 @@ export default function ResearchVault() {
       {section === 'faculty' && (
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
           <VaultList loading={loading} empty="No faculty profiles match these filters.">
-            {items.map((faculty) => <article key={faculty.id} className="border-b border-slate-200 py-5 first:pt-1">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div><h2 className="text-lg font-bold text-slate-950">{faculty.name}</h2><p className="mt-1 text-sm text-slate-600">{faculty.designation}{faculty.designation && faculty.department ? ' · ' : ''}{faculty.department}</p></div>
-                <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); follow('faculty', faculty.id, faculty.name); }} aria-pressed={followedFacultyIds.has(faculty.id)} title={followedFacultyIds.has(faculty.id) ? `Unfollow ${faculty.name}` : `Follow ${faculty.name}`} className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:border-[var(--color-secondary)] hover:text-[var(--color-primary-accent)]">{followedFacultyIds.has(faculty.id) ? <><UserRoundCheck size={15} /> Following</> : <><UserRoundPlus size={15} /> Follow</>}</button>
+            {items.map((faculty) => <article key={faculty.id} className="border-b border-slate-200 py-5 first:pt-1 overflow-hidden">
+              <div className="flex flex-wrap items-start justify-between gap-3 min-w-0">
+                <div className="min-w-0 flex flex-col items-start text-left">
+                  <h2 className="text-lg font-bold text-slate-950 leading-snug break-words">{faculty.name}</h2>
+                  <p className="mt-1 text-sm text-slate-600 leading-snug break-words">{faculty.designation}{faculty.designation && faculty.department ? ' · ' : ''}{faculty.department}</p>
+                </div>
+                <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); follow('faculty', faculty.id, faculty.name); }} aria-pressed={followedFacultyIds.has(faculty.id)} title={followedFacultyIds.has(faculty.id) ? `Unfollow ${faculty.name}` : `Follow ${faculty.name}`} className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:border-[var(--color-secondary)] hover:text-[var(--color-primary-accent)] shrink-0">{followedFacultyIds.has(faculty.id) ? <><UserRoundCheck size={15} /> Following</> : <><UserRoundPlus size={15} /> Follow</>}</button>
               </div>
               {faculty.biography && <p className="mt-3 text-sm leading-6 text-slate-700">{faculty.biography}</p>}
               <TagList areas={faculty.researchAreas?.map((entry) => entry.researchArea) || []} onFollow={follow} followedAreaIds={followedAreaIds} />
@@ -453,11 +457,11 @@ export default function ResearchVault() {
               <p className="mb-1 text-xs font-semibold text-slate-600">{matches.length ? `${matches.length} recommended faculty, ranked by fit` : 'No close matches yet. Try a broader department or research-area term.'}</p>
               <ul className="divide-y divide-blue-100">
                 {matches.map((match) => <li key={match.id} className="py-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="text-sm font-bold text-slate-900">{match.name}</p>
+                  <div className="flex items-start justify-between gap-2 min-w-0">
+                    <p className="text-sm font-bold text-slate-900 leading-snug break-words min-w-0">{match.name}</p>
                     <span className="shrink-0 rounded-full border border-blue-200 bg-blue-50 px-2 py-1 text-[10px] font-bold text-blue-800">{match.matchScore}% fit</span>
                   </div>
-                  <p className="mt-0.5 text-xs text-slate-500">{match.department || match.designation || 'Faculty'}</p>
+                  <p className="mt-0.5 text-xs text-slate-500 leading-snug break-words">{match.department || match.designation || 'Faculty'}</p>
                   <p className="mt-2 text-xs leading-5 text-slate-600">{match.matchReasons.join(' · ')}</p>
                   <div className="mt-2 flex items-center gap-3">
                     <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); follow('faculty', match.id, match.name); }} aria-pressed={followedFacultyIds.has(match.id)} className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--color-primary-accent)] hover:text-[var(--color-secondary)]">{followedFacultyIds.has(match.id) ? <><UserRoundCheck size={13} /> Following</> : <><UserRoundPlus size={13} /> Follow</>}</button>
@@ -492,51 +496,61 @@ export default function ResearchVault() {
                   const faculty = items.find((f) => f.id === fid) || 
                     facultyOptions.find((f) => f.id === fid);
                   const isSelected = activeFacultyFilters.includes(fid);
+                  const isFollowing = followedFacultyIds.has(fid);
                   return faculty ? (
-                    <button
+                    <div
                       key={fid}
-                      type="button"
+                      role="button"
+                      tabIndex={0}
+                      aria-pressed={isSelected}
                       onClick={(e) => {
+                        if (e.target.closest('button')) return;
                         e.preventDefault();
-                        e.stopPropagation();
                         setActiveFacultyFilters(prev => 
                           isSelected ? prev.filter(id => id !== fid) : [...prev, fid]
                         );
                       }}
-                      aria-pressed={isSelected}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setActiveFacultyFilters(prev => 
+                            isSelected ? prev.filter(id => id !== fid) : [...prev, fid]
+                          );
+                        }
+                      }}
                       title={isSelected ? `Remove ${faculty.name} from filter` : `Add ${faculty.name} to filter`}
-                      className={`w-full flex flex-col sm:flex-row items-center justify-between gap-3 rounded-xl border p-3 shadow-sm transition-all duration-150 cursor-pointer ${
+                      className={`w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-xl border p-3 shadow-sm transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-secondary)] focus-visible:ring-offset-2 overflow-hidden ${
                         isSelected
-                          ? 'border-[var(--color-secondary)] bg-[var(--color-secondary)]/5 ring-2 ring-[var(--color-secondary)]/20'
+                          ? 'border-[var(--color-secondary)] bg-[var(--color-secondary)]/5 ring-1 ring-inset ring-[var(--color-secondary)]/30'
                           : 'border-slate-200 bg-white/95 hover:border-[var(--color-secondary)] hover:bg-slate-50/50'
                       }`}
                     >
-                      <div className="flex items-center gap-3 min-w-0 flex-1 sm:flex-nowrap">
+                      <div className="flex items-start gap-3 min-w-0 flex-1 sm:flex-nowrap">
                         <div className="w-10 h-10 flex-shrink-0 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] flex items-center justify-center text-white font-semibold text-sm">
                           {getInitials(faculty.name, 'F')}
                         </div>
-                        <div className="min-w-0">
-                          <p className="font-semibold text-slate-900 truncate leading-snug">{faculty.name}</p>
-                          <p className="text-xs text-slate-500 truncate leading-snug">{faculty.designation}{faculty.department ? ` · ${faculty.department}` : ''}</p>
+                        <div className="min-w-0 flex flex-col items-start text-left">
+                          <p className="font-semibold text-slate-900 leading-snug break-words">{faculty.name}</p>
+                          <p className="text-xs text-slate-500 leading-snug break-words">{faculty.designation}{faculty.department ? ` · ${faculty.department}` : ''}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
-                        {isSelected && (
-                          <span className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold text-white bg-[var(--color-secondary)] hidden sm:inline-flex">
-                            <X size={12} className="mr-1" /> Selected
-                          </span>
-                        )}
                         <button
                           type="button"
                           onClick={(e) => { e.preventDefault(); e.stopPropagation(); follow('faculty', fid, faculty.name); }}
-                          aria-pressed={followedFacultyIds.has(fid)}
-                          title={`Unfollow ${faculty.name}`}
-                          className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-[var(--color-secondary)] hover:text-[var(--color-primary-accent)] whitespace-nowrap"
+                          aria-pressed={isFollowing}
+                          title={isFollowing ? `Unfollow ${faculty.name}` : `Follow ${faculty.name}`}
+                          className="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-secondary)] focus-visible:ring-offset-2 ${
+                            isFollowing
+                              ? 'border-[var(--color-secondary)] bg-[var(--color-secondary)]/10 text-[var(--color-primary-accent)] hover:bg-[var(--color-secondary)]/20'
+                              : 'border-slate-300 bg-white text-slate-700 hover:border-[var(--color-secondary)] hover:text-[var(--color-primary-accent)]'
+                          }"
                         >
-                          <UserRoundCheck size={13} /> Following
+                          {isFollowing ? <UserRoundCheck size={13} /> : <UserRoundPlus size={13} />}
+                          {isFollowing ? 'Following' : 'Follow'}
                         </button>
                       </div>
-                    </button>
+                    </div>
                   ) : null;
                 })}
               </div>
@@ -567,13 +581,13 @@ export default function ResearchVault() {
                       }}
                       aria-pressed={isSelected}
                       title={isSelected ? `Remove ${area.name} from filter` : `Add ${area.name} to filter`}
-                      className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-150 ${
+                      className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-secondary)] focus-visible:ring-offset-2 ${
                         isSelected
-                          ? 'bg-blue-600 text-white hover:bg-blue-700 ring-2 ring-blue-500/30 shadow-md'
+                          ? 'bg-blue-100 border-2 border-blue-400 text-blue-900 hover:bg-blue-200'
                           : 'border border-blue-200 bg-blue-50 text-blue-900 hover:bg-blue-100'
                       }`}
                     >
-                      {isSelected ? <X size={13} className="mr-1" /> : <Filter size={13} className="mr-1" />}
+                      {isSelected ? <Check size={13} className="mr-1 text-blue-700" /> : <Filter size={13} className="mr-1" />}
                       {area.name}
                     </button>
                   ) : null;
@@ -591,35 +605,97 @@ export default function ResearchVault() {
             </div>
           ) : (
             <div>
-              <div className="mb-3 flex items-center justify-between">
-                <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900">
+              {/* Title row */}
+              <div className="mb-3 flex items-center gap-2">
+                <h3 className="whitespace-nowrap flex items-center gap-2 text-lg font-bold text-slate-900">
                   <Activity size={20} className="text-[var(--color-secondary)]" />
                   Recent Activity
                 </h3>
-                {(activeFacultyFilters.length > 0 || activeAreaFilters.length > 0) && (
-                  <div className="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-3 py-1.5 text-sm text-slate-700 flex-wrap">
-                    {activeFacultyList.map((faculty, idx) => (
-                      <span key={faculty.id} className="flex items-center gap-1.5">
-                        <span className="font-semibold text-[var(--color-secondary)]">{faculty.name}</span>
-                        <button type="button" onClick={() => setActiveFacultyFilters(prev => prev.filter(id => id !== faculty.id))} className="ml-1 p-0.5 rounded hover:bg-slate-300" aria-label={`Remove ${faculty.name} from filter`}><X size={12} /></button>
-                        {idx < activeFacultyList.length - 1 || activeAreaList.length > 0 ? <span className="mx-1 text-slate-400">|</span> : null}
-                      </span>
-                    ))}
-                    {activeAreaList.map((area, idx) => (
-                      <span key={area.id} className="flex items-center gap-1.5">
-                        <span className="font-semibold text-blue-700">{area.name}</span>
-                        <button type="button" onClick={() => setActiveAreaFilters(prev => prev.filter(id => id !== area.id))} className="ml-1 p-0.5 rounded hover:bg-slate-300" aria-label={`Remove ${area.name} from filter`}><X size={12} /></button>
-                        {idx < activeAreaList.length - 1 ? <span className="mx-1 text-slate-400">|</span> : null}
-                      </span>
-                    ))}
-                    {(activeFacultyList.length > 0 || activeAreaList.length > 0) && (
-                      <button type="button" onClick={() => { setActiveFacultyFilters([]); setActiveAreaFilters([]); }} className="ml-2 p-0.5 rounded hover:bg-slate-300 text-slate-500 hover:text-slate-700" aria-label="Clear all filters">
-                        <span className="text-xs">Clear all</span>
-                      </button>
-                    )}
-                  </div>
-                )}
               </div>
+
+              {/* Active filters bar - separate row, flex-wrap, only when filters active */}
+              {(activeFacultyFilters.length > 0 || activeAreaFilters.length > 0) && (
+                <div className="mb-4 flex flex-wrap items-center gap-2" role="group" aria-label="Active filters">
+                  {(() => {
+                    const totalFilters = activeFacultyFilters.length + activeAreaFilters.length;
+                    // Collapse when many filters: show "N filters active · Clear all"
+                    if (totalFilters > 4) {
+                      return (
+                        <div className="inline-flex items-center gap-2 flex-wrap">
+                          <span className="text-sm text-slate-600">
+                            {totalFilters} filter{totalFilters > 1 ? 's' : ''} active
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => { setActiveFacultyFilters([]); setActiveAreaFilters([]); }}
+                            className="text-sm font-semibold text-[var(--color-primary-accent)] hover:text-[var(--color-secondary)] underline-offset-2 hover:underline"
+                            aria-label="Clear all filters"
+                          >
+                            Clear all
+                          </button>
+                        </div>
+                      );
+                    }
+                    // Otherwise show individual pills
+                    return (
+                      <div className="inline-flex items-center gap-2 flex-wrap">
+                        {activeFacultyList.map((faculty) => (
+                          <span
+                            key={`faculty-${faculty.id}`}
+                            className="inline-flex items-center gap-1.5 rounded-full bg-white border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm"
+                          >
+                            <span className="font-semibold text-[var(--color-secondary)]">{faculty.name}</span>
+                            <button
+                              type="button"
+                              onClick={() => setActiveFacultyFilters(prev => prev.filter(id => id !== faculty.id))}
+                              className="ml-1.5 p-0.5 rounded-full hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-secondary)]"
+                              aria-label={`Remove filter ${faculty.name}`}
+                            >
+                              <X size={12} />
+                            </button>
+                          </span>
+                        ))}
+                        {activeAreaList.map((area) => (
+                          <span
+                            key={`area-${area.id}`}
+                            className="inline-flex items-center gap-1.5 rounded-full bg-white border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm"
+                          >
+                            <span className="font-semibold text-blue-700">{area.name}</span>
+                            <button
+                              type="button"
+                              onClick={() => setActiveAreaFilters(prev => prev.filter(id => id !== area.id))}
+                              className="ml-1.5 p-0.5 rounded-full hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-secondary)]"
+                              aria-label={`Remove filter ${area.name}`}
+                            >
+                              <X size={12} />
+                            </button>
+                          </span>
+                        ))}
+                        {(activeFacultyList.length > 0 || activeAreaList.length > 0) && (
+                          <button
+                            type="button"
+                            onClick={() => { setActiveFacultyFilters([]); setActiveAreaFilters([]); }}
+                            className="text-sm font-semibold text-[var(--color-primary-accent)] hover:text-[var(--color-secondary)] underline-offset-2 hover:underline"
+                            aria-label="Clear all filters"
+                          >
+                            Clear all
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+
+              {/* Empty state for filtered results */}
+              {!loading && items.length === 0 && (activeFacultyFilters.length > 0 || activeAreaFilters.length > 0) && (
+                <div className="academic-card flex flex-col items-center justify-center rounded-3xl p-8 text-center text-sm text-slate-500">
+                  <Filter size={28} className="text-slate-300 mb-2" />
+                  <p className="font-semibold text-slate-700">No updates match these filters</p>
+                  <p className="mt-1 text-slate-500">Try removing some filters or click Clear all.</p>
+                </div>
+              )}
+
               <VaultList loading={loading} empty="No recent activity from the people and areas you follow.">
                 {items.map((update, index) => (
                   <article key={update.id || `following-update-${index}`} className="border-b border-slate-200 py-5 first:pt-1">

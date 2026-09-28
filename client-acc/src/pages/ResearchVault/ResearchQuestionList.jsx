@@ -1,5 +1,5 @@
 import { createElement, useContext, useEffect, useState } from 'react';
-import { ArrowLeft, CircleHelp, Search, ThumbsUp, BookOpen, Bookmark, BriefcaseBusiness, FlaskConical, Activity, MessageCircle, ChevronDown, Send, X } from 'lucide-react';
+import { ArrowLeft, BookSearch, Search, ThumbsUp, BookOpen, Bookmark, BriefcaseBusiness, FlaskConical, Activity, MessageCircle, ChevronDown, Send, X } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import AuthContext from '../../context/auth/authContext';
@@ -11,7 +11,7 @@ const errorMessage = (error) => error.response?.data?.message || 'Could not load
 const sections = [
   { id: 'faculty', label: 'Faculty', icon: FlaskConical },
   { id: 'experiences', label: 'Experiences', icon: BookOpen },
-  { id: 'discussions', label: 'Discussion', icon: CircleHelp },
+  { id: 'discussions', label: 'Discussion', icon: BookSearch },
   { id: 'resources', label: 'Resources', icon: Bookmark },
   { id: 'positions', label: 'Open positions', icon: BriefcaseBusiness },
   { id: 'following', label: 'Following', icon: Activity },
@@ -44,10 +44,50 @@ export default function ResearchQuestionList() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [refreshVersion, setRefreshVersion] = useState(0);
+  const [followedFacultyIds, setFollowedFacultyIds] = useState(() => new Set());
+  const [followedAreaIds, setFollowedAreaIds] = useState(() => new Set());
+  const [relevantAreas, setRelevantAreas] = useState([]);
 
   useEffect(() => {
     researchVaultApi.getAreas().then((response) => setAreas(responsePayload(response).data || [])).catch(() => {});
+    researchVaultApi.getFollows().then(({ data }) => {
+      setFollowedFacultyIds(new Set(data.data?.facultyIds || []));
+      setFollowedAreaIds(new Set(data.data?.areaIds || []));
+    }).catch(() => {});
   }, []);
+
+  // Compute relevant areas: user's followed areas + areas of followed faculty + areas of all faculty
+  useEffect(() => {
+    if (!areas.length) {
+      setRelevantAreas([]);
+      return;
+    }
+    if (!followedFacultyIds.size && !followedAreaIds.size) {
+      // No follows yet: fetch all faculty to get their research areas
+      researchVaultApi.getFaculty({ limit: 200 }).then((response) => {
+        const facultyList = responsePayload(response).data || [];
+        const facultyAreaIds = new Set();
+        facultyList.forEach((f) => {
+          f.researchAreas?.forEach((ra) => facultyAreaIds.add(ra.researchArea.id));
+        });
+        const filtered = areas.filter((a) => facultyAreaIds.has(a.id));
+        setRelevantAreas(filtered.length ? filtered : areas);
+      }).catch(() => { setRelevantAreas(areas); });
+      return;
+    }
+    // User has follows: use followed areas + areas of followed faculty
+    researchVaultApi.getFaculty({ limit: 200 }).then((response) => {
+      const facultyList = responsePayload(response).data || [];
+      const relevantAreaIds = new Set(followedAreaIds);
+      facultyList.forEach((f) => {
+        if (followedFacultyIds.has(f.id)) {
+          f.researchAreas?.forEach((ra) => relevantAreaIds.add(ra.researchArea.id));
+        }
+      });
+      const filtered = areas.filter((a) => relevantAreaIds.has(a.id));
+      setRelevantAreas(filtered.length ? filtered : areas);
+    }).catch(() => { setRelevantAreas(areas); });
+  }, [areas, followedFacultyIds, followedAreaIds]);
 
   useEffect(() => {
     const timeout = setTimeout(() => setSearch(searchInput.trim()), 250);
@@ -121,10 +161,10 @@ export default function ResearchQuestionList() {
             <div className="mb-2 flex items-center gap-3">
               <div className="accent-bar h-6 rounded-full shadow-[0_0_8px_var(--color-secondary)]" />
               <h1 className="flex items-center gap-2.5 text-2xl font-extrabold tracking-tight text-[var(--color-primary)] md:text-3xl">
-                <CircleHelp size={26} className="text-[var(--color-secondary)]" /> Research Vault
+                <BookSearch size={26} className="text-[var(--color-secondary)]" /> Research Vault
               </h1>
             </div>
-            <p className="ml-4 text-sm text-slate-500">Discussion — Questions and answers from the research community.</p>
+            <p className="ml-4 text-sm text-slate-500">Find a research group, learn from student experiences, and get practical guidance for your next step.</p>
           </div>
           <button onClick={() => setFormOpen(true)} className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-95">
             <Send size={16} /> Ask a question
@@ -146,6 +186,9 @@ export default function ResearchQuestionList() {
           </button>
         ))}
       </nav>
+
+      {/* Discussion description below tab bar */}
+      <p className="ml-1 text-sm text-slate-500">Discussion — Questions and answers from the research community.</p>
 
       {/* Determine if any filter is non-default */}
       {(() => {
@@ -180,7 +223,7 @@ export default function ResearchQuestionList() {
               className="rounded-xl border border-slate-200 bg-white/90 px-3 py-2.5 text-xs font-semibold text-[var(--color-primary)] outline-none focus:border-[var(--color-secondary)] sm:w-48"
             >
               <option value="">All tags</option>
-              {areas.map((area) => <option key={area.id} value={area.slug}>{area.name}</option>)}
+              {relevantAreas.map((area) => <option key={area.id} value={area.slug}>{area.name}</option>)}
             </select>
             <select
               aria-label="Filter by status"
