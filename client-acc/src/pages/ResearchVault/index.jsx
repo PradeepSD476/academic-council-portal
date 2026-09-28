@@ -6,14 +6,19 @@ import AuthContext from '../../context/auth/authContext';
 import { researchVaultApi } from '../../api/researchVaultApi';
 import { getInitials } from '../../lib/utils';
 
-const sections = [
-  { id: 'faculty', label: 'Faculty', icon: FlaskConical },
-  { id: 'experiences', label: 'Experiences', icon: BookOpen },
-  { id: 'discussions', label: 'Discussion', icon: CircleHelp },
-  { id: 'resources', label: 'Resources', icon: Bookmark },
-  { id: 'positions', label: 'Open positions', icon: BriefcaseBusiness },
-  { id: 'following', label: 'Following', icon: Activity },
-];
+const TABS_WITH_ACTIONS = ['experiences', 'discussions', 'resources'];
+
+// Single source of truth for tab icons - same icon used for both active and inactive states
+const TAB_CONFIG = {
+  faculty: { id: 'faculty', label: 'Faculty', icon: FlaskConical, actionLabel: null },
+  experiences: { id: 'experiences', label: 'Experiences', icon: BookOpen, actionLabel: 'Share an experience' },
+  discussions: { id: 'discussions', label: 'Discussion', icon: CircleHelp, actionLabel: 'Ask a question' },
+  resources: { id: 'resources', label: 'Resources', icon: Bookmark, actionLabel: 'Submit Resource' },
+  positions: { id: 'positions', label: 'Open positions', icon: BriefcaseBusiness, actionLabel: null },
+  following: { id: 'following', label: 'Following', icon: Activity, actionLabel: null },
+};
+
+const sections = Object.values(TAB_CONFIG);
 
 const responseData = (response) => response.data?.data || [];
 const errorMessage = (error) => error.response?.data?.message || 'The request could not be completed.';
@@ -81,19 +86,42 @@ export default function ResearchVault() {
   const [matchSearched, setMatchSearched] = useState(false);
   const [matching, setMatching] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
-  const [resourceFormOpen, setResourceFormOpen] = useState(false);
-  const [resourceForm, setResourceForm] = useState({ title: '', description: '', url: '', resourceType: 'GUIDE', researchAreaId: '' });
-  const [submittingResource, setSubmittingResource] = useState(false);
 
-  // Mock data for resources (dev only) - shows when API returns empty
-  const mockResources = useMemo(() => [
-    { id: 1, title: 'Getting Started with Research at IIT Patna', description: 'A comprehensive guide for undergraduate students looking to begin their research journey. Covers finding faculty, cold-emailing, and preparing for interviews.', resourceType: 'GUIDE', url: 'https://example.com/research-guide.pdf', filePath: null, viewCount: 245, downloadCount: 89, createdAt: '2025-01-15T10:00:00Z', researchAreas: [{ researchArea: { id: 1, name: 'Artificial Intelligence' } }], uploadedBy: { displayName: 'Research Admin' } },
-    { id: 2, title: 'SOP Writing Workshop Slides', description: 'Presentation slides from the SOP writing workshop conducted by Prof. Sharma. Includes examples, do\'s and don\'ts, and structure templates.', resourceType: 'SOP_WRITING', url: null, filePath: '/uploads/sop-workshop-slides.pdf', viewCount: 156, downloadCount: 134, createdAt: '2025-02-20T14:30:00Z', researchAreas: [{ researchArea: { id: 1, name: 'Artificial Intelligence' } }, { researchArea: { id: 2, name: 'Machine Learning' } }], uploadedBy: { displayName: 'Dr. Asha Rao' } },
-    { id: 3, title: 'Cold Email Templates for Research Internships', description: 'Curated collection of cold email templates that have worked for students applying to research positions at top universities and labs.', resourceType: 'COLD_EMAILING', url: 'https://github.com/iitp-acc/cold-email-templates', filePath: null, viewCount: 312, downloadCount: 67, createdAt: '2025-03-10T09:15:00Z', researchAreas: [{ researchArea: { id: 3, name: 'Computer Systems' } }], uploadedBy: { displayName: 'Student Contributor' } },
-    { id: 4, title: 'PhD Application Timeline & Checklist', description: 'Month-by-month timeline for PhD applications with a comprehensive checklist covering GRE, TOEFL, SOP, CV, recommendation letters, and interview prep.', resourceType: 'PHD_APPLICATIONS', url: null, filePath: '/uploads/phd-application-checklist.pdf', viewCount: 198, downloadCount: 156, createdAt: '2025-04-05T11:00:00Z', researchAreas: [], uploadedBy: { displayName: 'Research Admin' } },
-    { id: 5, title: 'Grant Writing Resources for Early Career Researchers', description: 'Links to funding databases, sample proposals, budget templates, and tips for writing competitive grant applications for DST, SERB, and international funding.', resourceType: 'GRANT_WRITING', url: 'https://dst.gov.in/funding-opportunities', filePath: null, viewCount: 87, downloadCount: 23, createdAt: '2025-05-12T16:45:00Z', researchAreas: [{ researchArea: { id: 4, name: 'Data Science' } }], uploadedBy: { displayName: 'Dr. Kabir Shah' } },
-    { id: 6, title: 'Research Paper Reading Guide', description: 'A step-by-step guide on how to efficiently read and analyze research papers. Includes annotation techniques, literature survey methods, and note-taking templates.', resourceType: 'GUIDE', url: null, filePath: '/uploads/paper-reading-guide.pdf', viewCount: 267, downloadCount: 189, createdAt: '2025-06-01T10:00:00Z', researchAreas: [{ researchArea: { id: 1, name: 'Artificial Intelligence' } }, { researchArea: { id: 5, name: 'Robotics' } }], uploadedBy: { displayName: 'Student Contributor' } }
-  ], []);
+  // ── Resources tab state ───────────────────────────────────────────────────
+  const [resourceFormOpen, setResourceFormOpen] = useState(false);
+  const [resourceForm, setResourceForm] = useState({
+    title: '', description: '', url: '', category: 'GUIDE',
+    researchAreaIds: [], customArea: '', consent_confirmed: false
+  });
+  const [submittingResource, setSubmittingResource] = useState(false);
+  const [resourceSubmitSuccess, setResourceSubmitSuccess] = useState(false);
+  const [resourceSubmitWarnings, setResourceSubmitWarnings] = useState([]);
+  // Resource filters/sort (separate from the main section search)
+  const [resourceCategory, setResourceCategory] = useState('');
+  const [resourceFormat, setResourceFormat] = useState('');
+  const [resourceSort, setResourceSort] = useState('newest');
+  const [resourcePage, setResourcePage] = useState(1);
+  const [resourceTotal, setResourceTotal] = useState(0);
+  const RESOURCE_PAGE_SIZE = 12;
+  // My Submissions
+  const [showMySubmissions, setShowMySubmissions] = useState(false);
+  const [myResources, setMyResources] = useState([]);
+  const [myResourcesLoading, setMyResourcesLoading] = useState(false);
+  const [withdrawConfirm, setWithdrawConfirm] = useState(null); // { id, title }
+  const [editingResource, setEditingResource] = useState(null); // resource object to edit
+  const [editForm, setEditForm] = useState({ title: '', description: '', url: '', category: '', researchAreaIds: [], customArea: '' });
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  // ── Resource fetch (triggered by resource-specific filters too) ────────────
+  // When section changes away from resources, reset resource filters
+  useEffect(() => {
+    if (section !== 'resources') {
+      setResourceCategory('');
+      setResourceFormat('');
+      setResourceSort('newest');
+      setResourcePage(1);
+    }
+  }, [section]);
 
   useEffect(() => {
     researchVaultApi.getAreas().then((response) => setAreas(responseData(response))).catch(() => {});
@@ -151,7 +179,14 @@ useEffect(() => {
               ...(discussionStatus === 'resolved' ? { resolved: 'true' } : {})
             })
             : section === 'resources'
-              ? researchVaultApi.getResources(params)
+              ? researchVaultApi.getResources({
+                  ...params,
+                  ...(resourceCategory ? { category: resourceCategory } : {}),
+                  ...(resourceFormat ? { format: resourceFormat } : {}),
+                  sort: resourceSort,
+                  page: resourcePage,
+                  limit: RESOURCE_PAGE_SIZE
+                })
               : section === 'positions'
                 ? researchVaultApi.getPositions({ search, department })
                 : researchVaultApi.getFollowingUpdates({
@@ -163,14 +198,19 @@ useEffect(() => {
     request.then((response) => {
       const data = responseData(response);
       console.log('[Following] activeFacultyFilters:', activeFacultyFilters, 'activeAreaFilters:', activeAreaFilters, 'items:', data.length, data.map(d => ({ id: d.id, type: d.type, source: d.source })));
-      if (active) setItems(data);
+      if (active) {
+        setItems(data);
+        if (section === 'resources') {
+          setResourceTotal(response.data?.total || 0);
+        }
+      }
     }).catch((error) => {
       if (active) toast.error(errorMessage(error));
     }).finally(() => {
       if (active) setLoading(false);
     });
     return () => { active = false; };
-  }, [section, search, discussionStatus, department, areaId, areas, openingsOnly, refreshVersion, followingAreaId, activeFacultyFilters, activeAreaFilters]);
+  }, [section, search, discussionStatus, department, areaId, areas, openingsOnly, refreshVersion, followingAreaId, activeFacultyFilters, activeAreaFilters, resourceCategory, resourceFormat, resourceSort, resourcePage]);
 
   const follow = async (kind, id, name = '') => {
     const numericId = Number(id);
@@ -284,32 +324,95 @@ useEffect(() => {
     }
 };
 
-  // Submit resource for moderation (non-admin users)
+  // ── Submit Resource ────────────────────────────────────────────────────────
   const submitResource = async (e) => {
     e.preventDefault();
     setSubmittingResource(true);
+    setResourceSubmitWarnings([]);
     try {
       const payload = {
-        ...resourceForm,
-        researchAreaIds: resourceForm.researchAreaId ? [Number(resourceForm.researchAreaId)] : [],
-        status: 'PENDING_REVIEW'
+        title: resourceForm.title.trim(),
+        description: resourceForm.description.trim() || undefined,
+        url: resourceForm.url.trim(),
+        category: resourceForm.category,
+        researchAreaIds: resourceForm.researchAreaIds,
+        customArea: resourceForm.customArea.trim() || undefined,
+        consent_confirmed: resourceForm.consent_confirmed
       };
-      delete payload.researchAreaId;
-      await researchVaultApi.createResource(payload);
-      toast.success('Resource submitted for review! It will appear after admin approval.');
-      setResourceFormOpen(false);
-      setResourceForm({ title: '', description: '', url: '', resourceType: 'GUIDE', researchAreaId: '' });
+      const response = await researchVaultApi.submitResource(payload);
+      setResourceSubmitSuccess(true);
+      if (response.data?.warnings?.length) {
+        setResourceSubmitWarnings(response.data.warnings);
+      }
       setRefreshVersion((v) => v + 1);
+      loadMyResources();
     } catch (error) {
-      toast.error(errorMessage(error));
+      const msg = error.response?.data?.message || 'Submission failed. Please try again.';
+      toast.error(msg);
     } finally {
       setSubmittingResource(false);
     }
   };
 
-  // Resources tab: compute data to render (mock in dev when API empty)
-  const useMockResources = import.meta.env.VITE_USE_MOCK_RESOURCES === 'true';
-  const resourcesToRender = items.length > 0 ? items : (useMockResources ? mockResources : []);
+  const resetResourceForm = () => {
+    setResourceForm({ title: '', description: '', url: '', category: 'GUIDE', researchAreaIds: [], customArea: '', consent_confirmed: false });
+    setResourceSubmitSuccess(false);
+    setResourceSubmitWarnings([]);
+    setResourceFormOpen(false);
+  };
+
+  // ── My Submissions ─────────────────────────────────────────────────────────
+  const loadMyResources = async () => {
+    if (!user) return;
+    setMyResourcesLoading(true);
+    try {
+      const response = await researchVaultApi.getMyResources();
+      setMyResources(responseData(response));
+    } catch {
+      // silently fail — user may not be logged in
+    } finally {
+      setMyResourcesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (section === 'resources' && user) loadMyResources();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [section, user]);
+
+  const withdrawResource = async (id) => {
+    try {
+      await researchVaultApi.deleteMyResource(id);
+      toast.success('Submission withdrawn.');
+      setWithdrawConfirm(null);
+      loadMyResources();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Could not withdraw submission.');
+    }
+  };
+
+  const saveEditResource = async (e) => {
+    e.preventDefault();
+    if (!editingResource) return;
+    setSavingEdit(true);
+    try {
+      await researchVaultApi.updateMyResource(editingResource.id, {
+        title: editForm.title.trim(),
+        description: editForm.description.trim() || undefined,
+        url: editForm.url.trim(),
+        category: editForm.category,
+        researchAreaIds: editForm.researchAreaIds,
+        customArea: editForm.customArea.trim() || ''
+      });
+      toast.success('Submission updated.');
+      setEditingResource(null);
+      loadMyResources();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Could not update submission.');
+    } finally {
+      setSavingEdit(false);
+    }
+  };
 
   return (
     <div className="research-vault-theme mx-auto max-w-7xl space-y-6 pb-12 text-slate-900">
@@ -322,9 +425,9 @@ useEffect(() => {
             </div>
             <p className="ml-4 text-sm text-slate-500">Find a research group, learn from student experiences, and get practical guidance for your next step.</p>
           </div>
-          {(section === 'experiences' || section === 'discussions') && (
-            <button onClick={() => setFormOpen(true)} className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-95">
-              <Send size={16} /> {section === 'experiences' ? 'Share an experience' : 'Ask a question'}
+          {(section === 'experiences' || section === 'discussions' || (section === 'resources' && user && !['RESEARCH_ADMIN', 'SUPER_ADMIN'].includes(user.role))) && (
+            <button onClick={() => (section === 'resources' ? (() => { setResourceSubmitSuccess(false); setResourceFormOpen(true); })() : setFormOpen(true))} className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-95">
+              {section === 'experiences' ? <><Send size={16} /> Share an experience</> : section === 'discussions' ? <><Send size={16} /> Ask a question</> : <><Plus size={16} /> Submit Resource</>}
             </button>
           )}
         </div>
@@ -332,7 +435,7 @@ useEffect(() => {
 
       <nav className="vault-tabs flex items-center gap-2 overflow-x-auto px-1 pb-1 scrollbar-thin -ml-1" aria-label="Research Vault sections" style={{ scrollbarWidth: 'thin', scrollbarColor: 'var(--color-secondary) transparent' }}>
         {sections.map(({ id, label, icon: Icon }) => (
-          <button key={id} onClick={() => { if (id === 'discussions') { navigate('/dashboard/research-vault/questions'); return; } setSection(id); navigate(`/dashboard/research-vault?section=${id}`, { replace: true }); setItems([]); setLoading(true); setSearch(''); setDiscussionStatus('all'); setAreaId(''); setAreaSearch(''); setAreaPickerOpen(false); }} className={`inline-flex shrink-0 items-center gap-2 rounded-2xl border px-4 py-2 text-xs font-bold whitespace-nowrap transition-all duration-200 ${section === id ? 'is-active bg-[var(--color-secondary)] text-white shadow-[0_4px_16px_var(--color-secondary-glow)] scale-[1.02]' : 'border-slate-200 bg-white/95 text-slate-500 shadow-xs hover:border-slate-300 hover:bg-white/90 hover:text-[var(--color-primary)]'}`}>
+          <button key={id} onClick={() => { if (id === 'discussions') { navigate('/dashboard/research-vault/questions'); return; } setSection(id); navigate(`/dashboard/research-vault?section=${id}`, { replace: true }); setItems([]); setLoading(true); setSearch(''); setDiscussionStatus('all'); setAreaId(''); setAreaSearch(''); setAreaPickerOpen(false); }} className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold whitespace-nowrap transition-all duration-200 ${section === id ? 'is-active bg-[var(--color-secondary)] text-white shadow-[0_4px_16px_var(--color-secondary-glow)] scale-[1.02]' : 'border-slate-200 bg-white/95 text-slate-500 shadow-xs hover:border-slate-300 hover:bg-white/90 hover:text-[var(--color-primary)]'}`}>
             {createElement(Icon, { size: 16 })} {label}
           </button>
         ))}
@@ -543,83 +646,166 @@ useEffect(() => {
         </div>
       )}
 
-      {section === 'experiences' && <VaultList loading={loading} empty="No published experiences yet.">{items.map((experience) => <article key={experience.id} className="border-b border-slate-200 py-5 first:pt-1"><div className="flex flex-wrap items-start justify-between gap-2"><h2 className="text-lg font-bold">{experience.title}</h2><span className="text-xs text-slate-500">{experience.faculty?.name || experience.guideName || 'Student contributor'}</span></div><p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">{experience.description}</p><div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-600">{experience.labName && <span>Lab: {experience.labName}</span>}{experience.duration && <span>Duration: {experience.duration}</span>}{experience.outcome && <span>Outcome: {experience.outcome}</span>}</div>{experience.keyLearnings && <p className="mt-2 text-sm text-slate-600"><strong>Key learnings:</strong> {experience.keyLearnings}</p>}<TagList areas={experience.researchAreas?.map((entry) => entry.researchArea) || []} onFollow={follow} followedAreaIds={followedAreaIds} /></article>)}</VaultList>}
+      {section === 'experiences' && <VaultList loading={loading} empty="No published experiences yet.">{items.map((experience) => <article key={experience.id} className="border-b border-slate-200 py-5 first:pt-1"><div className="flex flex-wrap items-start justify-between gap-2"><h2 className="text-lg font-bold">{experience.title}</h2><span className="text-xs text-slate-500">{experience.uploadedBy ? authorLabel(experience.uploadedBy) : (experience.faculty?.name || experience.guideName || 'Student contributor')}</span></div><p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">{experience.description}</p><div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-600">{experience.labName && <span>Lab: {experience.labName}</span>}{experience.duration && <span>Duration: {experience.duration}</span>}{experience.outcome && <span>Outcome: {experience.outcome}</span>}</div>{experience.keyLearnings && <p className="mt-2 text-sm text-slate-600"><strong>Key learnings:</strong> {experience.keyLearnings}</p>}<TagList areas={experience.researchAreas?.map((entry) => entry.researchArea) || []} onFollow={follow} followedAreaIds={followedAreaIds} /></article>)}</VaultList>}
 
       {section === 'discussions' && <VaultList loading={loading} empty="No discussions found.">{items.map((discussion) => <DiscussionItem key={discussion.id} discussion={discussion} currentUserId={user?.id} onReply={reply} onVote={vote} onAcceptAnswer={acceptAnswer} onFollow={follow} followedAreaIds={followedAreaIds} setRefreshVersion={setRefreshVersion} />)}</VaultList>}
 
       {section === 'resources' && (
         <div className="space-y-4">
-          {/* Header with Submit Resource button for non-admins */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-            <div>
-              <h3 className="text-lg font-bold text-slate-900">Curated Resources</h3>
-              <p className="text-sm text-slate-500 mt-0.5">Guides, templates, and references for your research journey</p>
-            </div>
-            {user && user.role !== 'RESEARCH_ADMIN' && user.role !== 'SUPER_ADMIN' && (
+          {/* Filter pills row — matches the shared vault-toolbar control styling */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Category pills */}
+            {[
+              { value: '', label: 'All' },
+              { value: 'GUIDE', label: 'Guide' },
+              { value: 'SOP_WRITING', label: 'SOP Writing' },
+              { value: 'LOR', label: 'LOR' },
+              { value: 'COLD_EMAILING', label: 'Cold Email' },
+              { value: 'PHD_APPLICATIONS', label: 'PhD Apps' },
+              { value: 'GRANT_WRITING', label: 'Grant Writing' },
+              { value: 'TEMPLATE', label: 'Template' },
+              { value: 'GENERAL', label: 'General' },
+            ].map(({ value, label }) => (
               <button
-                onClick={() => setResourceFormOpen(true)}
-                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-95 shrink-0"
+                key={value}
+                type="button"
+                onClick={() => { setResourceCategory(value); setResourcePage(1); }}
+                className={`px-3 py-2.5 rounded-full text-xs font-semibold border transition-colors ${resourceCategory === value ? 'bg-[var(--color-secondary)] text-white border-[var(--color-secondary)]' : 'bg-white/90 text-[var(--color-primary)] border-slate-200 hover:border-[var(--color-secondary)] hover:text-[var(--color-primary-accent)]'}`}
               >
-                <FileText size={16} /> Submit Resource
+                {label}
               </button>
-            )}
+            ))}
+            <div className="ml-auto flex flex-wrap items-center gap-2">
+              {user && (
+                <button
+                  type="button"
+                  onClick={() => setShowMySubmissions((v) => !v)}
+                  aria-pressed={showMySubmissions}
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-2.5 text-xs font-semibold transition-colors ${showMySubmissions ? 'border-[var(--color-secondary)] bg-[var(--color-secondary)]/10 text-[var(--color-primary-accent)]' : 'bg-white/90 text-[var(--color-primary)] border-slate-200 hover:border-[var(--color-secondary)] hover:text-[var(--color-primary-accent)]'}`}
+                >
+                  <FileText size={14} /> My Submissions
+                </button>
+              )}
+              {/* Format filter */}
+              <select
+                value={resourceFormat}
+                onChange={(e) => { setResourceFormat(e.target.value); setResourcePage(1); }}
+                aria-label="Filter by format"
+                className="rounded-full border border-slate-200 bg-white/90 px-4 py-2.5 text-xs font-semibold text-[var(--color-primary)] outline-none focus:border-[var(--color-secondary)]"
+              >
+                <option value="">All formats</option>
+                <option value="link">External Link</option>
+                <option value="pdf">PDF</option>
+                <option value="docx">DOCX</option>
+              </select>
+              {/* Sort */}
+              <select
+                value={resourceSort}
+                onChange={(e) => { setResourceSort(e.target.value); setResourcePage(1); }}
+                aria-label="Sort resources"
+                className="rounded-full border border-slate-200 bg-white/90 px-4 py-2.5 text-xs font-semibold text-[var(--color-primary)] outline-none focus:border-[var(--color-secondary)]"
+              >
+                <option value="newest">Newest</option>
+                <option value="most_viewed">Most Viewed</option>
+                <option value="most_downloaded">Most Downloaded</option>
+              </select>
+            </div>
           </div>
 
-          <VaultList loading={loading} empty="No resources found.">
-            {resourcesToRender.map((resource) => (
-              <article key={resource.id} className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 border-b border-slate-200 py-5 first:pt-1 overflow-hidden">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3">
-                    <span className={getResourceTypeBadgeClass(resource.resourceType)}>
-                      {getResourceTypeIcon(resource.resourceType)}
-                      {formatResourceType(resource.resourceType)}
-                    </span>
-                    {resource.filePath && (
-                      <span className="inline-flex items-center gap-1 text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
-                        <FileText size={10} /> PDF
-                      </span>
-                    )}
-                    {resource.url && !resource.filePath && (
-                      <span className="inline-flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                        <ExternalLink size={10} /> External Link
-                      </span>
-                    )}
-                  </div>
-                  <h2 className="mt-2 text-lg font-bold text-slate-950 leading-snug break-words">{resource.title}</h2>
-                  {resource.description && <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{resource.description}</p>}
-                  <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-500">
-                    {resource.uploadedBy && <span className="flex items-center gap-1"><UserRoundCheck size={12} /> {resource.uploadedBy.displayName || 'Research Admin'}</span>}
-                    {resource.viewCount !== undefined && <span className="flex items-center gap-1"><Eye size={12} /> {resource.viewCount} views</span>}
-                    {resource.downloadCount !== undefined && <span className="flex items-center gap-1"><Download size={12} /> {resource.downloadCount} downloads</span>}
-                    {resource.createdAt && <span className="flex items-center gap-1"><Clock size={12} /> {new Date(resource.createdAt).toLocaleDateString()}</span>}
-                  </div>
-                  <TagList areas={resource.researchAreas?.map((entry) => entry.researchArea) || []} onFollow={follow} followedAreaIds={followedAreaIds} />
-                </div>
-                <div className="flex flex-wrap items-center gap-2 shrink-0 sm:ml-4">
-                  {(resource.url || resource.filePath) && (
-                    <a
-                      href={resource.url || resource.filePath}
-                      target="_blank"
-                      rel="noreferrer"
-                      onClick={() => {
-                        researchVaultApi.trackResourceView(resource.id).catch(() => {});
-                        if (resource.filePath) researchVaultApi.trackResourceDownload(resource.id).catch(() => {});
-                      }}
-                      className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:border-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 transition-colors"
-                    >
-                      {resource.filePath ? <FileText size={15} /> : <ExternalLink size={15} />}
-                      {resource.filePath ? 'Open PDF' : 'Open Link'}
-                    </a>
-                  )}
-                  {!resource.url && !resource.filePath && (
-                    <span className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-400">
-                      <Lock size={15} /> Unavailable
-                    </span>
-                  )}
-                </div>
-              </article>
-            ) )}
+          {/* My Submissions panel */}
+          {showMySubmissions && (
+            <section aria-label="My submissions" className="rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-sm space-y-3">
+              <h4 className="font-bold text-slate-900 flex items-center gap-2"><FileText size={16} className="text-[var(--color-secondary)]" /> My Submissions</h4>
+              {myResourcesLoading ? (
+                <p className="text-xs text-slate-500 py-4 text-center">Loading your submissions…</p>
+              ) : myResources.length === 0 ? (
+                <p className="text-xs text-slate-500 py-4 text-center">You haven't submitted any resources yet.</p>
+              ) : (
+                <ul className="divide-y divide-slate-100">
+                  {myResources.map((r) => (
+                    <li key={r.id} className="py-3">
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2 mb-1">
+                            <span className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                              r.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                              : r.status === 'REJECTED' ? 'bg-red-50 text-red-700 border-red-200'
+                              : 'bg-amber-50 text-amber-700 border-amber-200'
+                            }`}>{r.status}</span>
+                            <span className={getResourceTypeBadgeClass(r.resourceType)}>{formatResourceType(r.resourceType)}</span>
+                          </div>
+                          <p className="text-sm font-semibold text-slate-900 break-words">{r.title}</p>
+                          {r.status === 'REJECTED' && r.rejection_reason && (
+                            <p className="mt-1 text-xs text-red-600 italic">Reason: {r.rejection_reason}</p>
+                          )}
+                          <p className="text-xs text-slate-400 mt-1">{new Date(r.createdAt).toLocaleDateString()}</p>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2 shrink-0">
+                          {r.status === 'PENDING' && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => { setEditingResource(r); setEditForm({ title: r.title, description: r.description || '', url: r.url || '', category: r.resourceType, researchAreaIds: r.researchAreas?.map(ra => ra.researchArea.id) || [], customArea: r.customArea?.name || '' }); }}
+                                className="text-xs font-semibold text-[var(--color-primary-accent)] hover:underline"
+                              >Edit</button>
+                              <button
+                                type="button"
+                                onClick={() => setWithdrawConfirm({ id: r.id, title: r.title })}
+                                className="text-xs font-semibold text-red-600 hover:underline"
+                              >Withdraw</button>
+                            </>
+                          )}
+                          {r.status === 'REJECTED' && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setResourceForm({ title: r.title, description: r.description || '', url: r.url || '', category: r.resourceType, researchAreaIds: r.researchAreas?.map(ra => ra.researchArea.id) || [], consent_confirmed: false });
+                                setResourceSubmitSuccess(false);
+                                setResourceFormOpen(true);
+                              }}
+                              className="text-xs font-semibold text-[var(--color-primary-accent)] hover:underline"
+                            >Resubmit as new</button>
+                          )}
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          )}
+
+          {/* Resource cards */}
+          <VaultList loading={loading} empty="No resources match your filters.">
+            {items.map((resource) => (
+              <ResourceCard
+                key={resource.id}
+                resource={resource}
+                follow={follow}
+                followedAreaIds={followedAreaIds}
+                apiUrl={researchVaultApi.getResourceDownloadUrl(resource.id)}
+              />
+            ))}
           </VaultList>
+
+          {/* Pagination */}
+          {resourceTotal > RESOURCE_PAGE_SIZE && (
+            <div className="flex items-center justify-center gap-3 pt-2" role="navigation" aria-label="Resource pagination">
+              <button
+                type="button"
+                disabled={resourcePage <= 1}
+                onClick={() => setResourcePage((p) => p - 1)}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 disabled:opacity-40 hover:border-[var(--color-secondary)] hover:text-[var(--color-primary-accent)] transition-colors"
+              >← Previous</button>
+              <span className="text-xs text-slate-500">Page {resourcePage} of {Math.ceil(resourceTotal / RESOURCE_PAGE_SIZE)}</span>
+              <button
+                type="button"
+                disabled={resourcePage >= Math.ceil(resourceTotal / RESOURCE_PAGE_SIZE)}
+                onClick={() => setResourcePage((p) => p + 1)}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 disabled:opacity-40 hover:border-[var(--color-secondary)] hover:text-[var(--color-primary-accent)] transition-colors"
+              >Next →</button>
+            </div>
+          )}
         </div>
       )}
 
@@ -865,29 +1051,299 @@ useEffect(() => {
 
       {/* Submit Resource Modal */}
       {resourceFormOpen && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/40 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setResourceFormOpen(false); }}>
-          <section role="dialog" aria-modal="true" aria-labelledby="submit-resource-title" className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-md bg-white p-6 shadow-xl">
-            <div className="flex items-center justify-between">
-              <h2 id="submit-resource-title" className="text-xl font-bold">Submit Resource for Review</h2>
-              <button onClick={() => setResourceFormOpen(false)} aria-label="Close" className="rounded p-2 text-slate-500 hover:bg-slate-100">×</button>
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/40 p-4" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget) resetResourceForm(); }}>
+          <section role="dialog" aria-modal="true" aria-labelledby="submit-resource-title" className="max-h-[92vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <h2 id="submit-resource-title" className="text-xl font-bold text-slate-900">Submit Resource for Review</h2>
+              <button type="button" onClick={resetResourceForm} aria-label="Close" className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><X size={18} /></button>
             </div>
-            <form onSubmit={submitResource} className="mt-5 space-y-4">
-              <p className="text-sm text-slate-600">Submitted resources will be reviewed by admins before publishing. You'll be notified once approved.</p>
-              <input name="title" required value={resourceForm.title} onChange={(e) => setResourceForm({ ...resourceForm, title: e.target.value })} placeholder='Resource title (e.g., "SOP Writing Guide for PhD Applications")' className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" />
-              <textarea name="description" value={resourceForm.description} onChange={(e) => setResourceForm({ ...resourceForm, description: e.target.value })} rows={3} placeholder="Brief description of the resource..." className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" />
-              <input name="url" type="url" value={resourceForm.url} onChange={(e) => setResourceForm({ ...resourceForm, url: e.target.value })} placeholder="External URL (optional, leave blank if uploading a file)" className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" />
-              <select name="resourceType" value={resourceForm.resourceType} onChange={(e) => setResourceForm({ ...resourceForm, resourceType: e.target.value })} className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm"><option value="GUIDE">Guide / Tutorial</option><option value="SOP_WRITING">SOP Writing</option><option value="COLD_EMAILING">Cold Email Templates</option><option value="PHD_APPLICATIONS">PhD Applications</option><option value="GRANT_WRITING">Grant Writing</option><option value="OTHER">Other</option></select>
-              <select name="researchAreaId" value={resourceForm.researchAreaId} onChange={(e) => setResourceForm({ ...resourceForm, researchAreaId: e.target.value })} className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm"><option value="">Research Area (optional)</option>{areas.map((area) => <option key={area.id} value={area.id}>{area.name}</option>)}</select>
-              <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setResourceFormOpen(false)} disabled={submittingResource} className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
-                <button type="submit" disabled={submittingResource} className="rounded-md bg-[var(--color-secondary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--color-primary-accent)] disabled:opacity-50">{submittingResource ? 'Submitting...' : 'Submit for Review'}</button>
+
+            {resourceSubmitSuccess ? (
+              <div className="py-8 flex flex-col items-center text-center gap-4">
+                <div className="rounded-full bg-emerald-100 p-4"><CheckCircle2 size={36} className="text-emerald-600" /></div>
+                <div>
+                  <p className="text-lg font-bold text-slate-900">Sent for review!</p>
+                  <p className="mt-1 text-sm text-slate-500">An admin will review your submission. You'll see it in "My Submissions" once processed.</p>
+                </div>
+                {resourceSubmitWarnings.length > 0 && (
+                  <div className="w-full rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left">
+                    <p className="text-xs font-bold text-amber-800 mb-1">Note:</p>
+                    {resourceSubmitWarnings.map((w, i) => <p key={i} className="text-xs text-amber-700">⚠ {w}</p>)}
+                  </div>
+                )}
+                <button type="button" onClick={resetResourceForm} className="rounded-full bg-[var(--color-secondary)] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[var(--color-primary-accent)]">Done</button>
+              </div>
+            ) : (
+              <form onSubmit={submitResource} className="space-y-4">
+                <p className="text-xs text-slate-500 border-l-2 border-[var(--color-secondary)] pl-3">Submitted resources are reviewed before publishing. Links only — admins handle file uploads.</p>
+
+                {/* Title */}
+                <div>
+                  <label htmlFor="res-title" className="block text-xs font-semibold text-slate-700 mb-1">Title <span className="text-red-500">*</span></label>
+                  <input
+                    id="res-title"
+                    required
+                    maxLength={200}
+                    value={resourceForm.title}
+                    onChange={(e) => setResourceForm({ ...resourceForm, title: e.target.value })}
+                    placeholder='e.g., "SOP Writing Guide for PhD Applications"'
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[var(--color-secondary)] outline-none"
+                  />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label htmlFor="res-desc" className="block text-xs font-semibold text-slate-700 mb-1">Description</label>
+                  <textarea
+                    id="res-desc"
+                    rows={3}
+                    maxLength={1000}
+                    value={resourceForm.description}
+                    onChange={(e) => setResourceForm({ ...resourceForm, description: e.target.value })}
+                    placeholder="Briefly describe what this resource covers…"
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[var(--color-secondary)] outline-none resize-none"
+                  />
+                </div>
+
+                {/* Category */}
+                <div>
+                  <label htmlFor="res-cat" className="block text-xs font-semibold text-slate-700 mb-1">Category <span className="text-red-500">*</span></label>
+                  <select
+                    id="res-cat"
+                    required
+                    value={resourceForm.category}
+                    onChange={(e) => setResourceForm({ ...resourceForm, category: e.target.value })}
+                    className="w-full appearance-none rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-[var(--color-primary)] focus:border-[var(--color-secondary)] outline-none"
+                  >
+                    <option value="GUIDE">Guide / Tutorial</option>
+                    <option value="SOP_WRITING">SOP Writing</option>
+                    <option value="LOR">Letter of Recommendation</option>
+                    <option value="COLD_EMAILING">Cold Email Templates</option>
+                    <option value="PHD_APPLICATIONS">PhD Applications</option>
+                    <option value="GRANT_WRITING">Grant Writing</option>
+                    <option value="TEMPLATE">Template</option>
+                    <option value="GENERAL">General</option>
+                  </select>
+                </div>
+
+                {/* Research Areas (multi-select) */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Research Areas</label>
+                  <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto rounded-xl border border-slate-200 p-2">
+                    {areas.map((area) => {
+                      const selected = resourceForm.researchAreaIds.includes(area.id);
+                      return (
+                        <button
+                          key={area.id}
+                          type="button"
+                          onClick={() => setResourceForm((f) => ({
+                            ...f,
+                            researchAreaIds: selected
+                              ? f.researchAreaIds.filter((id) => id !== area.id)
+                              : [...f.researchAreaIds, area.id]
+                          }))}
+                          aria-pressed={selected}
+                          className={`px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors ${selected ? 'bg-[var(--color-secondary)] text-white border-[var(--color-secondary)]' : 'bg-white text-slate-600 border-slate-200 hover:border-[var(--color-secondary)]'}`}
+                        >
+                          {selected && <Check size={10} className="inline mr-1" />}{area.name}
+                        </button>
+                      );
+                    })}
+                    {/* "Other" — free-text area, sent for admin review/normalization */}
+                    <button
+                      type="button"
+                      onClick={() => setResourceForm((f) => ({ ...f, customArea: f.customArea ? '' : ' ' }))}
+                      aria-pressed={Boolean(resourceForm.customArea)}
+                      className={`px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors ${resourceForm.customArea ? 'bg-[var(--color-secondary)] text-white border-[var(--color-secondary)]' : 'bg-white text-slate-600 border-dashed border-slate-300 hover:border-[var(--color-secondary)]'}`}
+                    >
+                      {resourceForm.customArea ? <Check size={10} className="inline mr-1" /> : <Plus size={10} className="inline mr-1" />}Other
+                    </button>
+                    {areas.length === 0 && <span className="text-xs text-slate-400 px-1">Loading areas…</span>}
+                  </div>
+                  {Boolean(resourceForm.customArea) && (
+                    <input
+                      type="text"
+                      maxLength={60}
+                      value={resourceForm.customArea}
+                      onChange={(e) => setResourceForm({ ...resourceForm, customArea: e.target.value })}
+                      placeholder="Type your research area (e.g., Quantum Materials)"
+                      className="mt-2 w-full rounded-full border border-slate-200 px-4 py-2 text-xs focus:border-[var(--color-secondary)] outline-none"
+                    />
+                  )}
+                  {Boolean(resourceForm.customArea) && (
+                    <p className="mt-1 text-[11px] text-slate-400">Custom areas are reviewed by admins before appearing as filters for everyone.</p>
+                  )}
+                </div>
+
+                {/* URL */}
+                <div>
+                  <label htmlFor="res-url" className="block text-xs font-semibold text-slate-700 mb-1">Link URL <span className="text-red-500">*</span></label>
+                  <input
+                    id="res-url"
+                    type="url"
+                    required
+                    maxLength={2048}
+                    value={resourceForm.url}
+                    onChange={(e) => setResourceForm({ ...resourceForm, url: e.target.value })}
+                    placeholder="https://docs.google.com/…"
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[var(--color-secondary)] outline-none font-mono"
+                  />
+                  <p className="mt-1 text-[11px] text-slate-400">Google Drive links: set sharing to "Anyone with the link can view". Prefer club or institutional drives over personal ones.</p>
+                </div>
+
+                {/* Consent */}
+                <label className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 cursor-pointer hover:border-[var(--color-secondary)]">
+                  <input
+                    type="checkbox"
+                    required
+                    checked={resourceForm.consent_confirmed}
+                    onChange={(e) => setResourceForm({ ...resourceForm, consent_confirmed: e.target.checked })}
+                    className="mt-0.5 accent-emerald-700"
+                  />
+                  <span className="text-xs text-slate-600">I own or have permission to share this content and have removed personal identifiers such as names, roll numbers, and contact details.</span>
+                </label>
+
+                <div className="flex justify-end gap-2 pt-1">
+                  <button type="button" onClick={resetResourceForm} disabled={submittingResource} className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
+                  <button type="submit" disabled={submittingResource || !resourceForm.consent_confirmed} className="rounded-full bg-[var(--color-secondary)] px-5 py-2 text-sm font-semibold text-white hover:bg-[var(--color-primary-accent)] disabled:opacity-50 transition-colors">
+                    {submittingResource ? 'Submitting…' : 'Submit for Review'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </section>
+        </div>
+      )}
+
+      {/* Edit submission modal */}
+      {editingResource && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/40 p-4" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget) setEditingResource(null); }}>
+          <section role="dialog" aria-modal="true" aria-labelledby="edit-resource-title" className="max-h-[92vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <h2 id="edit-resource-title" className="text-xl font-bold text-slate-900">Edit Submission</h2>
+              <button type="button" onClick={() => setEditingResource(null)} aria-label="Close" className="rounded-lg p-2 text-slate-400 hover:bg-slate-100"><X size={18} /></button>
+            </div>
+            <form onSubmit={saveEditResource} className="space-y-4">
+              <div>
+                <label htmlFor="edit-title" className="block text-xs font-semibold text-slate-700 mb-1">Title <span className="text-red-500">*</span></label>
+                <input id="edit-title" required maxLength={200} value={editForm.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[var(--color-secondary)]" />
+              </div>
+              <div>
+                <label htmlFor="edit-desc" className="block text-xs font-semibold text-slate-700 mb-1">Description</label>
+                <textarea id="edit-desc" rows={3} maxLength={1000} value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[var(--color-secondary)] resize-none" />
+              </div>
+              <div>
+                <label htmlFor="edit-cat" className="block text-xs font-semibold text-slate-700 mb-1">Category</label>
+                <select id="edit-cat" value={editForm.category} onChange={(e) => setEditForm({ ...editForm, category: e.target.value })} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-[var(--color-secondary)]">
+                  <option value="GUIDE">Guide / Tutorial</option>
+                  <option value="SOP_WRITING">SOP Writing</option>
+                  <option value="LOR">Letter of Recommendation</option>
+                  <option value="COLD_EMAILING">Cold Email Templates</option>
+                  <option value="PHD_APPLICATIONS">PhD Applications</option>
+                  <option value="GRANT_WRITING">Grant Writing</option>
+                  <option value="TEMPLATE">Template</option>
+                  <option value="GENERAL">General</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Research Areas</label>
+                <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto rounded-xl border border-slate-200 p-2">
+                  {areas.map((area) => {
+                    const selected = editForm.researchAreaIds.includes(area.id);
+                    return (
+                      <button key={area.id} type="button" onClick={() => setEditForm((f) => ({ ...f, researchAreaIds: selected ? f.researchAreaIds.filter((id) => id !== area.id) : [...f.researchAreaIds, area.id] }))} aria-pressed={selected} className={`px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors ${selected ? 'bg-[var(--color-secondary)] text-white border-[var(--color-secondary)]' : 'bg-white text-slate-600 border-slate-200 hover:border-[var(--color-secondary)]'}`}>
+                        {selected && <Check size={10} className="inline mr-1" />}{area.name}
+                      </button>
+                    );
+                  })}
+                  {/* "Other" — free-text area, sent for admin review/normalization */}
+                  <button
+                    type="button"
+                    onClick={() => setEditForm((f) => ({ ...f, customArea: f.customArea ? '' : ' ' }))}
+                    aria-pressed={Boolean(editForm.customArea)}
+                    className={`px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors ${editForm.customArea ? 'bg-[var(--color-secondary)] text-white border-[var(--color-secondary)]' : 'bg-white text-slate-600 border-dashed border-slate-300 hover:border-[var(--color-secondary)]'}`}
+                  >
+                    {editForm.customArea ? <Check size={10} className="inline mr-1" /> : <Plus size={10} className="inline mr-1" />}Other
+                  </button>
+                </div>
+                {Boolean(editForm.customArea) && (
+                  <input
+                    type="text"
+                    maxLength={60}
+                    value={editForm.customArea}
+                    onChange={(e) => setEditForm({ ...editForm, customArea: e.target.value })}
+                    placeholder="Type your research area (e.g., Quantum Materials)"
+                    className="mt-2 w-full rounded-full border border-slate-200 px-4 py-2 text-xs focus:border-[var(--color-secondary)] outline-none"
+                  />
+                )}
+              </div>
+              <div>
+                <label htmlFor="edit-url" className="block text-xs font-semibold text-slate-700 mb-1">Link URL</label>
+                <input id="edit-url" type="url" maxLength={2048} value={editForm.url} onChange={(e) => setEditForm({ ...editForm, url: e.target.value })} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[var(--color-secondary)] font-mono" />
+              </div>
+              <div className="flex justify-end gap-2 pt-1">
+                <button type="button" onClick={() => setEditingResource(null)} disabled={savingEdit} className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
+                <button type="submit" disabled={savingEdit} className="rounded-full bg-[var(--color-secondary)] px-5 py-2 text-sm font-semibold text-white hover:bg-[var(--color-primary-accent)] disabled:opacity-50">{savingEdit ? 'Saving…' : 'Save Changes'}</button>
               </div>
             </form>
           </section>
         </div>
       )}
 
+      {/* Withdraw confirmation dialog */}
+      {withdrawConfirm && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/45 p-4" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget) setWithdrawConfirm(null); }}>
+          <section role="alertdialog" aria-modal="true" aria-labelledby="withdraw-title" aria-describedby="withdraw-desc" className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-[var(--color-secondary)]">Research Vault</p>
+                <h2 id="withdraw-title" className="mt-1 text-xl font-bold text-slate-950">Withdraw submission?</h2>
+              </div>
+              <button type="button" aria-label="Close" onClick={() => setWithdrawConfirm(null)} className="rounded-md p-2 text-slate-400 hover:bg-slate-100"><X size={18} /></button>
+            </div>
+            <p id="withdraw-desc" className="mt-3 text-sm leading-6 text-slate-600">
+              "<strong>{withdrawConfirm.title}</strong>" will be permanently deleted. This cannot be undone.
+            </p>
+            <div className="mt-6 flex justify-end gap-2">
+              <button type="button" onClick={() => setWithdrawConfirm(null)} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Keep it</button>
+              <button type="button" onClick={() => withdrawResource(withdrawConfirm.id)} className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">Withdraw</button>
+            </div>
+          </section>
+        </div>
+      )}
+
       {pendingUnfollow && <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/45 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setPendingUnfollow(null); }}><section role="alertdialog" aria-modal="true" aria-labelledby="unfollow-title" aria-describedby="unfollow-description" className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-wider text-[var(--color-secondary)]">Research Vault</p><h2 id="unfollow-title" className="mt-1 text-xl font-bold text-slate-950">Unfollow {pendingUnfollow.name}?</h2></div><button type="button" aria-label="Close confirmation" onClick={() => setPendingUnfollow(null)} className="rounded-md p-2 text-slate-500 hover:bg-slate-100"><X size={18} /></button></div><p id="unfollow-description" className="mt-3 text-sm leading-6 text-slate-600">Updates from {pendingUnfollow.kind === 'faculty' ? 'this faculty member' : 'this research area'} will no longer appear in your Following feed. You can follow again at any time.</p><div className="mt-6 flex justify-end gap-2"><button type="button" onClick={() => setPendingUnfollow(null)} className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Keep following</button><button type="button" onClick={confirmUnfollow} className="rounded-md bg-rose-700 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-800">Unfollow</button></div></section></div>}
+    </div>
+  );
+}
+
+function ResearchVaultHeader({ title, subtitle, actionLabel, onAction, actionIcon: ActionIcon }) {
+  return (
+    <header>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <div className="mb-2 flex items-center gap-3">
+            <div className="accent-bar h-6 rounded-full shadow-[0_0_8px_var(--color-secondary)]" />
+            <h1 className="flex items-center gap-2.5 text-2xl font-extrabold tracking-tight text-[var(--color-primary)] md:text-3xl">
+              <BookSearch size={26} className="text-[var(--color-secondary)]" /> {title}
+            </h1>
+          </div>
+          <p className="ml-4 text-sm text-slate-500">{subtitle}</p>
+        </div>
+        {actionLabel && onAction && (
+          <button onClick={onAction} className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-95 shrink-0">
+            {ActionIcon && <ActionIcon size={16} />} {actionLabel}
+          </button>
+        )}
+      </div>
+    </header>
+  );
+}
+
+function FilterBar({ children }) {
+  return (
+    <div className="vault-toolbar flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur-xl sm:p-4 md:flex-row md:items-center">
+      {children}
     </div>
   );
 }
@@ -898,11 +1354,168 @@ function VaultList({ loading, empty, children }) {
   return <div className="space-y-4">{children}</div>;
 }
 
+function ResourceCard({ resource, follow, followedAreaIds, apiUrl }) {
+  // sourceType is the authoritative FILE vs EXTERNAL_LINK distinction
+  // (backend-derived, persisted per resource); fall back for legacy rows.
+  const isFileResource = resource.sourceType
+    ? resource.sourceType === 'FILE'
+    : Boolean(resource.filePath);
+  const isLink = !isFileResource;
+  const format = resource.format || (isFileResource ? (resource.mimeType?.includes('pdf') ? 'pdf' : 'docx') : 'link');
+
+  const formatBadge = {
+    link: { cls: 'bg-blue-50 text-blue-700 border-blue-200', icon: <ExternalLink size={10} />, label: 'External Link' },
+    pdf:  { cls: 'bg-slate-100 text-slate-600 border-slate-200', icon: <FileText size={10} />, label: 'PDF' },
+    docx: { cls: 'bg-indigo-50 text-indigo-600 border-indigo-200', icon: <FileText size={10} />, label: 'DOCX' }
+  }[format] || { cls: 'bg-slate-50 text-slate-500 border-slate-200', icon: <FileText size={10} />, label: 'File' };
+
+  const actionBtn = 'inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:border-[var(--color-secondary)] hover:text-[var(--color-primary-accent)] hover:bg-slate-50 transition-colors';
+
+  // Optimistic counters: bump the displayed number the moment the user acts,
+  // then reconcile silently against server truth — Math.max means the shown
+  // value can only ever move up (no flash-down when a unique-view POST returns
+  // an unchanged count, or when a refetch lands mid-flight).
+  const [viewCount, setViewCount] = useState(resource.viewCount ?? 0);
+  const [downloadCount, setDownloadCount] = useState(resource.downloadCount ?? 0);
+
+  useEffect(() => {
+    setViewCount((v) => Math.max(v, resource.viewCount ?? 0));
+  }, [resource.viewCount]);
+  useEffect(() => {
+    setDownloadCount((v) => Math.max(v, resource.downloadCount ?? 0));
+  }, [resource.downloadCount]);
+
+  // Track a unique view when the user opens the resource content.
+  // (File downloads are counted server-side inside the download endpoint.)
+  const handleOpen = () => {
+    setViewCount((v) => v + 1);
+    researchVaultApi.recordResourceView(resource.id)
+      .then((response) => {
+        const serverCount = response.data?.data?.viewCount;
+        if (Number.isFinite(serverCount)) setViewCount((v) => Math.max(v, serverCount));
+      })
+      .catch(() => {});
+  };
+
+  // The download endpoint increments the counter before streaming the file.
+  const handleDownload = () => {
+    setDownloadCount((v) => v + 1);
+  };
+
+  return (
+    <article className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 border-b border-slate-200 py-5 first:pt-1 overflow-hidden">
+      <div className="flex-1 min-w-0">
+        {/* Badges */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className={getResourceTypeBadgeClass(resource.resourceType)}>
+            {getResourceTypeIcon(resource.resourceType)}
+            {formatResourceType(resource.resourceType)}
+          </span>
+          <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${formatBadge.cls}`}>
+            {formatBadge.icon} {formatBadge.label}
+          </span>
+        </div>
+
+        {/* Title + description */}
+        <h2 className="mt-2 text-base font-bold text-slate-950 leading-snug break-words">{resource.title}</h2>
+        {resource.description && (
+          <p className="mt-1.5 max-w-3xl text-sm leading-6 text-slate-600 line-clamp-3">{resource.description}</p>
+        )}
+
+        {/* Meta row — author follows the Discussion format: Name · Roll Number */}
+        <div className="mt-2.5 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+          {resource.uploadedBy?.displayName && (
+            <span className="flex items-center gap-1">
+              <UserRoundCheck size={12} /> {authorLabel(resource.uploadedBy)}
+            </span>
+          )}
+          <span className="flex items-center gap-1"><Eye size={12} /> {viewCount}</span>
+          {isFileResource && <span className="flex items-center gap-1"><Download size={12} /> {downloadCount}</span>}
+          {resource.createdAt && (
+            <span className="flex items-center gap-1"><Clock size={12} /> {new Date(resource.createdAt).toLocaleDateString()}</span>
+          )}
+        </div>
+
+        {/* Research area tags (+ admin-pending custom tag) */}
+        <TagList
+          areas={resource.researchAreas?.map((entry) => entry.researchArea) || []}
+          onFollow={follow}
+          followedAreaIds={followedAreaIds}
+        />
+        {resource.customArea && (
+          <div className="mt-2">
+            <span
+              title="Custom research area — pending admin review"
+              className="inline-flex items-center gap-1 rounded-full border border-dashed border-slate-300 bg-slate-50 px-2 py-1 text-[11px] font-semibold text-slate-500"
+            >
+              <Clock size={11} /> {resource.customArea.name}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Action button(s) — label reflects what actually happens on click */}
+      <div className="shrink-0 sm:ml-4 flex flex-col items-start gap-1.5">
+        {isLink && (
+          <>
+            <a
+              href={resource.url}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              onClick={handleOpen}
+              className={actionBtn}
+            >
+              <ExternalLink size={14} /> Open Link
+            </a>
+            <span className="text-[11px] text-slate-400 flex items-center gap-1">Opens externally <ExternalLink size={10} /></span>
+          </>
+        )}
+        {isFileResource && format === 'pdf' && (
+          <div className="flex items-center gap-2">
+            <a
+              href={`${apiUrl}&inline=1`}
+              target="_blank"
+              rel="noreferrer"
+              onClick={handleOpen}
+              className={actionBtn}
+            >
+              <FileText size={14} /> Open PDF
+            </a>
+            <a
+              href={apiUrl}
+              download
+              onClick={handleDownload}
+              className={actionBtn}
+            >
+              <Download size={14} /> Download
+            </a>
+          </div>
+        )}
+        {isFileResource && format !== 'pdf' && (
+          <a
+            href={apiUrl}
+            download
+            onClick={handleDownload}
+            className={actionBtn}
+          >
+            <Download size={14} /> Download
+          </a>
+        )}
+        {!isLink && !isFileResource && (
+          <span className="inline-flex items-center gap-2 rounded-full border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-400">
+            <Lock size={14} /> Unavailable
+          </span>
+        )}
+      </div>
+    </article>
+  );
+}
+
 function TagList({ areas, onFollow, followedAreaIds, compact = false }) {
   if (!areas?.length) return null;
   return <div className={`flex flex-wrap gap-1.5 ${compact ? '' : 'mt-3'}`}>{areas.map((area) => {
     const isFollowing = followedAreaIds?.has(area.id) || false;
-    return <button type="button" key={area.id} onClick={(e) => { e.preventDefault(); e.stopPropagation(); onFollow('area', area.id, area.name); }} aria-pressed={isFollowing} title={isFollowing ? `Unfollow ${area.name}` : `Click to follow ${area.name}`} className={`relative rounded-sm border px-2 ${compact ? 'py-0.5' : 'py-1'} text-[11px] font-semibold transition-all duration-150 cursor-pointer ${isFollowing ? 'border-blue-200 bg-blue-50 text-blue-900 hover:bg-blue-100 hover:shadow-sm hover:-translate-y-0.5' : 'border-emerald-200 bg-emerald-50 text-emerald-900 hover:bg-emerald-100 hover:shadow-sm hover:-translate-y-0.5'}`}>{isFollowing ? <Check size={11} className="mr-1 inline" /> : <Plus size={11} className="mr-1 inline" />}{area.name}</button>;
+    return <button type="button" key={area.id} onClick={(e) => { e.preventDefault(); e.stopPropagation(); onFollow('area', area.id, area.name); }} aria-pressed={isFollowing} title={isFollowing ? `Unfollow ${area.name}` : `Click to follow ${area.name}`} className={`relative rounded-full border px-2 ${compact ? 'py-0.5' : 'py-1'} text-[11px] font-semibold transition-all duration-150 cursor-pointer ${isFollowing ? 'border-blue-200 bg-blue-50 text-blue-900 hover:bg-blue-100 hover:shadow-sm hover:-translate-y-0.5' : 'border-emerald-200 bg-emerald-50 text-emerald-900 hover:bg-emerald-100 hover:shadow-sm hover:-translate-y-0.5'}`}>{isFollowing ? <Check size={11} className="mr-1 inline" /> : <Plus size={11} className="mr-1 inline" />}{area.name}</button>;
   })}</div>;
 }
 
@@ -936,7 +1549,7 @@ function DiscussionItem({ discussion, currentUserId, onReply, onVote, onAcceptAn
     <article className={`border-b border-slate-200 py-5 first:pt-1 ${isOwnDiscussion ? '!bg-blue-50/70 border-l-4 border-l-blue-600 pl-4 ring-1 ring-blue-200' : ''}`}>
       <div className="flex flex-wrap items-center gap-2">
         <h2 className="text-xl font-bold leading-snug text-slate-950">{discussion.title}</h2>
-        {discussion.isResolved && <span className="inline-flex items-center gap-1 rounded-sm bg-emerald-100 px-2 py-1 text-[11px] font-bold text-emerald-900"><Check size={12} /> Resolved</span>}
+        {discussion.isResolved && <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-[11px] font-bold text-emerald-900"><Check size={12} /> Resolved</span>}
       </div>
       <p className="mt-3 whitespace-pre-wrap text-base leading-7 text-left text-slate-700">{discussion.content}</p>
       <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2">

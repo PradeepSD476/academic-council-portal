@@ -27,6 +27,8 @@ model User {
   experiences         Experience[]
   likes               Like[]
   uploadedResources   Resource[]
+  resourceViews       ResourceView[]
+  approvedResources   ResearchResource[]   @relation("ApprovedResource")
   bookmarks           Bookmark[]
 
   // Research Vault
@@ -478,21 +480,74 @@ model ResearchReplyVote {
 }
 
 model ResearchResource {
-  id           Int      @id @default(autoincrement())
-  title        String
-  description  String?
-  url          String?
-  filePath     String?
-  resourceType String   @default("GUIDE")
-  viewCount    Int      @default(0)
-  downloadCount Int     @default(0)
-  uploadedById Int?
-  uploadedBy   User?    @relation(fields: [uploadedById], references: [id])
+  id               Int         @id @default(autoincrement())
+  title            String
+  description      String?
+  url              String?
+  filePath         String?
+  fileSize         Int?
+  mimeType         String?
+  resourceType     String      @default("GUIDE")
+  format           String?
+  // Where the payload lives: a file we host (MinIO) or an external URL.
+  // sourceType is authoritative; format/url/filePath are derived context.
+  sourceType       String      @default("FILE")
+  status           ResourceStatus @default(PENDING)
+  rejection_reason String?
+  consent_confirmed Boolean    @default(false)
+
+  viewCount       Int          @default(0)
+  downloadCount   Int          @default(0)
+
+  uploadedById    Int?
+  uploadedBy      User?        @relation(fields: [uploadedById], references: [id])
+  approvedById    Int?
+  approvedBy      User?        @relation("ApprovedResource", fields: [approvedById], references: [id])
+  reviewedAt      DateTime?
+
+  views           ResourceView[]
+  customArea      CustomResearchArea?
 
   researchAreas ResearchResourceResearchArea[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@schema("research_vault")
+}
+
+// Custom research areas submitted by users in the Submit Resource modal.
+// Flagged for admin review; normalized (renamed/merged into ResearchArea or
+// rejected) by an admin before becoming filterable app-wide.
+model CustomResearchArea {
+  id         Int      @id @default(autoincrement())
+  name       String
+  resourceId Int?     @unique
+  status     String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  createdAt  DateTime @default(now())
+
+  resource ResearchResource? @relation(fields: [resourceId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@schema("research_vault")
+}
+
+model ResourceView {
+  id         Int      @id @default(autoincrement())
+  resourceId Int
+  userId     Int
+  createdAt  DateTime @default(now())
+
+  resource ResearchResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([resourceId, userId])
+  @@schema("research_vault")
+}
+
+enum ResourceStatus {
+  PENDING
+  APPROVED
+  REJECTED
   @@schema("research_vault")
 }
 
