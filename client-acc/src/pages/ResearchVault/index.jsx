@@ -1,6 +1,6 @@
 import { createElement, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Activity, Bookmark, BookOpen, BookSearch, BriefcaseBusiness, Check, CheckCircle2, CircleHelp, ExternalLink, Filter, FlaskConical, MessageCircle, Plus, Search, Send, ThumbsUp, UserRoundCheck, UserRoundPlus, UsersRound, X } from 'lucide-react';
+import { Activity, Bookmark, BookOpen, BookSearch, BriefcaseBusiness, Check, CheckCircle2, CircleHelp, ExternalLink, Filter, FlaskConical, MessageCircle, Plus, Search, Send, ThumbsUp, UserRoundCheck, UserRoundPlus, UsersRound, X, Clock, Download, Eye, FileText, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import AuthContext from '../../context/auth/authContext';
 import { researchVaultApi } from '../../api/researchVaultApi';
@@ -52,6 +52,19 @@ export default function ResearchVault() {
   const [matchSearched, setMatchSearched] = useState(false);
   const [matching, setMatching] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
+  const [resourceFormOpen, setResourceFormOpen] = useState(false);
+  const [resourceForm, setResourceForm] = useState({ title: '', description: '', url: '', resourceType: 'GUIDE', researchAreaId: '' });
+  const [submittingResource, setSubmittingResource] = useState(false);
+
+  // Mock data for resources (dev only) - shows when API returns empty
+  const mockResources = useMemo(() => [
+    { id: 1, title: 'Getting Started with Research at IIT Patna', description: 'A comprehensive guide for undergraduate students looking to begin their research journey. Covers finding faculty, cold-emailing, and preparing for interviews.', resourceType: 'GUIDE', url: 'https://example.com/research-guide.pdf', filePath: null, viewCount: 245, downloadCount: 89, createdAt: '2025-01-15T10:00:00Z', researchAreas: [{ researchArea: { id: 1, name: 'Artificial Intelligence' } }], uploadedBy: { displayName: 'Research Admin' } },
+    { id: 2, title: 'SOP Writing Workshop Slides', description: 'Presentation slides from the SOP writing workshop conducted by Prof. Sharma. Includes examples, do\'s and don\'ts, and structure templates.', resourceType: 'SOP_WRITING', url: null, filePath: '/uploads/sop-workshop-slides.pdf', viewCount: 156, downloadCount: 134, createdAt: '2025-02-20T14:30:00Z', researchAreas: [{ researchArea: { id: 1, name: 'Artificial Intelligence' } }, { researchArea: { id: 2, name: 'Machine Learning' } }], uploadedBy: { displayName: 'Dr. Asha Rao' } },
+    { id: 3, title: 'Cold Email Templates for Research Internships', description: 'Curated collection of cold email templates that have worked for students applying to research positions at top universities and labs.', resourceType: 'COLD_EMAILING', url: 'https://github.com/iitp-acc/cold-email-templates', filePath: null, viewCount: 312, downloadCount: 67, createdAt: '2025-03-10T09:15:00Z', researchAreas: [{ researchArea: { id: 3, name: 'Computer Systems' } }], uploadedBy: { displayName: 'Student Contributor' } },
+    { id: 4, title: 'PhD Application Timeline & Checklist', description: 'Month-by-month timeline for PhD applications with a comprehensive checklist covering GRE, TOEFL, SOP, CV, recommendation letters, and interview prep.', resourceType: 'PHD_APPLICATIONS', url: null, filePath: '/uploads/phd-application-checklist.pdf', viewCount: 198, downloadCount: 156, createdAt: '2025-04-05T11:00:00Z', researchAreas: [], uploadedBy: { displayName: 'Research Admin' } },
+    { id: 5, title: 'Grant Writing Resources for Early Career Researchers', description: 'Links to funding databases, sample proposals, budget templates, and tips for writing competitive grant applications for DST, SERB, and international funding.', resourceType: 'GRANT_WRITING', url: 'https://dst.gov.in/funding-opportunities', filePath: null, viewCount: 87, downloadCount: 23, createdAt: '2025-05-12T16:45:00Z', researchAreas: [{ researchArea: { id: 4, name: 'Data Science' } }], uploadedBy: { displayName: 'Dr. Kabir Shah' } },
+    { id: 6, title: 'Research Paper Reading Guide', description: 'A step-by-step guide on how to efficiently read and analyze research papers. Includes annotation techniques, literature survey methods, and note-taking templates.', resourceType: 'GUIDE', url: null, filePath: '/uploads/paper-reading-guide.pdf', viewCount: 267, downloadCount: 189, createdAt: '2025-06-01T10:00:00Z', researchAreas: [{ researchArea: { id: 1, name: 'Artificial Intelligence' } }, { researchArea: { id: 5, name: 'Robotics' } }], uploadedBy: { displayName: 'Student Contributor' } }
+  ], []);
 
   useEffect(() => {
     researchVaultApi.getAreas().then((response) => setAreas(responseData(response))).catch(() => {});
@@ -91,7 +104,59 @@ export default function ResearchVault() {
       if (!followingAreaPickerRef.current?.contains(event.target)) setFollowingAreaPickerOpen(false);
     };
     document.addEventListener('pointerdown', closeOnOutsidePointer);
-    return () => document.removeEventListener('pointerdown', closeOnOutsidePointer);
+    // Helper functions for resource type display
+  const formatResourceType = (type) => {
+    if (!type) return 'Resource';
+    return type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  };
+
+  const getResourceTypeIcon = (type) => {
+    switch (type) {
+      case 'GUIDE': return <BookOpen size={12} />;
+      case 'SOP_WRITING': return <FileText size={12} />;
+      case 'COLD_EMAILING': return <Send size={12} />;
+      case 'PHD_APPLICATIONS': return <BriefcaseBusiness size={12} />;
+      case 'GRANT_WRITING': return <FileText size={12} />;
+      default: return <Bookmark size={12} />;
+    }
+  };
+
+  const getResourceTypeBadgeClass = (type) => {
+    const base = 'inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border';
+    switch (type) {
+      case 'GUIDE': return `${base} bg-emerald-50 text-emerald-800 border-emerald-200`;
+      case 'SOP_WRITING': return `${base} bg-blue-50 text-blue-800 border-blue-200`;
+      case 'COLD_EMAILING': return `${base} bg-purple-50 text-purple-800 border-purple-200`;
+      case 'PHD_APPLICATIONS': return `${base} bg-amber-50 text-amber-800 border-amber-200`;
+      case 'GRANT_WRITING': return `${base} bg-rose-50 text-rose-800 border-rose-200`;
+      default: return `${base} bg-slate-50 text-slate-700 border-slate-200`;
+    }
+  };
+
+  // Submit resource for moderation (non-admin users)
+  const submitResource = async (e) => {
+    e.preventDefault();
+    setSubmittingResource(true);
+    try {
+      const payload = {
+        ...resourceForm,
+        researchAreaIds: resourceForm.researchAreaId ? [Number(resourceForm.researchAreaId)] : [],
+        status: 'PENDING_REVIEW'
+      };
+      delete payload.researchAreaId;
+      await researchVaultApi.createResource(payload);
+      toast.success('Resource submitted for review! It will appear after admin approval.');
+      setResourceFormOpen(false);
+      setResourceForm({ title: '', description: '', url: '', resourceType: 'GUIDE', researchAreaId: '' });
+      setRefreshVersion((v) => v + 1);
+    } catch (error) {
+      toast.error(errorMessage(error));
+    } finally {
+      setSubmittingResource(false);
+    }
+  };
+
+  return () => document.removeEventListener('pointerdown', closeOnOutsidePointer);
   }, []);
 
 useEffect(() => {
@@ -478,7 +543,81 @@ useEffect(() => {
 
       {section === 'discussions' && <VaultList loading={loading} empty="No discussions found.">{items.map((discussion) => <DiscussionItem key={discussion.id} discussion={discussion} currentUserId={user?.id} onReply={reply} onVote={vote} onAcceptAnswer={acceptAnswer} onFollow={follow} followedAreaIds={followedAreaIds} />)}</VaultList>}
 
-      {section === 'resources' && <VaultList loading={loading} empty="No resources found.">{items.map((resource) => <article key={resource.id} className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 py-5 first:pt-1"><div><p className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">{resource.resourceType?.replaceAll('_', ' ')}</p><h2 className="mt-1 text-lg font-bold">{resource.title}</h2>{resource.description && <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{resource.description}</p>}<TagList areas={resource.researchAreas?.map((entry) => entry.researchArea) || []} onFollow={follow} followedAreaIds={followedAreaIds} /></div><a href={resource.url || resource.filePath} target="_blank" rel="noreferrer" onClick={() => { researchVaultApi.trackResourceView(resource.id).catch(() => {}); if (resource.filePath) researchVaultApi.trackResourceDownload(resource.id).catch(() => {}); }} className="inline-flex shrink-0 items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:border-emerald-700 hover:text-emerald-800">Open <ExternalLink size={15} /></a></article>)}</VaultList>}
+      {section === 'resources' && (
+        <div className="space-y-4">
+          {/* Header with Submit Resource button for non-admins */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+            <div>
+              <h3 className="text-lg font-bold text-slate-900">Curated Resources</h3>
+              <p className="text-sm text-slate-500 mt-0.5">Guides, templates, and references for your research journey</p>
+            </div>
+            {user && user.role !== 'RESEARCH_ADMIN' && user.role !== 'SUPER_ADMIN' && (
+              <button
+                onClick={() => setResourceFormOpen(true)}
+                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-95 shrink-0"
+              >
+                <FileText size={16} /> Submit Resource
+              </button>
+            )}
+          </div>
+
+          <VaultList loading={loading} empty="No resources found.">
+            {(items.length > 0 ? items : (import.meta.env.DEV ? mockResources : [])).map((resource) => (
+              <article key={resource.id} className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 border-b border-slate-200 py-5 first:pt-1 overflow-hidden">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3">
+                    <span className={getResourceTypeBadgeClass(resource.resourceType)}>
+                      {getResourceTypeIcon(resource.resourceType)}
+                      {formatResourceType(resource.resourceType)}
+                    </span>
+                    {resource.filePath && (
+                      <span className="inline-flex items-center gap-1 text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                        <FileText size={10} /> PDF
+                      </span>
+                    )}
+                    {resource.url && !resource.filePath && (
+                      <span className="inline-flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                        <ExternalLink size={10} /> External Link
+                      </span>
+                    )}
+                  </div>
+                  <h2 className="mt-2 text-lg font-bold text-slate-950 leading-snug break-words">{resource.title}</h2>
+                  {resource.description && <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{resource.description}</p>}
+                  <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                    {resource.uploadedBy && <span className="flex items-center gap-1"><UserRoundCheck size={12} /> {resource.uploadedBy.displayName || 'Research Admin'}</span>}
+                    {resource.viewCount !== undefined && <span className="flex items-center gap-1"><Eye size={12} /> {resource.viewCount} views</span>}
+                    {resource.downloadCount !== undefined && <span className="flex items-center gap-1"><Download size={12} /> {resource.downloadCount} downloads</span>}
+                    {resource.createdAt && <span className="flex items-center gap-1"><Clock size={12} /> {new Date(resource.createdAt).toLocaleDateString()}</span>}
+                  </div>
+                  <TagList areas={resource.researchAreas?.map((entry) => entry.researchArea) || []} onFollow={follow} followedAreaIds={followedAreaIds} />
+                </div>
+                <div className="flex flex-wrap items-center gap-2 shrink-0 sm:ml-4">
+                  {(resource.url || resource.filePath) && (
+                    <a
+                      href={resource.url || resource.filePath}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => {
+                        researchVaultApi.trackResourceView(resource.id).catch(() => {});
+                        if (resource.filePath) researchVaultApi.trackResourceDownload(resource.id).catch(() => {});
+                      }}
+                      className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:border-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 transition-colors"
+                    >
+                      {resource.filePath ? <FileText size={15} /> : <ExternalLink size={15} />}
+                      {resource.filePath ? 'Open PDF' : 'Open Link'}
+                    </a>
+                  )}
+                  {!resource.url && !resource.filePath && (
+                    <span className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-400">
+                      <Lock size={15} /> Unavailable
+                    </span>
+                  )}
+                </div>
+              </article>
+            ))}
+          </VaultList>
+        </div>
+      )}
 
       {section === 'positions' && <VaultList loading={loading} empty="No open research positions right now.">{items.map((position) => <article key={position.id} className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 py-5 first:pt-1"><div><p className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">{position.positionType?.replaceAll('_', ' ')}</p><h2 className="mt-1 text-lg font-bold">{position.title}</h2><p className="mt-1 text-sm text-slate-600">{position.faculty?.name}{position.faculty?.department ? ` · ${position.faculty.department}` : ''}</p>{position.description && <p className="mt-2 max-w-3xl whitespace-pre-wrap text-sm leading-6 text-slate-700">{position.description}</p>}{position.deadline && <p className="mt-2 text-xs text-slate-500">Apply by {new Date(position.deadline).toLocaleDateString()}</p>}</div>{position.applicationUrl && <a href={position.applicationUrl} target="_blank" rel="noreferrer" className="inline-flex shrink-0 items-center gap-2 rounded-md bg-emerald-800 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-900">Details <ExternalLink size={15} /></a>}</article>)}</VaultList>}
 
@@ -719,6 +858,30 @@ useEffect(() => {
       )}
 
       {formOpen && <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/40 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setFormOpen(false); }}><section role="dialog" aria-modal="true" aria-labelledby="vault-form-title" className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-md bg-white p-6 shadow-xl"><div className="flex items-center justify-between"><h2 id="vault-form-title" className="text-xl font-bold">{section === 'experiences' ? 'Share a research experience' : 'Ask the community'}</h2><button onClick={() => setFormOpen(false)} aria-label="Close" className="rounded p-2 text-slate-500 hover:bg-slate-100">×</button></div><form onSubmit={submitContent} className="mt-5 space-y-3"><input name="title" required placeholder={section === 'experiences' ? 'Experience title' : 'Question title'} className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" />{section === 'experiences' && <><input name="labName" placeholder="Lab name" className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" /><input name="guideName" placeholder="Faculty guide" className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" /><input name="duration" placeholder="Duration" className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" /><input name="prerequisites" placeholder="Prerequisites" className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" /><input name="keyLearnings" placeholder="Key learnings" className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" /></>}<textarea name={section === 'experiences' ? 'description' : 'content'} required rows={5} placeholder={section === 'experiences' ? 'What did you work on and what should others know?' : 'Write your question or details. Markdown is supported.'} className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" />{section === 'experiences' && <input name="outcome" placeholder="Outcome" className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" />}<select name="researchAreaIds" defaultValue="" className="w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm"><option value="">Research area (optional)</option>{areas.map((area) => <option key={area.id} value={area.id}>{area.name}</option>)}</select>{section === 'experiences' && <select name="facultyId" defaultValue="" className="w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm"><option value="">Faculty member (optional)</option>{facultyOptions.map((faculty) => <option key={faculty.id} value={faculty.id}>{faculty.name}</option>)}</select>}<div className="flex justify-end gap-2 pt-2"><button type="button" onClick={() => setFormOpen(false)} className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold">Cancel</button><button className="rounded-md bg-emerald-800 px-4 py-2 text-sm font-semibold text-white">Submit</button></div></form></section></div>}
+
+      {/* Submit Resource Modal */}
+      {resourceFormOpen && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/40 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setResourceFormOpen(false); }}>
+          <section role="dialog" aria-modal="true" aria-labelledby="submit-resource-title" className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-md bg-white p-6 shadow-xl">
+            <div className="flex items-center justify-between">
+              <h2 id="submit-resource-title" className="text-xl font-bold">Submit Resource for Review</h2>
+              <button onClick={() => setResourceFormOpen(false)} aria-label="Close" className="rounded p-2 text-slate-500 hover:bg-slate-100">×</button>
+            </div>
+            <form onSubmit={submitResource} className="mt-5 space-y-4">
+              <p className="text-sm text-slate-600">Submitted resources will be reviewed by admins before publishing. You'll be notified once approved.</p>
+              <input name="title" required value={resourceForm.title} onChange={(e) => setResourceForm({ ...resourceForm, title: e.target.value })} placeholder='Resource title (e.g., "SOP Writing Guide for PhD Applications")' className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" />
+              <textarea name="description" value={resourceForm.description} onChange={(e) => setResourceForm({ ...resourceForm, description: e.target.value })} rows={3} placeholder="Brief description of the resource..." className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" />
+              <input name="url" type="url" value={resourceForm.url} onChange={(e) => setResourceForm({ ...resourceForm, url: e.target.value })} placeholder="External URL (optional, leave blank if uploading a file)" className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" />
+              <select name="resourceType" value={resourceForm.resourceType} onChange={(e) => setResourceForm({ ...resourceForm, resourceType: e.target.value })} className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm"><option value="GUIDE">Guide / Tutorial</option><option value="SOP_WRITING">SOP Writing</option><option value="COLD_EMAILING">Cold Email Templates</option><option value="PHD_APPLICATIONS">PhD Applications</option><option value="GRANT_WRITING">Grant Writing</option><option value="OTHER">Other</option></select>
+              <select name="researchAreaId" value={resourceForm.researchAreaId} onChange={(e) => setResourceForm({ ...resourceForm, researchAreaId: e.target.value })} className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm"><option value="">Research Area (optional)</option>{areas.map((area) => <option key={area.id} value={area.id}>{area.name}</option>)}</select>
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setResourceFormOpen(false)} disabled={submittingResource} className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+                <button type="submit" disabled={submittingResource} className="rounded-md bg-[var(--color-secondary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--color-primary-accent)] disabled:opacity-50">{submittingResource ? 'Submitting...' : 'Submit for Review'}</button>
+              </div>
+            </form>
+          </section>
+        </div>
+      )}
 
       {pendingUnfollow && <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/45 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setPendingUnfollow(null); }}><section role="alertdialog" aria-modal="true" aria-labelledby="unfollow-title" aria-describedby="unfollow-description" className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-wider text-[var(--color-secondary)]">Research Vault</p><h2 id="unfollow-title" className="mt-1 text-xl font-bold text-slate-950">Unfollow {pendingUnfollow.name}?</h2></div><button type="button" aria-label="Close confirmation" onClick={() => setPendingUnfollow(null)} className="rounded-md p-2 text-slate-500 hover:bg-slate-100"><X size={18} /></button></div><p id="unfollow-description" className="mt-3 text-sm leading-6 text-slate-600">Updates from {pendingUnfollow.kind === 'faculty' ? 'this faculty member' : 'this research area'} will no longer appear in your Following feed. You can follow again at any time.</p><div className="mt-6 flex justify-end gap-2"><button type="button" onClick={() => setPendingUnfollow(null)} className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Keep following</button><button type="button" onClick={confirmUnfollow} className="rounded-md bg-rose-700 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-800">Unfollow</button></div></section></div>}
     </div>
