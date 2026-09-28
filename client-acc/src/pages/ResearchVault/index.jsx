@@ -307,6 +307,10 @@ useEffect(() => {
     }
   };
 
+  // Resources tab: compute data to render (mock in dev when API empty)
+  const useMockResources = import.meta.env.VITE_USE_MOCK_RESOURCES === 'true';
+  const resourcesToRender = items.length > 0 ? items : (useMockResources ? mockResources : []);
+
   return (
     <div className="research-vault-theme mx-auto max-w-7xl space-y-6 pb-12 text-slate-900">
       <header>
@@ -562,7 +566,7 @@ useEffect(() => {
           </div>
 
           <VaultList loading={loading} empty="No resources found.">
-            {(items.length > 0 ? items : (import.meta.env.DEV ? mockResources : [])).map((resource) => (
+            {resourcesToRender.map((resource) => (
               <article key={resource.id} className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 border-b border-slate-200 py-5 first:pt-1 overflow-hidden">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3">
@@ -614,7 +618,7 @@ useEffect(() => {
                   )}
                 </div>
               </article>
-            ))}
+            ) )}
           </VaultList>
         </div>
       )}

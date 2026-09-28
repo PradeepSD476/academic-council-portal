@@ -24,6 +24,8 @@ services:
     build:
       context: ./client-acc
       dockerfile: Dockerfile
+      args:
+        VITE_USE_MOCK_RESOURCES: "true"
 
     container_name: acc-frontend
 
