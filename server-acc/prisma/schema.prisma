@@ -40,6 +40,7 @@ model User {
   researchInterest       ResearchInterest?
   researchFacultyFollows ResearchFacultyFollow[]
   researchAreaFollows    ResearchAreaFollow[]
+  researchPositionBookmarks ResearchOpenPositionBookmark[]
   researchExperienceLikes ResearchExperienceLike[]
   researchExperienceBookmarks ResearchExperienceBookmark[]
   researchDiscussionVotes ResearchDiscussionVote[]
@@ -298,6 +299,7 @@ model ResearchArea {
   facultyProfiles FacultyProfileResearchArea[]
   experiences     StudentResearchExperienceResearchArea[]
   discussions     ResearchDiscussionResearchArea[]
+  positions       ResearchOpenPositionResearchArea[]
   resources       ResearchResourceResearchArea[]
   followers       ResearchAreaFollow[]
 
@@ -569,6 +571,7 @@ model ResearchOpenPosition {
   positionType    String   @default("RA")
   eligibility     String?
   applicationUrl  String?
+  applicationInstructions String? @db.Text
   deadline        DateTime?
   isActive        Boolean  @default(true)
   facultyId       Int?
@@ -577,8 +580,35 @@ model ResearchOpenPosition {
   uploadedById Int
   uploadedBy   User         @relation(fields: [uploadedById], references: [id])
 
+  researchAreas ResearchOpenPositionResearchArea[]
+  bookmarkedBy  ResearchOpenPositionBookmark[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@schema("research_vault")
+}
+
+model ResearchOpenPositionResearchArea {
+  positionId     Int
+  researchAreaId Int
+
+  position      ResearchOpenPosition @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  researchArea  ResearchArea         @relation(fields: [researchAreaId], references: [id], onDelete: Cascade)
+
+  @@id([positionId, researchAreaId])
+  @@schema("research_vault")
+}
+
+model ResearchOpenPositionBookmark {
+  id        Int      @id @default(autoincrement())
+  positionId Int
+  userId    Int
+  createdAt DateTime @default(now())
+
+  position ResearchOpenPosition @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  user     User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([positionId, userId])
   @@schema("research_vault")
 }
 

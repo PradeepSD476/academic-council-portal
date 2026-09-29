@@ -44,12 +44,17 @@ import {
     followResearchArea,
     unfollowResearchArea,
     getOpenPositions,
+    getOpenPositionById,
+    getResearchPositionBookmarks,
+    bookmarkPosition,
+    unbookmarkPosition,
     createOpenPosition,
     updateOpenPosition,
     deleteOpenPosition,
     getResearchAnalytics
 } from '../controllers/researchVault.js';
 import { checkAuth } from '../middlewares/checkAuth.js';
+import { optionalAuth } from '../middlewares/optionalAuth.js';
 import { checkResearchAdmin } from '../middlewares/checkResearchAdmin.js';
 
 const router = express.Router();
@@ -113,7 +118,12 @@ router.put('/resources/:id', checkAuth, checkResearchAdmin, updateResearchResour
 router.delete('/resources/:id', checkAuth, checkResearchAdmin, deleteResearchResource);
 
 // ── Open Positions ────────────────────────────────────────────────────────────
-router.get('/positions', getOpenPositions);
+// IMPORTANT: /positions/bookmarks must be declared before /positions/:id
+router.get('/positions/bookmarks', checkAuth, getResearchPositionBookmarks);
+router.get('/positions', optionalAuth, getOpenPositions);
+router.get('/positions/:id', optionalAuth, getOpenPositionById);
+router.post('/positions/bookmarks', checkAuth, bookmarkPosition);
+router.delete('/positions/bookmarks/:id', checkAuth, unbookmarkPosition);
 router.post('/positions', checkAuth, checkResearchAdmin, createOpenPosition);
 router.put('/positions/:id', checkAuth, checkResearchAdmin, updateOpenPosition);
 router.delete('/positions/:id', checkAuth, checkResearchAdmin, deleteOpenPosition);

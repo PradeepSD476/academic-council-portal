@@ -927,13 +927,15 @@ export const getResearchFollows = handle(async (req) => {
 });
 
 export const getFollowingUpdates = handle(async (req) => {
-  const [facultyFollows, areaFollows] = await Promise.all([
+  const [facultyFollows, areaFollows, positionBookmarks] = await Promise.all([
     prisma.researchFacultyFollow.findMany({ where: { userId: req.user.id }, select: { facultyProfileId: true } }),
-    prisma.researchAreaFollow.findMany({ where: { userId: req.user.id }, select: { researchAreaId: true } })
+    prisma.researchAreaFollow.findMany({ where: { userId: req.user.id }, select: { researchAreaId: true } }),
+    prisma.researchOpenPositionBookmark.findMany({ where: { userId: req.user.id }, select: { positionId: true } })
   ]);
   const followedFacultyIds = facultyFollows.map(({ facultyProfileId }) => facultyProfileId);
   const followedAreaIds = areaFollows.map(({ researchAreaId }) => researchAreaId);
-  if (!followedFacultyIds.length && !followedAreaIds.length) return { data: [] };
+  const bookmarkedPositionIds = positionBookmarks.map(({ positionId }) => positionId);
+  if (!followedFacultyIds.length && !followedAreaIds.length && !bookmarkedPositionIds.length) return { data: [] };
 
   const filterFacultyIds = req.query.facultyIds ? req.query.facultyIds.split(',').map(id => parseInt(id)).filter(id => !isNaN(id)) : [];
   const filterAreaIds = req.query.areaIds ? req.query.areaIds.split(',').map(id => parseInt(id)).filter(id => !isNaN(id)) : [];
@@ -969,8 +971,14 @@ export const getFollowingUpdates = handle(async (req) => {
       include: { ...activityAreas, faculty: { select: { name: true } } },
       orderBy: { createdAt: 'desc' }, take: 20
     }),
-    facultyIds.length ? prisma.researchOpenPosition.findMany({
-      where: { isActive: true, facultyId: { in: facultyIds } },
+    (facultyIds.length || bookmarkedPositionIds.length) ? prisma.researchOpenPosition.findMany({
+      where: {
+        isActive: true,
+        OR: [
+          ...(facultyIds.length ? [{ facultyId: { in: facultyIds } }] : []),
+          ...(bookmarkedPositionIds.length ? [{ id: { in: bookmarkedPositionIds } }] : [])
+        ]
+      },
       include: { faculty: { select: { name: true } } },
       orderBy: { createdAt: 'desc' }, take: 20
     }) : Promise.resolve([]),
@@ -1000,6 +1008,7 @@ export const getFollowingUpdates = handle(async (req) => {
     ...positions.map((item) => ({
       id: `position-${item.id}`, type: 'position', title: item.title,
       detail: item.description, source: item.faculty?.name || 'Followed faculty',
+      url: `/dashboard/research-vault/positions/${item.id}`,
       createdAt: item.createdAt
     })),
     ...discussions.map((item) => ({
@@ -1037,16 +1046,95 @@ export const unfollowResearchArea = handle(async (req) => {
   return { message: 'Research area follow removed.' };
 });
 
+const positionInclude = {
+  faculty: { select: { id: true, name: true, slug: true, designation: true, department: true, photoURL: true } },
+  researchAreas: { include: { researchArea: true } },
+};
+
 export const getOpenPositions = handle(async (req) => {
-  const where = { isActive: true };
+  const includeClosed = req.query.includeClosed === 'true';
+  const now = new Date();
+  const where = {};
+  if (!includeClosed) {
+    // Active + not past deadline (auto-archive expired postings)
+    where.isActive = true;
+    where.OR = [{ deadline: null }, { deadline: { gte: now } }];
+  }
   if (req.query.facultyId) where.facultyId = parseId(req.query.facultyId);
   if (req.query.department) where.faculty = { department: { contains: req.query.department, mode: 'insensitive' } };
+  if (req.query.areaId) where.researchAreas = { some: { researchAreaId: parseId(req.query.areaId) } };
+  if (req.query.positionType) where.positionType = req.query.positionType;
+  if (req.query.search) {
+    where.OR = [
+      { title: { contains: req.query.search, mode: 'insensitive' } },
+      { faculty: { name: { contains: req.query.search, mode: 'insensitive' } } }
+    ];
+  }
+  const sort = req.query.sort || 'deadline';
+  const orderBy =
+    sort === 'newest' ? [{ createdAt: 'desc' }] :
+    sort === 'department' ? [{ faculty: { department: 'asc' } }, { deadline: 'asc' }] :
+    [{ deadline: 'asc' }, { createdAt: 'desc' }];
   const data = await prisma.researchOpenPosition.findMany({
     where,
-    include: { faculty: { select: { id: true, name: true, slug: true, department: true } } },
-    orderBy: [{ deadline: 'asc' }, { createdAt: 'desc' }]
+    include: positionInclude,
+    orderBy
   });
-  return { data };
+  // Per-user bookmark flags (getResearchPositions included for consistency)
+  let bookmarkedIds = new Set();
+  if (req.user) {
+    const bookmarks = await prisma.researchOpenPositionBookmark.findMany({
+      where: { userId: req.user.id },
+      select: { positionId: true }
+    });
+    bookmarkedIds = new Set(bookmarks.map((b) => b.positionId));
+  }
+  return { data: data.map((p) => ({ ...p, bookmarked: bookmarkedIds.has(p.id) })) };
+});
+
+export const getOpenPositionById = handle(async (req) => {
+  const position = await prisma.researchOpenPosition.findUnique({
+    where: { id: parseId(req.params.id) },
+    include: positionInclude
+  });
+  if (!position) throw fail(404, 'Position not found.');
+  let bookmarked = false;
+  if (req.user) {
+    const bookmark = await prisma.researchOpenPositionBookmark.findUnique({
+      where: { positionId_userId: { positionId: position.id, userId: req.user.id } }
+    });
+    bookmarked = Boolean(bookmark);
+  }
+  return { data: { ...position, bookmarked } };
+});
+
+// ── Position bookmarks (same pattern as faculty/area follows) ────────────────
+
+export const bookmarkPosition = handle(async (req) => {
+  const positionId = parseId(req.body.positionId);
+  const position = await prisma.researchOpenPosition.findUnique({ where: { id: positionId }, select: { id: true } });
+  if (!position) throw fail(404, 'Position not found.');
+  await prisma.researchOpenPositionBookmark.upsert({
+    where: { positionId_userId: { positionId, userId: req.user.id } },
+    create: { positionId, userId: req.user.id },
+    update: {}
+  });
+  return { status: 201, message: 'Position saved.' };
+});
+
+export const unbookmarkPosition = handle(async (req) => {
+  await prisma.researchOpenPositionBookmark.deleteMany({
+    where: { userId: req.user.id, positionId: parseId(req.params.id) }
+  });
+  return { message: 'Position bookmark removed.' };
+});
+
+export const getResearchPositionBookmarks = handle(async (req) => {
+  const bookmarks = await prisma.researchOpenPositionBookmark.findMany({
+    where: { userId: req.user.id },
+    select: { positionId: true }
+  });
+  return { data: { positionIds: bookmarks.map((b) => b.positionId) } };
 });
 
 export const createOpenPosition = handle(async (req) => {

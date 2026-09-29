@@ -57,11 +57,15 @@ export const researchVaultApi = {
 
   // ── Positions ─────────────────────────────────────────────────────────────
   getPositions: (params) => api.get('/positions', { params }),
+  getPositionById: (id) => api.get(`/positions/${id}`),
   createPosition: (data) => api.post('/positions', data),
   deletePosition: (id) => api.delete(`/positions/${id}`),
 
-  // ── Follows ───────────────────────────────────────────────────────────────
+  // ── Follows ─────────────────────────────────────────────────────────
   getFollows: () => api.get('/follow'),
+  getPositionBookmarks: () => api.get('/positions/bookmarks'),
+  bookmarkPosition: (positionId) => api.post('/positions/bookmarks', { positionId }),
+  unbookmarkPosition: (positionId) => api.delete(`/positions/bookmarks/${positionId}`),
   getFollowingUpdates: (params) => api.get('/follow/updates', { params }),
   followFaculty: (facultyId) => api.post('/follow/faculty', { facultyId }),
   unfollowFaculty: (facultyId) => api.delete(`/follow/faculty/${facultyId}`),

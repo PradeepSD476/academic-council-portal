@@ -41,6 +41,7 @@ import ResearchVault from "./pages/ResearchVault/index.jsx";
 import ResearchVaultAdmin from "./pages/ResearchVault/ResearchVaultAdmin.jsx";
 import ResearchQuestionList from "./pages/ResearchVault/ResearchQuestionList.jsx";
 import ResearchQuestionDetail from "./pages/ResearchVault/ResearchQuestionDetail.jsx";
+import PositionDetail from "./pages/ResearchVault/PositionDetail.jsx";
 const AppRoutes = () => {
   return (
     <Routes>
@@ -89,6 +90,7 @@ const AppRoutes = () => {
 <Route path="research-vault" element={<ResearchVault />} />
 <Route path="research-vault/questions" element={<ResearchQuestionList />} />
 <Route path="research-vault/questions/:questionId" element={<ResearchQuestionDetail />} />
+<Route path="research-vault/positions/:positionId" element={<PositionDetail />} />
 
 <Route
   path="finance-vault/:id"

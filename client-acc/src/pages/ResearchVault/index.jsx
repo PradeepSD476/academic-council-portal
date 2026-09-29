@@ -1,6 +1,6 @@
-import { createElement, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { createElement, useContext, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Activity, Bookmark, BookOpen, BookSearch, BriefcaseBusiness, Check, CheckCircle2, CircleHelp, ExternalLink, Filter, FlaskConical, MessageCircle, Plus, Search, Send, ThumbsUp, UserRoundCheck, UserRoundPlus, UsersRound, X, Clock, Download, Eye, FileText, Lock } from 'lucide-react';
+import { Activity, Bookmark, BookOpen, BookSearch, BriefcaseBusiness, Check, CheckCircle2, ChevronDown, CircleHelp, ExternalLink, Filter, FlaskConical, MessageCircle, Plus, Search, Send, ThumbsUp, UserRoundCheck, UserRoundPlus, UsersRound, X, Clock, Download, Eye, FileText, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import AuthContext from '../../context/auth/authContext';
 import { researchVaultApi } from '../../api/researchVaultApi';
@@ -39,6 +39,209 @@ const getResourceTypeIcon = (type) => {
     default: return <Bookmark size={12} />;
   }
 };
+
+// Open Positions: single source of truth for position-type labels so the filter
+// options and the card badges always spell the type the same way.
+const POSITION_TYPE_LABELS = {
+  RA: 'Research Assistant',
+  RA_SHIP: 'Research Assistantship',
+  INTERNSHIP: 'Internship',
+  PROJECT: 'Project',
+  FELLOWSHIP: 'Fellowship',
+  SUMMER: 'Summer Research',
+  SUMMER_RESEARCH: 'Summer Research',
+  THESIS: 'Thesis Slot',
+  READING_PROJECT: 'Reading Project',
+  PHD: 'PhD Position',
+  OTHER: 'Other',
+};
+
+const positionTypeLabel = (type) => {
+  if (!type) return '';
+  return POSITION_TYPE_LABELS[type] || type.replaceAll('_', ' ');
+};
+
+// A position is "open" when it is active and its deadline has not passed.
+// Used for the client-side Show-closed filter so toggling is instant (no refetch).
+const isOpenPosition = (position) => {
+  if (position.isActive === false) return false;
+  if (!position.deadline) return true;
+  return new Date(position.deadline).getTime() >= Date.now();
+};
+
+const POSITION_TYPE_OPTIONS = [
+  { value: '', label: 'All types' },
+  { value: 'RA', label: 'Research Assistant' },
+  { value: 'INTERNSHIP', label: 'Internship' },
+  { value: 'PROJECT', label: 'Project' },
+  { value: 'FELLOWSHIP', label: 'Fellowship' },
+];
+
+const POSITION_SORT_OPTIONS = [
+  { value: 'deadline', label: 'Deadline (soonest)' },
+  { value: 'newest', label: 'Newest' },
+  { value: 'department', label: 'Department (A-Z)' },
+];
+
+// Custom dropdown used across the Open Positions filter row. Renders a pill
+// trigger with the options panel positioned below it (absolute, z-30), so it
+// never overlaps the page header the way a native <select> popup can.
+// Set `searchable` to add a type-ahead input at the top of the panel.
+function FilterDropdown({
+  value,
+  onChange,
+  options,
+  ariaLabel,
+  placeholder = 'Select…',
+  searchable = false,
+  searchPlaceholder = 'Search…',
+  emptyMessage = 'No matches.',
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [highlightIndex, setHighlightIndex] = useState(0);
+  const containerRef = useRef(null);
+  const triggerRef = useRef(null);
+  const searchInputRef = useRef(null);
+  const panelRef = useRef(null);
+  const listboxId = useId();
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const handlePointerDown = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) setOpen(false);
+    };
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (open && searchable && searchInputRef.current) searchInputRef.current.focus();
+  }, [open, searchable]);
+
+  const selected = options.find((option) => String(option.value) === String(value));
+  const visible = searchable
+    ? options.filter((option) => option.label.toLowerCase().includes(query.trim().toLowerCase()))
+    : options;
+
+  // Keyboard support: ArrowUp/ArrowDown move the highlight through the options
+  // in visual order; Enter/Space select the highlighted option. The highlight
+  // starts at index 0, so Enter always selects the visually first item until
+  // the user actually arrows somewhere else.
+  const moveHighlight = (delta) => {
+    setHighlightIndex((prev) => {
+      if (visible.length === 0) return 0;
+      return (prev + delta + visible.length) % visible.length;
+    });
+  };
+  const selectHighlighted = () => {
+    const option = visible[highlightIndex];
+    if (!option) return;
+    onChange(option.value);
+    setOpen(false);
+  };
+
+  useEffect(() => {
+    setHighlightIndex(0);
+  }, [open, query]);
+
+  useEffect(() => {
+    if (!open) return;
+    panelRef.current?.querySelector('[data-active="true"]')?.scrollIntoView({ block: 'nearest' });
+  }, [highlightIndex, open]);
+
+  const handleContainerKeyDown = (event) => {
+    if (event.key === 'Escape') {
+      setOpen(false);
+      triggerRef.current?.focus();
+      return;
+    }
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      if (!open) { setOpen(true); return; }
+      moveHighlight(event.key === 'ArrowDown' ? 1 : -1);
+      return;
+    }
+    if (event.key === 'Enter') {
+      if (!open) return; // let the button's default click open the panel
+      event.preventDefault();
+      selectHighlighted();
+      return;
+    }
+    if (event.key === ' ' && open && event.target.tagName !== 'INPUT') {
+      event.preventDefault();
+      selectHighlighted();
+    }
+  };
+
+  return (
+    <div ref={containerRef} className="relative" onKeyDown={handleContainerKeyDown}>
+      <button
+        ref={triggerRef}
+        type="button"
+        aria-label={ariaLabel}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-controls={open ? listboxId : undefined}
+        onClick={() => { setOpen((prev) => !prev); setQuery(''); }}
+        className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white/90 px-4 py-2.5 text-xs font-semibold text-[var(--color-primary)] outline-none focus:border-[var(--color-secondary)]"
+      >
+        {selected ? selected.label : placeholder}
+        <ChevronDown size={13} className={`shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div
+          ref={panelRef}
+          role="listbox"
+          id={listboxId}
+          aria-activedescendant={visible[highlightIndex] ? `${listboxId}-opt-${highlightIndex}` : undefined}
+          className="absolute left-0 top-full z-30 mt-2 max-h-64 w-56 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl"
+        >
+          {searchable && (
+            <div className="sticky top-0 bg-white p-1">
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder={searchPlaceholder}
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-[var(--color-primary)] outline-none focus:border-[var(--color-secondary)]"
+              />
+            </div>
+          )}
+          {visible.length === 0 && <p className="px-3 py-2 text-xs text-slate-500">{emptyMessage}</p>}
+          {visible.map((option, index) => {
+            const isSelected = String(option.value) === String(value);
+            const isHighlighted = index === highlightIndex;
+            return (
+              <button
+                key={option.value || '__all__'}
+                id={`${listboxId}-opt-${index}`}
+                type="button"
+                role="option"
+                tabIndex={-1}
+                aria-selected={isSelected}
+                data-active={isHighlighted ? 'true' : undefined}
+                onClick={() => { onChange(option.value); setOpen(false); }}
+                className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-xs ${isHighlighted ? 'bg-blue-100 text-[var(--color-primary-accent)]' : 'text-slate-700 hover:bg-blue-50 hover:text-[var(--color-primary-accent)]'} ${isSelected ? 'font-semibold' : ''}`}
+              >
+                <span className="truncate">{option.label}</span>
+                {isSelected && <Check size={13} className="shrink-0" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const getResourceTypeBadgeClass = (type) => {
   const base = 'inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border';
@@ -101,8 +304,26 @@ export default function ResearchVault() {
   const [resourceFormat, setResourceFormat] = useState('');
   const [resourceSort, setResourceSort] = useState('newest');
   const [resourcePage, setResourcePage] = useState(1);
+  // Open Positions filters/sort + bookmark state
+  const [positionAreaId, setPositionAreaId] = useState('');
+  const [positionType, setPositionType] = useState('');
+  const [positionSort, setPositionSort] = useState('deadline');
+  const [positionShowClosed, setPositionShowClosed] = useState(false);
+  const [bookmarkedPositionIds, setBookmarkedPositionIds] = useState(() => new Set());
   const [resourceTotal, setResourceTotal] = useState(0);
   const RESOURCE_PAGE_SIZE = 12;
+
+  // Area options for the Open Positions filter (searchable custom dropdown).
+  const positionAreaOptions = useMemo(() => ([
+    { value: '', label: 'All research areas' },
+    ...areas.map((area) => ({ value: String(area.id), label: area.name })),
+  ]), [areas]);
+
+  // "Show closed positions" is a pure client-side filter over the already
+  // loaded list: toggling it costs no network request and cannot flash.
+  const filteredPositions = useMemo(() => (
+    positionShowClosed ? items : items.filter(isOpenPosition)
+  ), [items, positionShowClosed]);
   // My Submissions
   const [showMySubmissions, setShowMySubmissions] = useState(false);
   const [myResources, setMyResources] = useState([]);
@@ -130,6 +351,9 @@ export default function ResearchVault() {
       setFollowedFacultyIds(new Set(data.data?.facultyIds || []));
       setFollowedAreaIds(new Set(data.data?.areaIds || []));
     }).catch((error) => toast.error(errorMessage(error)));
+    researchVaultApi.getPositionBookmarks().then(({ data }) => {
+      setBookmarkedPositionIds(new Set(data.data?.positionIds || []));
+    }).catch(() => {});
   }, []);
 
   // Compute relevant areas for Following section: followed areas + areas of followed faculty
@@ -188,7 +412,17 @@ useEffect(() => {
                   limit: RESOURCE_PAGE_SIZE
                 })
               : section === 'positions'
-                ? researchVaultApi.getPositions({ search, department })
+                ? researchVaultApi.getPositions({
+                    search,
+                    department,
+                    areaId: positionAreaId || undefined,
+                    positionType: positionType || undefined,
+                    sort: positionSort,
+                    // Always fetch open + closed together: the "Show closed
+                    // positions" checkbox then filters client-side, so toggling
+                    // it fires no network request and cannot flash the list.
+                    includeClosed: 'true'
+                  })
                 : researchVaultApi.getFollowingUpdates({
                     ...(followingAreaId ? { areaId: followingAreaId } : {}),
                     // Filter logic: OR within same type (multiple facultyIds = any of them), AND across types (facultyIds AND areaIds)
@@ -210,7 +444,7 @@ useEffect(() => {
       if (active) setLoading(false);
     });
     return () => { active = false; };
-  }, [section, search, discussionStatus, department, areaId, areas, openingsOnly, refreshVersion, followingAreaId, activeFacultyFilters, activeAreaFilters, resourceCategory, resourceFormat, resourceSort, resourcePage]);
+  }, [section, search, discussionStatus, department, areaId, areas, openingsOnly, refreshVersion, followingAreaId, activeFacultyFilters, activeAreaFilters, resourceCategory, resourceFormat, resourceSort, resourcePage, positionAreaId, positionType, positionSort]);
 
   const follow = async (kind, id, name = '') => {
     const numericId = Number(id);
@@ -258,6 +492,41 @@ useEffect(() => {
     } catch (error) {
       toast.error(errorMessage(error));
     }
+  };
+
+  const togglePositionBookmark = async (positionId) => {
+    const isBookmarked = bookmarkedPositionIds.has(positionId);
+    try {
+      if (isBookmarked) {
+        await researchVaultApi.unbookmarkPosition(positionId);
+        setBookmarkedPositionIds((current) => {
+          const next = new Set(current);
+          next.delete(positionId);
+          return next;
+        });
+        toast.success('Removed from saved positions.');
+      } else {
+        await researchVaultApi.bookmarkPosition(positionId);
+        setBookmarkedPositionIds((current) => {
+          const next = new Set(current);
+          next.add(positionId);
+          return next;
+        });
+        toast.success('Position saved — see it under Following.');
+      }
+      setRefreshVersion((v) => v + 1);
+    } catch (error) {
+      toast.error(errorMessage(error));
+    }
+  };
+
+  const deadlineInfo = (deadline) => {
+    if (!deadline) return null;
+    const ms = new Date(deadline).getTime() - Date.now();
+    const days = Math.ceil(ms / (24 * 60 * 60 * 1000));
+    if (ms < 0) return { key: 'closed', label: 'Deadline passed', cls: 'bg-slate-100 text-slate-500 border-slate-200' };
+    if (days <= 7) return { key: 'soon', label: days === 0 ? 'Closes today' : `${days} day${days === 1 ? '' : 's'} left`, cls: days <= 2 ? 'bg-red-50 text-red-700 border-red-200' : 'bg-amber-50 text-amber-700 border-amber-200' };
+    return null;
   };
 
   const findMatches = async (event) => {
@@ -809,7 +1078,87 @@ useEffect(() => {
         </div>
       )}
 
-      {section === 'positions' && <VaultList loading={loading} empty="No open research positions right now.">{items.map((position) => <article key={position.id} className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 py-5 first:pt-1"><div><p className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">{position.positionType?.replaceAll('_', ' ')}</p><h2 className="mt-1 text-lg font-bold">{position.title}</h2><p className="mt-1 text-sm text-slate-600">{position.faculty?.name}{position.faculty?.department ? ` · ${position.faculty.department}` : ''}</p>{position.description && <p className="mt-2 max-w-3xl whitespace-pre-wrap text-sm leading-6 text-slate-700">{position.description}</p>}{position.deadline && <p className="mt-2 text-xs text-slate-500">Apply by {new Date(position.deadline).toLocaleDateString()}</p>}</div>{position.applicationUrl && <a href={position.applicationUrl} target="_blank" rel="noreferrer" className="inline-flex shrink-0 items-center gap-2 rounded-md bg-emerald-800 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-900">Details <ExternalLink size={15} /></a>}</article>)}</VaultList>}
+      {section === 'positions' && (
+        <div className="space-y-4">
+          {/* Filter/sort row — same control styling as the Resources filter row */}
+          <div className="flex flex-wrap items-center gap-2">
+            <FilterDropdown
+              value={positionType}
+              onChange={setPositionType}
+              options={POSITION_TYPE_OPTIONS}
+              ariaLabel="Filter by position type"
+              placeholder="All types"
+            />
+            <FilterDropdown
+              value={positionAreaId}
+              onChange={setPositionAreaId}
+              options={positionAreaOptions}
+              ariaLabel="Filter by research area"
+              placeholder="All research areas"
+              searchable
+              searchPlaceholder="Search areas…"
+              emptyMessage="No matching areas."
+            />
+            <div className="ml-auto flex flex-wrap items-center gap-2">
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white/90 px-3 py-2.5 text-xs font-semibold text-[var(--color-primary)]">
+                <input type="checkbox" checked={positionShowClosed} onChange={(e) => setPositionShowClosed(e.target.checked)} className="accent-emerald-800" />
+                Show closed positions
+              </label>
+              <FilterDropdown
+                value={positionSort}
+                onChange={setPositionSort}
+                options={POSITION_SORT_OPTIONS}
+                ariaLabel="Sort positions"
+                placeholder="Deadline (soonest)"
+              />
+            </div>
+          </div>
+
+          <VaultList loading={loading} empty={positionShowClosed ? 'No positions match your filters.' : 'No open research positions right now.'}>
+            {filteredPositions.map((position) => {
+              const closed = position.deadline && new Date(position.deadline).getTime() < Date.now();
+              const urgency = deadlineInfo(position.deadline);
+              const isBookmarked = bookmarkedPositionIds.has(position.id);
+              return (
+                <article key={position.id} className={`flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 py-5 first:pt-1 ${closed ? 'opacity-60' : ''}`}>
+                  <div className="min-w-0 flex-1 cursor-pointer" role="link" tabIndex={0}
+                    onClick={() => navigate(`/dashboard/research-vault/positions/${position.id}`)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/dashboard/research-vault/positions/${position.id}`); }}
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-emerald-800">{positionTypeLabel(position.positionType)}</span>
+                      {urgency && <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${urgency.cls}`}>{urgency.label}</span>}
+                      {position.bookmarked && <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold text-blue-700">Saved</span>}
+                    </div>
+                    <h2 className="mt-1 text-lg font-bold hover:text-[var(--color-primary-accent)]">{position.title}</h2>
+                    <p className="mt-1 text-sm text-slate-600">{position.faculty?.name}{position.faculty?.department ? ` · ${position.faculty.department}` : ''}</p>
+                    {position.description && <p className="mt-1.5 max-w-3xl truncate text-sm leading-6 text-slate-600">{position.description}</p>}
+                    {position.deadline && <p className={`mt-2 text-xs ${closed ? 'text-slate-400' : 'text-slate-500'}`}>Apply by {new Date(position.deadline).toLocaleDateString()}</p>}
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => togglePositionBookmark(position.id)}
+                      aria-pressed={isBookmarked}
+                      title={isBookmarked ? 'Remove from saved positions' : 'Save this position'}
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-semibold transition-colors ${isBookmarked ? 'border-blue-200 bg-blue-50 text-blue-700' : 'border-slate-200 bg-white text-slate-600 hover:border-[var(--color-secondary)] hover:text-[var(--color-primary-accent)]'}`}
+                    >
+                      <Bookmark size={13} /> {isBookmarked ? 'Saved' : 'Save'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/dashboard/research-vault/positions/${position.id}`)}
+                      className="inline-flex items-center gap-2 rounded-full bg-emerald-800 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-900"
+                    >
+                      View details
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </VaultList>
+        </div>
+      )}
 
       {section === 'following' && (
         <div className="space-y-6">

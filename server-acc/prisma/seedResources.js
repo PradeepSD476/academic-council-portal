@@ -208,6 +208,69 @@ async function main() {
     });
   }
   console.log(`Research areas ensured: 8 existing + ${extraAreas.length} cross-department.`);
+
+  // Demo open positions covering every student-facing feature: urgency badges,
+  // auto-archive of expired ones, types, departments, area tags, apply links.
+  const day = (n) => new Date(now.getTime() + n * 24 * 60 * 60 * 1000);
+  const positionSeed = [
+    {
+      title: 'Research Assistant: LLM evaluation for campus services', positionType: 'RA', facultySlug: 'dr-priya-sharma',
+      description: 'Join the Applied AI Lab to benchmark compact language models on an anonymized campus Q&A dataset. You will build evaluation pipelines, run ablations, and co-author an internal report.',
+      eligibility: 'Undergraduates with Python + basic ML coursework. Prior NLP project work a plus.',
+      applicationUrl: 'https://example.edu/apply/ra-llm-eval',
+      applicationInstructions: 'Email a one-paragraph interest note plus your resume with the subject line "RA-LLM-EVAL". Shortlisted candidates get a 20-minute chat within a week.',
+      deadline: day(4), areaSlugs: ['ml', 'data-science']
+    },
+    {
+      title: 'Summer intern: Indoor robot mapping on low-cost sensors', positionType: 'INTERNSHIP', facultySlug: 'dr-amit-kumar-singh',
+      description: 'Prototype indoor mapping with commodity depth cameras and IMUs; compare SLAM baselines on a small real-world testbed.',
+      eligibility: '2nd/3rd year students comfortable with ROS or Python simulation.',
+      applicationUrl: 'https://example.edu/apply/robotics-intern',
+      applicationInstructions: 'Apply through the portal link with a short note on a robotics project you have done.',
+      deadline: day(45), areaSlugs: ['robotics']
+    },
+    {
+      title: 'Project assistant: Cellular data analysis pipeline', positionType: 'PROJECT', facultySlug: 'dr-neha-agarwal',
+      description: 'Build reproducible notebooks for single-cell datasets and help draft a methods section for publication.',
+      eligibility: 'Open to all branches; basic statistics and Python required.',
+      applicationUrl: 'https://example.edu/apply/bio-pipeline',
+      deadline: day(11), areaSlugs: ['biosciences-bioengineering']
+    },
+    {
+      title: 'Research assistant: VLSI testbench automation (Expired demo)', positionType: 'RA', facultySlug: 'dr-priya-sharma',
+      description: 'This posting is intentionally expired to demo the closed-state UI and auto-archive behavior.',
+      eligibility: 'None (demo row).',
+      applicationUrl: 'https://example.edu/apply/vlsi-expired',
+      deadline: day(-6), areaSlugs: ['vlsi-microelectronics']
+    },
+  ];
+  const facultyBySlug = {};
+  for (const fp of await prisma.facultyProfile.findMany({ select: { id: true, slug: true } })) {
+    facultyBySlug[fp.slug] = fp;
+  }
+  const areaBySlug = {};
+  for (const slug of extraAreas.map((a) => a.slug).concat(['ml', 'robotics', 'data-science'])) {
+    areaBySlug[slug] = await prisma.researchArea.findUnique({ where: { slug } });
+  }
+  for (const p of positionSeed) {
+    const areaRows = p.areaSlugs.filter((s) => areaBySlug[s]).map((s) => ({ researchAreaId: areaBySlug[s].id }));
+    const data = {
+      title: p.title, description: p.description, positionType: p.positionType,
+      eligibility: p.eligibility, applicationUrl: p.applicationUrl,
+      applicationInstructions: p.applicationInstructions || null,
+      deadline: p.deadline, isActive: true, uploadedById: contributor.id,
+      ...(facultyBySlug[p.facultySlug] ? { facultyId: facultyBySlug[p.facultySlug].id } : {}),
+      researchAreas: { deleteMany: {}, create: areaRows },
+    };
+    const existing = await prisma.researchOpenPosition.findFirst({ where: { title: p.title } });
+    if (existing) {
+      await prisma.researchOpenPosition.update({ where: { id: existing.id }, data });
+    } else {
+      const { researchAreas, ...createData } = data;
+      await prisma.researchOpenPosition.create({ data: { ...createData, researchAreas: { create: researchAreas.create } } });
+    }
+  }
+  console.log(`Positions seeded: ${positionSeed.length} (1 intentionally expired for closed-state demo).`);
 }
 
 main()
