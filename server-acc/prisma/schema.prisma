@@ -43,6 +43,8 @@ model User {
   researchPositionBookmarks ResearchOpenPositionBookmark[]
   researchExperienceLikes ResearchExperienceLike[]
   researchExperienceBookmarks ResearchExperienceBookmark[]
+  researchExperienceComments ResearchExperienceComment[] @relation("ResearchExperienceCommenter")
+  researchExperienceCommentDeletions ResearchExperienceComment[] @relation("ResearchExperienceCommentDeleter")
   researchDiscussionVotes ResearchDiscussionVote[]
   researchReplyVotes     ResearchReplyVote[]
   @@schema("public")
@@ -245,6 +247,13 @@ enum ContentStatus {
   @@schema("public")
 }
 
+enum ExperienceStatus {
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  @@schema("research_vault")
+}
+
 enum ExperienceType {
   INTERNSHIP
   PLACEMENT
@@ -347,15 +356,24 @@ model FacultyProfileResearchArea {
 model StudentResearchExperience {
   id             Int      @id @default(autoincrement())
   title          String
+  summary        String?
   description    String   @db.Text
   labName        String?
-  guideName      String?
+  department     String?
   duration       String?
   prerequisites  String?
   keyLearnings   String?
   outcome        String?
-  status         ContentStatus @default(DRAFT)
+  experienceType String?
+  status         ExperienceStatus @default(PENDING_REVIEW)
+  reviewNote     String?
   facultyId      Int?
+
+  // External guide — set only when the guide is NOT in our faculty directory
+  // (e.g. a professor at another institute or an industry mentor). Mutually
+  // exclusive with the facultyId link; validated in the controller.
+  externalGuideName        String?
+  externalGuideAffiliation String?
 
   faculty  FacultyProfile?               @relation(fields: [facultyId], references: [id])
   uploadedById Int
@@ -363,9 +381,28 @@ model StudentResearchExperience {
   researchAreas StudentResearchExperienceResearchArea[]
   likes         ResearchExperienceLike[]
   bookmarks     ResearchExperienceBookmark[]
+  comments      ResearchExperienceComment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@schema("research_vault")
+}
+
+model ResearchExperienceComment {
+  id            Int      @id @default(autoincrement())
+  content       String   @db.Text
+  experienceId  Int
+  uploadedById  Int
+  deletedAt     DateTime?
+  deletedById   Int?
+
+  experience StudentResearchExperience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  uploadedBy User                      @relation("ResearchExperienceCommenter", fields: [uploadedById], references: [id])
+  deletedBy  User?                     @relation("ResearchExperienceCommentDeleter", fields: [deletedById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([experienceId, createdAt])
   @@schema("research_vault")
 }
 

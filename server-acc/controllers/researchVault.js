@@ -43,10 +43,10 @@ const facultyInclude = {
 };
 
 const experienceInclude = {
-  faculty: { select: { id: true, name: true, slug: true, department: true } },
+  faculty: { select: { id: true, name: true, slug: true, designation: true, department: true } },
   uploadedBy: userSummary,
   researchAreas: { include: { researchArea: true } },
-  _count: { select: { likes: true, bookmarks: true } }
+  _count: { select: { likes: true, bookmarks: true, comments: true } }
 };
 
 const discussionInclude = {
@@ -85,16 +85,21 @@ const facultyWhere = (query) => {
   return where;
 };
 
-const experienceWhere = (query, includeDrafts = false) => {
-  const where = includeDrafts ? {} : { status: 'PUBLISHED' };
+const EXPERIENCE_TYPES = ['INTERNSHIP', 'THESIS', 'RA', 'INDEPENDENT_PROJECT', 'COURSE_PROJECT', 'OTHER'];
+
+const experienceWhere = (query) => {
+  const where = { status: 'APPROVED' };
   if (query.facultyId) where.facultyId = parseId(query.facultyId);
   if (query.department) where.faculty = { department: { contains: query.department, mode: 'insensitive' } };
   if (query.areaId) where.researchAreas = { some: { researchAreaId: parseId(query.areaId) } };
+  if (query.experienceType) where.experienceType = query.experienceType;
   if (query.search) where.OR = [
     { title: { contains: query.search, mode: 'insensitive' } },
     { description: { contains: query.search, mode: 'insensitive' } },
     { labName: { contains: query.search, mode: 'insensitive' } },
-    { guideName: { contains: query.search, mode: 'insensitive' } }
+    { faculty: { name: { contains: query.search, mode: 'insensitive' } } },
+    { externalGuideName: { contains: query.search, mode: 'insensitive' } },
+    { externalGuideAffiliation: { contains: query.search, mode: 'insensitive' } }
   ];
   return where;
 };
@@ -205,31 +210,61 @@ export const getResearchExperiences = handle(async (req) => {
 
 export const getResearchModerationQueue = handle(async () => {
   const data = await prisma.studentResearchExperience.findMany({
-    where: { status: 'DRAFT' },
+    where: { status: 'PENDING_REVIEW' },
     include: experienceInclude,
     orderBy: { createdAt: 'asc' }
   });
   return { data };
 });
 
+// Public detail: APPROVED is public; PENDING_REVIEW/REJECTED visible only to
+// the author or a research admin (so "My Submissions" can open its own items).
 export const getResearchExperienceById = handle(async (req) => {
-  const experience = await prisma.studentResearchExperience.findFirst({
-    where: { id: parseId(req.params.id), status: 'PUBLISHED' },
+  const experience = await prisma.studentResearchExperience.findUnique({
+    where: { id: parseId(req.params.id) },
     include: experienceInclude
   });
   if (!experience) throw fail(404, 'Research experience not found.');
+  const isOwner = req.user && experience.uploadedById === req.user.id;
+  const canModerate = req.user && isAdmin(req.user);
+  if (experience.status !== 'APPROVED' && !isOwner && !canModerate) {
+    throw fail(404, 'Research experience not found.');
+  }
   return { data: experience };
+});
+
+export const getMyResearchExperiences = handle(async (req) => {
+  const data = await prisma.studentResearchExperience.findMany({
+    where: { uploadedById: req.user.id },
+    include: experienceInclude,
+    orderBy: { createdAt: 'desc' }
+  });
+  return { data };
 });
 
 export const createResearchExperience = handle(async (req) => {
   const { researchAreaIds, ...data } = req.body;
-  if (!data.title || !data.description) throw fail(400, 'Title and description are required.');
+  if (!data.title || !data.labName || !data.duration || !data.description) {
+    throw fail(400, 'Title, lab name, duration, and the full narrative are required.');
+  }
+  if (data.experienceType && !EXPERIENCE_TYPES.includes(data.experienceType)) {
+    throw fail(400, 'Invalid experience type.');
+  }
+  // A guide is either an internal FacultyProfile link OR external free-text
+  // details — never both.
+  const hasFaculty = Boolean(data.facultyId);
+  const hasExternal = Boolean((data.externalGuideName || '').trim());
+  if (hasFaculty && hasExternal) throw fail(400, 'Choose either a faculty member or an external guide, not both.');
+  data.externalGuideName = hasExternal ? data.externalGuideName.trim() : null;
+  data.externalGuideAffiliation = hasExternal ? (data.externalGuideAffiliation || '').trim() || null : null;
+  if (!hasFaculty) delete data.facultyId;
   delete data.status;
   delete data.uploadedById;
+  delete data.reviewNote;
   const experience = await prisma.studentResearchExperience.create({
     data: {
       ...data,
-      status: 'DRAFT',
+      status: 'PENDING_REVIEW',
       uploadedBy: { connect: { id: req.user.id } },
       researchAreas: { create: areaLinks(ids(researchAreaIds)) }
     },
@@ -238,14 +273,48 @@ export const createResearchExperience = handle(async (req) => {
   return { status: 201, data: experience };
 });
 
+// Moderation decision — research admins only (no dedicated UI yet).
+export const setResearchExperienceStatus = handle(async (req) => {
+  const status = req.body.status;
+  if (!['APPROVED', 'REJECTED', 'PENDING_REVIEW'].includes(status)) {
+    throw fail(400, 'Invalid status.');
+  }
+  const data = { status };
+  if (req.body.reviewNote !== undefined) data.reviewNote = req.body.reviewNote;
+  const experience = await prisma.studentResearchExperience.update({
+    where: { id: parseId(req.params.id) },
+    data,
+    include: experienceInclude
+  });
+  return { data: experience, message: `Experience ${status === 'APPROVED' ? 'approved' : status === 'REJECTED' ? 'rejected' : 'moved back to review'}.` };
+});
+
 export const updateResearchExperience = handle(async (req) => {
   const id = parseId(req.params.id);
   const current = await prisma.studentResearchExperience.findUnique({ where: { id } });
   if (!current) throw fail(404, 'Research experience not found.');
   if (current.uploadedById !== req.user.id && !isAdmin(req.user)) throw fail(403, 'You cannot edit this experience.');
   const { researchAreaIds, id: ignoredId, uploadedById, ...data } = req.body;
-  if (!isAdmin(req.user)) delete data.status;
+  // Status/reviewNote are never client-settable here (admins use the dedicated
+  // status route); editing an approved/rejected experience re-enters moderation.
+  delete data.status;
+  delete data.reviewNote;
+  if (data.experienceType && !EXPERIENCE_TYPES.includes(data.experienceType)) {
+    throw fail(400, 'Invalid experience type.');
+  }
+  // Same mutual exclusion on edits; clearing the external name also clears the
+  // affiliation so stale details cannot linger after a guide-mode switch.
+  if (data.externalGuideName !== undefined) {
+    const hasExternal = Boolean((data.externalGuideName || '').trim());
+    const hasFaculty = data.facultyId !== undefined ? Boolean(data.facultyId) : Boolean(current.facultyId);
+    if (hasFaculty && hasExternal) throw fail(400, 'Choose either a faculty member or an external guide, not both.');
+    data.externalGuideName = hasExternal ? data.externalGuideName.trim() : null;
+    if (data.externalGuideAffiliation === undefined) data.externalGuideAffiliation = hasExternal ? current.externalGuideAffiliation : null;
+    data.externalGuideAffiliation = hasExternal ? ((data.externalGuideAffiliation || '').trim() || null) : null;
+    if (!hasFaculty) data.facultyId = null;
+  }
   if (researchAreaIds !== undefined) data.researchAreas = replaceAreas(ids(researchAreaIds));
+  if (!isAdmin(req.user) && current.status !== 'PENDING_REVIEW') data.status = 'PENDING_REVIEW';
   const experience = await prisma.studentResearchExperience.update({ where: { id }, data, include: experienceInclude });
   return { data: experience };
 });
@@ -253,6 +322,62 @@ export const updateResearchExperience = handle(async (req) => {
 export const deleteResearchExperience = handle(async (req) => {
   await prisma.studentResearchExperience.delete({ where: { id: parseId(req.params.id) } });
   return { message: 'Research experience deleted.' };
+});
+
+// ── Experience comments (flat, soft-deleted; only the article is moderated) ──
+
+const commentInclude = {
+  uploadedBy: userSummary,
+  deletedBy: { select: { displayName: true, role: true } }
+};
+
+export const getExperienceComments = handle(async (req) => {
+  const rows = await prisma.researchExperienceComment.findMany({
+    where: { experienceId: parseId(req.params.id) },
+    include: commentInclude,
+    orderBy: { createdAt: 'asc' }
+  });
+  // Soft-deleted comments stay in the thread as anonymous "[deleted]"
+  // placeholders so replies/replies-context is not lost.
+  const data = rows.map((row) => row.deletedAt
+    ? { id: row.id, content: '[deleted]', deleted: true, createdAt: row.createdAt }
+    : { ...row, deleted: false });
+  return { data };
+});
+
+export const createExperienceComment = handle(async (req) => {
+  const content = (req.body.content || '').trim();
+  if (!content) throw fail(400, 'Comment cannot be empty.');
+  if (content.length > 5000) throw fail(400, 'Comment is too long.');
+  const experience = await prisma.studentResearchExperience.findUnique({
+    where: { id: parseId(req.params.id) },
+    select: { id: true, status: true, uploadedById: true }
+  });
+  if (!experience) throw fail(404, 'Research experience not found.');
+  if (experience.status !== 'APPROVED' && experience.uploadedById !== req.user.id && !isAdmin(req.user)) {
+    throw fail(403, 'Comments are open on approved experiences.');
+  }
+  const comment = await prisma.researchExperienceComment.create({
+    data: { content, experienceId: experience.id, uploadedById: req.user.id },
+    include: commentInclude
+  });
+  return { status: 201, data: comment };
+});
+
+export const deleteExperienceComment = handle(async (req) => {
+  const comment = await prisma.researchExperienceComment.findUnique({
+    where: { id: parseId(req.params.commentId) },
+    select: { id: true, uploadedById: true }
+  });
+  if (!comment) throw fail(404, 'Comment not found.');
+  if (comment.uploadedById !== req.user.id && !isAdmin(req.user)) {
+    throw fail(403, 'You cannot delete this comment.');
+  }
+  await prisma.researchExperienceComment.update({
+    where: { id: comment.id },
+    data: { deletedAt: new Date(), deletedById: req.user.id }
+  });
+  return { message: 'Comment deleted.' };
 });
 
 export const getResearchDiscussions = handle(async (req) => {
@@ -952,22 +1077,17 @@ export const getFollowingUpdates = handle(async (req) => {
     areaIds = [...new Set([...areaIds, ...facultyAreaIds])];
   }
 
-  console.log('[Backend getFollowingUpdates] filterFacultyIds:', filterFacultyIds, 'filterAreaIds:', filterAreaIds);
-  console.log('[Backend] final facultyIds:', facultyIds, 'final areaIds:', areaIds);
-  console.log('[Backend] followedFacultyIds:', followedFacultyIds, 'followedAreaIds:', followedAreaIds);
-
   const activityAreas = { researchAreas: { include: { researchArea: true } } };
   const areaSource = (entries) => entries.map(({ researchArea }) => researchArea.name).join(', ');
   const areaFilter = areaIds.length ? [{ researchAreas: { some: { researchAreaId: { in: areaIds } } } }] : [];
   const facultyFilter = facultyIds.length ? [{ facultyId: { in: facultyIds } }] : [];
   const discussionFilter = areaIds.length ? { researchAreas: { some: { researchAreaId: { in: areaIds } } } } : null;
 
-  console.log('[Backend] areaFilter:', JSON.stringify(areaFilter), 'facultyFilter:', JSON.stringify(facultyFilter));
-  console.log('[Backend] discussionFilter:', JSON.stringify(discussionFilter));
-
   const [experiences, positions, discussions, resources] = await Promise.all([
     prisma.studentResearchExperience.findMany({
-      where: { status: 'PUBLISHED', OR: [...facultyFilter, ...areaFilter] },
+      // ExperienceStatus enum (PENDING_REVIEW/APPROVED/REJECTED) replaced the
+      // old ContentStatus values on this model; querying 'PUBLISHED' throws.
+      where: { status: 'APPROVED', OR: [...facultyFilter, ...areaFilter] },
       include: { ...activityAreas, faculty: { select: { name: true } } },
       orderBy: { createdAt: 'desc' }, take: 20
     }),
@@ -993,11 +1113,6 @@ export const getFollowingUpdates = handle(async (req) => {
       orderBy: { createdAt: 'desc' }, take: 20
     }) : Promise.resolve([])
   ]);
-
-  console.log('[Backend] experiences:', experiences.length, experiences.map(e => ({ id: e.id, facultyId: e.facultyId, areas: e.researchAreas?.map(ra => ra.researchAreaId) })));
-  console.log('[Backend] positions:', positions.length, positions.map(p => ({ id: p.id, facultyId: p.facultyId })));
-  console.log('[Backend] discussions:', discussions.length, discussions.map(d => ({ id: d.id, areas: d.researchAreas?.map(ra => ra.researchAreaId) })));
-  console.log('[Backend] resources:', resources.length, resources.map(r => ({ id: r.id, areas: r.researchAreas?.map(ra => ra.researchAreaId) })));
 
   const data = [
     ...experiences.map((item) => ({
@@ -1168,8 +1283,8 @@ export const deleteOpenPosition = handle(async (req) => {
 export const getResearchAnalytics = handle(async () => {
   const [facultyCount, experienceCount, pendingExperiences, discussionCount, unansweredDiscussions, resources, faculty] = await Promise.all([
     prisma.facultyProfile.count({ where: { isActive: true } }),
-    prisma.studentResearchExperience.count({ where: { status: 'PUBLISHED' } }),
-    prisma.studentResearchExperience.count({ where: { status: 'DRAFT' } }),
+    prisma.studentResearchExperience.count({ where: { status: 'APPROVED' } }),
+    prisma.studentResearchExperience.count({ where: { status: 'PENDING_REVIEW' } }),
     prisma.researchDiscussion.count(),
     prisma.researchDiscussion.count({ where: { isResolved: false, replies: { none: {} } } }),
     prisma.researchResource.findMany({ orderBy: [{ viewCount: 'desc' }, { downloadCount: 'desc' }], take: 10 }),

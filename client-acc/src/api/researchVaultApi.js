@@ -15,6 +15,11 @@ export const researchVaultApi = {
 
   // ── Experiences ───────────────────────────────────────────────────────────
   getExperiences: (params) => api.get('/experiences', { params }),
+  getExperience: (id) => api.get(`/experiences/${id}`),
+  getMyExperiences: () => api.get('/experiences/mine'),
+  getExperienceComments: (id) => api.get(`/experiences/${id}/comments`),
+  commentOnExperience: (id, data) => api.post(`/experiences/${id}/comments`, data),
+  deleteExperienceComment: (id, commentId) => api.delete(`/experiences/${id}/comments/${commentId}`),
   submitExperience: (data) => api.post('/experiences', data),
   updateExperience: (id, data) => api.put(`/experiences/${id}`, data),
   deleteExperience: (id) => api.delete(`/experiences/${id}`),

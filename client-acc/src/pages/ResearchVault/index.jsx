@@ -56,6 +56,15 @@ const POSITION_TYPE_LABELS = {
   OTHER: 'Other',
 };
 
+const EXPERIENCE_TYPE_LABELS = {
+  INTERNSHIP: 'Internship',
+  THESIS: 'Thesis',
+  RA: 'RA',
+  INDEPENDENT_PROJECT: 'Independent Project',
+  COURSE_PROJECT: 'Course Project',
+  OTHER: 'Other',
+};
+
 const positionTypeLabel = (type) => {
   if (!type) return '';
   return POSITION_TYPE_LABELS[type] || type.replaceAll('_', ' ');
@@ -410,6 +419,28 @@ export default function ResearchVault() {
     return () => clearTimeout(timer);
   }, [section, highlightFacultyId, loading, items]);
   // My Submissions
+  const [experienceType, setExperienceType] = useState('');
+  const [experienceFormOpen, setExperienceFormOpen] = useState(false);
+  const emptyExperienceForm = {
+    title: '', labName: '', facultyId: '', department: '', duration: '',
+    prerequisites: '', summary: '', description: '', keyLearnings: '',
+    outcome: '', experienceType: 'OTHER', researchAreaIds: [],
+    guideMode: 'internal', externalGuideName: '', externalGuideAffiliation: ''
+  };
+  const [experienceForm, setExperienceForm] = useState(emptyExperienceForm);
+  const resetExperienceForm = () => setExperienceForm(emptyExperienceForm);
+  const [submittingExperience, setSubmittingExperience] = useState(false);
+  const [showMyExperiences, setShowMyExperiences] = useState(false);
+  const [myExperiences, setMyExperiences] = useState([]);
+  const [myExperiencesLoading, setMyExperiencesLoading] = useState(false);
+
+  // When "My Submissions" is active it replaces the public feed entirely
+  // (only the status panel is shown, no duplicate cards below), so the toggle
+  // must reset when the user leaves the Experiences tab or switches it off.
+  useEffect(() => {
+    if (section !== 'experiences' || !showMyExperiences) setShowMyExperiences(false);
+  }, [section, showMyExperiences]);
+
   const [showMySubmissions, setShowMySubmissions] = useState(false);
   const [myResources, setMyResources] = useState([]);
   const [myResourcesLoading, setMyResourcesLoading] = useState(false);
@@ -480,7 +511,11 @@ useEffect(() => {
     const request = section === 'faculty'
       ? researchVaultApi.getFaculty({ search, department, area: areas.find((area) => String(area.id) === areaId)?.slug, openings: openingsOnly ? 'true' : undefined })
       : section === 'experiences'
-        ? researchVaultApi.getExperiences({ ...params, department })
+        ? researchVaultApi.getExperiences({
+            ...params,
+            department,
+            ...(experienceType ? { experienceType } : {})
+          })
         : section === 'discussions'
             ? researchVaultApi.getDiscussions({
               ...params,
@@ -533,7 +568,7 @@ useEffect(() => {
       if (active) setLoading(false);
     });
     return () => { active = false; };
-  }, [section, search, discussionStatus, department, areaId, areas, openingsOnly, refreshVersion, followingAreaId, activeFacultyFilters, activeAreaFilters, resourceCategory, resourceFormat, resourceSort, resourcePage, positionAreaId, positionType, positionSort]);
+  }, [section, search, discussionStatus, department, areaId, areas, openingsOnly, refreshVersion, followingAreaId, activeFacultyFilters, activeAreaFilters, resourceCategory, resourceFormat, resourceSort, resourcePage, positionAreaId, positionType, positionSort, experienceType]);
 
   const follow = async (kind, id, name = '') => {
     const numericId = Number(id);
@@ -791,7 +826,7 @@ useEffect(() => {
             <p className="ml-4 text-sm text-slate-500">Find a research group, learn from student experiences, and get practical guidance for your next step.</p>
           </div>
           {(section === 'experiences' || section === 'discussions' || (section === 'resources' && user && !['RESEARCH_ADMIN', 'SUPER_ADMIN'].includes(user.role))) && (
-            <button onClick={() => (section === 'resources' ? (() => { setResourceSubmitSuccess(false); setResourceFormOpen(true); })() : setFormOpen(true))} className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-95">
+            <button onClick={() => (section === 'resources' ? (() => { setResourceSubmitSuccess(false); setResourceFormOpen(true); })() : section === 'experiences' ? setExperienceFormOpen(true) : setFormOpen(true))} className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-95">
               {section === 'experiences' ? <><Send size={16} /> Share an experience</> : section === 'discussions' ? <><Send size={16} /> Ask a question</> : <><Plus size={16} /> Submit Resource</>}
             </button>
           )}
@@ -1011,7 +1046,138 @@ useEffect(() => {
         </div>
       )}
 
-      {section === 'experiences' && <VaultList loading={loading} empty="No published experiences yet.">{items.map((experience) => <article key={experience.id} className="border-b border-slate-200 py-5 first:pt-1"><div className="flex flex-wrap items-start justify-between gap-2"><h2 className="text-lg font-bold">{experience.title}</h2><span className="text-xs text-slate-500">{experience.uploadedBy ? authorLabel(experience.uploadedBy) : (experience.faculty?.name || experience.guideName || 'Student contributor')}</span></div><p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">{experience.description}</p><div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-600">{experience.labName && <span>Lab: {experience.labName}</span>}{experience.duration && <span>Duration: {experience.duration}</span>}{experience.outcome && <span>Outcome: {experience.outcome}</span>}</div>{experience.keyLearnings && <p className="mt-2 text-sm text-slate-600"><strong>Key learnings:</strong> {experience.keyLearnings}</p>}<TagList areas={experience.researchAreas?.map((entry) => entry.researchArea) || []} onFollow={follow} followedAreaIds={followedAreaIds} /></article>)}</VaultList>}
+      {section === 'experiences' && (
+        <div className="space-y-4">
+          {/* Filter row — type pills + My Submissions toggle, same styling as Resources */}
+          <div className="flex flex-wrap items-center gap-2">
+            {[
+              { value: '', label: 'All' },
+              { value: 'INTERNSHIP', label: 'Internship' },
+              { value: 'THESIS', label: 'Thesis' },
+              { value: 'RA', label: 'RA' },
+              { value: 'INDEPENDENT_PROJECT', label: 'Independent Project' },
+              { value: 'COURSE_PROJECT', label: 'Course Project' },
+              { value: 'OTHER', label: 'Other' },
+            ].map(({ value, label }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setExperienceType(value)}
+                className={`px-3 py-2.5 rounded-full text-xs font-semibold border transition-colors ${experienceType === value ? 'bg-[var(--color-secondary)] text-white border-[var(--color-secondary)]' : 'bg-white/90 text-[var(--color-primary)] border-slate-200 hover:border-[var(--color-secondary)] hover:text-[var(--color-primary-accent)]'}`}
+              >
+                {label}
+              </button>
+            ))}
+            <div className="ml-auto flex flex-wrap items-center gap-2">
+              {user && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const next = !showMyExperiences;
+                    setShowMyExperiences(next);
+                    // Refetch only when the cached list is empty and no fetch
+                    // is in flight — toggling off/on must not flash or reload.
+                    if (next && !myExperiencesLoading && myExperiences.length === 0) {
+                      setMyExperiencesLoading(true);
+                      try {
+                        const response = await researchVaultApi.getMyExperiences();
+                        setMyExperiences(responseData(response));
+                      } catch (error) {
+                        toast.error(errorMessage(error));
+                      } finally {
+                        setMyExperiencesLoading(false);
+                      }
+                    }
+                  }}
+                  aria-pressed={showMyExperiences}
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-2.5 text-xs font-semibold transition-colors ${showMyExperiences ? 'border-[var(--color-secondary)] bg-[var(--color-secondary)]/10 text-[var(--color-primary-accent)]' : 'bg-white/90 text-[var(--color-primary)] border-slate-200 hover:border-[var(--color-secondary)] hover:text-[var(--color-primary-accent)]'}`}
+                >
+                  <FileText size={13} /> My Submissions
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* My Submissions panel — status pills + review note, mirrors Resources */}
+          {showMyExperiences && (
+            <section aria-label="My experience submissions" className="rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-sm space-y-3">
+              <h4 className="font-bold text-slate-900 flex items-center gap-2"><FileText size={16} className="text-[var(--color-secondary)]" /> My Experience Submissions</h4>
+              {myExperiencesLoading ? (
+                <p className="text-xs text-slate-500 py-4 text-center">Loading your submissions…</p>
+              ) : myExperiences.length === 0 ? (
+                <p className="text-xs text-slate-500 py-4 text-center">You haven't shared any experiences yet.</p>
+              ) : (
+                <ul className="divide-y divide-slate-100">
+                  {myExperiences.map((e) => (
+                    <li key={e.id} className="py-3">
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2 mb-1">
+                            <span className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                              e.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                              : e.status === 'REJECTED' ? 'bg-red-50 text-red-700 border-red-200'
+                              : 'bg-amber-50 text-amber-700 border-amber-200'
+                            }`}>{e.status === 'PENDING_REVIEW' ? 'PENDING REVIEW' : e.status}</span>
+                            {e.experienceType && <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border bg-blue-50 text-blue-800 border-blue-200">{(EXPERIENCE_TYPE_LABELS[e.experienceType] || e.experienceType).toUpperCase()}</span>}
+                          </div>
+                          <p className="text-sm font-semibold text-slate-900 break-words">{e.title}</p>
+                          {e.status === 'REJECTED' && e.reviewNote && (
+                            <p className="mt-1 text-xs text-red-600 italic">Reason: {e.reviewNote}</p>
+                          )}
+                          <p className="text-xs text-slate-400 mt-1">{new Date(e.createdAt).toLocaleDateString()}</p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button type="button" onClick={() => navigate(`/dashboard/research-vault/experiences/${e.id}`)} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-[var(--color-secondary)] hover:text-[var(--color-primary-accent)]">Open</button>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          )}
+
+          {/* When My Submissions is active, the status panel above IS the
+              list — rendering the public feed below it would duplicate every
+              approved experience as a second card. */}
+          {!showMyExperiences && <VaultList loading={loading} empty={experienceType ? 'No experiences of this type yet.' : 'No published experiences yet — be the first to share one.'}>
+            {items.map((experience) => (
+              <article
+                key={experience.id}
+                role="link"
+                tabIndex={0}
+                onClick={() => navigate(`/dashboard/research-vault/experiences/${experience.id}`)}
+                onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/dashboard/research-vault/experiences/${experience.id}`); }}
+                className="cursor-pointer border-b border-slate-200 py-5 first:pt-1"
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  {experience.experienceType && (
+                    <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-blue-800">
+                      {EXPERIENCE_TYPE_LABELS[experience.experienceType] || experience.experienceType.replaceAll('_', ' ')}
+                    </span>
+                  )}
+                  {experience._count?.comments > 0 && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600">
+                      <MessageCircle size={11} /> {experience._count.comments}
+                    </span>
+                  )}
+                </div>
+                <h2 className="mt-1 text-lg font-bold text-slate-900 hover:text-[var(--color-primary-accent)]">{experience.title}</h2>
+                <p className="mt-0.5 text-xs text-slate-500">{authorLabel(experience.uploadedBy)}</p>
+                {experience.summary && <p className="mt-2 text-sm leading-6 text-slate-700">{experience.summary}</p>}
+                <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-600">
+                  {experience.externalGuideName && <span>Guide: {[experience.externalGuideName, experience.externalGuideAffiliation].filter(Boolean).join(' — ')} (external)</span>}
+                  {experience.faculty?.name && <span>Guide: {experience.faculty.name}</span>}
+                  {experience.labName && <span>Lab: {experience.labName}</span>}
+                  {experience.duration && <span>Duration: {experience.duration}</span>}
+                  {experience.outcome && <span>Outcome: {experience.outcome}</span>}
+                </div>
+                <TagList areas={experience.researchAreas?.map((entry) => entry.researchArea) || []} onFollow={follow} followedAreaIds={followedAreaIds} />
+              </article>
+            ))}
+          </VaultList>}
+        </div>
+      )}
 
       {section === 'discussions' && <VaultList loading={loading} empty="No discussions found.">{items.map((discussion) => <DiscussionItem key={discussion.id} discussion={discussion} currentUserId={user?.id} onReply={reply} onVote={vote} onAcceptAnswer={acceptAnswer} onFollow={follow} followedAreaIds={followedAreaIds} setRefreshVersion={setRefreshVersion} />)}</VaultList>}
 
@@ -1547,6 +1713,161 @@ useEffect(() => {
               </VaultList>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Share an Experience modal — Submit-Resource styling */}
+      {experienceFormOpen && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/40 p-4" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget) setExperienceFormOpen(false); }}>
+          <section role="dialog" aria-modal="true" aria-labelledby="share-experience-title" className="max-h-[92vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <h2 id="share-experience-title" className="text-xl font-bold text-slate-900">Share a Research Experience</h2>
+              <button type="button" onClick={() => setExperienceFormOpen(false)} aria-label="Close" className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><X size={18} /></button>
+            </div>
+            <p className="text-xs text-slate-500 border-l-2 border-[var(--color-secondary)] pl-3 mb-4">Shared experiences are reviewed before publishing. The summary appears on the card; the full narrative opens on its own page.</p>
+            <form
+              onSubmit={async (event) => {
+                event.preventDefault();
+                setSubmittingExperience(true);
+                try {
+                  // Guide is EITHER an internal faculty link OR external
+                  // free-text details — the form's mode toggle enforces it.
+                  const isExternal = experienceForm.guideMode === 'external';
+                  if (isExternal && !experienceForm.externalGuideName.trim()) {
+                    toast.error("Enter the external guide's name, or switch back to the faculty list.");
+                    setSubmittingExperience(false);
+                    return;
+                  }
+                  await researchVaultApi.submitExperience({
+                    ...experienceForm,
+                    facultyId: isExternal ? null : (experienceForm.facultyId || null),
+                    externalGuideName: isExternal ? experienceForm.externalGuideName : null,
+                    externalGuideAffiliation: isExternal ? experienceForm.externalGuideAffiliation : null,
+                    department: experienceForm.department.trim() || null,
+                    researchAreaIds: experienceForm.researchAreaIds
+                  });
+                  toast.success('Experience submitted for review.');
+                  setExperienceFormOpen(false);
+                  resetExperienceForm();
+                  setShowMyExperiences(true);
+                  const response = await researchVaultApi.getMyExperiences();
+                  setMyExperiences(responseData(response));
+                } catch (error) {
+                  toast.error(errorMessage(error));
+                } finally {
+                  setSubmittingExperience(false);
+                }
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label htmlFor="exp-title" className="block text-xs font-semibold text-slate-700 mb-1">Title <span className="text-red-500">*</span></label>
+                <input id="exp-title" required maxLength={200} value={experienceForm.title} onChange={(e) => setExperienceForm({ ...experienceForm, title: e.target.value })} placeholder="e.g., My summer internship at the robotics lab" className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[var(--color-secondary)] outline-none" />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="exp-lab" className="block text-xs font-semibold text-slate-700 mb-1">Lab / Group name <span className="text-red-500">*</span></label>
+                  <input id="exp-lab" required maxLength={120} value={experienceForm.labName} onChange={(e) => setExperienceForm({ ...experienceForm, labName: e.target.value })} placeholder="Where you worked" className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[var(--color-secondary)] outline-none" />
+                </div>
+                <div>
+                  <label htmlFor="exp-type" className="block text-xs font-semibold text-slate-700 mb-1">Experience type <span className="text-red-500">*</span></label>
+                  <select id="exp-type" required value={experienceForm.experienceType} onChange={(e) => setExperienceForm({ ...experienceForm, experienceType: e.target.value })} className="w-full appearance-none rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-[var(--color-primary)] focus:border-[var(--color-secondary)] outline-none">
+                    {Object.entries(EXPERIENCE_TYPE_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                  </select>
+                </div>
+              </div>
+              {/* Guide — mutually exclusive modes: an internal faculty profile
+                  OR an external mentor outside our directory. */}
+              <div className="rounded-2xl border border-slate-200 p-3 space-y-3">
+                <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Guide type">
+                  <span className="text-xs font-semibold text-slate-700">Guide</span>
+                  {[{ value: 'internal', label: 'From faculty directory' }, { value: 'external', label: 'External guide' }].map(({ value, label }) => (
+                    <button key={value} type="button" onClick={() => setExperienceForm((f) => ({ ...f, guideMode: value }))} aria-pressed={experienceForm.guideMode === value} className={`rounded-full px-3 py-1.5 text-xs font-semibold border transition-colors ${experienceForm.guideMode === value ? 'bg-[var(--color-secondary)] text-white border-[var(--color-secondary)]' : 'bg-white text-slate-600 border-slate-200 hover:border-[var(--color-secondary)]'}`}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                {experienceForm.guideMode === 'internal' ? (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="exp-faculty" className="block text-xs font-semibold text-slate-700 mb-1">Faculty member (optional)</label>
+                      <select id="exp-faculty" value={experienceForm.facultyId} onChange={(e) => {
+                        const facultyId = e.target.value;
+                        const selected = facultyOptions.find((f) => String(f.id) === String(facultyId));
+                        setExperienceForm((f) => ({ ...f, facultyId, department: selected?.department || f.department }));
+                      }} className="w-full appearance-none rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-[var(--color-primary)] focus:border-[var(--color-secondary)] outline-none">
+                        <option value="">No formal guide</option>
+                        {facultyOptions.map((faculty) => <option key={faculty.id} value={faculty.id}>{faculty.name}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="exp-dept" className="block text-xs font-semibold text-slate-700 mb-1">Department</label>
+                      <input id="exp-dept" maxLength={120} value={experienceForm.department} onChange={(e) => setExperienceForm({ ...experienceForm, department: e.target.value })} placeholder={experienceForm.facultyId ? 'Auto-filled from faculty' : 'e.g., Physics'} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[var(--color-secondary)] outline-none" />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="exp-ext-guide" className="block text-xs font-semibold text-slate-700 mb-1">Guide name <span className="text-red-500">*</span></label>
+                      <input id="exp-ext-guide" maxLength={160} value={experienceForm.externalGuideName} onChange={(e) => setExperienceForm({ ...experienceForm, externalGuideName: e.target.value })} placeholder="e.g., Dr. X" className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[var(--color-secondary)] outline-none" />
+                    </div>
+                    <div>
+                      <label htmlFor="exp-ext-affil" className="block text-xs font-semibold text-slate-700 mb-1">Affiliation</label>
+                      <input id="exp-ext-affil" maxLength={160} value={experienceForm.externalGuideAffiliation} onChange={(e) => setExperienceForm({ ...experienceForm, externalGuideAffiliation: e.target.value })} placeholder="e.g., IIT Bombay, Google Research" className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[var(--color-secondary)] outline-none" />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label htmlFor="exp-dept-ext" className="block text-xs font-semibold text-slate-700 mb-1">Department</label>
+                      <input id="exp-dept-ext" maxLength={120} value={experienceForm.department} onChange={(e) => setExperienceForm({ ...experienceForm, department: e.target.value })} placeholder="e.g., Computer Science (host institute)" className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[var(--color-secondary)] outline-none" />
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div>
+                <label htmlFor="exp-duration" className="block text-xs font-semibold text-slate-700 mb-1">Duration <span className="text-red-500">*</span></label>
+                <input id="exp-duration" required maxLength={80} value={experienceForm.duration} onChange={(e) => setExperienceForm({ ...experienceForm, duration: e.target.value })} placeholder="e.g., 6 weeks, Summer 2026" className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[var(--color-secondary)] outline-none" />
+              </div>
+              <div>
+                <label htmlFor="exp-prereq" className="block text-xs font-semibold text-slate-700 mb-1">Prerequisites (optional)</label>
+                <input id="exp-prereq" maxLength={300} value={experienceForm.prerequisites} onChange={(e) => setExperienceForm({ ...experienceForm, prerequisites: e.target.value })} placeholder="Skills or courses needed going in" className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[var(--color-secondary)] outline-none" />
+              </div>
+              <div>
+                <label htmlFor="exp-summary" className="block text-xs font-semibold text-slate-700 mb-1">Summary <span className="text-red-500">*</span> <span className="font-normal text-slate-400">(1–2 sentences shown on the card)</span></label>
+                <textarea id="exp-summary" required rows={2} maxLength={300} value={experienceForm.summary} onChange={(e) => setExperienceForm({ ...experienceForm, summary: e.target.value })} placeholder="The one-liner that makes someone want to read more" className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[var(--color-secondary)] outline-none resize-none" />
+              </div>
+              <div>
+                <label htmlFor="exp-body" className="block text-xs font-semibold text-slate-700 mb-1">Full narrative <span className="text-red-500">*</span> <span className="font-normal text-slate-400">(shown on the detail page)</span></label>
+                <textarea id="exp-body" required rows={8} maxLength={20000} value={experienceForm.description} onChange={(e) => setExperienceForm({ ...experienceForm, description: e.target.value })} placeholder="What did you work on, how did you get it, and what should others know?" className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[var(--color-secondary)] outline-none resize-y" />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="exp-learnings" className="block text-xs font-semibold text-slate-700 mb-1">Key learnings (optional)</label>
+                  <textarea id="exp-learnings" rows={3} maxLength={2000} value={experienceForm.keyLearnings} onChange={(e) => setExperienceForm({ ...experienceForm, keyLearnings: e.target.value })} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[var(--color-secondary)] outline-none resize-none" />
+                </div>
+                <div>
+                  <label htmlFor="exp-outcome" className="block text-xs font-semibold text-slate-700 mb-1">Outcome (optional)</label>
+                  <textarea id="exp-outcome" rows={3} maxLength={2000} value={experienceForm.outcome} onChange={(e) => setExperienceForm({ ...experienceForm, outcome: e.target.value })} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[var(--color-secondary)] outline-none resize-none" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Research areas</label>
+                <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto rounded-xl border border-slate-200 p-2">
+                  {areas.map((area) => {
+                    const selected = experienceForm.researchAreaIds.includes(area.id);
+                    return (
+                      <button key={area.id} type="button" onClick={() => setExperienceForm((f) => ({ ...f, researchAreaIds: selected ? f.researchAreaIds.filter((id) => id !== area.id) : [...f.researchAreaIds, area.id] }))} aria-pressed={selected} className={`px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors ${selected ? 'bg-[var(--color-secondary)] text-white border-[var(--color-secondary)]' : 'bg-white text-slate-600 border-slate-200 hover:border-[var(--color-secondary)]'}`}>
+                        {selected && <Check size={10} className="inline mr-1" />}{area.name}
+                      </button>
+                    );
+                  })}
+                  {areas.length === 0 && <span className="text-xs text-slate-400 px-1">Loading areas…</span>}
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setExperienceFormOpen(false)} className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold">Cancel</button>
+                <button disabled={submittingExperience} className="rounded-full bg-[var(--color-secondary)] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[var(--color-primary-accent)] disabled:opacity-50">{submittingExperience ? 'Submitting…' : 'Submit for review'}</button>
+              </div>
+            </form>
+          </section>
         </div>
       )}
 

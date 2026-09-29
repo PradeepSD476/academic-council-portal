@@ -7,9 +7,14 @@ import {
     deleteFacultyProfile,
     getResearchExperiences,
     getResearchExperienceById,
+    getMyResearchExperiences,
     createResearchExperience,
     updateResearchExperience,
     deleteResearchExperience,
+    setResearchExperienceStatus,
+    getExperienceComments,
+    createExperienceComment,
+    deleteExperienceComment,
     getResearchDiscussions,
     getQuestionList,
     getQuestionDetail,
@@ -70,13 +75,22 @@ router.post('/faculty', checkAuth, checkResearchAdmin, createFacultyProfile);
 router.put('/faculty/:id', checkAuth, checkResearchAdmin, updateFacultyProfile);
 router.delete('/faculty/:id', checkAuth, checkResearchAdmin, deleteFacultyProfile);
 
-// ── Research Experiences ──────────────────────────────────────────────────────
+// ── Research Experiences ──────────────────────────────────────────────────
+// IMPORTANT: /experiences/mine must be declared before /experiences/:id
+router.get('/experiences/mine', checkAuth, getMyResearchExperiences);
 router.get('/experiences', getResearchExperiences);
-router.get('/experiences/:id', getResearchExperienceById);
+router.get('/experiences/:id', optionalAuth, getResearchExperienceById);
 router.post('/experiences', checkAuth, createResearchExperience);
 router.put('/experiences/:id', checkAuth, updateResearchExperience);
 router.delete('/experiences/:id', checkAuth, checkResearchAdmin, deleteResearchExperience);
+// Moderation decision — no dedicated admin UI yet; simple status route.
+router.patch('/admin/experiences/:id/status', checkAuth, checkResearchAdmin, setResearchExperienceStatus);
 router.get('/admin/experiences', checkAuth, checkResearchAdmin, getResearchModerationQueue);
+// Comments: flat Q&A beneath an experience; authors can delete their own
+// (soft delete). Reads are public via optionalAuth, writes require auth.
+router.get('/experiences/:id/comments', optionalAuth, getExperienceComments);
+router.post('/experiences/:id/comments', checkAuth, createExperienceComment);
+router.delete('/experiences/:id/comments/:commentId', checkAuth, deleteExperienceComment);
 
 // ── Discussions ───────────────────────────────────────────────────────────────
 router.get('/discussions', checkAuth, getResearchDiscussions);
