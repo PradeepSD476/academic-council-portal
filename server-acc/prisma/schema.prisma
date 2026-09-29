@@ -332,6 +332,14 @@ model FacultyProfile {
   isActive      Boolean  @default(true)
   profileViewCount Int   @default(0)
 
+  // Profile links (all optional; UI hides each individually when null).
+  // `website` remains the lab/department site; personalWebsiteUrl is the
+  // professor's own page.
+  googleScholarUrl  String?
+  linkedinUrl       String?
+  personalWebsiteUrl String?
+  officeLocation    String?
+
   researchAreas FacultyProfileResearchArea[]
   experiences   StudentResearchExperience[]
   followers     ResearchFacultyFollow[]
@@ -620,8 +628,25 @@ model ResearchOpenPosition {
   researchAreas ResearchOpenPositionResearchArea[]
   bookmarkedBy  ResearchOpenPositionBookmark[]
 
+  // Structured openings data (admin panel writes; user side is read-only).
+  // `status` is the admin's explicit switch (e.g. manual early close); the
+  // student-facing OPEN/CLOSED is always computed on read — see
+  // utils/openingStatus.js (explicit CLOSED OR filled>=available OR deadline
+  // past => treated as closed everywhere on the user side).
+  requirements        String? @db.Text
+  positionsAvailable  Int     @default(1)
+  positionsFilled     Int     @default(0)
+  status              OpeningStatus @default(OPEN)
+  howToApply          String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@schema("research_vault")
+}
+
+enum OpeningStatus {
+  OPEN
+  CLOSED
   @@schema("research_vault")
 }
 

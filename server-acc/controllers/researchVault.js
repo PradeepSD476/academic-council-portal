@@ -1,5 +1,6 @@
 import prisma from '../config/db.js';
 import { storage, bucketName } from '../config/minio.js';
+import { isOpenOpening } from '../utils/openingStatus.js';
 
 const userSummary = {
   select: { id: true, displayName: true, rollNo: true, photoURL: true, role: true }
@@ -42,6 +43,18 @@ const facultyInclude = {
   positions: { where: { isActive: true }, orderBy: { createdAt: 'desc' } }
 };
 
+// Compute the user-facing OPEN/CLOSED for each stored position row (see
+// utils/openingStatus.js — the stored status column is only the admin's
+// explicit switch, never trusted on the user side).
+const withComputedOpenings = (profile, now = new Date()) => {
+  if (!profile) return profile;
+  const openings = (profile.positions || []).map((position) => ({
+    ...position,
+    computedStatus: isOpenOpening(position, now) ? 'OPEN' : 'CLOSED',
+  }));
+  return { ...profile, positions: openings, openOpeningsCount: openings.filter((o) => o.computedStatus === 'OPEN').length };
+};
+
 const experienceInclude = {
   faculty: { select: { id: true, name: true, slug: true, designation: true, department: true } },
   uploadedBy: userSummary,
@@ -80,7 +93,10 @@ const facultyWhere = (query) => {
   if (query.area) where.researchAreas = { some: { researchArea: { OR: [
     { slug: query.area }, { name: { contains: query.area, mode: 'insensitive' } }
   ] } } };
-  if (query.openings === 'true') where.positions = { some: { isActive: true } };
+  // NOTE: the "Current openings" filter is NOT applied here — it needs a
+  // column-to-column comparison (positionsFilled < positionsAvailable) that
+  // Prisma where-clauses cannot express, so getFacultyProfiles resolves it
+  // with a raw-SQL id prequery using the same computed rule.
   if (and.length) where.AND = and;
   return where;
 };
@@ -152,11 +168,36 @@ const replaceAreas = (areaIds) => ({ deleteMany: {}, create: areaLinks(areaIds) 
 export const getFacultyProfiles = handle(async (req) => {
   const { page, limit, skip } = pagination(req.query);
   const where = facultyWhere(req.query);
+  // "Current openings" checkbox: faculty with at least one OPEN opening under
+  // the computed rule (explicit OPEN status, seats remaining, deadline not
+  // passed) — never the stale stored flags alone.
+  if (req.query.openings === 'true') {
+    const openIds = await prisma.$queryRaw`
+      SELECT DISTINCT fp."id" FROM "research_vault"."FacultyProfile" fp
+      JOIN "research_vault"."ResearchOpenPosition" p ON p."facultyId" = fp."id"
+      WHERE fp."isActive" = true AND p."isActive" = true AND p."status" = 'OPEN'
+        AND p."positionsFilled" < p."positionsAvailable"
+        AND (p."deadline" IS NULL OR p."deadline" >= NOW())
+    `;
+    where.id = { in: openIds.map((row) => row.id) };
+  }
   const [data, total] = await Promise.all([
     prisma.facultyProfile.findMany({ where, include: facultyInclude, orderBy: { name: 'asc' }, skip, take: limit }),
     prisma.facultyProfile.count({ where })
   ]);
-  return { data, page, limit, total, totalPages: Math.ceil(total / limit) };
+  return { data: data.map((profile) => withComputedOpenings(profile)), page, limit, total, totalPages: Math.ceil(total / limit) };
+});
+
+// Standalone openings list for a faculty profile (used if the profile view
+// ever paginates; profile endpoint already embeds the openings array).
+export const getFacultyOpenings = handle(async (req) => {
+  const profile = await prisma.facultyProfile.findFirst({
+    where: { isActive: true, id: parseId(req.params.id) },
+    include: facultyInclude
+  });
+  if (!profile) throw fail(404, 'Faculty profile not found.');
+  const { positions } = withComputedOpenings(profile);
+  return { data: positions };
 });
 
 export const getFacultyProfileById = handle(async (req) => {
@@ -171,7 +212,7 @@ export const getFacultyProfileById = handle(async (req) => {
   if (!profile) throw fail(404, 'Faculty profile not found.');
   await prisma.$executeRaw`UPDATE "research_vault"."FacultyProfile" SET "profileViewCount" = "profileViewCount" + 1 WHERE "id" = ${profile.id}`;
   const data = await prisma.facultyProfile.findUnique({ where: { id: profile.id }, include: facultyInclude });
-  return { data };
+  return { data: withComputedOpenings(data) };
 });
 
 export const createFacultyProfile = handle(async (req) => {
@@ -1004,19 +1045,26 @@ export const getInterestMatch = handle(async (req) => {
         .sort((left, right) => right.score - left.score)
       : [];
     const areaMatch = areaMatches[0]?.score || 0;
+    // Only computed-OPEN openings count toward the project-type signal —
+    // recommending a closed/filled/expired opening would mislead students.
+    const openPositions = profile.positions.filter((position) => isOpenOpening(position));
     const matchingPositions = projectType && expectedPositionTypes.length
-      ? profile.positions.filter((position) => expectedPositionTypes.includes(normalizeMatchText(position.positionType).replaceAll(' ', '_')))
+      ? openPositions.filter((position) => expectedPositionTypes.includes(normalizeMatchText(position.positionType).replaceAll(' ', '_')))
       : [];
     const projectMatch = matchingPositions.length ? 1 : 0;
-    const points = departmentMatch * 4 + areaMatch * 6 + projectMatch * 2;
+    let points = departmentMatch * 4 + areaMatch * 6 + projectMatch * 2;
+    // Deprioritize (never exclude) profiles with nothing open right now.
+    if (!openPositions.length) points *= 0.5;
     const matchReasons = [];
 
     if (departmentMatch) matchReasons.push(`Department: ${profile.department}`);
     if (areaMatches.length) matchReasons.push(`Research area: ${areaMatches[0].area.name}`);
     if (matchingPositions.length) matchReasons.push(`Has an active ${projectType} opening`);
+    else if (openPositions.length) matchReasons.push(`${openPositions.length} open position${openPositions.length === 1 ? '' : 's'}`);
 
+    const annotated = withComputedOpenings(profile);
     return {
-      ...profile,
+      ...annotated,
       matchScore: Math.round((points / possiblePoints) * 100),
       matchReasons
     };

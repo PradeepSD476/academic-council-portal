@@ -43,6 +43,7 @@ import ResearchQuestionList from "./pages/ResearchVault/ResearchQuestionList.jsx
 import ResearchQuestionDetail from "./pages/ResearchVault/ResearchQuestionDetail.jsx";
 import PositionDetail from "./pages/ResearchVault/PositionDetail.jsx";
 import ExperienceDetail from "./pages/ResearchVault/ExperienceDetail.jsx";
+import FacultyDetail from "./pages/ResearchVault/FacultyDetail.jsx";
 const AppRoutes = () => {
   return (
     <Routes>
@@ -92,6 +93,7 @@ const AppRoutes = () => {
 <Route path="research-vault/questions" element={<ResearchQuestionList />} />
 <Route path="research-vault/questions/:questionId" element={<ResearchQuestionDetail />} />
 <Route path="research-vault/positions/:positionId" element={<PositionDetail />} />
+<Route path="research-vault/faculty/:facultyId" element={<FacultyDetail />} />
           <Route path="research-vault/experiences/:experienceId" element={<ExperienceDetail />} />
 
 <Route

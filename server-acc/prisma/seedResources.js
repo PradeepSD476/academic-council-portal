@@ -243,6 +243,24 @@ async function main() {
       applicationUrl: 'https://example.edu/apply/vlsi-expired',
       deadline: day(-6), areaSlugs: ['vlsi-microelectronics']
     },
+    {
+      title: 'Research assistant: Federated learning on edge devices', positionType: 'RA', facultySlug: 'dr-amit-kumar-singh',
+      description: 'Explicitly closed by the admin despite seats and a live deadline — demonstrates the early-close switch.',
+      eligibility: '2nd/3rd year, embedded C experience preferred.',
+      requirements: '- Embedded C / MicroPython\n- Comfortable reading datasheets\n- Own laptop helpful',
+      positionsAvailable: 2, positionsFilled: 0, status: 'CLOSED',
+      howToApply: 'Email a CV and one-paragraph statement of interest.',
+      deadline: day(20), areaSlugs: ['wireless-communications']
+    },
+    {
+      title: 'Summer research: Sensor fusion for indoor navigation', positionType: 'SUMMER_RESEARCH', facultySlug: 'dr-neha-agarwal',
+      description: 'Fully filled demo — seats exhausted, so it computes as closed even though the deadline is live.',
+      eligibility: 'Open to all years; linear algebra required.',
+      requirements: '- Python (NumPy)\n- Basic filters (Kalman/complementary)',
+      positionsAvailable: 1, positionsFilled: 1,
+      howToApply: 'Fill the form at https://example.edu/apply/sensor-fusion',
+      deadline: day(30), areaSlugs: ['mechanical-design-manufacturing']
+    },
   ];
   const facultyBySlug = {};
   for (const fp of await prisma.facultyProfile.findMany({ select: { id: true, slug: true } })) {
@@ -258,6 +276,11 @@ async function main() {
       title: p.title, description: p.description, positionType: p.positionType,
       eligibility: p.eligibility, applicationUrl: p.applicationUrl,
       applicationInstructions: p.applicationInstructions || null,
+      requirements: p.requirements || null,
+      positionsAvailable: p.positionsAvailable ?? 1,
+      positionsFilled: p.positionsFilled ?? 0,
+      status: p.status || 'OPEN',
+      howToApply: p.howToApply || null,
       deadline: p.deadline, isActive: true, uploadedById: contributor.id,
       ...(facultyBySlug[p.facultySlug] ? { facultyId: facultyBySlug[p.facultySlug].id } : {}),
       researchAreas: { deleteMany: {}, create: areaRows },
@@ -270,7 +293,32 @@ async function main() {
       await prisma.researchOpenPosition.create({ data: { ...createData, researchAreas: { create: researchAreas.create } } });
     }
   }
-  console.log(`Positions seeded: ${positionSeed.length} (1 intentionally expired for closed-state demo).`);
+  console.log(`Positions seeded: ${positionSeed.length} (1 expired + 1 explicitly closed + 1 fully filled for closed-state demos).`);
+
+  // Profile links for the demo faculty (admin panel will own these later).
+  const facultyLinks = {
+    'dr-priya-sharma': {
+      googleScholarUrl: 'https://scholar.google.com/citations?user=priya-sharma-demo',
+      linkedinUrl: 'https://www.linkedin.com/in/priya-sharma-demo',
+      personalWebsiteUrl: 'https://priya-sharma.example.edu',
+      officeLocation: 'Block C, Room 214',
+    },
+    'dr-amit-kumar-singh': {
+      googleScholarUrl: 'https://scholar.google.com/citations?user=amit-singh-demo',
+      officeLocation: 'Block A, Room 108',
+    },
+    'dr-neha-agarwal': {
+      linkedinUrl: 'https://www.linkedin.com/in/neha-agarwal-demo',
+      personalWebsiteUrl: 'https://neha-agarwal.example.edu',
+      officeLocation: 'Block D, Lab 3',
+    },
+  };
+  for (const [slug, links] of Object.entries(facultyLinks)) {
+    if (facultyBySlug[slug]) {
+      await prisma.facultyProfile.update({ where: { id: facultyBySlug[slug].id }, data: links });
+    }
+  }
+  console.log('Faculty profile links ensured: 3 profiles.');
 }
 
 main()

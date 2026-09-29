@@ -15,12 +15,16 @@ Research Vault is an authenticated module in the ACC Portal for discovering facu
 - [Recent updates (Discussion tab)](#recent-updates-discussion-tab)
 - [Recent updates (Following tab & avatar initials)](#recent-updates-following-tab--avatar-initials)
 - [Recent updates (Resources tab)](#recent-updates-resources-tab)
+- [Recent updates (Open Positions, Experiences & Faculty tabs)](#recent-updates-open-positions-experiences--faculty-tabs)
 
 ## Routes
 
 | Page | Route | Access |
 | --- | --- | --- |
 | Research Vault home | `/dashboard/research-vault` | Signed-in portal user |
+| Position detail | `/dashboard/research-vault/positions/:positionId` | Signed-in portal user |
+| Experience detail | `/dashboard/research-vault/experiences/:experienceId` | Signed-in portal user |
+| Faculty profile | `/dashboard/research-vault/faculty/:facultyId` | Signed-in portal user |
 | Discussion question list | `/dashboard/research-vault/questions` | Signed-in portal user |
 | Question detail | `/dashboard/research-vault/questions/:questionId` | Signed-in portal user |
 | Research Vault administration | `/admin/research-vault` | `RESEARCH_ADMIN`, `FACULTY`, or `SUPER_ADMIN` |
@@ -31,15 +35,16 @@ The backend router is mounted at `/api/v1/vault` in `server-acc/server.js`. Auth
 
 The Research Vault home is integrated with the dashboard and contains Faculty, Experiences, Discussion, Resources, Open Positions, and Following sections.
 
-- **Faculty directory:** search by name or research area; filter by department, area, and current openings. Faculty cards link to contact details, publications, areas, and openings.
-- **Research matching:** submit any combination of department, topic, and project type. The API ranks up to five faculty by weighted department, research-area, and active-opening matches and returns match reasons.
+- **Faculty directory:** search by name or research area; filter by department, area, and current openings (computed-open rule, not stored flags). Faculty cards show an open-position count and open a full profile page (`FacultyDetail`) with bio, office location, profile links (email, lab/dept site, personal site, Google Scholar, LinkedIn — hidden per field when null), and a structured openings section (open first, closed below a divider).
+- **Research matching:** submit any combination of department, topic, and project type. The API ranks up to five faculty by weighted department, research-area, and active-opening matches and returns match reasons. Only computed-OPEN openings count toward the project-type signal; profiles with nothing open are deprioritized, never excluded.
 - **Following:** follow/unfollow faculty and research areas. The **Following** tab aggregates recent published experiences, open positions, discussions, and resources related to those follows. This is an in-app feed, not push or email notifications. **Multi-select filters:** click faculty cards or research-area tags to toggle them as active filters; the feed updates to show only activity matching the selected faculty/areas (supports multiple simultaneous selections). A filter indicator above the feed shows all active filters with individual remove buttons and a "Clear all" option.
-- **Experiences:** browse published student experiences and submit structured experiences. Student submissions start as drafts and appear in the admin moderation queue.
+- **Experiences:** browse `APPROVED` student experiences; submissions start as `PENDING_REVIEW` and appear in the admin moderation queue. A guide is either an internal FacultyProfile link **or** external free-text details (name + affiliation), mutually exclusive. Cards show summary/author/lab/duration/outcome/tags; each experience opens its own detail page with the full narrative and a flat comment thread (chat-style bubbles: own = right/blue, others = left/green; input box below the list; authors soft-delete own comments after confirmation into `[deleted]` placeholders). "My Submissions" shows pending/approved/rejected with reviewer notes and replaces the feed while active.
 - **Discussion:** compact question list with search, research-area/status filters, and sorting by newest, reply count, or upvotes. The list requests 20 questions at a time using a cursor and does not render reply bodies.
 - **Question detail:** displays the question and up to three initial replies, supports Top/New/Oldest reply sorting, and loads additional replies in batches of 20. Sticky navigation links to the previous/next question and back to the list. The question author or a Research Vault admin can accept one reply; accepting it marks the question resolved. Replies remain open after resolution.
 - **Votes:** discussion and reply votes toggle per user. Counts and current-user vote state come from the API.
-- **Resources and openings:** browse approved resources with category pills, format/sort dropdowns, search, and pagination. File resources stream from MinIO; views are counted once per user per resource. Students can submit link-only resources for review and manage them under **My Submissions**. Active research positions are listed separately.
-- **Author identity:** discussions, replies, resources, and experiences show display name and roll number ("Name · Roll Number"). The signed-in user's messages are blue/right-aligned; other users' replies are sage/left-aligned.
+- **Resources and openings:** browse approved resources with category pills, format/sort dropdowns, search, and pagination. File resources stream from MinIO; views are counted once per user per resource. Students can submit link-only resources for review and manage them under **My Submissions**.
+- **Open positions:** a dedicated tab with searchable research-area dropdown, type filter, sort (deadline/newest/department), a "Show closed positions" client-side toggle (no refetch), and a one-click "Saved (N)" view for bookmarked positions. Expired postings are hidden by default and shown dimmed when "Show closed" is on. Each position opens a detail page with description, eligibility, application instructions, faculty deep-link (scroll + highlight), and Save/bookmark.
+- **Author identity:** discussions, replies, resources, and experiences show display name and roll number ("Name · Roll Number"). The signed-in user's messages are blue/right-aligned; other users' replies are sage/left-aligned. Clicking the already-active tab pill is a no-op (no refetch, no state loss); Save/bookmark toggles are optimistic with zero list refetches and revert only on API failure.
 
 ## Recent updates (Discussion tab)
 
@@ -94,8 +99,9 @@ Base URL: `/api/v1/vault`
 
 | Method and path | Purpose |
 | --- | --- |
-| `GET /faculty` | Search/filter faculty (`search`, `department`, `area`, `openings`, `page`, `limit`) |
-| `GET /faculty/:id` | Faculty profile by ID or slug; records profile views |
+| `GET /faculty` | Search/filter faculty (`search`, `department`, `area`, `openings`, `page`, `limit`); responses include `openOpeningsCount` (computed) and the new link fields |
+| `GET /faculty/:id` | Faculty profile by ID or slug with openings array (each carrying computed `computedStatus`); records profile views |
+| `GET /faculty/openings/:id` | Standalone computed-openings list for a faculty profile |
 | `GET /experiences` | Published experiences (`facultyId`, `department`, `areaId`, `search`, `page`, `limit`) |
 | `GET /experiences/:id` | Published experience detail |
 | `GET /questions` | Authenticated cursor-paginated question list |
@@ -103,7 +109,11 @@ Base URL: `/api/v1/vault`
 | `GET /questions/:id/replies` | Authenticated cursor-paginated reply list |
 | `GET /resources` | Approved resources with `category`, `format`, `search`, `areaId` filters, `sort=newest|most_viewed|most_downloaded`, and `page`/`limit` pagination |
 | `GET /areas` | Research area taxonomy; optional `search` matches names and descriptions |
-| `GET /positions` | Active open positions |
+| `GET /positions` | Open positions; default view = active with deadline not passed; `includeClosed=true` returns all. Filters: `search`, `department`, `areaId`, `positionType`, `facultyId`; `sort=deadline\|newest\|department`; per-user `bookmarked` flag via optional auth |
+| `GET /positions/:id` | Position detail (200 for expired rows; used by "Show closed" / detail page) |
+| `GET/POST/DELETE /positions/bookmarks` | Per-user position bookmarks (bookmarks routes declared before `/positions/:id`) |
+| `GET /experiences/mine` | The current user's experiences in all statuses (declared before `/experiences/:id`) |
+| `GET/POST/DELETE /experiences/:id/comments` | Flat experience comment thread; writes require auth; DELETE own (soft delete) |
 | `POST /resources/:id/view` | Record a unique per-user view on an approved resource; returns the updated count |
 | `GET /resources/:id/download` | Authenticated; stream a file resource from MinIO with attachment headers and increment the download count |
 | `POST /resources/:id/download` | Legacy download counter (kept for admin panel compatibility) |
@@ -138,8 +148,9 @@ Reply pagination accepts `cursor`, `limit` (default 20, maximum 50), and `sort=t
 | --- | --- |
 | `POST /faculty`, `PUT /faculty/:id`, `DELETE /faculty/:id` | Create, edit, or archive a faculty profile |
 | `POST /areas` | Add a research area |
-| `GET /admin/experiences` | Read draft experiences awaiting moderation |
-| `PUT /experiences/:id`, `DELETE /experiences/:id` | Publish/edit or reject/delete an experience |
+| `GET /admin/experiences` | Read `PENDING_REVIEW` experiences awaiting moderation |
+| `PATCH /admin/experiences/:id/status` | Approve/reject/reset an experience; body `{ status, reviewNote? }`; re-editing by the author re-enters moderation |
+| `PUT /experiences/:id`, `DELETE /experiences/:id` | Edit (admin; author edits of approved/rejected re-enter moderation) or delete an experience |
 | `DELETE /discussions/:id` | Remove a discussion |
 | `POST /resources`, `PUT /resources/:id`, `DELETE /resources/:id` | Manage curated resources |
 | `POST /positions`, `PUT /positions/:id`, `DELETE /positions/:id` | Manage openings |
@@ -158,6 +169,10 @@ Relevant migrations:
 - `20260927120000_research_discussion_indexes`: indexes discussion chronology/status, tag lookup, and reply pagination.
 - `20260929000000_resource_status_and_views`: adds the `ResourceStatus` enum (`PENDING`/`APPROVED`/`REJECTED`), resource status/moderation fields, view/download counters, and the per-user `ResourceView` table.
 - `20260930000000_resource_source_type_and_custom_areas`: adds `sourceType` (`FILE`/`EXTERNAL_LINK`, backfilled from `filePath`/`url`) and the `CustomResearchArea` review table.
+- `20260930000000_experience_moderation_and_comments`: renames experience statuses to the `ExperienceStatus` enum (`PENDING_REVIEW`/`APPROVED`/`REJECTED`; existing PUBLISHED→APPROVED), adds `summary`/`department`/`experienceType`/`reviewNote`, drops `guideName`, and creates the soft-deleting `ResearchExperienceComment` table.
+- `2026093001000000_external_experience_guides`: adds `externalGuideName`/`externalGuideAffiliation` (mutually exclusive with the internal faculty link, enforced in the controller).
+- `20261001000000_position_bookmarks_and_areas`: adds `applicationInstructions` on positions, the position↔research-area join table, and `ResearchOpenPositionBookmark` (`@@unique([positionId, userId])`).
+- `2026100112000000_faculty_profile_links_and_openings`: adds `FacultyProfile` link fields (`googleScholarUrl`, `linkedinUrl`, `personalWebsiteUrl`, `officeLocation`) and structured openings fields on `ResearchOpenPosition` (`requirements`, `positionsAvailable`, `positionsFilled`, `status` (`OpeningStatus` OPEN/CLOSED), `howToApply`).
 
 After pulling, apply migrations and regenerate Prisma Client before running the backend:
 
@@ -258,6 +273,7 @@ client-acc: npm run build
 server-acc: node --check controllers/researchVault.js
 server-acc: npx prisma validate
 server-acc: npx prisma migrate status
+server-acc: npm test  # unit tests for the openings computed-status rule (tests/openingStatus.test.mjs)
 ```
 
 Cursor sorting, question navigation, reply batches, vote toggles, accepted-answer permissions, and local seed content were also exercised against the local PostgreSQL database.
@@ -343,3 +359,32 @@ This is the same flow already used by Announcements (`ManageAnnouncement.jsx`), 
 - `backend-acc` gained a `/health` healthcheck (busybox `wget`, since the node:20-alpine image has no curl) and `nginx-acc` now uses `depends_on: condition: service_healthy` for the backend.
 - The client's nginx sends `Cache-Control: no-cache` for `index.html` and immutable caching for hashed `/assets/`, preventing stale-bundle deployments after rebuilds.
 - Removed the dead `VITE_USE_MOCK_RESOURCES` Docker build arg from `client-acc/Dockerfile` and `docker-compose.yml`.
+
+## Recent updates (Open Positions, Experiences & Faculty tabs)
+
+### Open Positions tab
+
+- **Filters:** custom dropdowns (searchable area list with type-ahead + keyboard navigation, arrow-key support in all dropdowns), type filter, sort (deadline/newest/department), and a **Saved (N)** toggle that shows only bookmarked positions. The area dropdown ends with an **Other** option (client-side complement: positions tagged only with non-standard areas remain findable).
+- **Show closed positions** is a pure client-side toggle: the tab always fetches open + closed in one request (`includeClosed=true`) and filters locally via the same rule the server uses — toggling costs zero network requests and cannot flash. Self-clicking the active tab pill is also a no-op (no wipe, no reload, no state loss).
+- **Bookmarks:** Save/Unsave is optimistic — state flips instantly, the API fires in the background, and the UI reverts only on failure. Bookmarking a position surfaces it under **Saved Positions** on the Following tab and in the Recent Activity feed (deep-linkable).
+- **Legacy type labels** map to readable names (Summer Research, Thesis Slot, PhD Position, Research Assistantship, Reading Project) instead of falling through to raw enum text.
+
+### Experiences tab
+
+- **Moderation lifecycle:** `PENDING_REVIEW → APPROVED/REJECTED` via `PATCH /admin/experiences/:id/status` (`checkResearchAdmin`, optional `reviewNote`). Public feed = APPROVED only; authors see all their own statuses in "My Submissions" (status pills + reviewer notes), which replaces the feed while active — no duplicate cards. Editing an approved/rejected experience re-enters moderation; `status`/`reviewNote` are never client-settable.
+- **Schema:** required title/lab/duration/summary/narrative; optional prerequisites, key learnings, outcome; multi-select research-area pills; `experienceType` (Internship/Thesis/RA/Independent Project/Course Project/Other). Free-text `guideName` was dropped: the guide is either an internal faculty link (auto-fills department, deep-links to the faculty profile) **or** external free-text details (name required, affiliation) — mutually exclusive, enforced client- and server-side; search covers external guide name/affiliation.
+- **Detail page** (`/dashboard/research-vault/experiences/:experienceId`): full narrative, prerequisites, key learnings, outcome callout, area pills, reviewer note for rejected, faculty deep-link. The comment thread is flat and unmoderated (only the article is moderated): chat-style bubbles matching the Discussion tab (own = right/blue `ml-auto bg-blue-50/80 text-right`, others = left/green `mr-auto bg-emerald-50/40 text-left`), input box anchored below the list, author line "Name · Roll", date, own-comment Delete (with confirmation dialog) soft-deleting into a `[deleted]` placeholder; the heading count excludes tombstones.
+
+### Faculty tab (structured openings + profile links)
+
+- **Computed open status:** a position is OPEN ⇔ stored `status = 'OPEN'` ∧ `positionsFilled < positionsAvailable` ∧ (`deadline` null ∨ `deadline ≥ today`). Computed on every read in the shared pure helper `server-acc/utils/openingStatus.js` (`isOpenOpening`, `openingComputedStatus`, `deadlineLabel`); the stored `status` column is only the admin's early-close switch and is never trusted on the user side. Unit-tested in `tests/openingStatus.test.mjs` (8 tests: filled, expired, explicit-closed, boundary at deadline == now, label formats).
+- **Cards:** show "N open positions — view profile" or "No open positions — view profile" (computed only; fully-closed faculty stay browseable), and the whole card opens the profile.
+- **Profile page** (`/dashboard/research-vault/faculty/:facultyId`): header with office location, About, icon+label links row (email, lab/dept website, personal website, Google Scholar, LinkedIn — each hidden individually when null, all external links `rel="noopener noreferrer nofollow"`), and the openings section: open openings first (soonest deadline first), then closed ones below a "Closed positions" divider. Each opening shows Open/Closed badge, type + area badges, deadline chip ("Closes in N days" / "Deadline passed"), seats ("1 of 2 filled"), labeled Eligibility and Requirements blocks, description, and a "How to apply" callout (URL → "Apply now" link). Loading/empty/error states included.
+- **Search/filter:** the "Current openings" checkbox filters to faculty with ≥1 computed-OPEN opening (raw-SQL id prequery, since Prisma cannot compare two columns in a `where`). "Find a research match" counts only computed-OPEN positions toward the project-type signal and deprioritizes (×0.5, never excludes) profiles with nothing open.
+- **Endpoints:** `GET /faculty` (adds `openOpeningsCount` + link fields), `GET /faculty/:id` (openings annotated with `computedStatus`), `GET /faculty/openings/:id` (standalone list; declared before `/:id`). No write endpoints — see `adminreadme.md` for the admin-side contract.
+
+### Cross-cutting fixes in this cycle
+
+- **Following-feed 500:** `getFollowingUpdates` still queried the removed `'PUBLISHED'` enum value after the experience-status rename → Prisma threw on every call. Fixed to `'APPROVED'` (and the analytics counters to `'APPROVED'`/`'PENDING_REVIEW'`); verified the feed serializes all four content types (positions/experience/resource/discussion) post-migration.
+- **Optimistic UI everywhere:** position Save, "Show closed", tab self-clicks, and "My Submissions" toggles never refetch the list; bookmark state loads on mount and survives tab navigation.
+- **Seed:** `seedResources.js` now also seeds faculty profile links (Scholar/LinkedIn/personal/office for 3 demo profiles) and two extra closed-state demos (explicitly `CLOSED`, and fully filled) plus the earlier expired demo, covering every computed-status branch; idempotent as before.

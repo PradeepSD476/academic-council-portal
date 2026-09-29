@@ -2,6 +2,7 @@ import express from 'express';
 import {
     getFacultyProfiles,
     getFacultyProfileById,
+    getFacultyOpenings,
     createFacultyProfile,
     updateFacultyProfile,
     deleteFacultyProfile,
@@ -70,6 +71,7 @@ router.post('/areas', checkAuth, checkResearchAdmin, createResearchArea);
 
 // ── Faculty ───────────────────────────────────────────────────────────────────
 router.get('/faculty', getFacultyProfiles);
+router.get('/faculty/openings/:id', getFacultyOpenings);
 router.get('/faculty/:id', getFacultyProfileById);
 router.post('/faculty', checkAuth, checkResearchAdmin, createFacultyProfile);
 router.put('/faculty/:id', checkAuth, checkResearchAdmin, updateFacultyProfile);

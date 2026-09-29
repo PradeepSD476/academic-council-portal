@@ -1002,7 +1002,7 @@ useEffect(() => {
       {section === 'faculty' && (
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
           <VaultList loading={loading} empty="No faculty profiles match these filters.">
-            {items.map((faculty) => <article key={faculty.id} id={`faculty-card-${faculty.id}`} className={`border-b border-slate-200 py-5 first:pt-1 overflow-hidden scroll-mt-28 transition-all duration-700 ${highlightFacultyId === faculty.id ? 'rounded-2xl bg-blue-50/70 ring-2 ring-[var(--color-secondary)] ring-offset-2' : ''}`}>
+            {items.map((faculty) => <article key={faculty.id} id={`faculty-card-${faculty.id}`} role="link" tabIndex={0} onClick={() => navigate(`/dashboard/research-vault/faculty/${faculty.id}`)} onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/dashboard/research-vault/faculty/${faculty.id}`); }} className={`cursor-pointer border-b border-slate-200 py-5 first:pt-1 overflow-hidden scroll-mt-28 transition-all duration-700 ${highlightFacultyId === faculty.id ? 'rounded-2xl bg-blue-50/70 ring-2 ring-[var(--color-secondary)] ring-offset-2' : ''}`}>
               <div className="flex flex-wrap items-start justify-between gap-3 min-w-0">
                 <div className="min-w-0 flex flex-col items-start text-left">
                   <h2 className="text-lg font-bold text-slate-950 leading-snug break-words">{faculty.name}</h2>
@@ -1012,9 +1012,15 @@ useEffect(() => {
               </div>
               {faculty.biography && <p className="mt-3 text-sm leading-6 text-slate-700">{faculty.biography}</p>}
               <TagList areas={faculty.researchAreas?.map((entry) => entry.researchArea) || []} onFollow={follow} followedAreaIds={followedAreaIds} />
-              {faculty.positions?.length > 0 && <p className="mt-3 text-xs font-semibold text-emerald-800">{faculty.positions.length} current opening{faculty.positions.length === 1 ? '' : 's'}</p>}
-              <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-600">{faculty.email && <a className="hover:text-emerald-800" href={`mailto:${faculty.email}`}>{faculty.email}</a>}{faculty.website && <a className="inline-flex items-center gap-1 hover:text-emerald-800" href={faculty.website} target="_blank" rel="noreferrer">Faculty website <ExternalLink size={12} /></a>}</div>
-              {faculty.publications && <details className="mt-3 text-sm"><summary className="cursor-pointer font-semibold text-slate-700">Publications and work</summary><p className="mt-2 whitespace-pre-wrap text-slate-600">{faculty.publications}</p></details>}
+              {/* Computed open count only (see utils/openingStatus.js) — never
+                  raw isActive rows; still viewable when nothing is open. */}
+              <p className={`mt-3 text-xs font-semibold ${faculty.openOpeningsCount > 0 ? 'text-emerald-800' : 'text-slate-500'}`}>
+                {faculty.openOpeningsCount > 0
+                  ? `${faculty.openOpeningsCount} open position${faculty.openOpeningsCount === 1 ? '' : 's'} — view profile`
+                  : 'No open positions — view profile'}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-600">{faculty.email && <a className="hover:text-emerald-800" href={`mailto:${faculty.email}`} onClick={(e) => e.stopPropagation()}>{faculty.email}</a>}{faculty.website && <a className="inline-flex items-center gap-1 hover:text-emerald-800" href={faculty.website} target="_blank" rel="noopener noreferrer nofollow" onClick={(e) => e.stopPropagation()}>Faculty website <ExternalLink size={12} /></a>}</div>
+              {faculty.publications && <details className="mt-3 text-sm" onClick={(e) => e.stopPropagation()}><summary className="cursor-pointer font-semibold text-slate-700">Publications and work</summary><p className="mt-2 whitespace-pre-wrap text-slate-600">{faculty.publications}</p></details>}
             </article>)}</VaultList>
           <aside className="self-start rounded-3xl border-2 border-[var(--color-secondary)]/30 bg-gradient-to-b from-white/95 via-sky-50/25 to-blue-50/35 p-5 shadow-[0_12px_35px_rgba(11,30,63,0.06)]">
             <p className="flex items-center gap-2 text-sm font-bold text-emerald-950"><UsersRound size={16} /> Find a research match</p>
