@@ -309,21 +309,106 @@ export default function ResearchVault() {
   const [positionType, setPositionType] = useState('');
   const [positionSort, setPositionSort] = useState('deadline');
   const [positionShowClosed, setPositionShowClosed] = useState(false);
+  // "Saved (N)" toggle on the filter row: one click shows only bookmarked
+  // positions (client-side filter, no refetch).
+  const [positionSavedOnly, setPositionSavedOnly] = useState(false);
   const [bookmarkedPositionIds, setBookmarkedPositionIds] = useState(() => new Set());
+  // Faculty card to scroll to + highlight when arriving via a deep link like
+  // /research-vault?section=faculty&faculty=<id> ("View faculty profile").
+  const [highlightFacultyId, setHighlightFacultyId] = useState(null);
+  const facultyFetchIdRef = useRef(null);
   const [resourceTotal, setResourceTotal] = useState(0);
   const RESOURCE_PAGE_SIZE = 12;
 
+  // Look up saved positions for the Following tab (id → position summary).
+  // Bookmarked ids load first; the open list (always fetched with closed rows)
+  // supplies the details. Positions hidden by privacy/isActive and never listed
+  // fall back to a details fetch so a stale bookmark never renders as a blank.
+  const [savedPositions, setSavedPositions] = useState(() => new Map());
+  useEffect(() => {
+    const wanted = Array.from(bookmarkedPositionIds).filter((id) => !savedPositions.has(id));
+    if (wanted.length === 0) return;
+    let active = true;
+    Promise.all(wanted.map((id) =>
+      researchVaultApi.getPositionById(id)
+        .then((response) => ({ id, position: response.data?.data || null }))
+        .catch(() => ({ id, position: null, failed: true }))
+    )).then((results) => {
+      if (!active) return;
+      setSavedPositions((prev) => {
+        const next = new Map(prev);
+        results.forEach(({ id, position, failed }) => {
+          if (position) next.set(id, position);
+          else if (failed) next.set(id, null); // tombstone: don't refetch forever
+        });
+        return next;
+      });
+    });
+    return () => { active = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- savedPositions is a read-through cache; depending on it would refetch on every fill
+  }, [bookmarkedPositionIds]);
+
   // Area options for the Open Positions filter (searchable custom dropdown).
+  // "Other" (sentinel value 'other') keeps positions tagged only with custom /
+  // non-standard areas (the Resources "Other" flow) reachable via the filter.
   const positionAreaOptions = useMemo(() => ([
     { value: '', label: 'All research areas' },
     ...areas.map((area) => ({ value: String(area.id), label: area.name })),
+    { value: 'other', label: 'Other' },
   ]), [areas]);
 
   // "Show closed positions" is a pure client-side filter over the already
   // loaded list: toggling it costs no network request and cannot flash.
-  const filteredPositions = useMemo(() => (
-    positionShowClosed ? items : items.filter(isOpenPosition)
-  ), [items, positionShowClosed]);
+  // "Other" keeps positions tagged only with custom/non-standard areas visible:
+  // custom areas (from the Resources flow) are not standard filters, so without
+  // this they would be unreachable via any area option.
+  const filteredPositions = useMemo(() => {
+    let list = positionShowClosed ? items : items.filter(isOpenPosition);
+    if (positionSavedOnly) {
+      list = list.filter((position) => bookmarkedPositionIds.has(position.id));
+    }
+    if (positionAreaId === 'other') {
+      const standardAreaIds = new Set(areas.map((area) => area.id));
+      list = list.filter((position) => !(position.researchAreas || [])
+        .some((entry) => standardAreaIds.has(entry.researchArea.id)));
+    }
+    return list;
+  }, [items, positionShowClosed, positionSavedOnly, bookmarkedPositionIds, positionAreaId, areas]);
+
+  // Read ?faculty=<id> deep links (set by "View faculty profile" on positions):
+  // pre-seed the faculty search so the person is guaranteed to be in the list,
+  // then scroll to and briefly highlight their card once it renders.
+  useEffect(() => {
+    if (section !== 'faculty') return;
+    const raw = searchParams.get('faculty');
+    if (!raw) return;
+    const id = Number.parseInt(raw, 10);
+    if (Number.isNaN(id) || facultyFetchIdRef.current === id) return;
+    facultyFetchIdRef.current = id;
+    setHighlightFacultyId(id);
+  }, [searchParams, section]);
+
+  // Guarantee the highlighted faculty is actually in the list: pre-seed the
+  // search box with their name (backend search covers name/department/areas).
+  // facultyOptions load asynchronously, so keep the pending id until the lookup
+  // succeeds instead of clearing it on the first pass.
+  useEffect(() => {
+    const id = facultyFetchIdRef.current;
+    if (section !== 'faculty' || !id) return;
+    const name = facultyOptions.find((f) => f.id === id)?.name;
+    if (!name) return;
+    setSearch(name);
+    facultyFetchIdRef.current = null;
+  }, [section, facultyOptions]);
+
+  useEffect(() => {
+    if (section !== 'faculty' || !highlightFacultyId || loading) return undefined;
+    const node = document.getElementById(`faculty-card-${highlightFacultyId}`);
+    if (!node) return undefined;
+    node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const timer = setTimeout(() => setHighlightFacultyId(null), 4000);
+    return () => clearTimeout(timer);
+  }, [section, highlightFacultyId, loading, items]);
   // My Submissions
   const [showMySubmissions, setShowMySubmissions] = useState(false);
   const [myResources, setMyResources] = useState([]);
@@ -413,9 +498,13 @@ useEffect(() => {
                 })
               : section === 'positions'
                 ? researchVaultApi.getPositions({
-                    search,
+                    // NOTE: never filter positions by `search` here — when the
+                    // Faculty tab is deep-linked (?faculty=<id>) it seeds its own
+                    // search box with the person's name, and the sections share
+                    // this effect.
+                    search: section === 'positions' ? search : undefined,
                     department,
-                    areaId: positionAreaId || undefined,
+                    areaId: positionAreaId === 'other' ? undefined : (positionAreaId || undefined),
                     positionType: positionType || undefined,
                     sort: positionSort,
                     // Always fetch open + closed together: the "Show closed
@@ -494,28 +583,35 @@ useEffect(() => {
     }
   };
 
+  // Optimistic bookmark toggle: flip the Saved state immediately, fire the API
+  // in the background, and revert only if the call fails. Deliberately does NOT
+  // bump refreshVersion — a full-list refetch + loading flash on every save was
+  // the root cause of the visible reload; the Following feed re-queries via the
+  // section switch anyway.
   const togglePositionBookmark = async (positionId) => {
-    const isBookmarked = bookmarkedPositionIds.has(positionId);
+    const wasBookmarked = bookmarkedPositionIds.has(positionId);
+    setBookmarkedPositionIds((current) => {
+      const next = new Set(current);
+      if (wasBookmarked) next.delete(positionId);
+      else next.add(positionId);
+      return next;
+    });
     try {
-      if (isBookmarked) {
+      if (wasBookmarked) {
         await researchVaultApi.unbookmarkPosition(positionId);
-        setBookmarkedPositionIds((current) => {
-          const next = new Set(current);
-          next.delete(positionId);
-          return next;
-        });
         toast.success('Removed from saved positions.');
       } else {
         await researchVaultApi.bookmarkPosition(positionId);
-        setBookmarkedPositionIds((current) => {
-          const next = new Set(current);
-          next.add(positionId);
-          return next;
-        });
         toast.success('Position saved — see it under Following.');
       }
-      setRefreshVersion((v) => v + 1);
     } catch (error) {
+      // Revert the optimistic change when the server rejects the save.
+      setBookmarkedPositionIds((current) => {
+        const next = new Set(current);
+        if (wasBookmarked) next.add(positionId);
+        else next.delete(positionId);
+        return next;
+      });
       toast.error(errorMessage(error));
     }
   };
@@ -704,7 +800,7 @@ useEffect(() => {
 
       <nav className="vault-tabs flex items-center gap-2 overflow-x-auto px-1 pb-1 scrollbar-thin -ml-1" aria-label="Research Vault sections" style={{ scrollbarWidth: 'thin', scrollbarColor: 'var(--color-secondary) transparent' }}>
         {sections.map(({ id, label, icon: Icon }) => (
-          <button key={id} onClick={() => { if (id === 'discussions') { navigate('/dashboard/research-vault/questions'); return; } setSection(id); navigate(`/dashboard/research-vault?section=${id}`, { replace: true }); setItems([]); setLoading(true); setSearch(''); setDiscussionStatus('all'); setAreaId(''); setAreaSearch(''); setAreaPickerOpen(false); }} className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold whitespace-nowrap transition-all duration-200 ${section === id ? 'is-active bg-[var(--color-secondary)] text-white shadow-[0_4px_16px_var(--color-secondary-glow)] scale-[1.02]' : 'border-slate-200 bg-white/95 text-slate-500 shadow-xs hover:border-slate-300 hover:bg-white/90 hover:text-[var(--color-primary)]'}`}>
+          <button key={id} onClick={() => { if (id === section) return; if (id === 'discussions') { navigate('/dashboard/research-vault/questions'); return; } setSection(id); navigate(`/dashboard/research-vault?section=${id}`, { replace: true }); setItems([]); setLoading(true); setSearch(''); setDiscussionStatus('all'); setAreaId(''); setAreaSearch(''); setAreaPickerOpen(false); }} className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold whitespace-nowrap transition-all duration-200 ${section === id ? 'is-active bg-[var(--color-secondary)] text-white shadow-[0_4px_16px_var(--color-secondary-glow)] scale-[1.02]' : 'border-slate-200 bg-white/95 text-slate-500 shadow-xs hover:border-slate-300 hover:bg-white/90 hover:text-[var(--color-primary)]'}`}>
             {createElement(Icon, { size: 16 })} {label}
           </button>
         ))}
@@ -871,7 +967,7 @@ useEffect(() => {
       {section === 'faculty' && (
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
           <VaultList loading={loading} empty="No faculty profiles match these filters.">
-            {items.map((faculty) => <article key={faculty.id} className="border-b border-slate-200 py-5 first:pt-1 overflow-hidden">
+            {items.map((faculty) => <article key={faculty.id} id={`faculty-card-${faculty.id}`} className={`border-b border-slate-200 py-5 first:pt-1 overflow-hidden scroll-mt-28 transition-all duration-700 ${highlightFacultyId === faculty.id ? 'rounded-2xl bg-blue-50/70 ring-2 ring-[var(--color-secondary)] ring-offset-2' : ''}`}>
               <div className="flex flex-wrap items-start justify-between gap-3 min-w-0">
                 <div className="min-w-0 flex flex-col items-start text-left">
                   <h2 className="text-lg font-bold text-slate-950 leading-snug break-words">{faculty.name}</h2>
@@ -1099,6 +1195,15 @@ useEffect(() => {
               searchPlaceholder="Search areas…"
               emptyMessage="No matching areas."
             />
+            <button
+              type="button"
+              onClick={() => setPositionSavedOnly((prev) => !prev)}
+              aria-pressed={positionSavedOnly}
+              title={positionSavedOnly ? 'Showing only saved positions' : 'Show only saved positions'}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2.5 text-xs font-semibold transition-colors ${positionSavedOnly ? 'border-blue-400 bg-blue-100 text-blue-900' : 'border-slate-200 bg-white/90 text-[var(--color-primary)] hover:border-[var(--color-secondary)] hover:text-[var(--color-primary-accent)]'}`}
+            >
+              <Bookmark size={13} /> Saved ({bookmarkedPositionIds.size})
+            </button>
             <div className="ml-auto flex flex-wrap items-center gap-2">
               <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white/90 px-3 py-2.5 text-xs font-semibold text-[var(--color-primary)]">
                 <input type="checkbox" checked={positionShowClosed} onChange={(e) => setPositionShowClosed(e.target.checked)} className="accent-emerald-800" />
@@ -1114,7 +1219,7 @@ useEffect(() => {
             </div>
           </div>
 
-          <VaultList loading={loading} empty={positionShowClosed ? 'No positions match your filters.' : 'No open research positions right now.'}>
+          <VaultList loading={loading} empty={positionSavedOnly ? 'No saved positions yet — tap Save on any position and it will appear here.' : positionShowClosed ? 'No positions match your filters.' : 'No open research positions right now.'}>
             {filteredPositions.map((position) => {
               const closed = position.deadline && new Date(position.deadline).getTime() < Date.now();
               const urgency = deadlineInfo(position.deadline);
@@ -1126,7 +1231,7 @@ useEffect(() => {
                     onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/dashboard/research-vault/positions/${position.id}`); }}
                   >
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-emerald-800">{positionTypeLabel(position.positionType)}</span>
+                      <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-blue-800">{positionTypeLabel(position.positionType)}</span>
                       {urgency && <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${urgency.cls}`}>{urgency.label}</span>}
                       {position.bookmarked && <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold text-blue-700">Saved</span>}
                     </div>
@@ -1148,7 +1253,7 @@ useEffect(() => {
                     <button
                       type="button"
                       onClick={() => navigate(`/dashboard/research-vault/positions/${position.id}`)}
-                      className="inline-flex items-center gap-2 rounded-full bg-emerald-800 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-900"
+                      className="inline-flex items-center gap-2 rounded-full bg-[var(--color-secondary)] px-3 py-2 text-sm font-semibold text-white hover:bg-[var(--color-primary-accent)]"
                     >
                       View details
                     </button>
@@ -1274,12 +1379,56 @@ useEffect(() => {
             </div>
           )}
 
+          {/* Saved Positions — mirrors the faculty-follow card pattern */}
+          {bookmarkedPositionIds.size > 0 && (
+            <div>
+              <h3 className="mb-3 flex items-center gap-2 text-lg font-bold text-slate-900">
+                <Bookmark size={20} className="text-[var(--color-secondary)]" />
+                Saved Positions ({bookmarkedPositionIds.size})
+              </h3>
+              <div className="space-y-2">
+                {Array.from(bookmarkedPositionIds).map((pid) => {
+                  const position = savedPositions.get(pid);
+                  if (!position) return null;
+                  const closed = position.deadline && new Date(position.deadline).getTime() < Date.now();
+                  return (
+                    <div
+                      key={pid}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => navigate(`/dashboard/research-vault/positions/${pid}`)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/dashboard/research-vault/positions/${pid}`); } }}
+                      className={`w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-xl border p-3 shadow-sm transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-secondary)] focus-visible:ring-offset-2 ${closed ? 'border-slate-200 bg-slate-50 opacity-60' : 'border-slate-200 bg-white/95 hover:border-[var(--color-secondary)] hover:bg-slate-50/50'}`}
+                    >
+                      <div className="min-w-0 flex flex-col items-start text-left">
+                        <p className="font-semibold text-slate-900 leading-snug break-words">{position.title}</p>
+                        <p className="text-xs text-slate-500 leading-snug break-words">
+                          {positionTypeLabel(position.positionType)}{position.faculty?.name ? ` · ${position.faculty.name}` : ''}{position.deadline ? ` · Apply by ${new Date(position.deadline).toLocaleDateString()}` : ''}{closed ? ' · Closed' : ''}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
+                        <button
+                          type="button"
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); togglePositionBookmark(pid); }}
+                          title="Remove from saved positions"
+                          className="inline-flex items-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-secondary)] focus-visible:ring-offset-2"
+                        >
+                          <Bookmark size={13} /> Saved
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Recent Activity Feed */}
-          {followedFacultyIds.size === 0 && followedAreaIds.size === 0 ? (
+          {followedFacultyIds.size === 0 && followedAreaIds.size === 0 && bookmarkedPositionIds.size === 0 ? (
             <div className="academic-card flex flex-col items-center justify-center rounded-3xl p-12 text-center text-sm text-slate-500">
               <UserRoundPlus size={32} className="text-slate-300 mb-3" />
               <p className="font-semibold text-slate-700">Not following anyone yet</p>
-              <p className="mt-1 text-slate-500">Follow a faculty member or research area to see their updates here.</p>
+              <p className="mt-1 text-slate-500">Follow a faculty member or research area, or save a position, to see updates here.</p>
             </div>
           ) : (
             <div>
@@ -1385,7 +1534,12 @@ useEffect(() => {
                         {update.createdAt ? new Date(update.createdAt).toLocaleDateString() : ''}
                       </time>
                     </div>
-                    <h2 className="mt-2 text-base font-bold text-slate-900">{update.title || 'Research update'}</h2>
+                    <h2
+                      className={`mt-2 text-base font-bold text-slate-900 ${update.url ? 'cursor-pointer hover:text-[var(--color-primary-accent)]' : ''}`}
+                      onClick={update.url ? () => navigate(update.url) : undefined}
+                    >
+                      {update.title || 'Research update'}
+                    </h2>
                     {update.source && <p className="mt-1 text-xs font-semibold text-[var(--color-primary-accent)]">{update.source}</p>}
                     {update.detail && <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600">{update.detail}</p>}
                   </article>

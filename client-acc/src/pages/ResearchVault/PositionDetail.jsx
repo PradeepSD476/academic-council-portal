@@ -10,7 +10,7 @@ const deadlineInfo = (deadline) => {
   const days = Math.ceil(ms / (24 * 60 * 60 * 1000));
   if (ms < 0) return { label: 'Deadline passed', cls: 'bg-slate-100 text-slate-500 border-slate-200', closed: true };
   if (days <= 7) return { label: days === 0 ? 'Closes today' : `${days} day${days === 1 ? '' : 's'} left`, cls: days <= 2 ? 'bg-red-50 text-red-700 border-red-200' : 'bg-amber-50 text-amber-700 border-amber-200', closed: false };
-  return { label: `Open · ${new Date(deadline).toLocaleDateString()}`, cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', closed: false };
+  return { label: `Open · ${new Date(deadline).toLocaleDateString()}`, cls: 'bg-blue-50 text-blue-700 border-blue-200', closed: false };
 };
 
 // Keep badge labels in sync with the Open Positions tab filter labels
@@ -77,7 +77,7 @@ export default function PositionDetail() {
     return (
       <div className="academic-card rounded-3xl p-10 text-center">
         <p className="text-sm text-slate-500">{error || 'Position not found.'}</p>
-        <button type="button" onClick={() => navigate('/dashboard/research-vault?section=positions')} className="mt-4 rounded-full bg-emerald-800 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-900">Back to Open positions</button>
+        <button type="button" onClick={() => navigate('/dashboard/research-vault?section=positions')} className="mt-4 rounded-full bg-[var(--color-secondary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--color-primary-accent)]">Back to Open positions</button>
       </div>
     );
   }
@@ -93,7 +93,7 @@ export default function PositionDetail() {
 
       <article className="academic-card rounded-3xl border border-slate-200 bg-white/95 p-6 shadow-sm sm:p-8">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-emerald-800">
+          <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-blue-800">
             {createElement(BriefcaseBusiness, { size: 11, className: 'mr-1' })}{positionTypeLabel(position.positionType)}
           </span>
           {urgency && <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${urgency.cls}`}>{urgency.label}</span>}
@@ -104,7 +104,7 @@ export default function PositionDetail() {
 
         {position.faculty && (
           <div className="mt-3 flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-800">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] text-sm font-semibold text-white">
               {(position.faculty.name || 'F').split(' ').map((w) => w[0]).slice(0, 2).join('')}
             </div>
             <div className="min-w-0">
@@ -112,7 +112,7 @@ export default function PositionDetail() {
               <p className="text-xs text-slate-500">{position.faculty.designation}{position.faculty.designation && position.faculty.department ? ' · ' : ''}{position.faculty.department}</p>
             </div>
             <Link
-              to={`/dashboard/research-vault?section=faculty&search=${encodeURIComponent(position.faculty.name)}`}
+              to={`/dashboard/research-vault?section=faculty&faculty=${position.faculty.id}`}
               className="ml-auto inline-flex shrink-0 items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-[var(--color-secondary)] hover:text-[var(--color-primary-accent)]"
             >
               <UserRound size={13} /> View faculty profile
@@ -131,21 +131,21 @@ export default function PositionDetail() {
 
         {position.eligibility && (
           <section className="mt-5">
-            <h2 className="flex items-center gap-1.5 text-sm font-bold text-slate-900"><CheckCircle2 size={15} className="text-emerald-700" /> Eligibility</h2>
+            <h2 className="flex items-center gap-1.5 text-sm font-bold text-slate-900"><CheckCircle2 size={15} className="text-[var(--color-secondary)]" /> Eligibility</h2>
             <p className="mt-1.5 whitespace-pre-wrap text-sm leading-6 text-slate-700">{position.eligibility}</p>
           </section>
         )}
 
         {(position.applicationUrl || position.applicationInstructions) && (
-          <section className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4">
-            <h2 className="text-sm font-bold text-emerald-900">How to apply</h2>
-            {position.applicationInstructions && <p className="mt-1.5 whitespace-pre-wrap text-sm leading-6 text-emerald-900/90">{position.applicationInstructions}</p>}
+          <section className="mt-5 rounded-2xl border border-[var(--color-secondary-border)] bg-[var(--color-secondary-light)] p-4">
+            <h2 className="text-sm font-bold text-blue-900">How to apply</h2>
+            {position.applicationInstructions && <p className="mt-1.5 whitespace-pre-wrap text-sm leading-6 text-blue-900/90">{position.applicationInstructions}</p>}
             {position.applicationUrl && (
               <a
                 href={position.applicationUrl}
                 target="_blank"
                 rel="noopener noreferrer nofollow"
-                className="mt-3 inline-flex items-center gap-2 rounded-full bg-emerald-800 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-900"
+                className="mt-3 inline-flex items-center gap-2 rounded-full bg-[var(--color-secondary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--color-primary-accent)]"
               >
                 Apply now <ExternalLink size={14} />
               </a>
@@ -156,7 +156,7 @@ export default function PositionDetail() {
         {position.researchAreas?.length > 0 && (
           <div className="mt-5 flex flex-wrap gap-1.5">
             {position.researchAreas.map(({ researchArea }) => (
-              <span key={researchArea.id} className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-900">{researchArea.name}</span>
+              <span key={researchArea.id} className="rounded-full border border-[var(--color-secondary-border)] bg-[var(--color-secondary-light)] px-2 py-1 text-[11px] font-semibold text-blue-900">{researchArea.name}</span>
             ))}
           </div>
         )}
