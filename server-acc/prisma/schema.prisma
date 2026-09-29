@@ -44,6 +44,10 @@ model Experience {
   uploadedBy     User           @relation(fields: [uploadedById], references: [id])
   likes          Like[]
   bookmarks      Bookmark[]
+  companyId      Int?
+  company        Company?       @relation(fields: [companyId], references: [id])
+
+  @@index([companyId])
 }
 
 model Bookmark {
@@ -291,4 +295,76 @@ model RoadmapChapter {
   section   RoadmapSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 
   @@unique([sectionId, slug])
+}
+
+// ─────────────────────────── Careers: company registry ───────────────────────────
+// Additive only. Audit columns (*ById) are plain Int with no FK so user deletion is never blocked.
+
+enum CompanyStatus {
+  ACTIVE
+  CANDIDATE
+  MERGED
+}
+
+enum AliasOrigin {
+  SEED
+  MANUAL
+  AUTO
+  MERGE
+}
+
+enum MergeAction {
+  MERGE
+  SPLIT
+}
+
+model Company {
+  id             Int            @id @default(autoincrement())
+  name           String
+  slug           String         @unique
+  normalizedName String
+  website        String?
+  status         CompanyStatus  @default(ACTIVE)
+  mergedIntoId   Int?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  aliases        CompanyAlias[]
+  experiences    Experience[]
+
+  @@index([normalizedName])
+  @@index([status])
+}
+
+model CompanyAlias {
+  id              Int         @id @default(autoincrement())
+  companyId       Int
+  company         Company     @relation(fields: [companyId], references: [id])
+  alias           String
+  normalizedAlias String      @unique
+  origin          AliasOrigin @default(AUTO)
+  createdAt       DateTime    @default(now())
+
+  @@index([companyId])
+}
+
+model CompanyMergeLog {
+  id            Int         @id @default(autoincrement())
+  action        MergeAction
+  fromCompanyId Int // MERGE: absorbed company.  SPLIT: original company
+  toCompanyId   Int // MERGE: surviving company. SPLIT: newly created company
+  moved         Json // { aliasIds, postingIds, experienceIds, sourceIds }
+  performedById Int
+  undoneAt      DateTime?
+  undoneById    Int?
+  createdAt     DateTime    @default(now())
+
+  @@index([fromCompanyId])
+  @@index([toCompanyId])
+}
+
+model AppSetting {
+  key         String   @id
+  value       Json
+  updatedById Int?
+  updatedAt   DateTime @updatedAt
 }
