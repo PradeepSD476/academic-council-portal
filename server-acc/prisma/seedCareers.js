@@ -115,10 +115,30 @@ async function seedCompanies() {
     return stats;
 }
 
+// Every posting observation needs a Source, including manual entries and student links, so
+// those two channels are single "system" sources without a board token.
+const SYSTEM_SOURCES = [
+    { kind: 'MANUAL', name: 'Manual entry (admin)' },
+    { kind: 'STUDENT_LINK', name: 'Student-submitted links' },
+];
+
+async function seedSystemSources() {
+    let created = 0;
+    for (const s of SYSTEM_SOURCES) {
+        // boardToken is NULL, and NULLs never collide in a unique index, so check explicitly.
+        const exists = await prisma.source.findFirst({ where: { kind: s.kind, boardToken: null } });
+        if (exists) continue;
+        await prisma.source.create({ data: { kind: s.kind, name: s.name, health: 'OK' } });
+        created++;
+    }
+    return created;
+}
+
 async function main() {
     const settings = await seedSettings();
     const stats = await seedCompanies();
-    console.info(`[careers] seed: ${settings} settings created, ${stats.companies} companies created, ${stats.aliases} aliases created, ${stats.skippedRedundant} redundant/existing aliases skipped`);
+    const systemSources = await seedSystemSources();
+    console.info(`[careers] seed: ${settings} settings created, ${stats.companies} companies created, ${stats.aliases} aliases created, ${stats.skippedRedundant} redundant/existing aliases skipped, ${systemSources} system sources created`);
     for (const c of stats.conflicts) console.warn(`[careers] seed alias conflict: ${c}`);
 }
 

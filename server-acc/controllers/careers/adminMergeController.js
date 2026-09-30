@@ -15,6 +15,8 @@ const splitBody = z.object({
     name: z.string().trim().min(1).max(120),
     aliasIds: idList,
     experienceIds: idList,
+    postingIds: idList,
+    sourceIds: idList,
 });
 
 const logQuery = z.object({
@@ -30,7 +32,7 @@ export const merge = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: `Merged ${result.from.name} into ${result.to.name}.`,
-            // Postings don't exist until P1; the list reports possible duplicate postings created by the merge.
+            // Filled in once posting deduplication exists (P1-T4): postings of the merged companies that now look alike.
             data: { ...result, possibleDuplicatePostings: [] },
         });
     } catch (err) {

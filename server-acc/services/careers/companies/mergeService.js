@@ -7,10 +7,12 @@ import { CareersError } from '../errors.js';
 import { normalizeCompanyName } from '../text/normalize.js';
 import { uniqueSlug } from './slug.js';
 
-// Things that belong to a company and move with it. P1 adds postings and sources here.
+// Things that belong to a company and move with it.
 const MOVABLE = [
     { key: 'aliasIds', model: 'companyAlias' },
     { key: 'experienceIds', model: 'experience' },
+    { key: 'postingIds', model: 'posting' },
+    { key: 'sourceIds', model: 'source' },
 ];
 
 function emptyMoved() {
@@ -58,13 +60,13 @@ export async function mergeCompanies({ fromId, toId, userId }) {
     });
 }
 
-// Moves the chosen aliases/experiences from company `sourceId` into a new ACTIVE company.
-export async function splitCompany({ sourceId, name, aliasIds = [], experienceIds = [], userId }) {
+// Moves the chosen aliases/experiences/postings/sources from company `sourceId` into a new ACTIVE company.
+export async function splitCompany({ sourceId, name, aliasIds = [], experienceIds = [], postingIds = [], sourceIds = [], userId }) {
     const cleanName = name.trim().replace(/\s+/g, ' ');
     const normalized = normalizeCompanyName(cleanName);
     if (!normalized) throw new CareersError(400, 'VALIDATION_ERROR', 'The new company needs a name.');
-    if (!aliasIds.length && !experienceIds.length) {
-        throw new CareersError(400, 'VALIDATION_ERROR', 'Choose at least one alias or experience to move.');
+    if (!aliasIds.length && !experienceIds.length && !postingIds.length && !sourceIds.length) {
+        throw new CareersError(400, 'VALIDATION_ERROR', 'Choose at least one alias, experience, posting or source to move.');
     }
 
     return prisma.$transaction(async (tx) => {
@@ -78,10 +80,11 @@ export async function splitCompany({ sourceId, name, aliasIds = [], experienceId
         if (aliasIds.length >= ownAliasIds.size) {
             throw new CareersError(400, 'VALIDATION_ERROR', `${source.name} must keep at least one alias.`);
         }
-        if (experienceIds.length) {
-            const owned = await tx.experience.count({ where: { id: { in: experienceIds }, companyId: sourceId } });
-            if (owned !== experienceIds.length) {
-                throw new CareersError(400, 'VALIDATION_ERROR', `Some experiences are not linked to ${source.name}.`);
+        for (const [ids, model, label] of [[experienceIds, 'experience', 'experiences'], [postingIds, 'posting', 'postings'], [sourceIds, 'source', 'sources']]) {
+            if (!ids.length) continue;
+            const owned = await tx[model].count({ where: { id: { in: ids }, companyId: sourceId } });
+            if (owned !== ids.length) {
+                throw new CareersError(400, 'VALIDATION_ERROR', `Some ${label} are not linked to ${source.name}.`);
             }
         }
 
@@ -90,9 +93,10 @@ export async function splitCompany({ sourceId, name, aliasIds = [], experienceId
             data: { name: cleanName, slug, normalizedName: normalized, status: 'ACTIVE' },
         });
 
-        const moved = { ...emptyMoved(), aliasIds, experienceIds, createdAliasIds: [] };
-        await moveIds(tx, 'companyAlias', aliasIds, sourceId, created.id);
-        await moveIds(tx, 'experience', experienceIds, sourceId, created.id);
+        const moved = { ...emptyMoved(), aliasIds, experienceIds, postingIds, sourceIds, createdAliasIds: [] };
+        for (const { key, model } of MOVABLE) {
+            await moveIds(tx, model, moved[key], sourceId, created.id);
+        }
 
         // Make the new company findable by its own name, unless that name is already an alias
         // somewhere (then it stays where it is, to avoid silently re-pointing it).

@@ -330,6 +330,8 @@ model Company {
   updatedAt      DateTime       @updatedAt
   aliases        CompanyAlias[]
   experiences    Experience[]
+  postings       Posting[]
+  sources        Source[]
 
   @@index([normalizedName])
   @@index([status])
@@ -367,4 +369,262 @@ model AppSetting {
   value       Json
   updatedById Int?
   updatedAt   DateTime @updatedAt
+}
+
+// ─────────────────────────── Careers: ingestion ───────────────────────────
+
+enum SourceKind {
+  GREENHOUSE
+  LEVER
+  ASHBY
+  MANUAL
+  STUDENT_LINK
+}
+
+enum SourceHealth {
+  UNKNOWN
+  OK
+  FAILING
+  ZERO_RESULTS
+  DISABLED
+}
+
+enum RunStatus {
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+enum PostingType {
+  INTERNSHIP
+  FULL_TIME
+  UNKNOWN
+}
+
+enum WorkMode {
+  ONSITE
+  HYBRID
+  REMOTE
+  UNKNOWN
+}
+
+enum Disclosure {
+  DISCLOSED
+  RANGE
+  NOT_DISCLOSED
+  UNCLEAR
+}
+
+enum PostingStatus {
+  PENDING_REVIEW
+  LIVE
+  EXPIRED
+  REJECTED
+}
+
+enum ExtractionTier {
+  STRUCTURED
+  JSON_LD
+  LLM_FAST
+  LLM_STRONG
+  MANUAL
+}
+
+enum ExtractionState {
+  QUEUED
+  DONE
+  FAILED
+  SKIPPED_BUDGET
+}
+
+enum SubmissionStatus {
+  RECEIVED
+  PROCESSING
+  EXTRACTING
+  PENDING_REVIEW
+  STORED_ONLY
+  DUPLICATE
+  FAILED
+}
+
+enum ReviewAction {
+  APPROVE
+  REJECT
+  EDIT
+  EXPIRE
+  REOPEN
+  CREATE_MANUAL
+}
+
+model Source {
+  id                  Int             @id @default(autoincrement())
+  name                String
+  kind                SourceKind
+  boardToken          String? // greenhouse board token | lever site | ashby org; null for MANUAL / STUDENT_LINK
+  companyId           Int? // an ATS board belongs to one company
+  company             Company?        @relation(fields: [companyId], references: [id])
+  isEnabled           Boolean         @default(true)
+  health              SourceHealth    @default(UNKNOWN)
+  lastRunAt           DateTime?
+  lastSuccessAt       DateTime?
+  lastFetchedCount    Int?
+  lastKeptCount       Int?
+  consecutiveFailures Int             @default(0)
+  lastError           String?         @db.Text
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  runs                SourceRun[]
+  observations        PostingSource[]
+
+  @@unique([kind, boardToken])
+  @@index([companyId])
+}
+
+model SourceRun {
+  id             Int       @id @default(autoincrement())
+  sourceId       Int
+  source         Source    @relation(fields: [sourceId], references: [id])
+  status         RunStatus @default(RUNNING)
+  startedAt      DateTime  @default(now())
+  finishedAt     DateTime?
+  fetchedCount   Int       @default(0)
+  keptCount      Int       @default(0) // after the relevance filter
+  newCount       Int       @default(0) // new Posting rows
+  duplicateCount Int       @default(0) // merged into existing postings
+  error          String?   @db.Text
+
+  @@index([sourceId, startedAt])
+}
+
+model Posting {
+  id                   Int             @id @default(autoincrement())
+  companyId            Int
+  company              Company         @relation(fields: [companyId], references: [id])
+  roleTitle            String
+  roleTitleNormalized  String
+  type                 PostingType     @default(UNKNOWN)
+  ppoMentioned         Boolean? // null = not stated
+  location             String? // raw
+  locationNormalized   String? // "bengaluru|hyderabad", "remote"
+  workMode             WorkMode        @default(UNKNOWN)
+  skills               String[]
+  compCurrency         String          @default("INR")
+  stipendMin           Int? // per month
+  stipendMax           Int?
+  stipendDisclosure    Disclosure      @default(NOT_DISCLOSED)
+  ctcMin               Int? // per year
+  ctcMax               Int?
+  ctcDisclosure        Disclosure      @default(NOT_DISCLOSED)
+  compensationRaw      String? // exact source wording; required when a disclosure is UNCLEAR
+  descriptionText      String          @db.Text
+  contentFingerprint   String // 16 hex chars (simhash64)
+  applyUrl             String
+  eligibleBranches     String[] // roll-number branch codes; [] = not stated
+  eligibleYears        Int[] // academic years; [] = not stated
+  minCpi               Decimal?        @db.Decimal(4, 2)
+  deadlineStated       DateTime? // only when the source published one
+  firstSeenAt          DateTime        @default(now())
+  lastSeenLiveAt       DateTime        @default(now())
+  status               PostingStatus   @default(PENDING_REVIEW)
+  extractionTier       ExtractionTier
+  extractionConfidence Float? // 0..1; null for MANUAL
+  uncertainFields      String[]
+  rejectReason         String?
+  reviewedById         Int?
+  reviewedAt           DateTime?
+  publishedAt          DateTime? // first time it went LIVE
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  observations         PostingSource[]
+  reviews              PostingReview[]
+
+  @@index([status, lastSeenLiveAt])
+  @@index([companyId, status])
+  @@index([companyId, roleTitleNormalized])
+  @@index([contentFingerprint])
+}
+
+// One row per (source, external job): first/last seen per source (the proposal's posting_observations).
+model PostingSource {
+  id          Int      @id @default(autoincrement())
+  postingId   Int
+  posting     Posting  @relation(fields: [postingId], references: [id], onDelete: Cascade)
+  sourceId    Int
+  source      Source   @relation(fields: [sourceId], references: [id])
+  externalId  String // ATS job id; for MANUAL / STUDENT_LINK: sha1(canonicalUrl)
+  url         String
+  firstSeenAt DateTime @default(now())
+  lastSeenAt  DateTime @default(now())
+  isLive      Boolean  @default(true)
+  missedRuns  Int      @default(0)
+
+  @@unique([sourceId, externalId])
+  @@index([postingId])
+}
+
+// Audit trail of admin review actions (the proposal's extraction_reviews).
+model PostingReview {
+  id        Int          @id @default(autoincrement())
+  postingId Int
+  posting   Posting      @relation(fields: [postingId], references: [id], onDelete: Cascade)
+  action    ReviewAction
+  byUserId  Int
+  changes   Json? // { field: { from, to } }
+  note      String?
+  createdAt DateTime     @default(now())
+
+  @@index([postingId])
+}
+
+model LinkSubmission {
+  id            Int              @id @default(autoincrement())
+  url           String
+  canonicalUrl  String
+  note          String?
+  submittedById Int
+  status        SubmissionStatus @default(RECEIVED)
+  postingId     Int?
+  error         String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([submittedById, createdAt])
+  @@index([status])
+  @@index([canonicalUrl])
+}
+
+model Extraction {
+  id             Int             @id @default(autoincrement())
+  submissionId   Int?
+  postingId      Int? // set once a posting exists
+  tier           ExtractionTier // LLM_FAST | LLM_STRONG
+  state          ExtractionState @default(QUEUED)
+  model          String? // actual model id used
+  inputText      String          @db.Text
+  inputTruncated Boolean         @default(false)
+  sourceUrl      String
+  attempts       Int             @default(0)
+  nextAttemptAt  DateTime        @default(now()) // backoff after 429 / 5xx / unreachable
+  output         Json?
+  confidence     Float?
+  error          String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([state, nextAttemptAt])
+}
+
+model LlmUsage {
+  id           Int      @id @default(autoincrement())
+  model        String
+  purpose      String // "extract" | "escalate"
+  provider     String // "ollama" | "gemini"
+  batched      Boolean  @default(false)
+  inputTokens  Int
+  outputTokens Int
+  costUsd      Decimal  @db.Decimal(10, 6) // 0 for ollama and the Gemini free tier
+  extractionId Int?
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
 }
