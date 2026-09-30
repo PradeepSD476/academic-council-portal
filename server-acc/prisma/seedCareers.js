@@ -72,6 +72,7 @@ const COMPANIES = [
     ['Visa'],
     ['Mastercard'],
     ['Arcesium'],
+    ['Sarvam AI', 'Sarvam'],
 ];
 
 async function seedSettings() {
@@ -134,11 +135,46 @@ async function seedSystemSources() {
     return created;
 }
 
+// ATS boards verified on 30 Sep 2026 with scripts/careers/verifyBoard.js: each returned jobs and
+// had India early-career roles after the relevance filter. [kind, boardToken, company slug]
+const ATS_SOURCES = [
+    ['GREENHOUSE', 'stripe', 'stripe'],
+    ['GREENHOUSE', 'rubrik', 'rubrik'],
+    ['GREENHOUSE', 'groww', 'groww'],
+    ['GREENHOUSE', 'inmobi', 'inmobi'],
+    ['GREENHOUSE', 'cloudflare', 'cloudflare'],
+    ['GREENHOUSE', 'razorpaysoftwareprivatelimited', 'razorpay'],
+    ['LEVER', 'paytm', 'paytm'],
+    ['LEVER', 'meesho', 'meesho'],
+    ['LEVER', 'zeta', 'zeta'],
+    ['LEVER', 'cred', 'cred'],
+    ['ASHBY', 'sarvam', 'sarvam-ai'],
+];
+
+async function seedAtsSources() {
+    let created = 0;
+    for (const [kind, boardToken, slug] of ATS_SOURCES) {
+        const company = await prisma.company.findUnique({ where: { slug } });
+        if (!company) {
+            console.warn(`[careers] seed: company ${slug} not found, skipping source ${kind}/${boardToken}`);
+            continue;
+        }
+        const exists = await prisma.source.findUnique({ where: { kind_boardToken: { kind, boardToken } } });
+        if (exists) continue;
+        await prisma.source.create({
+            data: { kind, boardToken, companyId: company.id, name: `${company.name} (${kind.toLowerCase()})` },
+        });
+        created++;
+    }
+    return created;
+}
+
 async function main() {
     const settings = await seedSettings();
     const stats = await seedCompanies();
     const systemSources = await seedSystemSources();
-    console.info(`[careers] seed: ${settings} settings created, ${stats.companies} companies created, ${stats.aliases} aliases created, ${stats.skippedRedundant} redundant/existing aliases skipped, ${systemSources} system sources created`);
+    const atsSources = await seedAtsSources();
+    console.info(`[careers] seed: ${settings} settings created, ${stats.companies} companies created, ${stats.aliases} aliases created, ${stats.skippedRedundant} redundant/existing aliases skipped, ${systemSources} system sources created, ${atsSources} ATS sources created`);
     for (const c of stats.conflicts) console.warn(`[careers] seed alias conflict: ${c}`);
 }
 

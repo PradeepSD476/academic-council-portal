@@ -106,9 +106,24 @@ describe('relevance', () => {
         expect(evaluateRelevance({ title: 'Software Engineer Intern', locationText: 'Remote - US' })).toMatchObject({ keep: false, reason: 'location' });
     });
     it('keeps remote roles open to India', () => {
-        expect(classifyLocation('Remote - India')).toBe('remote-india');
+        expect(classifyLocation('Remote - India')).toBe('india');
         expect(classifyLocation('Remote (APAC)')).toBe('remote-india');
         expect(classifyLocation('Remote')).toBe('remote-india');
+    });
+    it.each([
+        'Manila, Philippines', 'Milan, Italy', 'SF, SEA, CHI, NYC', 'Washington, DC; Remote', 'Tokyo, Japan',
+        'Remote - Japan', 'Hong Kong', 'Austin, Texas',
+    ])('classifies %s as foreign (runtime ISO country names + US states + common short forms)', (place) => {
+        expect(classifyLocation(place)).toBe('foreign');
+    });
+    it.each([
+        'Noida, Uttar Pradesh', 'Gachibowli, Telangana', 'Bangalore - DD', 'Trivandrum', 'Bengaluru, India; London, UK',
+    ])('classifies %s as India (cities, states, or one Indian office)', (place) => {
+        expect(classifyLocation(place)).toBe('india');
+    });
+    it('non-geographic location text is unknown (kept, flagged)', () => {
+        expect(classifyLocation('Hybrid')).toBe('unknown');
+        expect(classifyLocation('N/A')).toBe('unknown');
     });
     it('keeps an unrecognised place as unknown instead of dropping it', () => {
         expect(classifyLocation('Kanpur')).toBe('unknown');

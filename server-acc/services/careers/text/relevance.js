@@ -2,7 +2,7 @@
 // to India) and early-career. Every drop has a reason so SourceRun can report fetched vs kept.
 import { normalizeLocation, INDIA_CITY_ALIASES } from './normalize.js';
 import {
-    SENIOR_TITLE, JUNIOR_TITLE, JUNIOR_DESCRIPTION, INTERNSHIP_TITLE, REMOTE_OPEN_TO_INDIA, FOREIGN_PLACES,
+    SENIOR_TITLE, JUNIOR_TITLE, JUNIOR_DESCRIPTION, INTERNSHIP_TITLE, REMOTE_OPEN_TO_INDIA, FOREIGN_PLACES, INDIAN_STATES,
 } from './relevanceRules.js';
 
 const INDIAN_KEYS = new Set([...Object.keys(INDIA_CITY_ALIASES), 'india']);
@@ -17,19 +17,20 @@ export function guessType(title) {
 }
 
 // 'india' | 'remote-india' | 'foreign' | 'unknown'
-// Only a named foreign place makes a posting foreign. A place we don't recognise (an Indian city
-// missing from the alias list, say) is 'unknown' and kept for a human to check, not dropped.
+//   - any Indian city, state or "India" -> india (multi-location postings with one Indian office count)
+//   - a named foreign country/state/city -> foreign, unless it is remote and open to India/APAC/anywhere
+//   - "Remote" with no place -> remote-india (assumed open)
+//   - anything else ("Hybrid", "N/A", an Indian town we don't know) -> unknown: kept and flagged
 export function classifyLocation(locationText) {
     const key = normalizeLocation(locationText);
     if (key === null) return 'unknown';
     const text = String(locationText);
     const parts = key.split('|');
-    if (parts.some((p) => INDIAN_KEYS.has(p))) return 'india';
-    if (parts.includes('remote')) {
-        if (REMOTE_OPEN_TO_INDIA.test(text)) return 'remote-india';
-        return FOREIGN_PLACES.test(text) ? 'foreign' : 'remote-india';
-    }
-    return FOREIGN_PLACES.test(text) ? 'foreign' : 'unknown';
+    if (parts.some((p) => INDIAN_KEYS.has(p)) || INDIAN_STATES.test(text)) return 'india';
+    const remote = parts.includes('remote');
+    if (remote && REMOTE_OPEN_TO_INDIA.test(text)) return 'remote-india';
+    if (FOREIGN_PLACES.test(text)) return 'foreign';
+    return remote ? 'remote-india' : 'unknown';
 }
 
 // Returns { keep, reason, type, location }.

@@ -14,7 +14,51 @@ export const JUNIOR_DESCRIPTION = /\b0\s*(-|–|to)\s*[12]\+?\s*years?\b|\bfresh
 export const INTERNSHIP_TITLE = /\b(intern|internship|trainee|apprentice|apprenticeship|co-?op)\b/i;
 
 // Remote postings are kept only if they are open to India.
-export const REMOTE_OPEN_TO_INDIA = /\b(india|apac|asia|anywhere|worldwide|global|any location)\b/i;
+export const REMOTE_OPEN_TO_INDIA = /\b(india|apac|asia|asia[\s-]pacific|anywhere|worldwide|global|any location)\b/i;
 
-// Places that mean "not India" when a remote posting names them.
-export const FOREIGN_PLACES = /\b(usa|u\.s\.a?|united states|us|canada|uk|u\.k\.|united kingdom|england|london|ireland|dublin|germany|berlin|france|paris|netherlands|amsterdam|spain|europe|emea|americas|latam|mexico|brazil|australia|sydney|new zealand|singapore|japan|tokyo|china|hong kong|korea|israel|uae|dubai|poland|sweden|switzerland|san francisco|new york|seattle|boston|austin|toronto|vancouver)\b/i;
+// Indian states and union territories: a posting naming one is in India even when the city
+// isn't in normalize.js's alias list.
+export const INDIAN_STATES = /\b(india|andhra pradesh|arunachal pradesh|assam|bihar|chhattisgarh|goa|gujarat|haryana|himachal pradesh|jharkhand|karnataka|kerala|madhya pradesh|maharashtra|manipur|meghalaya|mizoram|nagaland|odisha|orissa|punjab|rajasthan|sikkim|tamil nadu|telangana|tripura|uttar pradesh|uttarakhand|west bengal|delhi ncr|jammu|kashmir|ladakh|puducherry|pondicherry)\b/i;
+
+// Every country except India, from the runtime's own ISO region names (no hand-maintained list
+// to go stale), e.g. "Hong Kong SAR China" -> "hong kong", "Congo - Kinshasa" -> "congo".
+function countryNames() {
+    const display = new Intl.DisplayNames(['en'], { type: 'region' });
+    const names = new Set();
+    for (let a = 65; a <= 90; a++) {
+        for (let b = 65; b <= 90; b++) {
+            const code = String.fromCharCode(a, b);
+            let name;
+            try {
+                name = display.of(code);
+            } catch {
+                continue; // not a valid region code
+            }
+            if (!name || name === code || /^(india|world|unknown region|european union|united nations|eurozone)$/i.test(name)) continue;
+            const base = name.split(/ \(| SAR | - |, /)[0].trim().toLowerCase();
+            if (base.length >= 4 && base !== 'india') names.add(base);
+        }
+    }
+    return [...names];
+}
+
+const US_STATES = ['alabama', 'alaska', 'arizona', 'arkansas', 'california', 'colorado', 'connecticut', 'delaware', 'florida',
+    'hawaii', 'idaho', 'illinois', 'indiana', 'iowa', 'kansas', 'kentucky', 'louisiana', 'maine', 'maryland',
+    'massachusetts', 'michigan', 'minnesota', 'mississippi', 'missouri', 'montana', 'nebraska', 'nevada', 'new hampshire',
+    'new jersey', 'new mexico', 'new york', 'north carolina', 'north dakota', 'ohio', 'oklahoma', 'oregon', 'pennsylvania',
+    'rhode island', 'south carolina', 'south dakota', 'tennessee', 'texas', 'utah', 'vermont', 'virginia', 'washington',
+    'west virginia', 'wisconsin', 'wyoming'];
+
+// Well-known foreign cities and short forms that often appear without a country name.
+const FOREIGN_CITIES = ['usa', 'u\\.s\\.a?', 'us', 'uk', 'u\\.k\\.', 'uae', 'emea', 'americas', 'latam', 'europe', 'nordics',
+    'dc', 'nyc', 'sf', 'bay area', 'silicon valley', 'san francisco', 'seattle', 'boston', 'austin', 'chicago', 'los angeles',
+    'denver', 'atlanta', 'toronto', 'vancouver', 'montreal', 'london', 'dublin', 'berlin', 'munich', 'paris', 'amsterdam',
+    'zurich', 'stockholm', 'madrid', 'barcelona', 'lisbon', 'warsaw', 'milan', 'tokyo', 'seoul', 'sydney', 'melbourne',
+    'dubai', 'tel aviv', 'manila', 'jakarta', 'bangkok', 'kuala lumpur', 'ho chi minh', 'sao paulo', 'mexico city'];
+
+const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+export const FOREIGN_PLACES = new RegExp(
+    `\\b(${[...countryNames().map(escape), ...US_STATES, ...FOREIGN_CITIES].join('|')})\\b`,
+    'i',
+);
