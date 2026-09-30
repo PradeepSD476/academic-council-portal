@@ -12,6 +12,7 @@ import {
   Briefcase,
   Landmark,
   TrendingUp,
+  Building2,
 } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import AuthContext from "../context/auth/authContext";
@@ -33,6 +34,7 @@ export default function DashboardLayout() {
   const isFinanceAdmin = user?.role === "FINANCE_ADMIN";
   const isSTUDENT = user?.role === "STUDENT";
   const isFaculty = user?.role === "FACULTY";
+  const canManageCareers = ["SUPER_ADMIN", "FACULTY", "CAREER_ADMIN"].includes(user?.role);
 
   const [open, setOpen] = useState(false);
   const [viewRole, setViewRole] = useState("STUDENT");
@@ -252,6 +254,15 @@ export default function DashboardLayout() {
                 label="Level Up"
                 onClick={() => setOpen(false)}
               />
+              {canManageCareers && (
+                <SidebarItem
+                  to="/admin/careers/companies"
+                  icon={<Building2 size={16} />}
+                  iconColor="text-teal-600 bg-teal-50 border-teal-100"
+                  label="Companies"
+                  onClick={() => setOpen(false)}
+                />
+              )}
             </>
           )}
 
@@ -272,6 +283,13 @@ export default function DashboardLayout() {
                 icon={<TrendingUp size={16} />}
                 iconColor="text-blue-600 bg-blue-50 border-blue-100"
                 label="Level Up"
+                onClick={() => setOpen(false)}
+              />
+              <SidebarItem
+                to="/admin/careers/companies"
+                icon={<Building2 size={16} />}
+                iconColor="text-teal-600 bg-teal-50 border-teal-100"
+                label="Companies"
                 onClick={() => setOpen(false)}
               />
             </>
