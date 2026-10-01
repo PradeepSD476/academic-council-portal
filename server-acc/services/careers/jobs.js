@@ -4,6 +4,7 @@
 import { withJobLock, JOB_LOCKS } from './jobLock.js';
 import { getSetting, setSetting, clearSettingsCache } from './settings.js';
 import { ingestAll } from './ingest/ingestAll.js';
+import { processSubmissions } from './links/processSubmission.js';
 
 // Daily ingest of every enabled ATS source.
 export async function ingestJob(options = {}) {
@@ -32,9 +33,19 @@ export async function checkRunRequests() {
     return { requested: true, ran: true, ok: run.ok };
 }
 
-// name -> { cron, lock, run }. More jobs are added with their tasks (links + extraction, liveness recheck).
+// Student links (then, from P1-T10, model extraction of the pages that need it).
+export async function linksJob(options = {}) {
+    let result = null;
+    const outcome = await withJobLock(JOB_LOCKS.linksAndExtraction, 'linksAndExtraction', async () => {
+        result = { submissions: await processSubmissions() };
+    }, { heartbeat: options.heartbeat ?? true });
+    return { ...outcome, result };
+}
+
+// name -> { cron, run }. The liveness recheck for manual / link postings is added in P1-T11.
 export const JOBS = {
     ingestAll: { cron: '0 2 * * *', run: () => ingestJob() },
+    linksAndExtraction: { cron: '*/10 * * * *', run: () => linksJob() },
     runRequests: {
         cron: '* * * * *',
         // The outer lock stops two workers from both picking up the same request.
