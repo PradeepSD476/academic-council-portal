@@ -18,11 +18,11 @@ import { loadCompanyIndex } from '../companies/companyIndex.js';
 import { resolveCompany } from '../companies/resolveCompany.js';
 import { buildPostingData } from '../ingest/buildPosting.js';
 import { upsertPosting } from '../ingest/upsertPosting.js';
+import { inputCap } from '../extract/callModel.js';
 
 export const BATCH_SIZE = 20;
 const STUCK_MS = 30 * 60 * 1000;
 const MIN_PAGE_TEXT = 200;
-export const INPUT_CAP = { ollama: 12_000, gemini: 40_000 };
 
 const sha1 = (s) => createHash('sha1').update(s).digest('hex');
 
@@ -38,7 +38,7 @@ function nameFromHost(hostname) {
     return labels.length > 2 ? labels[labels.length - 2] : labels[0];
 }
 
-async function companyFor({ kind, boardToken }, companyName, hostname) {
+export async function companyFor({ kind, boardToken }, companyName, hostname) {
     if (kind) {
         const source = await prisma.source.findUnique({ where: { kind_boardToken: { kind, boardToken } }, include: { company: { select: { status: true } } } });
         if (source?.companyId) return { companyId: source.companyId, uncertain: source.company?.status === 'CANDIDATE' };
@@ -49,13 +49,23 @@ async function companyFor({ kind, boardToken }, companyName, hostname) {
     return { companyId: resolved.companyId, uncertain: resolved.uncertain };
 }
 
+// A student link is never dropped by the relevance filter (a person chose to share it); a place
+// abroad or unknown is flagged for the reviewer instead.
+export function linkLocationClass(locationText) {
+    const place = classifyLocation(locationText);
+    return place === 'foreign' ? 'unknown' : place;
+}
+
 // Saves a structured RawPosting from a link; returns the submission update.
 async function savePosting(submission, raw, company, tier) {
-    // A student link is never dropped by the relevance filter (a person chose to share it); a
-    // place abroad or unknown is flagged for the reviewer instead.
-    const place = classifyLocation(raw.locationText);
-    const relevance = { type: guessType(raw.title) ?? 'UNKNOWN', location: place === 'foreign' ? 'unknown' : place };
+    const relevance = { type: guessType(raw.title) ?? 'UNKNOWN', location: linkLocationClass(raw.locationText) };
     const data = { ...buildPostingData(raw, { relevance, company }), extractionTier: tier };
+    return saveLinkPosting(submission, raw, data);
+}
+
+// Dedup + save under the STUDENT_LINK source; the observation is keyed by the canonical link.
+// Returns { status: PENDING_REVIEW | DUPLICATE, postingId, error: null }.
+export async function saveLinkPosting(submission, raw, data) {
     const source = await studentLinkSource();
     const observation = { ...raw, externalId: sha1(submission.canonicalUrl), url: submission.canonicalUrl };
     const { outcome, postingId } = await upsertPosting(prisma, { sourceId: source.id, raw: observation, data });
@@ -67,7 +77,14 @@ async function queueForModel(submission, page) {
     if (text.length < MIN_PAGE_TEXT) {
         return { status: 'FAILED', error: `The page has almost no text (${text.length} characters). It may need a login or JavaScript; an admin can enter it by hand.` };
     }
-    const cap = INPUT_CAP[process.env.LLM_PROVIDER || 'ollama'] ?? INPUT_CAP.ollama;
+    // The provider's cap (12,000 characters for the local model). If the provider isn't set up yet,
+    // the local cap is used and the row simply waits in the queue.
+    let cap = 12_000;
+    try {
+        cap = inputCap();
+    } catch {
+        // LLM_PROVIDER not available yet; keep the default.
+    }
     await prisma.extraction.create({
         data: {
             submissionId: submission.id,

@@ -5,6 +5,7 @@ import { withJobLock, JOB_LOCKS } from './jobLock.js';
 import { getSetting, setSetting, clearSettingsCache } from './settings.js';
 import { ingestAll } from './ingest/ingestAll.js';
 import { processSubmissions } from './links/processSubmission.js';
+import { runExtractions } from './extract/runExtractions.js';
 
 // Daily ingest of every enabled ATS source.
 export async function ingestJob(options = {}) {
@@ -33,11 +34,11 @@ export async function checkRunRequests() {
     return { requested: true, ran: true, ok: run.ok };
 }
 
-// Student links (then, from P1-T10, model extraction of the pages that need it).
+// Student links, then model extraction of the pages that need it (in that order, one lock).
 export async function linksJob(options = {}) {
     let result = null;
     const outcome = await withJobLock(JOB_LOCKS.linksAndExtraction, 'linksAndExtraction', async () => {
-        result = { submissions: await processSubmissions() };
+        result = { submissions: await processSubmissions(), extractions: await runExtractions() };
     }, { heartbeat: options.heartbeat ?? true });
     return { ...outcome, result };
 }

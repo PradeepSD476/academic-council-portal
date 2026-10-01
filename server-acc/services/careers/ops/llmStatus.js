@@ -1,8 +1,9 @@
-// The `llm` block of the operations summary: usage and limits from the database. Whether the
-// provider is reachable is filled in by extract/providerStatus.js once the provider layer exists
-// (P1-T10); until then reachability is unknown (null) and never raises an alert.
+// The `llm` block of the operations summary: usage and limits from the database, plus a live check
+// of the provider (extract/providerStatus.js). The live check only runs while extraction is
+// enabled, so a machine without a model never shows a red alert for a feature that is off.
 import prisma from '../../../config/db.js';
 import { getSetting } from '../settings.js';
+import { providerStatus, isUsable } from '../extract/providerStatus.js';
 
 const IST_OFFSET_MS = 330 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -35,8 +36,13 @@ export async function llmStatus(now = new Date()) {
     const monthSpendUsd = Number(spend._sum.costUsd ?? 0);
     const budgetEnforced = provider === 'gemini' && paidTier;
 
-    const status = { reachable: null, modelPresent: null, keyPresent: provider === 'gemini' ? Boolean(process.env.GEMINI_API_KEY) : null, lastError: lastFailed?.error ?? null };
-    const usable = status.reachable === null ? null : Boolean(status.reachable && status.modelPresent !== false && status.keyPresent !== false);
+    let status = { reachable: null, modelPresent: null, keyPresent: provider === 'gemini' ? Boolean(process.env.GEMINI_API_KEY) : null, lastError: lastFailed?.error ?? null };
+    let usable = null;
+    if (enabled) {
+        const live = await providerStatus();
+        status = { ...status, ...live, lastError: live.lastError ?? status.lastError };
+        usable = isUsable(live);
+    }
 
     return {
         enabled, provider, ...status, usable, paidTier, budgetEnforced,
