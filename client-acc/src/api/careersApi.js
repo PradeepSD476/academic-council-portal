@@ -31,6 +31,27 @@ export const careersAdminApi = {
   listMergeLog: (params) => api.get('/careers/admin/merge-log', { params }).then((r) => r.data),
   undoMergeLog: (logId) => api.post(`/careers/admin/merge-log/${logId}/undo`).then((r) => r.data),
 
+  // Review queue and postings
+  listReview: (params) => api.get('/careers/admin/review', { params }).then((r) => r.data),
+  getPosting: (id) => api.get(`/careers/admin/postings/${id}`).then((r) => r.data.data),
+  updatePosting: (id, edits) => api.patch(`/careers/admin/postings/${id}`, edits).then((r) => r.data),
+  approvePosting: (id, edits) => api.post(`/careers/admin/postings/${id}/approve`, { edits }).then((r) => r.data),
+  rejectPosting: (id, reason) => api.post(`/careers/admin/postings/${id}/reject`, { reason }).then((r) => r.data),
+  expirePosting: (id) => api.post(`/careers/admin/postings/${id}/expire`, {}).then((r) => r.data),
+  reopenPosting: (id) => api.post(`/careers/admin/postings/${id}/reopen`, {}).then((r) => r.data),
+  bulkApprove: (ids) => api.post('/careers/admin/postings/bulk-approve', { ids }).then((r) => r.data),
+  createPosting: (body) => api.post('/careers/admin/postings', body).then((r) => r.data),
+  listSubmissions: (params) => api.get('/careers/admin/submissions', { params }).then((r) => r.data),
+
+  // Sources and operations
+  listSources: () => api.get('/careers/admin/sources').then((r) => r.data),
+  createSource: (body) => api.post('/careers/admin/sources', body).then((r) => r.data),
+  updateSource: (id, body) => api.patch(`/careers/admin/sources/${id}`, body).then((r) => r.data),
+  runSource: (id) => api.post(`/careers/admin/sources/${id}/run`).then((r) => r.data),
+  runAllSources: () => api.post('/careers/admin/sources/run-all').then((r) => r.data),
+  listRuns: (id, limit = 20) => api.get(`/careers/admin/sources/${id}/runs`, { params: { limit } }).then((r) => r.data.data),
+  getOps: () => api.get('/careers/admin/ops').then((r) => r.data.data),
+
   // Settings
   getSettings: () => api.get('/careers/admin/settings').then((r) => r.data.data),
   updateSettings: (body) => api.put('/careers/admin/settings', body).then((r) => r.data.data),

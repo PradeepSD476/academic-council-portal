@@ -38,6 +38,8 @@ import EditScholarship from "./pages/FinanceVault/admin/EditScholarship.jsx";
 import LevelUp from "./pages/student/LevelUp.jsx";
 import ManageRoadmap from "./pages/admin/ManageRoadmap.jsx";
 import CareersCompanies from "./pages/admin/careers/Companies.jsx";
+import CareersReviewQueue from "./pages/admin/careers/ReviewQueue.jsx";
+import CareersManualPosting from "./pages/admin/careers/ManualPosting.jsx";
 const AppRoutes = () => {
   return (
     <Routes>
@@ -224,6 +226,22 @@ const AppRoutes = () => {
   element={
     <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY", "CAREER_ADMIN"]}>
       <CareersCompanies />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="careers/review"
+  element={
+    <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY", "CAREER_ADMIN"]}>
+      <CareersReviewQueue />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="careers/new"
+  element={
+    <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY", "CAREER_ADMIN"]}>
+      <CareersManualPosting />
     </ProtectedRoute>
   }
 />

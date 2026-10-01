@@ -13,6 +13,7 @@ import {
   Landmark,
   TrendingUp,
   Building2,
+  ListChecks,
 } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import AuthContext from "../context/auth/authContext";
@@ -256,6 +257,15 @@ export default function DashboardLayout() {
               />
               {canManageCareers && (
                 <SidebarItem
+                  to="/admin/careers/review"
+                  icon={<ListChecks size={16} />}
+                  iconColor="text-teal-600 bg-teal-50 border-teal-100"
+                  label="Jobs Review"
+                  onClick={() => setOpen(false)}
+                />
+              )}
+              {canManageCareers && (
+                <SidebarItem
                   to="/admin/careers/companies"
                   icon={<Building2 size={16} />}
                   iconColor="text-teal-600 bg-teal-50 border-teal-100"
@@ -283,6 +293,13 @@ export default function DashboardLayout() {
                 icon={<TrendingUp size={16} />}
                 iconColor="text-blue-600 bg-blue-50 border-blue-100"
                 label="Level Up"
+                onClick={() => setOpen(false)}
+              />
+              <SidebarItem
+                to="/admin/careers/review"
+                icon={<ListChecks size={16} />}
+                iconColor="text-teal-600 bg-teal-50 border-teal-100"
+                label="Jobs Review"
                 onClick={() => setOpen(false)}
               />
               <SidebarItem
