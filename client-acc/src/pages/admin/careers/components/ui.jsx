@@ -27,7 +27,7 @@ export function PageHeader({ icon: Icon, title, subtitle, children }) {
         </div>
         {subtitle && <p className="text-slate-500 text-sm ml-4">{subtitle}</p>}
       </div>
-      {children && <div className="flex items-center gap-3 self-start sm:self-auto">{children}</div>}
+      {children && <div className="flex flex-wrap items-center gap-2 sm:gap-3 self-start sm:self-auto">{children}</div>}
     </div>
   );
 }
@@ -53,13 +53,13 @@ export const inputClass =
   "w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-[var(--color-primary)] placeholder-slate-400 bg-sky-50/50 focus:outline-none focus:border-[var(--color-secondary)] transition";
 
 export const primaryButton =
-  "inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-accent)] transition-colors disabled:opacity-50 cursor-pointer";
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-accent)] transition-colors disabled:opacity-50 cursor-pointer";
 
 export const outlineButton =
-  "inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-colors disabled:opacity-50 cursor-pointer";
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-colors disabled:opacity-50 cursor-pointer";
 
 export const dangerButton =
-  "inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-rose-600 bg-white border border-rose-200 hover:bg-rose-50 transition-colors disabled:opacity-50 cursor-pointer";
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap px-4 py-2.5 rounded-xl text-xs font-bold text-rose-600 bg-white border border-rose-200 hover:bg-rose-50 transition-colors disabled:opacity-50 cursor-pointer";
 
 export const cardClass = "rounded-2xl border border-slate-200 bg-white/95 backdrop-blur-xl shadow-xs";
 

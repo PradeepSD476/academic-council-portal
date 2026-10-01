@@ -40,6 +40,8 @@ import ManageRoadmap from "./pages/admin/ManageRoadmap.jsx";
 import CareersCompanies from "./pages/admin/careers/Companies.jsx";
 import CareersReviewQueue from "./pages/admin/careers/ReviewQueue.jsx";
 import CareersManualPosting from "./pages/admin/careers/ManualPosting.jsx";
+import CareersSources from "./pages/admin/careers/Sources.jsx";
+import CareersOperations from "./pages/admin/careers/Operations.jsx";
 const AppRoutes = () => {
   return (
     <Routes>
@@ -242,6 +244,22 @@ const AppRoutes = () => {
   element={
     <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY", "CAREER_ADMIN"]}>
       <CareersManualPosting />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="careers/sources"
+  element={
+    <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY", "CAREER_ADMIN"]}>
+      <CareersSources />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="careers/ops"
+  element={
+    <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY", "CAREER_ADMIN"]}>
+      <CareersOperations />
     </ProtectedRoute>
   }
 />
