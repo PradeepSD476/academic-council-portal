@@ -3,8 +3,7 @@
 // Usage: node scripts/careers/runJob.js ingest [sourceId]
 //   (links / liveness jobs are added with their tasks: P1-T9, P1-T11)
 import prisma from '../../config/db.js';
-import { withJobLock, JOB_LOCKS } from '../../services/careers/jobLock.js';
-import { ingestAll } from '../../services/careers/ingest/ingestAll.js';
+import { ingestJob } from '../../services/careers/jobs.js';
 
 const USAGE = 'Usage: node scripts/careers/runJob.js ingest [sourceId]';
 
@@ -34,16 +33,13 @@ try {
     if (job === 'ingest') {
         const sourceId = arg ? Number(arg) : null;
         if (arg && !Number.isInteger(sourceId)) throw new Error(`sourceId must be a number, got "${arg}"`);
-        let result = null;
-        const outcome = await withJobLock(JOB_LOCKS.ingestAll, 'ingestAll', async () => {
-            result = await ingestAll({ sourceId });
-        }, { heartbeat: false });
+        const outcome = await ingestJob({ sourceId, heartbeat: false });
         if (!outcome.ran) {
             console.log('Another ingest is running (lock held). Nothing done.');
         } else if (!outcome.ok) {
             exitCode = 1;
         } else {
-            printIngest(result);
+            printIngest(outcome.result);
         }
     } else {
         console.error(USAGE);

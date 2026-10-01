@@ -73,6 +73,21 @@ services:
     networks:
       - acc-net
 
+  # Careers job fetcher: same image as backend-acc, runs the cron worker instead of the API.
+  fetcher-acc:
+    build:
+      context: ./server-acc
+      dockerfile: Dockerfile
+    container_name: acc-fetcher
+    restart: unless-stopped
+    command: ["node", "worker.js"]
+    env_file:
+      - ./server-acc/.env
+    depends_on:
+      - postgres-acc
+    networks:
+      - acc-net
+
   smp-mongo:
     image: mongo:latest
     container_name: smp-mongo
