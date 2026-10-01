@@ -25,3 +25,11 @@ export function canonicalizeSkills(list) {
     }
     return PATTERNS.map(([canonical]) => canonical).filter((c) => found.has(c));
 }
+
+// Exact lookup for one skill name typed by a person: "reactjs" -> "React". Unlike canonicalizeSkills
+// it never extracts a skill from inside a longer name ("Figma Jam" stays unknown -> null).
+const EXACT = new Map(Object.entries(SKILLS).flatMap(([canonical, spellings]) => [canonical, ...spellings].map((sp) => [sp.toLowerCase(), canonical])));
+
+export function canonicalSkillName(name) {
+    return EXACT.get(String(name).trim().toLowerCase().replace(/\s+/g, ' ')) ?? null;
+}

@@ -6,6 +6,13 @@ import {
     listCompanies, getCompany, createCompany, updateCompany, addAlias, deleteAlias, approveCandidate,
 } from '../controllers/careers/adminCompaniesController.js';
 import { merge, split, listMergeLog, undo } from '../controllers/careers/adminMergeController.js';
+import {
+    listReview, getPosting, patchPosting, approve, reject, expire, reopen, bulk, createManual, listSubmissions,
+} from '../controllers/careers/adminReviewController.js';
+import {
+    listSources, createSource, updateSource, runSourceNow, runAllNow, listRuns,
+} from '../controllers/careers/adminSourcesController.js';
+import { getOps } from '../controllers/careers/adminOpsController.js';
 
 const router = express.Router();
 const admin = [checkAuth, requireCareerAdmin];
@@ -26,5 +33,26 @@ router.delete('/careers/admin/aliases/:aliasId', ...admin, deleteAlias);
 
 router.get('/careers/admin/merge-log', ...admin, listMergeLog);
 router.post('/careers/admin/merge-log/:id/undo', ...admin, undo);
+
+// Review queue and postings (static paths before /:id).
+router.get('/careers/admin/review', ...admin, listReview);
+router.post('/careers/admin/postings/bulk-approve', ...admin, bulk);
+router.post('/careers/admin/postings', ...admin, createManual);
+router.get('/careers/admin/postings/:id', ...admin, getPosting);
+router.patch('/careers/admin/postings/:id', ...admin, patchPosting);
+router.post('/careers/admin/postings/:id/approve', ...admin, approve);
+router.post('/careers/admin/postings/:id/reject', ...admin, reject);
+router.post('/careers/admin/postings/:id/expire', ...admin, expire);
+router.post('/careers/admin/postings/:id/reopen', ...admin, reopen);
+router.get('/careers/admin/submissions', ...admin, listSubmissions);
+
+// Sources and operations.
+router.post('/careers/admin/sources/run-all', ...admin, runAllNow);
+router.get('/careers/admin/sources', ...admin, listSources);
+router.post('/careers/admin/sources', ...admin, createSource);
+router.patch('/careers/admin/sources/:id', ...admin, updateSource);
+router.post('/careers/admin/sources/:id/run', ...admin, runSourceNow);
+router.get('/careers/admin/sources/:id/runs', ...admin, listRuns);
+router.get('/careers/admin/ops', ...admin, getOps);
 
 export default router;
