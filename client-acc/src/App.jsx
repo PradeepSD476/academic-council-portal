@@ -35,10 +35,15 @@ import ScholarshipDetails from "./pages/FinanceVault/ScholarshipDetails.jsx";
 import FinanceDashboard from "./pages/FinanceVault/admin/Dashboard.jsx";
 import AddScholarship from "./pages/FinanceVault/admin/AddScholarship.jsx";
 import EditScholarship from "./pages/FinanceVault/admin/EditScholarship.jsx";
+
+// ACC Wiki imports
+import WikiHome from "./pages/Wiki";
+import ManageWiki from "./pages/admin/ManageWiki";
+
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* public route  */}
+      {/* public routes */}
       <Route path="/" element={<Home />} />
       <Route path="/team" element={<AccTeam />} />
       <Route path="/devs" element={<DevTeam />} />
@@ -46,27 +51,29 @@ const AppRoutes = () => {
       <Route path="/wing/:wingId" element={<WingPage />} />
       <Route path="/wings" element={<Wings />} />
       <Route path="/faq" element={<FAQPage />} />
+      <Route path="/wiki" element={<WikiHome />} />
       <Route path="/login" element={<SignIn />} />
       <Route path="/register" element={<SignUp />} />
       <Route path="/login-with-roll" element={<VerifyRoll />} />
 
-      {/* student  */}
+      {/* student portal */}
       <Route
         path="/dashboard"
         element={
           <ProtectedRoute
-        roles={[
-          "STUDENT",
+            roles={[
+              "STUDENT",
               "SUPER_ADMIN",
               "ANNOUNCEMENT_ADMIN",
               "RESOURCE_ADMIN",
               "FACULTY",
               "CAREER_ADMIN",
               "FINANCE_ADMIN",
-              ]}
+              "WIKI_ADMIN",
+            ]}
           >
             <DashboardLayout />
-           </ProtectedRoute>
+          </ProtectedRoute>
         }
       >
         <Route path="courses" element={<MyCourses />}>
@@ -74,19 +81,14 @@ const AppRoutes = () => {
             <Route path=":key" element={<CourseResources />} />
           </Route>
         </Route>
-     <Route path="announcements" element={<Announcements />} />
-
-<Route path="career-vault" element={<CareerVault />} />
-
-<Route path="finance-vault" element={<FinanceVault />} />
-
-<Route
-  path="finance-vault/:id"
-  element={<ScholarshipDetails />}
-/>
+        <Route path="announcements" element={<Announcements />} />
+        <Route path="career-vault" element={<CareerVault />} />
+        <Route path="finance-vault" element={<FinanceVault />} />
+        <Route path="finance-vault/:id" element={<ScholarshipDetails />} />
+        <Route path="wiki" element={<WikiHome />} />
       </Route>
 
-      {/* admin  */}
+      {/* admin portal */}
       <Route
         path="/admin"
         element={
@@ -96,20 +98,20 @@ const AppRoutes = () => {
               "ANNOUNCEMENT_ADMIN",
               "RESOURCE_ADMIN",
               "FACULTY",
-                "CAREER_ADMIN",
+              "CAREER_ADMIN",
               "FINANCE_ADMIN",
-
+              "WIKI_ADMIN",
             ]}
           >
             <DashboardLayout />
-            </ProtectedRoute>
+          </ProtectedRoute>
         }
       >
         <Route
           path="dashboard"
           element={
             <ProtectedRoute
-              roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "RESOURCE_ADMIN", "FACULTY",]}
+              roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "RESOURCE_ADMIN", "FACULTY"]}
             >
               <AdminDashboard />
             </ProtectedRoute>
@@ -118,11 +120,9 @@ const AppRoutes = () => {
         <Route
           path="manage-courses"
           element={
-            <ProtectedRoute
-              roles={["SUPER_ADMIN", "RESOURCE_ADMIN", "FACULTY"]}
-            >
+            <ProtectedRoute roles={["SUPER_ADMIN", "RESOURCE_ADMIN", "FACULTY"]}>
               <ManageCourses />
-             </ProtectedRoute>
+            </ProtectedRoute>
           }
         />
         <Route
@@ -130,25 +130,21 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY"]}>
               <ManageUsers />
-             </ProtectedRoute>
+            </ProtectedRoute>
           }
         />
         <Route
           path="manage-resources"
           element={
-            <ProtectedRoute
-              roles={["SUPER_ADMIN", "RESOURCE_ADMIN", "FACULTY"]}
-            >
+            <ProtectedRoute roles={["SUPER_ADMIN", "RESOURCE_ADMIN", "FACULTY"]}>
               <ManageResources />
-             </ProtectedRoute>
+            </ProtectedRoute>
           }
         />
         <Route
           path="manage-announcements"
           element={
-            <ProtectedRoute
-              roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "FACULTY"]}
-            >
+            <ProtectedRoute roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "FACULTY"]}>
               <ManageAnnouncement />
             </ProtectedRoute>
           }
@@ -164,6 +160,14 @@ const AppRoutes = () => {
           }
         />
         <Route
+          path="manage-wiki"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "WIKI_ADMIN"]}>
+              <ManageWiki />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="editor"
           element={
             <ProtectedRoute
@@ -173,49 +177,52 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-         <Route
-  path="finance-vault"
-  element={
-    <ProtectedRoute
-      roles={["SUPER_ADMIN", "FINANCE_ADMIN"]}
-    >
-      <FinanceDashboard />
-    </ProtectedRoute>
-  }
-/>
-
-<Route
-  path="finance-vault/add"
-  element={
-    <ProtectedRoute
-      roles={["SUPER_ADMIN", "FINANCE_ADMIN"]}
-    >
-      <AddScholarship />
-    </ProtectedRoute>
-  }
-/>
-
-<Route
-  path="finance-vault/edit/:id"
-  element={
-    <ProtectedRoute
-      roles={["SUPER_ADMIN", "FINANCE_ADMIN"]}
-    >
-      <EditScholarship />
-    </ProtectedRoute>
-  }
-/>
+        <Route
+          path="finance-vault"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "FINANCE_ADMIN"]}>
+              <FinanceDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="finance-vault/add"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "FINANCE_ADMIN"]}>
+              <AddScholarship />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="finance-vault/edit/:id"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "FINANCE_ADMIN"]}>
+              <EditScholarship />
+            </ProtectedRoute>
+          }
+        />
       </Route>
-     
     </Routes>
   );
 };
 
 const AppContent = () => {
   const location = useLocation();
-  const overlapPages = ["/", "/wings", "/team", "/administrators", "/devs", "/faq", "/login", "/register", "/login-with-roll"];
-  const isOverlap = overlapPages.includes(location.pathname) || location.pathname.startsWith("/wing/");
-  const isDashboard = location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin");
+  const overlapPages = [
+    "/",
+    "/wings",
+    "/team",
+    "/administrators",
+    "/devs",
+    "/faq",
+    "/login",
+    "/register",
+    "/login-with-roll",
+  ];
+  const isOverlap =
+    overlapPages.includes(location.pathname) || location.pathname.startsWith("/wing/");
+  const isDashboard =
+    location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin");
 
   return (
     <div className="flex flex-col min-h-screen text-slate-900 selection:bg-blue-200 selection:text-slate-900 relative">
