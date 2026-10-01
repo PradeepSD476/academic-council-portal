@@ -105,5 +105,7 @@ export function parseCompensation(text, { kind = 'stipend' } = {}) {
 
     const min = Math.min(picked.low, picked.high);
     const max = Math.max(picked.low, picked.high);
+    // "INR 0 per year" is a placeholder, not pay; only an explicit "unpaid" (above) is a real 0.
+    if (max === 0) return notDisclosed(raw);
     return { min, max, disclosure: min === max ? 'DISCLOSED' : 'RANGE', currency, raw };
 }

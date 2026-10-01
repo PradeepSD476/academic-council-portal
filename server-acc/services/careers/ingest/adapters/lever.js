@@ -24,7 +24,8 @@ const INTERVAL = {
 // Lever's optional salaryRange -> text that parseCompensation understands; salaryDescription as fallback.
 function compensationText(job) {
     const r = job.salaryRange;
-    if (r && (r.min != null || r.max != null)) {
+    // Some boards fill salaryRange with 0 - 0 when nothing is disclosed (seen on paytm, 30 Sep 2026).
+    if (r && (Number(r.min) > 0 || Number(r.max) > 0)) {
         const amount = r.min != null && r.max != null && r.min !== r.max ? `${r.min} - ${r.max}` : String(r.min ?? r.max);
         return [r.currency, amount, INTERVAL[r.interval] ?? ''].filter(Boolean).join(' ');
     }

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import prisma from '../../config/db.js';
 import { sendError, parseId } from '../../services/careers/errors.js';
 import { mergeCompanies, splitCompany, undoMergeLog } from '../../services/careers/companies/mergeService.js';
+import { findPossibleDuplicatesForCompany } from '../../services/careers/ingest/dedup.js';
 
 const idList = z.array(z.number().int().positive()).max(500).default([]);
 
@@ -29,11 +30,13 @@ export const merge = async (req, res) => {
     try {
         const { fromId, toId } = mergeBody.parse(req.body);
         const result = await mergeCompanies({ fromId, toId, userId: req.user.id });
+        // Postings of the two companies that now look like the same job. Reported for the admin to
+        // review, never merged automatically.
+        const possibleDuplicatePostings = await findPossibleDuplicatesForCompany(prisma, toId);
         return res.status(200).json({
             success: true,
             message: `Merged ${result.from.name} into ${result.to.name}.`,
-            // Filled in once posting deduplication exists (P1-T4): postings of the merged companies that now look alike.
-            data: { ...result, possibleDuplicatePostings: [] },
+            data: { ...result, possibleDuplicatePostings },
         });
     } catch (err) {
         return sendError(res, err, 'merge');

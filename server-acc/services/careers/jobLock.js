@@ -19,7 +19,8 @@ export const JOB_LOCKS = {
 
 // Runs fn at most once at a time per lockKey. Never throws: failures are logged and reported in
 // the result, because an exception escaping a cron callback would crash the worker.
-export async function withJobLock(lockKey, name, fn) {
+// options.heartbeat = false for manual CLI runs, so they don't hide a stopped worker.
+export async function withJobLock(lockKey, name, fn, { heartbeat: writeHeartbeat = true } = {}) {
     let outcome = { ran: false, ok: false, error: null };
     try {
         await prisma.$transaction(async (tx) => {
@@ -37,7 +38,7 @@ export async function withJobLock(lockKey, name, fn) {
         console.error(`[careers] job ${name} failed`, err);
     }
 
-    if (outcome.ran) {
+    if (outcome.ran && writeHeartbeat) {
         try {
             await heartbeat(name);
         } catch (err) {

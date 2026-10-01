@@ -148,3 +148,11 @@ describe('fetchPostings', () => {
         await expect(fetchPostings({ kind: 'MANUAL', boardToken: null })).rejects.toThrow('No ATS adapter');
     });
 });
+
+describe('lever salaryRange placeholders', () => {
+    it('a 0 - 0 salaryRange is ignored (falls back to salaryDescription, else null)', () => {
+        const job = { id: 'z', text: 't', hostedUrl: 'https://x.test/z', categories: {}, salaryRange: { min: 0, max: 0, currency: 'INR', interval: 'per-year-salary' } };
+        expect(lever.mapJob(job).compensationText).toBeNull();
+        expect(lever.mapJob({ ...job, salaryDescriptionPlain: '12 LPA' }).compensationText).toBe('12 LPA');
+    });
+});
