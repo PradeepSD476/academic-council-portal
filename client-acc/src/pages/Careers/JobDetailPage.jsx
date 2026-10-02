@@ -64,7 +64,7 @@ function Rail({ posting }) {
         <h2 id="company-title" className={railTitle}><Building2 size={16} className="text-[var(--color-secondary)]" aria-hidden="true" /> {posting.company.name}</h2>
         <p className="text-xs text-slate-600">
           {posting.companyExperienceCount > 0
-            ? <>{plural(posting.companyExperienceCount, "past experience")} at {posting.company.name} in <Link to="/dashboard/career-vault" className="font-semibold text-teal-700 hover:underline">Career Vault</Link>.</>
+            ? <Link to={`/dashboard/career-vault/companies/${posting.company.slug}`} className="font-semibold text-teal-700 hover:underline">{plural(posting.companyExperienceCount, "past experience")} at {posting.company.name} →</Link>
             : "No experiences shared about this company yet."}
         </p>
       </section>
@@ -127,7 +127,7 @@ export default function JobDetailPage() {
 
       <header className={card}>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-bold text-teal-700">{posting.company.name}</span>
+          <Link to={`/dashboard/career-vault/companies/${posting.company.slug}`} className="text-sm font-bold text-teal-700 hover:underline">{posting.company.name}</Link>
           {TYPE_LABELS[posting.type] && <span className={`${chip} text-blue-700 bg-blue-50 border-blue-100`}>{TYPE_LABELS[posting.type]}</span>}
           {MODE_LABELS[posting.workMode] && <span className={`${chip} text-slate-600 bg-slate-50 border-slate-200`}>{MODE_LABELS[posting.workMode]}</span>}
           {posting.status !== "LIVE" && <span className={`${chip} text-amber-700 bg-amber-50 border-amber-100`}>Admin preview · {posting.status.replace("_", " ")}</span>}

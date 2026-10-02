@@ -18,6 +18,8 @@ export const careersApi = {
   listPostings: (params, config) => api.get('/careers/postings', { params, ...config }).then((r) => r.data),
   getPosting: (id) => api.get(`/careers/postings/${id}`).then((r) => r.data.data),
   searchCompanies: (q) => api.get('/careers/companies/search', { params: { q } }).then((r) => r.data.data),
+  listCompanies: (params) => api.get('/careers/companies', { params }).then((r) => r.data),
+  getCompany: (slug) => api.get(`/careers/companies/${encodeURIComponent(slug)}`).then((r) => r.data.data),
 
   // The student's own eligibility profile and CPI
   getEligibility: () => api.get('/careers/me/eligibility').then((r) => r.data.data),

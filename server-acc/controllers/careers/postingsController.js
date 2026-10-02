@@ -4,19 +4,10 @@
 import prisma from '../../config/db.js';
 import { sendError, CareersError, parseId } from '../../services/careers/errors.js';
 import { isCareerAdmin } from '../../middlewares/careers/requireCareerAdmin.js';
-import { eligibilityProfile, postingEligibility, toCpi } from '../../services/careers/postings/eligibility.js';
+import { cardFields, loadProfile, toCard } from '../../services/careers/postings/cards.js';
 import {
     postingsQuery, baseWhere, eligibilityWhere, withEligibility, orderByFor, hasPayFilter,
 } from '../../services/careers/postings/query.js';
-
-const cardFields = {
-    id: true, roleTitle: true, type: true, workMode: true, location: true, skills: true,
-    compCurrency: true, stipendMin: true, stipendMax: true, stipendDisclosure: true,
-    ctcMin: true, ctcMax: true, ctcDisclosure: true,
-    eligibleBranches: true, eligibleYears: true, minCpi: true,
-    firstSeenAt: true, lastSeenLiveAt: true, publishedAt: true,
-    company: { select: { id: true, name: true, slug: true } },
-};
 
 const detailFields = {
     ...cardFields,
@@ -28,21 +19,10 @@ const detailFields = {
     },
 };
 
-async function profileFor(userId) {
-    const user = await prisma.user.findUnique({ where: { id: userId }, select: { branchName: true, admissionYear: true, cpi: true } });
-    return eligibilityProfile(user ?? {});
-}
-
-const toCard = (posting, profile) => ({
-    ...posting,
-    minCpi: toCpi(posting.minCpi),
-    eligibility: postingEligibility(posting, profile),
-});
-
 export const listPostings = async (req, res) => {
     try {
         const params = postingsQuery.parse(req.query);
-        const profile = await profileFor(req.user.id);
+        const profile = await loadProfile(req.user.id);
 
         let eligibility = null;
         let eligibilityMeta = { applied: false };
@@ -89,7 +69,7 @@ export const getPosting = async (req, res) => {
             throw new CareersError(404, 'NOT_FOUND', 'This posting is not available. It may have closed.');
         }
         const [profile, companyExperienceCount] = await Promise.all([
-            profileFor(req.user.id),
+            loadProfile(req.user.id),
             prisma.experience.count({ where: { companyId: posting.company.id, status: 'PUBLISHED' } }),
         ]);
         const { observations, ...rest } = posting;

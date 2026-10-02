@@ -6,7 +6,7 @@ import { submissionRateLimit } from '../middlewares/careers/submissionRateLimit.
 import { submitLink, mySubmissions } from '../controllers/careers/submissionsController.js';
 import { getMyEligibility, updateMyCpi } from '../controllers/careers/eligibilityController.js';
 import { listPostings, getPosting } from '../controllers/careers/postingsController.js';
-import { searchCompanies } from '../controllers/careers/companiesController.js';
+import { searchCompanies, listCompanies, getCompanyPage } from '../controllers/careers/companiesController.js';
 
 // Student-facing careers routes. requireCareersEnabled is applied per route (not router-wide)
 // because /careers/status and /careers/companies/search must answer even while the feature is hidden.
@@ -15,6 +15,8 @@ const router = express.Router();
 router.get('/careers/status', checkAuth, getCareersStatus);
 // The company picker works while the feature is hidden (no flag gate).
 router.get('/careers/companies/search', checkAuth, searchCompanies);
+router.get('/careers/companies', checkAuth, requireCareersEnabled, listCompanies);
+router.get('/careers/companies/:slug', checkAuth, requireCareersEnabled, getCompanyPage); // after /search
 
 router.get('/careers/postings', checkAuth, requireCareersEnabled, listPostings);
 router.get('/careers/postings/:id', checkAuth, requireCareersEnabled, getPosting);

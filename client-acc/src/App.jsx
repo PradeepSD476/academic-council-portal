@@ -29,6 +29,8 @@ import AdminTeam from "./pages/adminSection/page.jsx";
 import CareerVault from "./pages/CareerVaultuser/index.jsx";
 import JobsPage from "./pages/Careers/JobsPage.jsx";
 import JobDetailPage from "./pages/Careers/JobDetailPage.jsx";
+import CompaniesPage from "./pages/Careers/CompaniesPage.jsx";
+import CompanyPage from "./pages/Careers/CompanyPage.jsx";
 import ManagePost from "./pages/admin/ManagePost.jsx";
 import AdminPostEditor from "./components/Editor.jsx";
 import FAQPage from "./pages/FAQ/page.jsx";
@@ -88,6 +90,8 @@ const AppRoutes = () => {
 <Route path="career-vault" element={<CareerVault />} />
 <Route path="career-vault/jobs" element={<JobsPage />} />
 <Route path="career-vault/jobs/:id" element={<JobDetailPage />} />
+<Route path="career-vault/companies" element={<CompaniesPage />} />
+<Route path="career-vault/companies/:slug" element={<CompanyPage />} />
 
 <Route path="finance-vault" element={<FinanceVault />} />
 
