@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { Building2, ChevronLeft, ChevronRight, Plus, Search } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Building2, ChevronLeft, ChevronRight, Link2, Plus, Search } from "lucide-react";
 import toast from "react-hot-toast";
 import { careersAdminApi, errorMessage } from "../../../api/careersApi";
 import { PageHeader, Skeleton, StatusChip, cardClass, inputClass, outlineButton, primaryButton } from "./components/ui";
@@ -55,6 +56,7 @@ export default function Companies() {
   return (
     <div className="space-y-6">
       <PageHeader icon={Building2} title="Companies" subtitle="One record per organisation. Postings and Career Vault experiences link here, never to raw names.">
+        <Link to="/admin/careers/backfill" className={outlineButton}><Link2 size={14} /> Link experiences</Link>
         <button type="button" className={primaryButton} onClick={() => setCreating(true)}><Plus size={14} /> Add company</button>
       </PageHeader>
 

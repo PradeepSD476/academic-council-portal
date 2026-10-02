@@ -40,6 +40,11 @@ export const careersAdminApi = {
   addAlias: (id, alias) => api.post(`/careers/admin/companies/${id}/aliases`, { alias }).then((r) => r.data.data),
   deleteAlias: (aliasId) => api.delete(`/careers/admin/aliases/${aliasId}`).then((r) => r.data),
 
+  // Experience backfill
+  listBackfill: (params) => api.get('/careers/admin/backfill/suggestions', { params }).then((r) => r.data),
+  applyBackfill: (items) => api.post('/careers/admin/backfill/apply', { items }).then((r) => r.data),
+  unlinkBackfill: (experienceId) => api.post('/careers/admin/backfill/unlink', { experienceId }).then((r) => r.data),
+
   // Merge / split / undo
   mergeCompanies: (fromId, toId) => api.post('/careers/admin/companies/merge', { fromId, toId }).then((r) => r.data),
   splitCompany: (id, body) => api.post(`/careers/admin/companies/${id}/split`, body).then((r) => r.data),
