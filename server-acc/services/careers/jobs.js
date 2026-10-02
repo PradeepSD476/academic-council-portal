@@ -6,6 +6,7 @@ import { getSetting, setSetting, clearSettingsCache } from './settings.js';
 import { ingestAll } from './ingest/ingestAll.js';
 import { processSubmissions } from './links/processSubmission.js';
 import { runExtractions } from './extract/runExtractions.js';
+import { recheckLiveness } from './links/recheckLiveness.js';
 
 // Daily ingest of every enabled ATS source.
 export async function ingestJob(options = {}) {
@@ -43,9 +44,19 @@ export async function linksJob(options = {}) {
     return { ...outcome, result };
 }
 
-// name -> { cron, run }. The liveness recheck for manual / link postings is added in P1-T11.
+// Daily URL recheck of manual and student-link postings (ATS postings are covered by the ingest).
+export async function livenessJob(options = {}) {
+    let result = null;
+    const outcome = await withJobLock(JOB_LOCKS.recheckLiveness, 'recheckLiveness', async () => {
+        result = await recheckLiveness();
+    }, { heartbeat: options.heartbeat ?? true });
+    return { ...outcome, result };
+}
+
+// name -> { cron, run }
 export const JOBS = {
     ingestAll: { cron: '0 2 * * *', run: () => ingestJob() },
+    recheckLiveness: { cron: '30 5 * * *', run: () => livenessJob() },
     linksAndExtraction: { cron: '*/10 * * * *', run: () => linksJob() },
     runRequests: {
         cron: '* * * * *',

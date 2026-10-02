@@ -1,6 +1,7 @@
 // Liveness for ATS postings (Architecture 6.3). A job that disappears from its board is not
 // expired at once (boards glitch); it must be missing from MISSED_RUNS_TO_DROP successful runs.
-// The manual / student-link URL recheck (recheckLiveness) is added in P1-T11.
+// Manual and student-link postings have no board; links/recheckLiveness.js fetches their URL daily
+// and uses recheckUpdate below.
 export const MISSED_RUNS_TO_DROP = 2;
 
 // Statuses that expire when every observation of the posting has gone.
@@ -48,4 +49,22 @@ export async function applyMissedRuns(db, sourceId, seenExternalIds, now = new D
     }
     if (expired) console.info(`[careers] liveness: source #${sourceId} expired ${expired} posting(s) (${now.toISOString()})`);
     return { missed: missed.count, dropped: toDrop.length, expired };
+}
+
+// Pure. What one recheck of a manual / student-link URL means for its observation.
+//   result: { gone: true } for HTTP 404 / 410, { ok: true } for a page that loaded, { error } otherwise.
+// A network error or any other status counts nothing (sites go down for a night); a page that
+// loads resets the count. Returns the PostingSource update, or null for no change.
+export function recheckUpdate(observation, result, now = new Date()) {
+    if (result.ok) return { missedRuns: 0, lastSeenAt: now };
+    if (!result.gone) return null;
+    const missedRuns = observation.missedRuns + 1;
+    return missedRuns >= MISSED_RUNS_TO_DROP ? { missedRuns, isLive: false } : { missedRuns };
+}
+
+// Pure. A SafeFetchError (or success) as a recheck result.
+export function recheckResult(err) {
+    if (!err) return { ok: true };
+    if (err.code === 'HTTP_STATUS' && (err.status === 404 || err.status === 410)) return { gone: true };
+    return { error: `${err.code ?? 'ERROR'}: ${err.message}` };
 }
