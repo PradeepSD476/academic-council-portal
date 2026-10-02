@@ -74,7 +74,7 @@ describe('recheckLiveness', () => {
 
         await recheckLiveness({ db, fetchPage: async () => ({ status: 200 }), now });
         expect(observations[0]).toMatchObject({ missedRuns: 0, isLive: true, lastSeenAt: now });
-        expect(postings[1].status).toBe('LIVE');
+        expect(postings[1]).toMatchObject({ status: 'LIVE', lastSeenLiveAt: now });
     });
 
     it('keeps a posting live while another observation is still live, and skips blocked domains', async () => {

@@ -57,6 +57,8 @@ export async function recheckLiveness({ db = prisma, fetchPage = safeFetch, now 
         const update = recheckUpdate(obs, result, now);
         if (!update) continue;
         await db.postingSource.update({ where: { id: obs.id }, data: update });
+        // A page that still loads confirms the posting (the student freshness line reads this).
+        if (result.ok) await db.posting.update({ where: { id: obs.postingId }, data: { lastSeenLiveAt: now } });
         if (update.isLive === false) {
             counts.dropped++;
             droppedPostings.add(obs.postingId);
