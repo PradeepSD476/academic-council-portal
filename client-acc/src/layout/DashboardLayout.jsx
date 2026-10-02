@@ -15,10 +15,12 @@ import {
   Building2,
   ListChecks,
   Activity,
+  Search,
 } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import AuthContext from "../context/auth/authContext";
 import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
+import { useCareersStatus } from "../hooks/useCareersStatus";
 
 export default function DashboardLayout() {
   const { user, logout } = useContext(AuthContext);
@@ -37,6 +39,7 @@ export default function DashboardLayout() {
   const isSTUDENT = user?.role === "STUDENT";
   const isFaculty = user?.role === "FACULTY";
   const canManageCareers = ["SUPER_ADMIN", "FACULTY", "CAREER_ADMIN"].includes(user?.role);
+  const careers = useCareersStatus(user?.id);
 
   const [open, setOpen] = useState(false);
   const [viewRole, setViewRole] = useState("STUDENT");
@@ -171,11 +174,21 @@ export default function DashboardLayout() {
                 />
                 <SidebarItem
                   to="/dashboard/career-vault"
+                  end
                   icon={<Briefcase size={16} />}
                   iconColor="text-emerald-600 bg-emerald-50 border-emerald-100"
                   label="Career Vault"
                   onClick={() => setOpen(false)}
                 />
+                {careers.enabled && (
+                  <SidebarItem
+                    to="/dashboard/career-vault/jobs"
+                    icon={<Search size={16} />}
+                    iconColor="text-teal-600 bg-teal-50 border-teal-100"
+                    label="Jobs & Internships"
+                    onClick={() => setOpen(false)}
+                  />
+                )}
                 <SidebarItem
                   to="/dashboard/finance-vault"
                   icon={<Landmark size={16} />}
@@ -374,10 +387,11 @@ export default function DashboardLayout() {
   );
 }
 
-function SidebarItem({ to, icon, iconColor, label, onClick }) {
+function SidebarItem({ to, end, icon, iconColor, label, onClick }) {
   return (
     <NavLink
       to={to}
+      end={end}
       onClick={onClick}
       className={({ isActive }) =>
         `

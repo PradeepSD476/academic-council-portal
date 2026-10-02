@@ -13,6 +13,19 @@ export const errorMessage = (err, fallback = 'Something went wrong. Please try a
 
 export const careersApi = {
   getStatus: () => api.get('/careers/status').then((r) => r.data.data),
+
+  // Postings (LIVE only for students)
+  listPostings: (params, config) => api.get('/careers/postings', { params, ...config }).then((r) => r.data),
+  getPosting: (id) => api.get(`/careers/postings/${id}`).then((r) => r.data.data),
+  searchCompanies: (q) => api.get('/careers/companies/search', { params: { q } }).then((r) => r.data.data),
+
+  // The student's own eligibility profile and CPI
+  getEligibility: () => api.get('/careers/me/eligibility').then((r) => r.data.data),
+  updateCpi: (cpi) => api.patch('/careers/me/cpi', { cpi }).then((r) => r.data),
+
+  // Shared job links
+  submitLink: (body) => api.post('/careers/submissions', body).then((r) => r.data),
+  mySubmissions: () => api.get('/careers/submissions/mine').then((r) => r.data.data),
 };
 
 export const careersAdminApi = {
