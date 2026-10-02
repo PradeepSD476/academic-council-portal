@@ -8,6 +8,8 @@ import sendReplyNotification from '../utils/mail/sendReplyNotification.js';
 import { getPublicUrl } from '../utils/signedUrl.js';
 import { storage } from '../config/minio.js';
 import { withOpenRoles } from '../services/careers/companies/openRoles.js';
+import { experienceCompanyId } from '../services/careers/companies/experienceCompany.js';
+import { sendError } from '../services/careers/errors.js';
 
 // Public endpoint: returns posts by status (default: PUBLISHED) with server-side pagination
 export const getAllPosts = async (req, res) => {
@@ -155,6 +157,8 @@ export const addpost = async (req, res) => {
             message: "Validation failed. Required fields are missing."
         })
     }
+    let companyId;
+    try { companyId = await experienceCompanyId(req.body.companyId); } catch (err) { return sendError(res, err, 'addpost companyId'); }
     try {
         const experience = await prisma.experience.create({
             data: {
@@ -164,6 +168,7 @@ export const addpost = async (req, res) => {
                 experienceType: experienceType,
                 domain: domain,
                 resumeUrl: resumeUrl || null,
+                companyId,
                 uploadedById: user.id
             }
         })
@@ -243,6 +248,8 @@ export const editPost = async (req, res) => {
             message: "Post ID is required."
         })
     }
+    let companyId;
+    try { companyId = await experienceCompanyId(req.body.companyId); } catch (err) { return sendError(res, err, 'editPost companyId'); }
     try {
         const post = await prisma.experience.findUnique({
             where: {
@@ -266,7 +273,8 @@ export const editPost = async (req, res) => {
             description,
             experienceType,
             status,
-            domain
+            domain,
+            companyId
         };
         if (resumeUrl !== undefined) {
             // Delete old resume from MinIO if it's replaced

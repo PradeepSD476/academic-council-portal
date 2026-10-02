@@ -14,6 +14,7 @@ import { FileText } from "lucide-react";
 import { useCareersStatus } from "../../hooks/useCareersStatus";
 import CareerVaultTabs from "../Careers/components/CareerVaultTabs";
 import OpenRolesChip from "../Careers/components/OpenRolesChip";
+import CompanyPicker from "../Careers/components/CompanyPicker";
 
 void motion;
 
@@ -37,8 +38,9 @@ const DOMAINS = [
 ];
 
 // ─── Create Post View (Full Page) ────────────────────────────────────────────
-const CreatePostView = ({ onBack, onSubmitted }) => {
+const CreatePostView = ({ onBack, onSubmitted, showCompany }) => {
   const [title, setTitle] = useState("");
+  const [company, setCompany] = useState(null); // optional { value: companyId, label: name }
   const [experienceType, setExperienceType] = useState("");
   const [domain, setDomain] = useState("");
   const [description, setDescription] = useState("");
@@ -79,7 +81,7 @@ const CreatePostView = ({ onBack, onSubmitted }) => {
         }
       }
 
-      await forumApi.submitPost({ title: title.trim(), description, experienceType, domain, status: "DRAFT", resumeUrl });
+      await forumApi.submitPost({ title: title.trim(), description, experienceType, domain, status: "DRAFT", resumeUrl, ...(company ? { companyId: company.value } : {}) });
       toast.success("Post submitted! It will appear publicly after admin review.");
       onSubmitted();
       onBack();
@@ -178,6 +180,14 @@ const CreatePostView = ({ onBack, onSubmitted }) => {
               </select>
             </div>
           </div>
+
+          {showCompany && (
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="post-company" className="text-xs font-semibold text-slate-600">Company (optional)</label>
+              <CompanyPicker inputId="post-company" value={company} onChange={setCompany} />
+              <p className="text-xs text-slate-500">Links your experience to the company page, next to its open roles.</p>
+            </div>
+          )}
         </div>
 
         {/* Section 2: Story Content */}
@@ -579,6 +589,7 @@ const CareerVault = () => {
       <CreatePostView
         onBack={() => setShowCreateModal(false)}
         onSubmitted={fetchPosts}
+        showCompany={careers.enabled}
       />
     );
   }
