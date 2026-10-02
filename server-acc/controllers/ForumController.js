@@ -7,6 +7,7 @@ import sendReplyNotification from '../utils/mail/sendReplyNotification.js';
 
 import { getPublicUrl } from '../utils/signedUrl.js';
 import { storage } from '../config/minio.js';
+import { withOpenRoles } from '../services/careers/companies/openRoles.js';
 
 // Public endpoint: returns posts by status (default: PUBLISHED) with server-side pagination
 export const getAllPosts = async (req, res) => {
@@ -56,6 +57,7 @@ export const getAllPosts = async (req, res) => {
                     uploadedBy: {
                         select: { id: true, displayName: true }
                     },
+                    company: { select: { id: true, name: true, slug: true } },
                     likes: {
                         select: { userId: true }
                     },
@@ -97,7 +99,7 @@ export const getAllPosts = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "Data fetched Successfully",
-            data: resultWithUrls,
+            data: await withOpenRoles(resultWithUrls),
             pagination: {
                 total,
                 page,

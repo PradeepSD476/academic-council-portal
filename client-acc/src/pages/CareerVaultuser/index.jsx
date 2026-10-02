@@ -11,6 +11,9 @@ import NativeRichTextEditor from "./NativeRichTextEditor";
 import { forumApi } from "../../api/forumApi";
 import { getFilePath } from "../../lib/getFilePath";
 import { FileText } from "lucide-react";
+import { useCareersStatus } from "../../hooks/useCareersStatus";
+import CareerVaultTabs from "../Careers/components/CareerVaultTabs";
+import OpenRolesChip from "../Careers/components/OpenRolesChip";
 
 void motion;
 
@@ -335,6 +338,7 @@ const CommentPreview = ({ postId, commentCount, onViewAll }) => {
 // ─── Main CareerVault Page ────────────────────────────────────────────────────
 const CareerVault = () => {
   const { user } = useContext(AuthContext);
+  const careers = useCareersStatus(user?.id); // Jobs & Companies (careers): tabs + open-roles chip only when enabled
   const [allExperiences, setAllExperiences] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
   const [expandedComments, setExpandedComments] = useState({});
@@ -593,6 +597,7 @@ const CareerVault = () => {
           Learn from interview and internship experiences shared by seniors and alumni.
         </p>
       </div>
+      {careers.enabled && <CareerVaultTabs />}
 
       {/* Search & Filter Controls */}
       <div className="space-y-3">
@@ -695,6 +700,7 @@ const CareerVault = () => {
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[var(--color-secondary)]/10 text-[var(--color-secondary)] border border-[var(--color-secondary)]/20 uppercase">
                           {exp.domain || 'Uncategorized'}
                         </span>
+                        {careers.enabled && exp.company && <OpenRolesChip company={exp.company} count={exp.openRoles} />}
                       </div>
                     </div>
 

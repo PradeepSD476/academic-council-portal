@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Building2, CalendarDays, ExternalLink, GraduationCap, MapPin, SearchX, Share2, Wallet } from "lucide-react";
+import { ArrowLeft, CalendarDays, ExternalLink, GraduationCap, MapPin, SearchX, Share2, Wallet } from "lucide-react";
 import AuthContext from "../../context/auth/authContext";
 import { careersApi, errorMessage } from "../../api/careersApi";
 import { useCareersStatus } from "../../hooks/useCareersStatus";
@@ -8,9 +8,10 @@ import CompensationBadge from "./components/CompensationBadge";
 import EligibilityBadge from "./components/EligibilityBadge";
 import FreshnessLine from "./components/FreshnessLine";
 import SourceLinks from "./components/SourceLinks";
+import ExperiencePanel from "./components/ExperiencePanel";
 import SubmitLinkModal from "./components/SubmitLinkModal";
 import EmptyState from "./components/EmptyState";
-import { collectedBy, formatDate, plural, safeHref } from "./lib/format";
+import { collectedBy, formatDate, safeHref } from "./lib/format";
 
 const TYPE_LABELS = { INTERNSHIP: "Internship", FULL_TIME: "Full-time" };
 const MODE_LABELS = { ONSITE: "On-site", HYBRID: "Hybrid", REMOTE: "Remote" };
@@ -60,14 +61,7 @@ function Rail({ posting }) {
         )}
       </section>
 
-      <section aria-labelledby="company-title" className={card}>
-        <h2 id="company-title" className={railTitle}><Building2 size={16} className="text-[var(--color-secondary)]" aria-hidden="true" /> {posting.company.name}</h2>
-        <p className="text-xs text-slate-600">
-          {posting.companyExperienceCount > 0
-            ? <Link to={`/dashboard/career-vault/companies/${posting.company.slug}`} className="font-semibold text-teal-700 hover:underline">{plural(posting.companyExperienceCount, "past experience")} at {posting.company.name} →</Link>
-            : "No experiences shared about this company yet."}
-        </p>
-      </section>
+      <ExperiencePanel company={posting.company} count={posting.companyExperienceCount} recent={posting.companyExperiences} />
 
       <SourceLinks observations={posting.observations} />
     </aside>

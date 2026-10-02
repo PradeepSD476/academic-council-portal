@@ -68,9 +68,12 @@ export const getPosting = async (req, res) => {
         if (!posting || (posting.status !== 'LIVE' && !isCareerAdmin(req.user))) {
             throw new CareersError(404, 'NOT_FOUND', 'This posting is not available. It may have closed.');
         }
-        const [profile, companyExperienceCount] = await Promise.all([
+        const published = { companyId: posting.company.id, status: 'PUBLISHED' };
+        const [profile, companyExperienceCount, companyExperiences] = await Promise.all([
             loadProfile(req.user.id),
-            prisma.experience.count({ where: { companyId: posting.company.id, status: 'PUBLISHED' } }),
+            prisma.experience.count({ where: published }),
+            // The most recent few, for the "past experiences at X" panel (P3-T3).
+            prisma.experience.findMany({ where: published, orderBy: { createdAt: 'desc' }, take: 3, select: { id: true, title: true, experienceType: true, createdAt: true } }),
         ]);
         const { observations, ...rest } = posting;
         return res.status(200).json({
@@ -79,6 +82,7 @@ export const getPosting = async (req, res) => {
                 ...toCard(rest, profile),
                 observations: observations.map(({ source, ...o }) => ({ ...o, sourceName: source.name, sourceKind: source.kind })),
                 companyExperienceCount,
+                companyExperiences,
             },
         });
     } catch (err) {
