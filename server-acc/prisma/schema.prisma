@@ -27,6 +27,10 @@ model User {
   likes               Like[]
   uploadedResources   Resource[]
   bookmarks           Bookmark[]
+  // Careers (P2): self-reported, 0.00-10.00, used only to filter postings for this user. Hidden from
+  // every query by the global omit in config/db.js; only /careers/me/* opts in.
+  cpi                 Decimal?       @db.Decimal(4, 2)
+  cpiUpdatedAt        DateTime?
 }
 
 model Experience {
