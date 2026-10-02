@@ -179,6 +179,7 @@ export async function createManualPosting(body, userId) {
     const { data } = planEdit(base, { ...fields, companyId });
     // planEdit validates pay and fills the derived columns (normalised title/location, fingerprint).
     const posting = {
+        skills: [], eligibleBranches: [], eligibleYears: [], // [] = not stated; never NULL
         ...data,
         companyId,
         extractionTier: 'MANUAL',

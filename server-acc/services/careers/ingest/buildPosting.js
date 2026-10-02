@@ -79,6 +79,9 @@ export function buildPostingData(raw, { relevance, company }) {
         locationNormalized: normalizeLocation(location),
         workMode: detectWorkMode({ workplaceText: raw.workplaceText, text: description }),
         skills: extractSkills(`${title}\n${description}`),
+        // ATS boards don't state eligibility; [] = not stated (never leave the arrays NULL).
+        eligibleBranches: [],
+        eligibleYears: [],
         ...comp,
         descriptionText: description,
         contentFingerprint: simhash64(description),

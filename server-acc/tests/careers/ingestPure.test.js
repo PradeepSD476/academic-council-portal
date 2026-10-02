@@ -106,6 +106,10 @@ describe('buildPostingData', () => {
         return buildPostingData(r, { relevance: evaluateRelevance(r), company });
     };
 
+    it('sets eligibility to [] (not stated), never leaves it NULL', () => {
+        expect(build()).toMatchObject({ eligibleBranches: [], eligibleYears: [] });
+    });
+
     it('maps a clean internship with full confidence', () => {
         const d = build();
         expect(d).toMatchObject({
