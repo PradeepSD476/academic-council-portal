@@ -25,6 +25,12 @@ export const careersApi = {
   getEligibility: () => api.get('/careers/me/eligibility').then((r) => r.data.data),
   updateCpi: (cpi) => api.patch('/careers/me/cpi', { cpi }).then((r) => r.data),
 
+  // Saved postings and application status (P4-lite)
+  savePosting: (id) => api.put(`/careers/postings/${id}/save`).then((r) => r.data.data),
+  unsavePosting: (id) => api.delete(`/careers/postings/${id}/save`).then((r) => r.data.data),
+  setApplication: (id, status) => api.put(`/careers/postings/${id}/application`, { status }).then((r) => r.data.data),
+  listSaved: () => api.get('/careers/saved').then((r) => r.data),
+
   // Shared job links
   submitLink: (body) => api.post('/careers/submissions', body).then((r) => r.data),
   mySubmissions: () => api.get('/careers/submissions/mine').then((r) => r.data.data),

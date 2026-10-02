@@ -5,6 +5,7 @@ import prisma from '../../config/db.js';
 import { sendError, CareersError, parseId } from '../../services/careers/errors.js';
 import { isCareerAdmin } from '../../middlewares/careers/requireCareerAdmin.js';
 import { cardFields, loadProfile, toCard } from '../../services/careers/postings/cards.js';
+import { withTracking, TRACKABLE_STATUSES } from '../../services/careers/postings/tracking.js';
 import {
     postingsQuery, baseWhere, eligibilityWhere, withEligibility, orderByFor, hasPayFilter,
 } from '../../services/careers/postings/query.js';
@@ -51,7 +52,7 @@ export const listPostings = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            data: items.map((p) => toCard(p, profile)),
+            data: await withTracking(items.map((p) => toCard(p, profile)), req.user.id),
             pagination: { total, page: params.page, limit: params.limit, totalPages: Math.ceil(total / params.limit) },
             meta: { undisclosedIncluded, hiddenByEligibility, eligibility: eligibilityMeta },
         });
@@ -60,12 +61,15 @@ export const listPostings = async (req, res) => {
     }
 };
 
-// LIVE postings for everyone; career admins can open any status (to preview before approving).
+// LIVE postings for everyone; career admins can open any status (to preview before approving), and a
+// student can still open an expired posting they saved or track (P4-lite).
 export const getPosting = async (req, res) => {
     try {
         const id = parseId(req.params.id);
         const posting = await prisma.posting.findUnique({ where: { id }, select: detailFields });
-        if (!posting || (posting.status !== 'LIVE' && !isCareerAdmin(req.user))) {
+        const [tracked] = posting ? await withTracking([{ id }], req.user.id) : [];
+        const ownTracked = tracked && (tracked.saved || tracked.applicationStatus) && TRACKABLE_STATUSES.includes(posting.status);
+        if (!posting || (posting.status !== 'LIVE' && !isCareerAdmin(req.user) && !ownTracked)) {
             throw new CareersError(404, 'NOT_FOUND', 'This posting is not available. It may have closed.');
         }
         const published = { companyId: posting.company.id, status: 'PUBLISHED' };
@@ -80,6 +84,8 @@ export const getPosting = async (req, res) => {
             success: true,
             data: {
                 ...toCard(rest, profile),
+                saved: tracked.saved,
+                applicationStatus: tracked.applicationStatus,
                 observations: observations.map(({ source, ...o }) => ({ ...o, sourceName: source.name, sourceKind: source.kind })),
                 companyExperienceCount,
                 companyExperiences,

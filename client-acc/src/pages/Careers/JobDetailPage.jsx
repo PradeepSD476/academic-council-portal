@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, CalendarDays, ExternalLink, GraduationCap, MapPin, SearchX, Share2, Wallet } from "lucide-react";
+import { ArrowLeft, CalendarDays, ClipboardCheck, ExternalLink, GraduationCap, MapPin, SearchX, Share2, Wallet } from "lucide-react";
 import AuthContext from "../../context/auth/authContext";
 import { careersApi, errorMessage } from "../../api/careersApi";
 import { useCareersStatus } from "../../hooks/useCareersStatus";
@@ -11,6 +11,8 @@ import SourceLinks from "./components/SourceLinks";
 import ExperiencePanel from "./components/ExperiencePanel";
 import SubmitLinkModal from "./components/SubmitLinkModal";
 import EmptyState from "./components/EmptyState";
+import SaveButton from "./components/SaveButton";
+import ApplicationStatusButton from "./components/ApplicationStatusButton";
 import { collectedBy, formatDate, safeHref } from "./lib/format";
 
 const TYPE_LABELS = { INTERNSHIP: "Internship", FULL_TIME: "Full-time" };
@@ -41,6 +43,12 @@ function Rail({ posting }) {
   return (
     // Below lg the rail comes first: pay and eligibility before a long description.
     <aside className="order-first lg:order-none space-y-4 lg:sticky lg:top-4 self-start">
+      <section aria-labelledby="app-title" className={card}>
+        <h2 id="app-title" className={railTitle}><ClipboardCheck size={16} className="text-[var(--color-secondary)]" aria-hidden="true" /> Your application</h2>
+        <ApplicationStatusButton posting={posting} />
+        <p className="mt-2 text-xs text-slate-500">Only you can see this. Tracked postings are listed under Saved.</p>
+      </section>
+
       <section aria-labelledby="pay-title" className={card}>
         <h2 id="pay-title" className={railTitle}><Wallet size={16} className="text-[var(--color-secondary)]" aria-hidden="true" /> Pay</h2>
         <div className="text-sm"><CompensationBadge posting={posting} /></div>
@@ -114,7 +122,7 @@ export default function JobDetailPage() {
     );
   }
 
-  const applyHref = safeHref(posting.applyUrl);
+  const applyHref = posting.status === "EXPIRED" ? null : safeHref(posting.applyUrl);
   return (
     <div className="space-y-6">
       <BackLink />
@@ -124,7 +132,11 @@ export default function JobDetailPage() {
           <Link to={`/dashboard/career-vault/companies/${posting.company.slug}`} className="text-sm font-bold text-teal-700 hover:underline">{posting.company.name}</Link>
           {TYPE_LABELS[posting.type] && <span className={`${chip} text-blue-700 bg-blue-50 border-blue-100`}>{TYPE_LABELS[posting.type]}</span>}
           {MODE_LABELS[posting.workMode] && <span className={`${chip} text-slate-600 bg-slate-50 border-slate-200`}>{MODE_LABELS[posting.workMode]}</span>}
-          {posting.status !== "LIVE" && <span className={`${chip} text-amber-700 bg-amber-50 border-amber-100`}>Admin preview · {posting.status.replace("_", " ")}</span>}
+          {posting.status !== "LIVE" && (
+            <span className={`${chip} text-amber-700 bg-amber-50 border-amber-100`}>
+              {status.isCareerAdmin ? `Admin preview · ${posting.status.replace("_", " ")}` : "No longer live"}
+            </span>
+          )}
         </div>
         <h1 className="mt-2 text-2xl md:text-3xl font-extrabold text-[var(--color-primary)] tracking-tight">{posting.roleTitle}</h1>
         <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-500">
@@ -152,6 +164,7 @@ export default function JobDetailPage() {
               Apply on the company site <ExternalLink size={14} aria-hidden="true" />
             </a>
           )}
+          <SaveButton key={posting.id} posting={posting} withLabel />
           <button type="button" onClick={() => setSharing(true)} className="academic-btn-outline inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer">
             <Share2 size={14} aria-hidden="true" /> Share another job link
           </button>

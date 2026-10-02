@@ -1,10 +1,11 @@
 import { NavLink } from "react-router-dom";
 
-// Experiences | Jobs & Internships | Companies. Saved is added with its page (P4-lite).
+// Experiences | Jobs & Internships | Companies | Saved.
 const TABS = [
   { to: "/dashboard/career-vault", label: "Experiences", end: true },
   { to: "/dashboard/career-vault/jobs", label: "Jobs & Internships" },
   { to: "/dashboard/career-vault/companies", label: "Companies" },
+  { to: "/dashboard/career-vault/saved", label: "Saved" },
 ];
 
 export default function CareerVaultTabs() {

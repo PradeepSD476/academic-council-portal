@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { Briefcase, ChevronLeft, ChevronRight, Search, SearchX, Share2, SlidersHorizontal, X } from "lucide-react";
@@ -7,6 +7,7 @@ import { careersApi, errorMessage } from "../../api/careersApi";
 import { useCareersStatus } from "../../hooks/useCareersStatus";
 import CareerVaultTabs from "./components/CareerVaultTabs";
 import JobCard from "./components/JobCard";
+import { isNewSince, visitBaseline } from "./lib/tracking";
 import JobFilters from "./components/JobFilters";
 import EligibilityCard from "./components/EligibilityCard";
 import EmptyState from "./components/EmptyState";
@@ -69,6 +70,8 @@ export default function JobsPage() {
   const [sharing, setSharing] = useState(false);
   const isDesktop = useIsDesktop();
   const reduceMotion = useReducedMotion();
+  // Previous visit, for the "New" badges (read once per browser session; only while the feature is on).
+  const baseline = useMemo(() => (status.enabled ? visitBaseline() : null), [status.enabled]);
 
   const query = search.toString();
   useEffect(() => {
@@ -147,7 +150,7 @@ export default function JobsPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2, delay: Math.min(i, 8) * 0.02, ease: [0.16, 1, 0.3, 1] }}
           >
-            <JobCard posting={p} />
+            <JobCard posting={p} isNew={isNewSince(p, baseline)} />
           </MotionLi>
         ))}
       </ul>

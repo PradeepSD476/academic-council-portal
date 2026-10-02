@@ -4,6 +4,7 @@ import { z } from 'zod';
 import prisma from '../../config/db.js';
 import { sendError, CareersError } from '../../services/careers/errors.js';
 import { cardFields, loadProfile, toCard } from '../../services/careers/postings/cards.js';
+import { withTracking } from '../../services/careers/postings/tracking.js';
 import { directoryQuery, directoryWhere, countSelect, rankCompanies } from '../../services/careers/companies/directory.js';
 
 const searchQuery = z.object({ q: z.string().trim().max(100).optional().default('') });
@@ -89,7 +90,7 @@ export const getCompanyPage = async (req, res) => {
             data: {
                 ...info,
                 counts: { openRoles: _count.postings, experiences: _count.experiences },
-                postings: postings.map((p) => toCard(p, profile)),
+                postings: await withTracking(postings.map((p) => toCard(p, profile)), req.user.id),
                 experiences: experiences.map(({ uploadedBy, ...e }) => ({ ...e, authorName: uploadedBy?.displayName || 'Unknown' })),
             },
         });

@@ -31,6 +31,8 @@ model User {
   // every query by the global omit in config/db.js; only /careers/me/* opts in.
   cpi                 Decimal?       @db.Decimal(4, 2)
   cpiUpdatedAt        DateTime?
+  savedPostings       SavedPosting[] // careers P4-lite (relation only, no column)
+  postingApplications PostingApplication[] // careers P4-lite (relation only, no column)
 }
 
 model Experience {
@@ -541,6 +543,8 @@ model Posting {
   updatedAt            DateTime        @updatedAt
   observations         PostingSource[]
   reviews              PostingReview[]
+  saves                SavedPosting[]
+  applications         PostingApplication[]
 
   @@index([status, lastSeenLiveAt])
   @@index([companyId, status])
@@ -631,4 +635,40 @@ model LlmUsage {
   createdAt    DateTime @default(now())
 
   @@index([createdAt])
+}
+
+// ─────────────────────────── Careers: P4-lite (saved + application tracking) ───────────────────────────
+
+enum ApplicationStatus {
+  INTERESTED
+  APPLIED
+  IN_PROGRESS
+  REJECTED
+  OFFER
+}
+
+model SavedPosting {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postingId Int
+  posting   Posting  @relation(fields: [postingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postingId])
+  @@index([postingId])
+}
+
+model PostingApplication {
+  id        Int               @id @default(autoincrement())
+  userId    Int
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postingId Int
+  posting   Posting           @relation(fields: [postingId], references: [id], onDelete: Cascade)
+  status    ApplicationStatus
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@unique([userId, postingId])
+  @@index([postingId])
 }
