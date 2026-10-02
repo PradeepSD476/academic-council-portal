@@ -1,7 +1,7 @@
 import { useCallback, useContext, useEffect, useState, useSyncExternalStore } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
-import { Briefcase, ChevronLeft, ChevronRight, Search, SearchX, SlidersHorizontal, X } from "lucide-react";
+import { Briefcase, ChevronLeft, ChevronRight, Search, SearchX, Share2, SlidersHorizontal, X } from "lucide-react";
 import AuthContext from "../../context/auth/authContext";
 import { careersApi, errorMessage } from "../../api/careersApi";
 import { useCareersStatus } from "../../hooks/useCareersStatus";
@@ -10,6 +10,7 @@ import JobCard from "./components/JobCard";
 import JobFilters from "./components/JobFilters";
 import EligibilityCard from "./components/EligibilityCard";
 import EmptyState from "./components/EmptyState";
+import SubmitLinkModal from "./components/SubmitLinkModal";
 import DraftInput from "./components/DraftInput";
 import { apiParams, withChanges, activeFilterCount, hasAnyFilter, cleared } from "./lib/filters";
 import { plural } from "./lib/format";
@@ -33,14 +34,25 @@ function Skeleton() {
   );
 }
 
-function Header() {
+function Header({ onShare }) {
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-2">
-        <div className="w-[3px] h-6 bg-[var(--color-secondary)] rounded-full shadow-[0_0_8px_var(--color-secondary)]" />
-        <h1 className="text-2xl md:text-3xl font-extrabold text-[var(--color-primary)] tracking-tight">Jobs & Internships</h1>
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div>
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-[3px] h-6 bg-[var(--color-secondary)] rounded-full shadow-[0_0_8px_var(--color-secondary)]" />
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[var(--color-primary)] tracking-tight">Jobs & Internships</h1>
+        </div>
+        <p className="text-slate-500 text-sm ml-4">Approved openings, collected from company career pages and links shared by students.</p>
       </div>
-      <p className="text-slate-500 text-sm ml-4">Approved openings, collected from company career pages and links shared by students.</p>
+      {onShare && (
+        <button
+          type="button"
+          onClick={onShare}
+          className="self-start sm:self-auto inline-flex items-center gap-2 whitespace-nowrap bg-[var(--color-secondary)] hover:opacity-90 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-[0_8px_20px_var(--color-secondary-glow)] cursor-pointer"
+        >
+          <Share2 size={14} aria-hidden="true" /> Share a job link
+        </button>
+      )}
     </div>
   );
 }
@@ -54,6 +66,7 @@ export default function JobsPage() {
   const [loading, setLoading] = useState(true);
   const [reload, setReload] = useState(0);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const isDesktop = useIsDesktop();
   const reduceMotion = useReducedMotion();
 
@@ -143,7 +156,7 @@ export default function JobsPage() {
 
   return (
     <div className="space-y-6">
-      <Header />
+      <Header onShare={() => setSharing(true)} />
       <CareerVaultTabs />
 
       <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
@@ -197,6 +210,8 @@ export default function JobsPage() {
           )}
         </div>
       </div>
+
+      {sharing && <SubmitLinkModal onClose={() => setSharing(false)} />}
 
       {!isDesktop && drawerOpen && (
         <div className="fixed inset-0 z-[70] flex justify-end bg-black/30" role="dialog" aria-modal="true" aria-label="Filters" onClick={() => setDrawerOpen(false)}>

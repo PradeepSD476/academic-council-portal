@@ -93,3 +93,45 @@ export function eligibilityText(e) {
 
 // "1 opening", "2 openings"
 export const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+
+// "12 Oct 2026". A deadline is a calendar date; show it in UTC so it never shifts a day.
+export const formatDate = (date, { utc = false } = {}) =>
+  new Date(date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", ...(utc ? { timeZone: "UTC" } : {}) });
+
+// How the details were collected (Design §9: label automated data in words).
+export function collectedBy(tier) {
+  if (tier === "LLM_FAST" || tier === "LLM_STRONG") return "Details extracted automatically and reviewed by ACC.";
+  if (tier === "MANUAL") return "Details entered by ACC.";
+  return "Details taken from the company's job listing and reviewed by ACC.";
+}
+
+// A student's shared link, in plain words: { label, tone, detail? }.
+export function submissionStatus(s) {
+  if (s.postingLive) return { label: "Live on the portal", tone: "live" };
+  switch (s.status) {
+    case "RECEIVED":
+    case "PROCESSING":
+    case "EXTRACTING":
+      return { label: "Being processed", tone: "info" };
+    case "PENDING_REVIEW":
+      return { label: "Waiting for ACC review", tone: "info" };
+    case "DUPLICATE":
+      return { label: "Already listed", tone: "neutral", detail: "This job was already on the portal or in review." };
+    case "STORED_ONLY":
+      return { label: "Saved for ACC", tone: "neutral", detail: "This site can't be read automatically; an admin will add the details." };
+    case "FAILED":
+      return { label: "Couldn't be read", tone: "failed", detail: s.error };
+    default:
+      return { label: s.status, tone: "neutral" };
+  }
+}
+
+// Only http(s) URLs become links (never javascript: or data:).
+export function safeHref(url) {
+  try {
+    const u = new URL(url);
+    return u.protocol === "http:" || u.protocol === "https:" ? u.toString() : null;
+  } catch {
+    return null;
+  }
+}

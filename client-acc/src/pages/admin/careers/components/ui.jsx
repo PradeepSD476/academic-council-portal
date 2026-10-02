@@ -1,4 +1,5 @@
 // Small shared building blocks for the careers admin pages (styles follow the Career Vault pages).
+import { useEffect } from "react";
 import { X } from "lucide-react";
 
 const STATUS_STYLES = {
@@ -33,6 +34,12 @@ export function PageHeader({ icon: Icon, title, subtitle, children }) {
 }
 
 export function Modal({ title, onClose, children, footer, wide = false }) {
+  // Escape closes the dialog.
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
   return (
     <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/30 p-0 sm:p-4" role="dialog" aria-modal="true" aria-label={title}>
       <div className={`w-full ${wide ? "sm:max-w-3xl" : "sm:max-w-xl"} max-h-[90vh] flex flex-col bg-white rounded-t-2xl sm:rounded-2xl border border-slate-200 shadow-xl`}>

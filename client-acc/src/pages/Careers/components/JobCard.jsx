@@ -15,6 +15,7 @@ export default function JobCard({ posting }) {
   return (
     <Link
       to={`/dashboard/career-vault/jobs/${posting.id}`}
+      state={{ fromList: true }}
       className="block p-5 rounded-2xl border border-slate-200 bg-white/95 shadow-xs hover:border-[var(--color-secondary)]/40 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-secondary)]"
     >
       <div className="flex flex-wrap items-center gap-2">

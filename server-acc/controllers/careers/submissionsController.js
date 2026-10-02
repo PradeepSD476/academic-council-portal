@@ -40,9 +40,12 @@ export const mySubmissions = async (req, res) => {
             where: { submittedById: req.user.id },
             orderBy: { createdAt: 'desc' },
             take: 50,
-            select: { ...publicFields, note: true },
+            select: { ...publicFields, note: true, error: true },
         });
-        return res.json({ success: true, data: items });
+        // Only "is it live on the portal" is shared about the resulting posting, nothing about review.
+        const postingIds = [...new Set(items.map((s) => s.postingId).filter(Boolean))];
+        const live = new Set((await prisma.posting.findMany({ where: { id: { in: postingIds }, status: 'LIVE' }, select: { id: true } })).map((p) => p.id));
+        return res.json({ success: true, data: items.map((s) => ({ ...s, postingLive: live.has(s.postingId) })) });
     } catch (err) {
         return sendError(res, err, 'mySubmissions');
     }

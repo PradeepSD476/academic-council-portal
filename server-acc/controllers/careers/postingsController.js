@@ -21,6 +21,7 @@ const cardFields = {
 const detailFields = {
     ...cardFields,
     status: true, descriptionText: true, applyUrl: true, deadlineStated: true, ppoMentioned: true, compensationRaw: true,
+    extractionTier: true, // STRUCTURED / JSON_LD / LLM_* / MANUAL: the page says how the details were collected
     observations: {
         orderBy: { firstSeenAt: 'asc' },
         select: { url: true, firstSeenAt: true, lastSeenAt: true, isLive: true, source: { select: { name: true, kind: true } } },
