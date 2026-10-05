@@ -3,6 +3,7 @@
 // that on the real postings), and it is rendered as React text, never as HTML.
 
 const BULLET = /^\s*(?:[•●▪‣◦·■□○▶►➤✓✔*]|[-–—](?=\s))\s*/;
+const LONE_MARKER = /^\s*(?:[•●▪‣◦·■□○▶►➤✓✔*]|[-–—])\s*$/; // a bullet mark alone on its line: the text is on the next line
 const INLINE_BULLET = /\s+[•●▪‣◦■]\s+/;
 const NUMBERED = /^\s*(\d{1,2})[.)]\s+(?=\S)/;
 const SHORT = 60; // longest line that can be a heading
@@ -30,9 +31,14 @@ function pieces(raw) {
 
 export function structureDescription(text) {
   const lines = [];
+  let pendingBullet = false; // the previous line was just a bullet mark
   for (const raw of String(text ?? "").replace(/\r\n?/g, "\n").split("\n")) {
-    if (!raw.trim()) { lines.push({ blank: true }); continue; }
-    for (const p of pieces(raw)) lines.push(p);
+    if (!raw.trim()) { lines.push({ blank: true }); pendingBullet = false; continue; }
+    if (LONE_MARKER.test(raw)) { pendingBullet = true; continue; }
+    const parts = pieces(raw);
+    if (pendingBullet && parts.length) parts[0] = { ...parts[0], bullet: true };
+    pendingBullet = false;
+    for (const p of parts) lines.push(p);
   }
 
   // Short plain lines: a run of one or two (or any line ending in ":") is a heading; a longer run
@@ -73,13 +79,16 @@ export function structureDescription(text) {
     }
   });
 
-  // A heading needs something under it. Two headings in a row are a section and its subsection: the
-  // second one is marked level 2 so it is drawn smaller and tucked under the first. A heading with
-  // nothing after it (e.g. a trailing "Office Location:") is shown as a plain line.
-  blocks.forEach((b, i) => {
-    if (b.type !== "heading") return;
-    if (blocks[i - 1]?.type === "heading") b.level = 2;
-    if (i === blocks.length - 1) { b.type = "paragraph"; b.lines = [b.text]; delete b.text; }
-  });
-  return blocks.map((b) => (b.type === "heading" ? { level: 1, ...b } : b));
+  // A heading needs something under it. Headings in a row ("Who we are", "About Stripe") are one
+  // title with a subtitle, so they are merged into a single heading block (text + subs). A heading
+  // with nothing after it (e.g. a trailing "Office Location:") is shown as a plain line.
+  const merged = [];
+  for (const b of blocks) {
+    const prev = merged[merged.length - 1];
+    if (b.type === "heading" && prev?.type === "heading") prev.subs.push(b.text);
+    else merged.push(b.type === "heading" ? { ...b, subs: [] } : b);
+  }
+  const last = merged[merged.length - 1];
+  if (last?.type === "heading") merged[merged.length - 1] = { type: "paragraph", lines: [last.text, ...last.subs] };
+  return merged;
 }
