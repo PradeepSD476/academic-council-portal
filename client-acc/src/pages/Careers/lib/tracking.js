@@ -1,11 +1,12 @@
 // P4-lite helpers: application statuses and the "New since your last visit" marker.
 
+// tone = the pill on the button and cards; dot / row = the menu (full class names so Tailwind sees them).
 export const APPLICATION_STATUSES = [
-  { value: "INTERESTED", label: "Interested", tone: "text-blue-700 bg-blue-50 border-blue-100" },
-  { value: "APPLIED", label: "Applied", tone: "text-teal-700 bg-teal-50 border-teal-100" },
-  { value: "IN_PROGRESS", label: "In progress", tone: "text-amber-700 bg-amber-50 border-amber-100" },
-  { value: "OFFER", label: "Offer", tone: "text-emerald-700 bg-emerald-50 border-emerald-100" },
-  { value: "REJECTED", label: "Rejected", tone: "text-slate-600 bg-slate-50 border-slate-200" },
+  { value: "INTERESTED", label: "Interested", hint: "Thinking about applying", tone: "text-blue-700 bg-blue-50 border-blue-100", dot: "bg-blue-500", row: "bg-blue-50" },
+  { value: "APPLIED", label: "Applied", hint: "Application sent", tone: "text-teal-700 bg-teal-50 border-teal-100", dot: "bg-teal-500", row: "bg-teal-50" },
+  { value: "IN_PROGRESS", label: "In progress", hint: "Tests or interviews going on", tone: "text-amber-700 bg-amber-50 border-amber-100", dot: "bg-amber-500", row: "bg-amber-50" },
+  { value: "OFFER", label: "Offer", hint: "You received an offer", tone: "text-emerald-700 bg-emerald-50 border-emerald-100", dot: "bg-emerald-500", row: "bg-emerald-50" },
+  { value: "REJECTED", label: "Rejected", hint: "Not selected this time", tone: "text-slate-600 bg-slate-50 border-slate-200", dot: "bg-slate-400", row: "bg-slate-100" },
 ];
 
 export const statusMeta = (value) => APPLICATION_STATUSES.find((s) => s.value === value) ?? null;
