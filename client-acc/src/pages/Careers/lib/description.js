@@ -72,5 +72,14 @@ export function structureDescription(text) {
       paragraph.lines.push(l.text);
     }
   });
-  return blocks;
+
+  // A heading needs something under it. Two headings in a row are a section and its subsection: the
+  // second one is marked level 2 so it is drawn smaller and tucked under the first. A heading with
+  // nothing after it (e.g. a trailing "Office Location:") is shown as a plain line.
+  blocks.forEach((b, i) => {
+    if (b.type !== "heading") return;
+    if (blocks[i - 1]?.type === "heading") b.level = 2;
+    if (i === blocks.length - 1) { b.type = "paragraph"; b.lines = [b.text]; delete b.text; }
+  });
+  return blocks.map((b) => (b.type === "heading" ? { level: 1, ...b } : b));
 }

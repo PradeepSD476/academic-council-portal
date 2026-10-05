@@ -8,6 +8,15 @@ export default function JobDescription({ text }) {
   return (
     <div className="text-sm text-slate-600 leading-relaxed break-words space-y-3">
       {blocks.map((b, i) => {
+        if (b.type === "heading" && b.level === 2) {
+          // A subsection title right under its section title: smaller, and close to the one above.
+          return (
+            <h4 key={i} className="-mt-1.5 flex items-center gap-2 pl-[11px] text-[13px] font-semibold text-slate-700">
+              <span className="w-1.5 h-1.5 shrink-0 rounded-full bg-[var(--color-secondary)]/60" aria-hidden="true" />
+              {b.text}
+            </h4>
+          );
+        }
         if (b.type === "heading") {
           return (
             <h3 key={i} className="flex items-center gap-2 pt-3 first:pt-0 text-sm font-bold text-[var(--color-primary)]">
