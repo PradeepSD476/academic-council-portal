@@ -266,7 +266,7 @@ export default function ResearchQuestionList() {
         {questions.map((question) => {
           const isOwnQuestion = question.uploadedBy?.id === user?.id;
           return (
-            <Link key={question.id} to={questionUrl(question.id)} className={`academic-card block rounded-2xl border-l-4 p-4 text-left transition-colors sm:p-5 ${isOwnQuestion ? 'border-l-blue-500 !bg-blue-50/50' : 'border-l-emerald-300 !bg-emerald-50/30'} hover:border-blue-300 hover:bg-blue-50/30`}>
+            <Link key={question.id} to={questionUrl(question.id)} className={`academic-card block rounded-2xl border-l-4 p-4 text-left transition-colors sm:p-5 ${isOwnQuestion ? 'border-l-blue-500 !bg-blue-50/50' : 'border-l-blue-300 !bg-blue-50/30'} hover:border-blue-300 hover:bg-blue-50/30`}>
               <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
                 <h2 className={`min-w-0 flex-1 text-base font-bold leading-snug ${isOwnQuestion ? 'text-blue-900' : 'text-slate-950'}`}>{question.title}</h2>
                 <div className="flex shrink-0 items-center gap-3 text-xs text-slate-500">
@@ -275,10 +275,10 @@ export default function ResearchQuestionList() {
                 </div>
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-                <span className={`text-xs font-medium ${isOwnQuestion ? 'text-blue-700' : 'text-emerald-800'}`}>
+                <span className={`text-xs font-medium ${isOwnQuestion ? 'text-blue-700' : 'text-blue-700'}`}>
                   {question.uploadedBy?.displayName || 'ACC student'}{question.uploadedBy?.rollNo ? ` · ${question.uploadedBy.rollNo}` : ''} · {relativeTime(question.createdAt)}
                 </span>
-                {question.isResolved && <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">Resolved</span>}
+                {question.isResolved && <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700">Resolved</span>}
               </div>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {question.researchAreas?.map(({ researchArea }) => (

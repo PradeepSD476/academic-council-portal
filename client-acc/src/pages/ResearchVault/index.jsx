@@ -1,4 +1,5 @@
 import { createElement, useContext, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { STATUS_COLORS } from './shared';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Activity, Bookmark, BookOpen, BookSearch, BriefcaseBusiness, Check, CheckCircle2, ChevronDown, CircleHelp, ExternalLink, Filter, FlaskConical, MessageCircle, Plus, Search, Send, ThumbsUp, UserRoundCheck, UserRoundPlus, UsersRound, X, Clock, Download, Eye, FileText, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -255,7 +256,7 @@ function FilterDropdown({
 const getResourceTypeBadgeClass = (type) => {
   const base = 'inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border';
   switch (type) {
-    case 'GUIDE': return `${base} bg-emerald-50 text-emerald-800 border-emerald-200`;
+    case 'GUIDE': return `${base} bg-blue-50 text-blue-700 border-blue-200`;
     case 'SOP_WRITING': return `${base} bg-blue-50 text-blue-800 border-blue-200`;
     case 'COLD_EMAILING': return `${base} bg-purple-50 text-purple-800 border-purple-200`;
     case 'PHD_APPLICATIONS': return `${base} bg-amber-50 text-amber-800 border-amber-200`;
@@ -851,7 +852,7 @@ useEffect(() => {
         {(section === 'faculty' || section === 'experiences' || section === 'positions') && (
           <input value={department} onChange={(event) => setDepartment(event.target.value)} placeholder="Department" className="rounded-xl border border-slate-200 bg-white/90 px-3 py-2.5 text-xs font-semibold text-[var(--color-primary)] outline-none focus:border-[var(--color-secondary)] sm:w-56" />
         )}
-        {section === 'faculty' && <label className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-3 py-2.5 text-xs font-semibold text-slate-700"><input type="checkbox" checked={openingsOnly} onChange={(event) => setOpeningsOnly(event.target.checked)} className="accent-emerald-800" /> Current openings</label>}
+        {section === 'faculty' && <label className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-3 py-2.5 text-xs font-semibold text-slate-700"><input type="checkbox" checked={openingsOnly} onChange={(event) => setOpeningsOnly(event.target.checked)} className="accent-blue-700" /> Current openings</label>}
         {section !== 'positions' && (
           <div ref={section === 'following' ? followingAreaPickerRef : areaPickerRef} className="relative sm:w-56">
             <input
@@ -1014,16 +1015,16 @@ useEffect(() => {
               <TagList areas={faculty.researchAreas?.map((entry) => entry.researchArea) || []} onFollow={follow} followedAreaIds={followedAreaIds} />
               {/* Computed open count only (see utils/openingStatus.js) — never
                   raw isActive rows; still viewable when nothing is open. */}
-              <p className={`mt-3 text-xs font-semibold ${faculty.openOpeningsCount > 0 ? 'text-emerald-800' : 'text-slate-500'}`}>
+              <p className={`mt-3 text-xs font-semibold ${faculty.openOpeningsCount > 0 ? 'text-blue-700' : 'text-slate-500'}`}>
                 {faculty.openOpeningsCount > 0
                   ? `${faculty.openOpeningsCount} open position${faculty.openOpeningsCount === 1 ? '' : 's'} — view profile`
                   : 'No open positions — view profile'}
               </p>
-              <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-600">{faculty.email && <a className="hover:text-emerald-800" href={`mailto:${faculty.email}`} onClick={(e) => e.stopPropagation()}>{faculty.email}</a>}{faculty.website && <a className="inline-flex items-center gap-1 hover:text-emerald-800" href={faculty.website} target="_blank" rel="noopener noreferrer nofollow" onClick={(e) => e.stopPropagation()}>Faculty website <ExternalLink size={12} /></a>}</div>
+              <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-600">{faculty.email && <a className="hover:text-blue-700" href={`mailto:${faculty.email}`} onClick={(e) => e.stopPropagation()}>{faculty.email}</a>}{faculty.website && <a className="inline-flex items-center gap-1 hover:text-blue-700" href={faculty.website} target="_blank" rel="noopener noreferrer nofollow" onClick={(e) => e.stopPropagation()}>Faculty website <ExternalLink size={12} /></a>}</div>
               {faculty.publications && <details className="mt-3 text-sm" onClick={(e) => e.stopPropagation()}><summary className="cursor-pointer font-semibold text-slate-700">Publications and work</summary><p className="mt-2 whitespace-pre-wrap text-slate-600">{faculty.publications}</p></details>}
             </article>)}</VaultList>
           <aside className="self-start rounded-3xl border-2 border-[var(--color-secondary)]/30 bg-gradient-to-b from-white/95 via-sky-50/25 to-blue-50/35 p-5 shadow-[0_12px_35px_rgba(11,30,63,0.06)]">
-            <p className="flex items-center gap-2 text-sm font-bold text-emerald-950"><UsersRound size={16} /> Find a research match</p>
+            <p className="flex items-center gap-2 text-sm font-bold text-blue-950"><UsersRound size={16} /> Find a research match</p>
             <p className="mt-2 text-xs leading-5 text-slate-600">Choose any interests. Recommendations are ranked by research-area fit, department, and active openings.</p>
             <form onSubmit={findMatches} className="mt-4 space-y-3">
               <input value={interest.department} onChange={(event) => setInterest({ ...interest, department: event.target.value })} placeholder="Department (e.g. Electrical)" aria-label="Preferred department" className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-[var(--color-primary)] outline-none focus:border-[var(--color-secondary)]" />
@@ -1119,11 +1120,9 @@ useEffect(() => {
                       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2 mb-1">
-                            <span className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
-                              e.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                              : e.status === 'REJECTED' ? 'bg-red-50 text-red-700 border-red-200'
-                              : 'bg-amber-50 text-amber-700 border-amber-200'
-                            }`}>{e.status === 'PENDING_REVIEW' ? 'PENDING REVIEW' : e.status}</span>
+                            <span className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${STATUS_COLORS[e.status] || STATUS_COLORS.PENDING}`}>
+                              {e.status === 'PENDING_REVIEW' ? 'PENDING REVIEW' : e.status}
+                            </span>
                             {e.experienceType && <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border bg-blue-50 text-blue-800 border-blue-200">{(EXPERIENCE_TYPE_LABELS[e.experienceType] || e.experienceType).toUpperCase()}</span>}
                           </div>
                           <p className="text-sm font-semibold text-slate-900 break-words">{e.title}</p>
@@ -1264,11 +1263,9 @@ useEffect(() => {
                       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2 mb-1">
-                            <span className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
-                              r.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                              : r.status === 'REJECTED' ? 'bg-red-50 text-red-700 border-red-200'
-                              : 'bg-amber-50 text-amber-700 border-amber-200'
-                            }`}>{r.status}</span>
+                            <span className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${STATUS_COLORS[r.status] || STATUS_COLORS.PENDING}`}>
+                              {r.status}
+                            </span>
                             <span className={getResourceTypeBadgeClass(r.resourceType)}>{formatResourceType(r.resourceType)}</span>
                           </div>
                           <p className="text-sm font-semibold text-slate-900 break-words">{r.title}</p>
@@ -1378,7 +1375,7 @@ useEffect(() => {
             </button>
             <div className="ml-auto flex flex-wrap items-center gap-2">
               <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white/90 px-3 py-2.5 text-xs font-semibold text-[var(--color-primary)]">
-                <input type="checkbox" checked={positionShowClosed} onChange={(e) => setPositionShowClosed(e.target.checked)} className="accent-emerald-800" />
+                <input type="checkbox" checked={positionShowClosed} onChange={(e) => setPositionShowClosed(e.target.checked)} className="accent-blue-700" />
                 Show closed positions
               </label>
               <FilterDropdown
@@ -1877,7 +1874,7 @@ useEffect(() => {
         </div>
       )}
 
-      {formOpen && <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/40 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setFormOpen(false); }}><section role="dialog" aria-modal="true" aria-labelledby="vault-form-title" className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-md bg-white p-6 shadow-xl"><div className="flex items-center justify-between"><h2 id="vault-form-title" className="text-xl font-bold">{section === 'experiences' ? 'Share a research experience' : 'Ask the community'}</h2><button onClick={() => setFormOpen(false)} aria-label="Close" className="rounded p-2 text-slate-500 hover:bg-slate-100">×</button></div><form onSubmit={submitContent} className="mt-5 space-y-3"><input name="title" required placeholder={section === 'experiences' ? 'Experience title' : 'Question title'} className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" />{section === 'experiences' && <><input name="labName" placeholder="Lab name" className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" /><input name="guideName" placeholder="Faculty guide" className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" /><input name="duration" placeholder="Duration" className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" /><input name="prerequisites" placeholder="Prerequisites" className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" /><input name="keyLearnings" placeholder="Key learnings" className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" /></>}<textarea name={section === 'experiences' ? 'description' : 'content'} required rows={5} placeholder={section === 'experiences' ? 'What did you work on and what should others know?' : 'Write your question or details. Markdown is supported.'} className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" />{section === 'experiences' && <input name="outcome" placeholder="Outcome" className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" />}<select name="researchAreaIds" defaultValue="" className="w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm"><option value="">Research area (optional)</option>{areas.map((area) => <option key={area.id} value={area.id}>{area.name}</option>)}</select>{section === 'experiences' && <select name="facultyId" defaultValue="" className="w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm"><option value="">Faculty member (optional)</option>{facultyOptions.map((faculty) => <option key={faculty.id} value={faculty.id}>{faculty.name}</option>)}</select>}<div className="flex justify-end gap-2 pt-2"><button type="button" onClick={() => setFormOpen(false)} className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold">Cancel</button><button className="rounded-md bg-emerald-800 px-4 py-2 text-sm font-semibold text-white">Submit</button></div></form></section></div>}
+      {formOpen && <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/40 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setFormOpen(false); }}><section role="dialog" aria-modal="true" aria-labelledby="vault-form-title" className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-md bg-white p-6 shadow-xl"><div className="flex items-center justify-between"><h2 id="vault-form-title" className="text-xl font-bold">{section === 'experiences' ? 'Share a research experience' : 'Ask the community'}</h2><button onClick={() => setFormOpen(false)} aria-label="Close" className="rounded p-2 text-slate-500 hover:bg-slate-100">×</button></div><form onSubmit={submitContent} className="mt-5 space-y-3"><input name="title" required placeholder={section === 'experiences' ? 'Experience title' : 'Question title'} className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" />{section === 'experiences' && <><input name="labName" placeholder="Lab name" className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" /><input name="guideName" placeholder="Faculty guide" className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" /><input name="duration" placeholder="Duration" className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" /><input name="prerequisites" placeholder="Prerequisites" className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" /><input name="keyLearnings" placeholder="Key learnings" className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" /></>}<textarea name={section === 'experiences' ? 'description' : 'content'} required rows={5} placeholder={section === 'experiences' ? 'What did you work on and what should others know?' : 'Write your question or details. Markdown is supported.'} className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" />{section === 'experiences' && <input name="outcome" placeholder="Outcome" className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" />}<select name="researchAreaIds" defaultValue="" className="w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm"><option value="">Research area (optional)</option>{areas.map((area) => <option key={area.id} value={area.id}>{area.name}</option>)}</select>{section === 'experiences' && <select name="facultyId" defaultValue="" className="w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm"><option value="">Faculty member (optional)</option>{facultyOptions.map((faculty) => <option key={faculty.id} value={faculty.id}>{faculty.name}</option>)}</select>}<div className="flex justify-end gap-2 pt-2"><button type="button" onClick={() => setFormOpen(false)} className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold">Cancel</button><button className="rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white">Submit</button></div></form></section></div>}
 
       {/* Submit Resource Modal */}
       {resourceFormOpen && (
@@ -1890,7 +1887,7 @@ useEffect(() => {
 
             {resourceSubmitSuccess ? (
               <div className="py-8 flex flex-col items-center text-center gap-4">
-                <div className="rounded-full bg-emerald-100 p-4"><CheckCircle2 size={36} className="text-emerald-600" /></div>
+                <div className="rounded-full bg-blue-100 p-4"><CheckCircle2 size={36} className="text-blue-500" /></div>
                 <div>
                   <p className="text-lg font-bold text-slate-900">Sent for review!</p>
                   <p className="mt-1 text-sm text-slate-500">An admin will review your submission. You'll see it in "My Submissions" once processed.</p>
@@ -2028,7 +2025,7 @@ useEffect(() => {
                     required
                     checked={resourceForm.consent_confirmed}
                     onChange={(e) => setResourceForm({ ...resourceForm, consent_confirmed: e.target.checked })}
-                    className="mt-0.5 accent-emerald-700"
+                    className="mt-0.5 accent-blue-600"
                   />
                   <span className="text-xs text-slate-600">I own or have permission to share this content and have removed personal identifiers such as names, roll numbers, and contact details.</span>
                 </label>
@@ -2345,7 +2342,7 @@ function TagList({ areas, onFollow, followedAreaIds, compact = false }) {
   if (!areas?.length) return null;
   return <div className={`flex flex-wrap gap-1.5 ${compact ? '' : 'mt-3'}`}>{areas.map((area) => {
     const isFollowing = followedAreaIds?.has(area.id) || false;
-    return <button type="button" key={area.id} onClick={(e) => { e.preventDefault(); e.stopPropagation(); onFollow('area', area.id, area.name); }} aria-pressed={isFollowing} title={isFollowing ? `Unfollow ${area.name}` : `Click to follow ${area.name}`} className={`relative rounded-full border px-2 ${compact ? 'py-0.5' : 'py-1'} text-[11px] font-semibold transition-all duration-150 cursor-pointer ${isFollowing ? 'border-blue-200 bg-blue-50 text-blue-900 hover:bg-blue-100 hover:shadow-sm hover:-translate-y-0.5' : 'border-emerald-200 bg-emerald-50 text-emerald-900 hover:bg-emerald-100 hover:shadow-sm hover:-translate-y-0.5'}`}>{isFollowing ? <Check size={11} className="mr-1 inline" /> : <Plus size={11} className="mr-1 inline" />}{area.name}</button>;
+    return <button type="button" key={area.id} onClick={(e) => { e.preventDefault(); e.stopPropagation(); onFollow('area', area.id, area.name); }} aria-pressed={isFollowing} title={isFollowing ? `Unfollow ${area.name}` : `Click to follow ${area.name}`} className={`relative rounded-full border px-2 ${compact ? 'py-0.5' : 'py-1'} text-[11px] font-semibold transition-all duration-150 cursor-pointer ${isFollowing ? 'border-blue-200 bg-blue-50 text-blue-900 hover:bg-blue-100 hover:shadow-sm hover:-translate-y-0.5' : 'border-blue-200 bg-blue-50 text-blue-900 hover:bg-blue-100 hover:shadow-sm hover:-translate-y-0.5'}`}>{isFollowing ? <Check size={11} className="mr-1 inline" /> : <Plus size={11} className="mr-1 inline" />}{area.name}</button>;
   })}</div>;
 }
 
@@ -2379,7 +2376,7 @@ function DiscussionItem({ discussion, currentUserId, onReply, onVote, onAcceptAn
     <article className={`border-b border-slate-200 py-5 first:pt-1 ${isOwnDiscussion ? '!bg-blue-50/70 border-l-4 border-l-blue-600 pl-4 ring-1 ring-blue-200' : ''}`}>
       <div className="flex flex-wrap items-center gap-2">
         <h2 className="text-xl font-bold leading-snug text-slate-950">{discussion.title}</h2>
-        {discussion.isResolved && <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-[11px] font-bold text-emerald-900"><Check size={12} /> Resolved</span>}
+        {discussion.isResolved && <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-1 text-[11px] font-bold text-blue-900"><Check size={12} /> Resolved</span>}
       </div>
       <p className="mt-3 whitespace-pre-wrap text-base leading-7 text-left text-slate-700">{discussion.content}</p>
       <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -2393,13 +2390,13 @@ function DiscussionItem({ discussion, currentUserId, onReply, onVote, onAcceptAn
       {discussion.replies?.length > 0 && <div className="mt-4 space-y-3 border-t border-slate-200 pt-4">{discussion.replies.map((entry) => {
         const isOwnReply = entry.uploadedBy?.id === currentUserId;
         return (
-          <div key={entry.id} className={`w-[calc(100%-2rem)] rounded-xl border px-3 py-3 ${isOwnReply ? 'ml-auto border-blue-200 bg-blue-50/80 text-right' : 'mr-auto border-emerald-200 bg-emerald-50/40 text-left'}`}>
-            {entry.isAccepted && <p className="mb-2 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-bold uppercase text-emerald-800"><CheckCircle2 size={12} /> Accepted answer</p>}
+          <div key={entry.id} className={`w-[calc(100%-2rem)] rounded-xl border px-3 py-3 ${isOwnReply ? 'ml-auto border-blue-200 bg-blue-50/80 text-right' : 'mr-auto border-blue-200 bg-blue-50/40 text-left'}`}>
+            {entry.isAccepted && <p className="mb-2 inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-1 text-[10px] font-bold uppercase text-blue-700"><CheckCircle2 size={12} /> Accepted answer</p>}
             <header className="flex flex-wrap items-center gap-2 mb-2 justify-end">
               <span className={`font-semibold text-sm ${isOwnReply ? 'text-blue-900' : 'text-slate-900'}`}>{entry.uploadedBy?.displayName || 'ACC student'}</span>
               {entry.uploadedBy?.rollNo && <span className="text-xs text-slate-500">{entry.uploadedBy.rollNo}</span>}
               <time className="text-xs text-slate-400" dateTime={entry.createdAt}>{relativeTime(entry.createdAt)}</time>
-              {entry.uploadedBy?.role === 'FACULTY' && <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-800"><UserRoundCheck size={10} /> Verified faculty</span>}
+              {entry.uploadedBy?.role === 'FACULTY' && <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700"><UserRoundCheck size={10} /> Verified faculty</span>}
             </header>
             <p className="text-sm leading-6 text-slate-700">{entry.content}</p>
             <footer className="mt-3 flex items-center gap-4 pt-2 border-t border-slate-100 justify-end">
@@ -2410,7 +2407,7 @@ function DiscussionItem({ discussion, currentUserId, onReply, onVote, onAcceptAn
             {entry.replies?.map((child) => {
               const isOwnNestedReply = child.uploadedBy?.id === currentUserId;
               return (
-                <div key={child.id} className={`mt-2 w-[calc(100%-1.5rem)] rounded-lg border px-3 py-3 ${isOwnNestedReply ? 'ml-auto border-blue-200 bg-blue-50/80 text-right' : 'mr-auto border-emerald-200 bg-emerald-50/40 text-left'}`}>
+                <div key={child.id} className={`mt-2 w-[calc(100%-1.5rem)] rounded-lg border px-3 py-3 ${isOwnNestedReply ? 'ml-auto border-blue-200 bg-blue-50/80 text-right' : 'mr-auto border-blue-200 bg-blue-50/40 text-left'}`}>
                   <header className="flex flex-wrap items-center gap-2 mb-2 justify-end">
                     <span className={`font-semibold text-sm ${isOwnNestedReply ? 'text-blue-900' : 'text-slate-900'}`}>{child.uploadedBy?.displayName || 'ACC student'}</span>
                     {child.uploadedBy?.rollNo && <span className="text-xs text-slate-500">{child.uploadedBy.rollNo}</span>}

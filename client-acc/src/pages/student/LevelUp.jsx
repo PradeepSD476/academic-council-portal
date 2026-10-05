@@ -385,7 +385,7 @@ export default function LevelUp() {
                 onClick={() => toggleChapterComplete(activeChapter.id)}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer shrink-0 ${
                   completedChapterIds.includes(activeChapter.id)
-                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
+                    ? "bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100"
                     : "bg-blue-600 hover:bg-blue-700 text-white shadow-xs"
                 }`}
               >
@@ -531,7 +531,7 @@ export default function LevelUp() {
                               isSelected
                                 ? "bg-blue-600 text-white border-blue-600 font-bold shadow-md"
                                 : isDone
-                                ? "bg-emerald-50 text-emerald-900 border-emerald-200 hover:bg-emerald-100"
+                                ? "bg-blue-50 text-blue-900 border-blue-200 hover:bg-blue-100"
                                 : "bg-slate-50 text-slate-700 border-slate-200/80 hover:bg-slate-100 hover:text-slate-900 hover:border-slate-300"
                             }`}
                           >
@@ -540,7 +540,7 @@ export default function LevelUp() {
                                 isSelected
                                   ? "bg-white text-blue-600"
                                   : isDone
-                                  ? "bg-emerald-600 text-white"
+                                  ? "bg-blue-500 text-white"
                                   : "bg-slate-200 text-slate-700 font-bold"
                               }`}
                             >
@@ -555,7 +555,7 @@ export default function LevelUp() {
                                   isSelected
                                     ? "text-blue-100"
                                     : isDone
-                                    ? "text-emerald-700/80"
+                                    ? "text-blue-600/80"
                                     : "text-slate-400"
                                 }`}
                               >

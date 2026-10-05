@@ -99,11 +99,11 @@ const ManageUsers = () => {
           onClick={() => { setOnlineOnly(prev => !prev); setPage(1); }}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-xs font-bold transition-all duration-200 cursor-pointer shrink-0 ${
             onlineOnly
-              ? 'bg-emerald-50 border-emerald-300 text-emerald-700 shadow-sm'
+              ? 'bg-blue-50 border-blue-300 text-blue-600 shadow-sm'
               : 'bg-white/95 border-slate-200 text-slate-500 hover:border-slate-300'
           }`}
         >
-          <Wifi size={14} className={onlineOnly ? 'text-emerald-500' : 'text-slate-400'} />
+          <Wifi size={14} className={onlineOnly ? 'text-blue-500' : 'text-slate-400'} />
           {onlineOnly ? 'Online Only' : 'Show Online'}
         </button>
       </div>
@@ -262,7 +262,7 @@ const RoleBadge = ({ role }) => {
     'SUPER_ADMIN': 'bg-purple-950/60 text-purple-300 border-purple-800/60',
     'ANNOUNCEMENT_ADMIN': 'bg-rose-950/60 text-rose-300 border-rose-800/60',
     'RESOURCE_ADMIN': 'bg-amber-950/60 text-amber-300 border-amber-800/60',
-    'STUDENT': 'bg-emerald-950/60 text-emerald-300 border-emerald-800/60',
+    'STUDENT': 'bg-blue-950/60 text-blue-300 border-blue-700/60',
     'FACULTY': 'bg-blue-950/60 text-blue-300 border-blue-800/60',
     'CAREER_ADMIN': 'bg-[var(--color-secondary)]/10 text-[var(--color-secondary)] border-[var(--color-secondary)]/30',
     'FINANCE_ADMIN': 'bg-teal-950/60 text-teal-300 border-teal-800/60'

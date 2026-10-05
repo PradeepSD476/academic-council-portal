@@ -167,7 +167,7 @@ export default function ResearchQuestionDetail() {
       <article className="academic-card rounded-2xl p-5 sm:p-7">
         <div className="flex flex-wrap items-start gap-2">
           {question.researchAreas?.map(({ researchArea }) => <span key={researchArea.id} className="rounded-md border border-blue-100 bg-blue-50 px-2 py-1 text-[11px] font-semibold text-blue-800">{researchArea.name}</span>)}
-          {question.isResolved && <span className="inline-flex items-center gap-1 rounded-md bg-emerald-100 px-2 py-1 text-[11px] font-bold text-emerald-800"><Check size={12} /> Resolved</span>}
+          {question.isResolved && <span className="inline-flex items-center gap-1 rounded-md bg-blue-100 px-2 py-1 text-[11px] font-bold text-blue-700"><Check size={12} /> Resolved</span>}
         </div>
         <h1 className="mt-3 text-2xl font-bold leading-snug text-slate-950">{question.title}</h1>
         <p className="mt-3 whitespace-pre-wrap text-base leading-7 text-slate-700">{question.content}</p>
@@ -190,8 +190,8 @@ export default function ResearchQuestionDetail() {
         <div className="space-y-3 py-4">
           {replies.map((reply) => {
             const isOwnReply = reply.uploadedBy?.id === user?.id;
-            return <article key={reply.id} className={`w-full max-w-[92%] rounded-xl border p-4 ${isOwnReply ? 'ml-auto border-blue-200 bg-blue-50/80 text-right' : 'mr-auto border-emerald-200 bg-emerald-50/40 text-left'}`}>
-              {reply.isAccepted && <p className="mb-2 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-bold uppercase text-emerald-800"><CheckCircle2 size={12} /> Accepted answer</p>}
+            return <article key={reply.id} className={`w-full max-w-[92%] rounded-xl border p-4 ${isOwnReply ? 'ml-auto border-blue-200 bg-blue-50/80 text-right' : 'mr-auto border-blue-200 bg-blue-50/40 text-left'}`}>
+              {reply.isAccepted && <p className="mb-2 inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-1 text-[10px] font-bold uppercase text-blue-700"><CheckCircle2 size={12} /> Accepted answer</p>}
               <header className="flex flex-wrap items-center gap-2 mb-2 justify-end">
                 <span className={`font-semibold text-sm ${isOwnReply ? 'text-blue-900' : 'text-slate-900'}`}>{authorLabel(reply.uploadedBy)}</span>
                 <time className="text-xs text-slate-400" dateTime={reply.createdAt}>{relativeTime(reply.createdAt)}</time>

@@ -188,7 +188,7 @@ export default function ExperienceDetail() {
                   // others = left/green.
                   const isOwnComment = comment.uploadedById === user?.id;
                   return (
-                    <article className={`w-full max-w-[92%] rounded-xl border p-4 ${isOwnComment ? 'ml-auto border-blue-200 bg-blue-50/80 text-right' : 'mr-auto border-emerald-200 bg-emerald-50/40 text-left'}`}>
+                    <article className={`w-full max-w-[92%] rounded-xl border p-4 ${isOwnComment ? 'ml-auto border-blue-200 bg-blue-50/80 text-right' : 'mr-auto border-blue-200 bg-blue-50/40 text-left'}`}>
                       <header className="mb-2 flex flex-wrap items-center gap-2 justify-end">
                         <span className={`text-sm font-semibold ${isOwnComment ? 'text-blue-900' : 'text-slate-900'}`}>{authorLabel(comment.uploadedBy)}</span>
                         <time className="text-xs text-slate-400" dateTime={comment.createdAt}>{new Date(comment.createdAt).toLocaleDateString()}</time>

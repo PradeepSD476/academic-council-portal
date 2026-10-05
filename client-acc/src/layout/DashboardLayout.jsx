@@ -178,7 +178,7 @@ export default function DashboardLayout() {
                 <SidebarItem
                   to="/dashboard/career-vault"
                   icon={<Briefcase size={16} />}
-                  iconColor="text-emerald-600 bg-emerald-50 border-emerald-100"
+                  iconColor="text-blue-500 bg-blue-50 border-blue-100"
                   label="Career Vault"
                   onClick={() => setOpen(false)}
                 />
@@ -230,7 +230,7 @@ export default function DashboardLayout() {
               <SidebarItem
                 to="/admin/manage-users"
                 icon={<Users size={16} />}
-                iconColor="text-emerald-600 bg-emerald-50 border-emerald-100"
+                iconColor="text-blue-500 bg-blue-50 border-blue-100"
                 label="Users"
                 onClick={() => setOpen(false)}
               />

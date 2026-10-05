@@ -405,7 +405,7 @@ const AdminPostEditor = () => {
               </div>
               {selectedPost?.resumeUrl && (
                 <div className="flex items-center gap-2">
-                  <span className="text-[9px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Attached</span>
+                  <span className="text-[9px] text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">Attached</span>
                   <a 
                     href={selectedPost.resumeUrl}
                     target="_blank"

@@ -225,7 +225,7 @@ const ManagePost = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-500 font-medium">
                       {item.resumeUrl ? (
                         <div className="flex flex-col gap-1">
-                          <span className="text-emerald-600 font-semibold text-[10px] uppercase">Attached</span>
+                          <span className="text-blue-500 font-semibold text-[10px] uppercase">Attached</span>
                           <div className="flex gap-2">
                             <button onClick={() => handleOpenResumeModal(item)} className="text-blue-600 hover:underline" title="Update Resume">Update</button>
                             <button onClick={() => handleDeleteResume(item.id)} className="text-red-600 hover:underline" title="Delete Resume">Delete</button>
@@ -242,7 +242,7 @@ const ManagePost = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2.5 py-0.5 inline-flex text-[10px] font-bold border rounded-full uppercase tracking-wider ${
                         item.status === 'PUBLISHED'
-                          ? 'bg-emerald-950/60 text-emerald-300 border-emerald-800/60'
+                          ? 'bg-blue-950/60 text-blue-300 border-blue-700/60'
                           : item.status === 'DRAFT'
                           ? 'bg-amber-950/60 text-amber-300 border-amber-800/60'
                           : 'bg-rose-950/60 text-rose-300 border-rose-800/60'

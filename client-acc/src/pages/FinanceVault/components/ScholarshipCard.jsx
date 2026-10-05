@@ -4,7 +4,7 @@ import { Calendar, Award, Building2, CheckCircle2, ChevronRight } from "lucide-r
 
 const CATEGORY_META = {
   SCHOLARSHIP: { label: "Scholarship", bg: "bg-sky-100 text-[var(--color-primary)] border-sky-300" },
-  FEE_WAIVER: { label: "Fee Waiver", bg: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  FEE_WAIVER: { label: "Fee Waiver", bg: "bg-blue-50 text-blue-600 border-blue-200" },
   EDUCATION_LOAN: { label: "Education Loan", bg: "bg-amber-50 text-amber-700 border-amber-200" },
   FINANCIAL_ASSISTANCE: { label: "Financial Assistance", bg: "bg-indigo-50 text-indigo-700 border-indigo-200" },
   GRANT: { label: "Grant", bg: "bg-blue-50 text-blue-700 border-blue-200" },
@@ -31,9 +31,9 @@ const ScholarshipCard = ({ scholarship }) => {
             {cat.label}
           </span>
 
-          <span className={`px-3 py-0.5 inline-flex items-center text-[10px] font-black border rounded-full shadow-xs ${isActive ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-600 border-slate-200"
+          <span className={`px-3 py-0.5 inline-flex items-center text-[10px] font-black border rounded-full shadow-xs ${isActive ? "bg-blue-50 text-blue-600 border-blue-200" : "bg-slate-100 text-slate-600 border-slate-200"
             }`}>
-            <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${isActive ? "bg-emerald-500 animate-pulse" : "bg-slate-400"}`} />
+            <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${isActive ? "bg-blue-500 animate-pulse" : "bg-slate-400"}`} />
             {isActive ? "Active" : "Closed"}
           </span>
         </div>
