@@ -163,7 +163,7 @@ export default function JobsPage() {
       <CareerVaultTabs />
 
       <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
-        {isDesktop && <aside className="space-y-4 lg:sticky lg:top-4 self-start">{sidebar}</aside>}
+        {isDesktop && <aside className="space-y-4 lg:sticky lg:top-4 self-start lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:overscroll-contain lg:-mx-1 lg:px-1 lg:pb-1">{sidebar}</aside>}
 
         <div className="space-y-4 min-w-0">
           <div className="flex gap-2">

@@ -42,7 +42,7 @@ function Rail({ posting }) {
   const e = posting.eligibility;
   return (
     // Below lg the rail comes first: pay and eligibility before a long description.
-    <aside className="order-first lg:order-none space-y-4 lg:sticky lg:top-4 self-start">
+    <aside className="order-first lg:order-none space-y-4 lg:sticky lg:top-4 self-start lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:overscroll-contain lg:-mx-1 lg:px-1 lg:pb-1">
       <section aria-labelledby="app-title" className={card}>
         <h2 id="app-title" className={railTitle}><ClipboardCheck size={16} className="text-[var(--color-secondary)]" aria-hidden="true" /> Your application</h2>
         <ApplicationStatusButton posting={posting} />
