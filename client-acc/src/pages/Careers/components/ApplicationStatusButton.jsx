@@ -70,7 +70,7 @@ export default function ApplicationStatusButton({ posting, onChange }) {
         <ChevronDown size={14} aria-hidden="true" />
       </button>
       {open && (
-        <ul id={menuId} role="menu" className="absolute right-0 top-full mt-1 z-30 w-44 py-1 rounded-xl border border-slate-200 bg-white shadow-lg">
+        <ul id={menuId} role="menu" className="absolute left-0 top-full mt-1 z-30 w-44 py-1 rounded-xl border border-slate-200 bg-white shadow-lg">
           {APPLICATION_STATUSES.map((s) => (
             <li key={s.value} role="none">
               <button type="button" role="menuitemradio" aria-checked={status === s.value} onClick={() => update(s.value)}
