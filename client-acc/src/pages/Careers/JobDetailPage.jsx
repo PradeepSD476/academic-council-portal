@@ -12,6 +12,7 @@ import ExperiencePanel from "./components/ExperiencePanel";
 import SubmitLinkModal from "./components/SubmitLinkModal";
 import EmptyState from "./components/EmptyState";
 import SaveButton from "./components/SaveButton";
+import JobDescription from "./components/JobDescription";
 import ApplicationStatusButton from "./components/ApplicationStatusButton";
 import { collectedBy, formatDate, safeHref } from "./lib/format";
 
@@ -179,8 +180,8 @@ export default function JobDetailPage() {
               {posting.skills.map((s) => <span key={s} className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[11px] font-medium">{s}</span>)}
             </div>
           )}
-          {/* Plain text from the source, never rendered as HTML. */}
-          <div className="text-sm text-slate-600 leading-relaxed whitespace-pre-line break-words">{posting.descriptionText}</div>
+          {/* Plain text from the source, laid out as headings and lists, never rendered as HTML. */}
+          <JobDescription text={posting.descriptionText} />
           <p className="mt-6 pt-4 border-t border-slate-100 text-xs text-slate-500">
             {collectedBy(posting.extractionTier)} Always check the details on the company's own page before applying.
           </p>
