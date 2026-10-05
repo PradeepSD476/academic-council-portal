@@ -134,6 +134,14 @@ const AppRoutes = () => {
           }
         />
         <Route
+          path="research-vault/experiences/:experienceId"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY", "RESEARCH_ADMIN"]}>
+              <ExperienceDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="dashboard"
           element={
             <ProtectedRoute

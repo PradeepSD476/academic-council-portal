@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BarChart3, BookOpenCheck, BriefcaseBusiness, CirclePlus, FlaskConical, Trash2, FileText, User, UsersRound, Image as ImageIcon, Link as LinkIcon, BookOpen, Globe, MapPin, Mail, Phone, Linkedin, GraduationCap, Info, Clock, MessageCircle, Eye, Download, AlertCircle, Activity, ChevronRight, Database, Calendar, CheckCircle2, Check, X, Building2, Tag } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { researchVaultApi } from '../../api/researchVaultApi';
@@ -223,6 +224,7 @@ function FacultyForm({ areas, create }) {
 }
 
 export default function ResearchVaultAdmin() {
+  const navigate = useNavigate();
   const [tab, setTab] = useState('analytics');
   const [analytics, setAnalytics] = useState(null);
   const [queue, setQueue] = useState([]);
@@ -591,7 +593,7 @@ export default function ResearchVaultAdmin() {
               <div className="flex flex-col gap-4">
                 {queue.map((entry) => (
                   <article key={entry.id} className="group flex flex-col xl:flex-row gap-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:border-blue-200 hover:shadow-md">
-                    <div className="flex-1 min-w-0">
+                    <div onClick={() => navigate(`/admin/research-vault/experiences/${entry.id}`)} className="flex-1 min-w-0 cursor-pointer">
                       <div className="flex items-center gap-3 mb-3">
                         <span className="inline-flex items-center rounded-md bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-800">
                           Pending
@@ -667,7 +669,16 @@ export default function ResearchVaultAdmin() {
               <div className="flex flex-col gap-4">
                 {resourceQueue.map((entry) => (
                   <article key={entry.id} className="group flex flex-col xl:flex-row gap-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:border-blue-200 hover:shadow-md">
-                    <div className="flex-1 min-w-0">
+                    <div 
+                      className="flex-1 min-w-0 cursor-pointer"
+                      onClick={() => {
+                        if (entry.url) {
+                          window.open(entry.url, '_blank', 'noopener,noreferrer');
+                        } else if (entry.filePath) {
+                          window.open(researchVaultApi.getResourceDownloadUrl(entry.id), '_blank', 'noopener,noreferrer');
+                        }
+                      }}
+                    >
                       <div className="flex items-center gap-3 mb-3">
                         <span className="inline-flex items-center rounded-md bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-800">
                           Pending

@@ -1,5 +1,5 @@
 import { useEffect, useState, useContext, createElement } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ArrowLeft, BookOpen, Calendar, Clock, CheckCircle2, FlaskConical, MessageCircle, Send, Trash2, GraduationCap, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import AuthContext from '../../context/auth/authContext';
@@ -20,7 +20,9 @@ const authorLabel = (author) => [author?.displayName || 'ACC student', author?.r
 export default function ExperienceDetail() {
   const { experienceId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useContext(AuthContext);
+  const isAdmin = ['SUPER_ADMIN', 'RESEARCH_ADMIN', 'FACULTY'].includes(user?.role);
   const [experience, setExperience] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -83,7 +85,7 @@ export default function ExperienceDetail() {
     return (
       <div className="academic-card rounded-3xl p-10 text-center">
         <p className="text-sm text-slate-500">{error || 'Experience not found.'}</p>
-        <button type="button" onClick={() => navigate('/dashboard/research-vault?section=experiences')} className="mt-4 rounded-full bg-[var(--color-secondary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--color-primary-accent)]">Back to Experiences</button>
+        <button type="button" onClick={() => navigate(location.pathname.startsWith('/admin') ? '/admin/research-vault' : '/dashboard/research-vault?section=experiences')} className="mt-4 rounded-full bg-[var(--color-secondary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--color-primary-accent)]">Back to Experiences</button>
       </div>
     );
   }
@@ -106,7 +108,7 @@ export default function ExperienceDetail() {
 
   return (
     <div className="space-y-5">
-      <button type="button" onClick={() => navigate('/dashboard/research-vault?section=experiences')} className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-[var(--color-primary-accent)]">
+      <button type="button" onClick={() => navigate(location.pathname.startsWith('/admin') ? '/admin/research-vault' : '/dashboard/research-vault?section=experiences')} className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-[var(--color-primary-accent)]">
         <ArrowLeft size={14} /> Back to Experiences
       </button>
 
@@ -194,9 +196,9 @@ export default function ExperienceDetail() {
                         <time className="text-xs text-slate-400" dateTime={comment.createdAt}>{new Date(comment.createdAt).toLocaleDateString()}</time>
                       </header>
                       <p className="whitespace-pre-wrap text-sm leading-6 text-slate-700">{comment.content}</p>
-                      {isOwnComment && (
+                      {(isOwnComment || isAdmin) && (
                         <footer className="mt-3 flex items-center gap-4 border-t border-slate-100 pt-2 justify-end">
-                          <button type="button" onClick={() => setCommentToDelete(comment)} title="Delete your comment" className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-red-600">
+                          <button type="button" onClick={() => setCommentToDelete(comment)} title="Delete comment" className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-red-600">
                             <Trash2 size={13} /> Delete
                           </button>
                         </footer>

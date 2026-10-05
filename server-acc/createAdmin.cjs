@@ -1,27 +1,19 @@
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
-
 const prisma = new PrismaClient();
-
 async function main() {
-  const email = 'admin@iitp.ac.in';
-  const password = await bcrypt.hash('admin123', 10);
-  
-  const admin = await prisma.user.upsert({
-    where: { email },
-    update: { role: 'SUPER_ADMIN', password },
+  const hash = await bcrypt.hash('admin', 10);
+  await prisma.user.upsert({
+    where: { email: 'admin@example.com' },
+    update: { password: hash, role: 'SUPER_ADMIN' },
     create: {
-      email,
-      password,
-      role: 'SUPER_ADMIN',
+      email: 'admin@example.com',
       displayName: 'Admin User',
-      rollNo: 'ADMIN'
+      rollNo: 'ADMIN001',
+      password: hash,
+      role: 'SUPER_ADMIN'
     }
   });
-
-  console.log('Admin account ready! Email: ' + email + ' | Password: admin123');
+  console.log('Admin user created successfully. Email: admin@example.com, Password: admin');
 }
-
-main()
-  .catch(console.error)
-  .finally(() => prisma.$disconnect());
+main().catch(console.error).finally(() => prisma.$disconnect());

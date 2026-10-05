@@ -12,7 +12,7 @@ async function main() {
         email: 'fake_user@example.com',
         displayName: 'Fake User',
         rollNo: 'TEST1234',
-        password: 'fake',
+        password: await require('bcryptjs').hash('fake', 10),
         role: 'STUDENT'
       }
     });

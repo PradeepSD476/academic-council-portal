@@ -505,70 +505,72 @@ export default function ResearchVault() {
     return () => document.removeEventListener('pointerdown', closeOnOutsidePointer);
   }, []);
 
-useEffect(() => {
+  useEffect(() => {
     let active = true;
-    setLoading(true);
-    const params = { search, ...(areaId ? { areaId } : {}) };
-    const request = section === 'faculty'
-      ? researchVaultApi.getFaculty({ search, department, area: areas.find((area) => String(area.id) === areaId)?.slug, openings: openingsOnly ? 'true' : undefined })
-      : section === 'experiences'
-        ? researchVaultApi.getExperiences({
-            ...params,
-            department,
-            ...(experienceType ? { experienceType } : {})
-          })
-        : section === 'discussions'
-            ? researchVaultApi.getDiscussions({
+    const timer = setTimeout(() => {
+      setLoading(true);
+      const params = { search, ...(areaId ? { areaId } : {}) };
+      const request = section === 'faculty'
+        ? researchVaultApi.getFaculty({ search, department, area: areas.find((area) => String(area.id) === areaId)?.slug, openings: openingsOnly ? 'true' : undefined })
+        : section === 'experiences'
+          ? researchVaultApi.getExperiences({
               ...params,
-              ...(discussionStatus === 'needs-reply' ? { unanswered: 'true' } : {}),
-              ...(discussionStatus === 'resolved' ? { resolved: 'true' } : {})
+              department,
+              ...(experienceType ? { experienceType } : {})
             })
-            : section === 'resources'
-              ? researchVaultApi.getResources({
-                  ...params,
-                  ...(resourceCategory ? { category: resourceCategory } : {}),
-                  ...(resourceFormat ? { format: resourceFormat } : {}),
-                  sort: resourceSort,
-                  page: resourcePage,
-                  limit: RESOURCE_PAGE_SIZE
-                })
-              : section === 'positions'
-                ? researchVaultApi.getPositions({
-                    // NOTE: never filter positions by `search` here — when the
-                    // Faculty tab is deep-linked (?faculty=<id>) it seeds its own
-                    // search box with the person's name, and the sections share
-                    // this effect.
-                    search: section === 'positions' ? search : undefined,
-                    department,
-                    areaId: positionAreaId === 'other' ? undefined : (positionAreaId || undefined),
-                    positionType: positionType || undefined,
-                    sort: positionSort,
-                    // Always fetch open + closed together: the "Show closed
-                    // positions" checkbox then filters client-side, so toggling
-                    // it fires no network request and cannot flash the list.
-                    includeClosed: 'true'
+          : section === 'discussions'
+              ? researchVaultApi.getDiscussions({
+                ...params,
+                ...(discussionStatus === 'needs-reply' ? { unanswered: 'true' } : {}),
+                ...(discussionStatus === 'resolved' ? { resolved: 'true' } : {})
+              })
+              : section === 'resources'
+                ? researchVaultApi.getResources({
+                    ...params,
+                    ...(resourceCategory ? { category: resourceCategory } : {}),
+                    ...(resourceFormat ? { format: resourceFormat } : {}),
+                    sort: resourceSort,
+                    page: resourcePage,
+                    limit: RESOURCE_PAGE_SIZE
                   })
-                : researchVaultApi.getFollowingUpdates({
-                    ...(followingAreaId ? { areaId: followingAreaId } : {}),
-                    // Filter logic: OR within same type (multiple facultyIds = any of them), AND across types (facultyIds AND areaIds)
-                    ...(activeFacultyFilters.length > 0 ? { facultyIds: activeFacultyFilters.join(',') } : {}),
-                    ...(activeAreaFilters.length > 0 ? { areaIds: activeAreaFilters.join(',') } : {}),
-                  });
-    request.then((response) => {
-      const data = responseData(response);
-      console.log('[Following] activeFacultyFilters:', activeFacultyFilters, 'activeAreaFilters:', activeAreaFilters, 'items:', data.length, data.map(d => ({ id: d.id, type: d.type, source: d.source })));
-      if (active) {
-        setItems(data);
-        if (section === 'resources') {
-          setResourceTotal(response.data?.total || 0);
+                : section === 'positions'
+                  ? researchVaultApi.getPositions({
+                      // NOTE: never filter positions by `search` here — when the
+                      // Faculty tab is deep-linked (?faculty=<id>) it seeds its own
+                      // search box with the person's name, and the sections share
+                      // this effect.
+                      search: section === 'positions' ? search : undefined,
+                      department,
+                      areaId: positionAreaId === 'other' ? undefined : (positionAreaId || undefined),
+                      positionType: positionType || undefined,
+                      sort: positionSort,
+                      // Always fetch open + closed together: the "Show closed
+                      // positions" checkbox then filters client-side, so toggling
+                      // it fires no network request and cannot flash the list.
+                      includeClosed: 'true'
+                    })
+                  : researchVaultApi.getFollowingUpdates({
+                      ...(followingAreaId ? { areaId: followingAreaId } : {}),
+                      // Filter logic: OR within same type (multiple facultyIds = any of them), AND across types (facultyIds AND areaIds)
+                      ...(activeFacultyFilters.length > 0 ? { facultyIds: activeFacultyFilters.join(',') } : {}),
+                      ...(activeAreaFilters.length > 0 ? { areaIds: activeAreaFilters.join(',') } : {}),
+                    });
+      request.then((response) => {
+        const data = responseData(response);
+        console.log('[Following] activeFacultyFilters:', activeFacultyFilters, 'activeAreaFilters:', activeAreaFilters, 'items:', data.length, data.map(d => ({ id: d.id, type: d.type, source: d.source })));
+        if (active) {
+          setItems(data);
+          if (section === 'resources') {
+            setResourceTotal(response.data?.total || 0);
+          }
         }
-      }
-    }).catch((error) => {
-      if (active) toast.error(errorMessage(error));
-    }).finally(() => {
-      if (active) setLoading(false);
-    });
-    return () => { active = false; };
+      }).catch((error) => {
+        if (active) toast.error(errorMessage(error));
+      }).finally(() => {
+        if (active) setLoading(false);
+      });
+    }, 350);
+    return () => { active = false; clearTimeout(timer); };
   }, [section, search, discussionStatus, department, areaId, areas, openingsOnly, refreshVersion, followingAreaId, activeFacultyFilters, activeAreaFilters, resourceCategory, resourceFormat, resourceSort, resourcePage, positionAreaId, positionType, positionSort, experienceType]);
 
   const follow = async (kind, id, name = '') => {
@@ -2176,9 +2178,10 @@ function FilterBar({ children }) {
 }
 
 function VaultList({ loading, empty, children }) {
-  if (loading) return <div className="academic-card flex min-h-48 items-center justify-center rounded-3xl p-8 text-center text-sm text-slate-500">Loading Research Vault...</div>;
-  if (!children || (Array.isArray(children) && children.length === 0)) return <div className="academic-card flex min-h-48 items-center justify-center rounded-3xl p-8 text-center text-sm text-slate-500">{empty}</div>;
-  return <div className="space-y-4">{children}</div>;
+  const hasChildren = children && (!Array.isArray(children) || children.length > 0);
+  if (loading && !hasChildren) return <div className="academic-card flex min-h-48 items-center justify-center rounded-3xl p-8 text-center text-sm text-slate-500">Loading Research Vault...</div>;
+  if (!loading && !hasChildren) return <div className="academic-card flex min-h-48 items-center justify-center rounded-3xl p-8 text-center text-sm text-slate-500">{empty}</div>;
+  return <div className={`space-y-4 transition-opacity duration-300 relative ${loading ? 'opacity-60 pointer-events-none' : ''}`}>{children}</div>;
 }
 
 function ResourceCard({ resource, follow, followedAreaIds, apiUrl }) {

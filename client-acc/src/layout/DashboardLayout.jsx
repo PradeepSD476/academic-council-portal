@@ -154,7 +154,7 @@ export default function DashboardLayout() {
         </div>
 
         {/* Navigation Items */}
-        <nav className="flex-1 px-3 space-y-1 overflow-y-auto scrollbar-thin">
+        <nav className="flex-1 px-3 space-y-1 overflow-y-auto scrollbar-thin" data-lenis-prevent>
           {(isSTUDENT ||
             ((isAdmin || isCareerAdmin || isResearchAdmin) && viewRole === "STUDENT")) && (
               <>
