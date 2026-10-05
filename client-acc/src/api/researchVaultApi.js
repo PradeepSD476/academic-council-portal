@@ -13,6 +13,7 @@ export const researchVaultApi = {
   getFacultyProfileById: (id) => api.get(`/faculty/${id}`),
   getFacultyOpenings: (id) => api.get(`/faculty/openings/${id}`),
   createFaculty: (data) => api.post('/faculty', data),
+  updateFaculty: (id, data) => api.put(`/faculty/${id}`, data),
   deleteFaculty: (id) => api.delete(`/faculty/${id}`),
 
   // ── Experiences ───────────────────────────────────────────────────────────
@@ -26,6 +27,7 @@ export const researchVaultApi = {
   updateExperience: (id, data) => api.put(`/experiences/${id}`, data),
   deleteExperience: (id) => api.delete(`/experiences/${id}`),
   getModerationQueue: () => api.get('/admin/experiences'),
+  setExperienceStatus: (id, data) => api.patch(`/admin/experiences/${id}/status`, data),
 
   // ── Discussions ───────────────────────────────────────────────────────────
   getDiscussions: (params) => api.get('/discussions', { params }),
@@ -66,6 +68,7 @@ export const researchVaultApi = {
   getPositions: (params) => api.get('/positions', { params }),
   getPositionById: (id) => api.get(`/positions/${id}`),
   createPosition: (data) => api.post('/positions', data),
+  updatePosition: (id, data) => api.put(`/positions/${id}`, data),
   deletePosition: (id) => api.delete(`/positions/${id}`),
 
   // ── Follows ─────────────────────────────────────────────────────────
@@ -84,4 +87,8 @@ export const researchVaultApi = {
 
   // ── Admin ─────────────────────────────────────────────────────────────────
   getAnalytics: () => api.get('/admin/analytics'),
+  getCustomAreasQueue: () => api.get('/admin/custom-areas'),
+  moderateCustomArea: (id, data) => api.patch(`/admin/custom-areas/${id}`, data),
+  getResourceModerationQueue: () => api.get('/admin/resources'),
+  setResourceStatus: (id, data) => api.patch(`/admin/resources/${id}/status`, data),
 };

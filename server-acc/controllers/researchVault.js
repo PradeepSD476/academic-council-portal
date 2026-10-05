@@ -965,6 +965,41 @@ export const deleteResearchResource = handle(async (req) => {
   return { message: 'Research resource deleted.' };
 });
 
+export const getResearchResourceModerationQueue = handle(async (req) => {
+  const data = await prisma.researchResource.findMany({
+    where: { status: 'PENDING' },
+    include: resourceInclude,
+    orderBy: { createdAt: 'asc' }
+  });
+  return { data };
+});
+
+export const setResearchResourceStatus = handle(async (req) => {
+  const id = parseId(req.params.id);
+  const { status, reviewNote } = req.body;
+  if (!['APPROVED', 'REJECTED', 'PENDING'].includes(status)) {
+    throw fail(400, 'Invalid status.');
+  }
+  const current = await prisma.researchResource.findUnique({ where: { id } });
+  if (!current) throw fail(404, 'Resource not found.');
+
+  const data = { status, reviewedAt: new Date() };
+  if (status === 'APPROVED') {
+    data.approvedById = req.user.id;
+    data.rejection_reason = null;
+  } else if (status === 'REJECTED') {
+    data.rejection_reason = reviewNote || null;
+    data.approvedById = null;
+  }
+  
+  const resource = await prisma.researchResource.update({
+    where: { id },
+    data,
+    include: resourceInclude
+  });
+  return { data: resource, message: `Resource ${status.toLowerCase()}.` };
+});
+
 export const getResearchAreas = handle(async (req) => {
   const search = String(req.query.search || '').trim();
   const data = await prisma.researchArea.findMany({
@@ -1501,3 +1536,55 @@ export const getQuestionReplies = handle(async (req) => {
     }
   };
 });
+
+export const getCustomAreasQueue = async (req, res, next) => {
+  try {
+    const customAreas = await prisma.customResearchArea.findMany({
+      where: { status: 'PENDING' },
+      include: {
+        resource: { select: { id: true, title: true, url: true } }
+      },
+      orderBy: { createdAt: 'asc' }
+    });
+    res.json({ success: true, data: customAreas });
+  } catch (err) { next(err); }
+};
+
+export const moderateCustomArea = async (req, res, next) => {
+  try {
+    const id = Number(req.params.id);
+    const { status, action, slug, name, researchAreaId } = req.body;
+    
+    const customArea = await prisma.customResearchArea.findUnique({ where: { id } });
+    if (!customArea) return res.status(404).json({ success: false, message: 'Not found' });
+
+    if (status === 'REJECTED') {
+      await prisma.customResearchArea.update({ where: { id }, data: { status: 'REJECTED' } });
+      return res.json({ success: true, message: 'Rejected' });
+    }
+
+    if (status === 'APPROVED') {
+      let finalAreaId = researchAreaId;
+      if (action === 'CREATE') {
+        const finalName = name || customArea.name;
+        const finalSlug = String(slug || finalName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')).trim();
+        const newArea = await prisma.researchArea.create({
+          data: { name: finalName, slug: finalSlug }
+        });
+        finalAreaId = newArea.id;
+      }
+      
+      if (finalAreaId && customArea.resourceId) {
+        await prisma.researchResourceResearchArea.upsert({
+          where: { resourceId_researchAreaId: { resourceId: customArea.resourceId, researchAreaId: finalAreaId } },
+          create: { resourceId: customArea.resourceId, researchAreaId: finalAreaId },
+          update: {}
+        });
+      }
+      await prisma.customResearchArea.update({ where: { id }, data: { status: 'APPROVED' } });
+      return res.json({ success: true, message: 'Approved' });
+    }
+
+    res.status(400).json({ success: false, message: 'Invalid status' });
+  } catch (err) { next(err); }
+};

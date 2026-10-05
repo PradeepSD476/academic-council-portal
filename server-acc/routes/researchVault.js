@@ -6,6 +6,8 @@ import {
     createFacultyProfile,
     updateFacultyProfile,
     deleteFacultyProfile,
+    getCustomAreasQueue,
+    moderateCustomArea,
     getResearchExperiences,
     getResearchExperienceById,
     getMyResearchExperiences,
@@ -36,6 +38,8 @@ import {
     createResearchResource,
     updateResearchResource,
     deleteResearchResource,
+    getResearchResourceModerationQueue,
+    setResearchResourceStatus,
     submitResearchResource,
     getMyResearchResources,
     updateMyResearchResource,
@@ -129,6 +133,8 @@ router.get('/resources/:id/download', checkAuth, downloadResearchResourceHandler
 router.post('/resources/:id/download', recordResearchResourceDownload);
 
 // ── Resources — admin routes ──────────────────────────────────────────────────
+router.get('/admin/resources', checkAuth, checkResearchAdmin, getResearchResourceModerationQueue);
+router.patch('/admin/resources/:id/status', checkAuth, checkResearchAdmin, setResearchResourceStatus);
 router.post('/resources', checkAuth, checkResearchAdmin, createResearchResource);
 router.put('/resources/:id', checkAuth, checkResearchAdmin, updateResearchResource);
 router.delete('/resources/:id', checkAuth, checkResearchAdmin, deleteResearchResource);
@@ -155,7 +161,9 @@ router.delete('/follow/area/:id', checkAuth, unfollowResearchArea);
 // ── Interest Matching ─────────────────────────────────────────────────────────
 router.post('/interest-matching', checkAuth, getInterestMatch);
 
-// ── Admin Analytics ───────────────────────────────────────────────────────────
+// ── Admin Analytics & Custom Areas ───────────────────────────────────────────────
 router.get('/admin/analytics', checkAuth, checkResearchAdmin, getResearchAnalytics);
+router.get('/admin/custom-areas', checkAuth, checkResearchAdmin, getCustomAreasQueue);
+router.patch('/admin/custom-areas/:id', checkAuth, checkResearchAdmin, moderateCustomArea);
 
 export default router;
