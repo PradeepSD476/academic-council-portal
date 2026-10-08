@@ -14,7 +14,7 @@ const tabs = [
   { id: 'resources', label: 'Resources', icon: BookOpenCheck },
   { id: 'positions', label: 'Open positions', icon: BriefcaseBusiness },
   { id: 'areas', label: 'Research areas', icon: FlaskConical },
-  { id: 'custom-areas', label: 'Custom areas', icon: FlaskConical },
+  // { id: 'custom-areas', label: 'Custom areas', icon: FlaskConical },
 ];
 
 const getData = (response) => response.data?.data || [];
@@ -904,7 +904,7 @@ export default function ResearchVaultAdmin() {
         researchVaultApi.getResources({ limit: 100 }),
         researchVaultApi.getPositions(),
         researchVaultApi.getAreas(),
-        researchVaultApi.getCustomAreasQueue(),
+        Promise.resolve({ data: { data: [] } }), // researchVaultApi.getCustomAreasQueue(),
         researchVaultApi.getResourceModerationQueue()
       ]);
       setAnalytics(stats.data?.data || null);
@@ -1012,17 +1012,37 @@ export default function ResearchVaultAdmin() {
     }
   };
 
-  const remove = async (kind, id) => {
-    if (!window.confirm('Remove this Research Vault record?')) return;
-    try {
-      if (kind === 'faculty') await researchVaultApi.deleteFaculty(id);
-      if (kind === 'resource') await researchVaultApi.deleteResource(id);
-      if (kind === 'position') await researchVaultApi.deletePosition(id);
-      toast.success('Record removed.');
-      await refresh();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Could not remove this record.');
-    }
+  const remove = (kind, id) => {
+    toast((t) => (
+      <div>
+        <p className="text-sm font-semibold text-slate-900 mb-3">Remove this Research Vault record?</p>
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="rounded bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={async () => {
+              toast.dismiss(t.id);
+              try {
+                if (kind === 'faculty') await researchVaultApi.deleteFaculty(id);
+                if (kind === 'resource') await researchVaultApi.deleteResource(id);
+                if (kind === 'position') await researchVaultApi.deletePosition(id);
+                toast.success('Record removed.');
+                await refresh();
+              } catch (error) {
+                toast.error(error.response?.data?.message || 'Could not remove this record.');
+              }
+            }}
+            className="rounded bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700"
+          >
+            Remove
+          </button>
+        </div>
+      </div>
+    ), { duration: Infinity });
   };
 
   const updateRecord = async (kind, id, payload) => {
@@ -1052,6 +1072,27 @@ export default function ResearchVaultAdmin() {
                   Review contributions and maintain the research directory.
                 </p>
               </div>
+
+              {tab === 'faculty' && (
+                <button onClick={() => setIsFacultyModalOpen(true)} className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-95 shrink-0">
+                  <CirclePlus size={16} /> Add Faculty
+                </button>
+              )}
+              {tab === 'resources' && (
+                <button onClick={() => setIsResourceModalOpen(true)} className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-95 shrink-0">
+                  <CirclePlus size={16} /> Add Resource
+                </button>
+              )}
+              {tab === 'positions' && (
+                <button onClick={() => setIsPositionModalOpen(true)} className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-95 shrink-0">
+                  <CirclePlus size={16} /> Add Open Position
+                </button>
+              )}
+              {tab === 'areas' && (
+                <button onClick={() => setIsAreaModalOpen(true)} className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-95 shrink-0">
+                  <Plus size={18} /> Add Research Area
+                </button>
+              )}
             </div>
           </header>
 
@@ -1455,10 +1496,6 @@ export default function ResearchVaultAdmin() {
                       </h3>
                       <p className="text-sm text-slate-500 mt-1">Manage existing faculty profiles and directory listings.</p>
                     </div>
-                    <button onClick={() => setIsFacultyModalOpen(true)} className="inline-flex shrink-0 w-fit items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 shadow-sm">
-                      <CirclePlus size={16} /> 
-                      Add Faculty
-                    </button>
                   </div>
 
                   {faculty.length === 0 ? (
@@ -1530,13 +1567,6 @@ export default function ResearchVaultAdmin() {
                 <h2 className="text-[22px] font-bold text-slate-900 tracking-tight">Resource Library</h2>
                 <p className="mt-1 text-sm text-slate-500">Manage research materials, guides, datasets and other academic resources.</p>
               </div>
-              <button 
-                onClick={() => setIsResourceModalOpen(true)}
-                className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
-              >
-                <CirclePlus size={16} /> 
-                Add Resource
-              </button>
             </div>
 
             {/* Resource Library List */}
@@ -1624,13 +1654,6 @@ export default function ResearchVaultAdmin() {
                 <h2 className="text-[22px] font-bold text-slate-900 tracking-tight">Available Opportunities</h2>
                 <p className="mt-1 text-sm text-slate-500">Manage current research opportunities and academic positions.</p>
               </div>
-              <button 
-                onClick={() => setIsPositionModalOpen(true)}
-                className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
-              >
-                <CirclePlus size={16} /> 
-                Add Open Position
-              </button>
             </div>
 
             {/* Summary Area */}
@@ -1779,13 +1802,6 @@ export default function ResearchVaultAdmin() {
                       <div className="hidden sm:flex rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600 border border-slate-200">
                         {areas.length} research areas
                       </div>
-                      <button 
-                        onClick={() => setIsAreaModalOpen(true)}
-                        className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow"
-                      >
-                        <Plus size={18} />
-                        Add Research Area
-                      </button>
                     </div>
                   </div>
 
@@ -1847,9 +1863,8 @@ export default function ResearchVaultAdmin() {
             )}
           </section>
         )}
-        {tab === 'custom-areas' && (
+        {/* {tab === 'custom-areas' && (
           <section className="animate-in fade-in duration-300">
-            {/* Page Header */}
             <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 className="text-[22px] font-bold text-slate-900 tracking-tight">Custom Area Requests</h2>
@@ -1864,7 +1879,6 @@ export default function ResearchVaultAdmin() {
               )}
             </div>
 
-            {/* Empty State */}
             {customAreasQueue.length === 0 ? (
               <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 py-16 px-4 text-center mt-10">
                 <div className="rounded-full bg-blue-50 p-4 mb-4">
@@ -1881,7 +1895,7 @@ export default function ResearchVaultAdmin() {
               </div>
             )}
           </section>
-        )}
+        )} */}
       </>}
     </div>
   );

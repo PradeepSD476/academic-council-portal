@@ -553,7 +553,7 @@ model ResearchResource {
   reviewedAt      DateTime?
 
   views           ResourceView[]
-  customArea      CustomResearchArea?
+//  customArea      CustomResearchArea?
 
   researchAreas ResearchResourceResearchArea[]
 
@@ -565,18 +565,18 @@ model ResearchResource {
 // Custom research areas submitted by users in the Submit Resource modal.
 // Flagged for admin review; normalized (renamed/merged into ResearchArea or
 // rejected) by an admin before becoming filterable app-wide.
-model CustomResearchArea {
-  id         Int      @id @default(autoincrement())
-  name       String
-  resourceId Int?     @unique
-  status     String   @default("PENDING") // PENDING | APPROVED | REJECTED
-  createdAt  DateTime @default(now())
-
-  resource ResearchResource? @relation(fields: [resourceId], references: [id], onDelete: SetNull)
-
-  @@index([status])
-  @@schema("research_vault")
-}
+// model CustomResearchArea {
+//   id         Int      @id @default(autoincrement())
+//   name       String
+//   resourceId Int?     @unique
+//   status     String   @default("PENDING") // PENDING | APPROVED | REJECTED
+//   createdAt  DateTime @default(now())
+// 
+//   resource ResearchResource? @relation(fields: [resourceId], references: [id], onDelete: SetNull)
+// 
+//   @@index([status])
+//   @@schema("research_vault")
+// }
 
 model ResourceView {
   id         Int      @id @default(autoincrement())

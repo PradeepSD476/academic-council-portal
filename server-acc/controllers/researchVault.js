@@ -614,7 +614,7 @@ const validateResourceUrl = (raw) => {
 const resourceInclude = {
   researchAreas: { include: { researchArea: true } },
   uploadedBy: { select: { id: true, displayName: true, rollNo: true } },
-  customArea: true
+//  customArea: true
 };
 
 const CUSTOM_AREA_MAX = 60;
@@ -796,12 +796,12 @@ export const submitResearchResource = handle(async (req) => {
 
   // Custom "Other" research area: stored as a free-text tag flagged for
   // admin review/normalization — never added to the shared ResearchArea list.
-  const customAreaName = cleanCustomAreaName(req.body.customArea);
-  if (customAreaName) {
-    await prisma.customResearchArea.create({
-      data: { name: customAreaName, resourceId: resource.id }
-    });
-  }
+  // const customAreaName = cleanCustomAreaName(req.body.customArea);
+  // if (customAreaName) {
+  //   await prisma.customResearchArea.create({
+  //     data: { name: customAreaName, resourceId: resource.id }
+  //   });
+  // }
 
   return {
     status: 201,
@@ -872,17 +872,17 @@ export const updateMyResearchResource = handle(async (req) => {
   });
 
   // Keep the custom area tag in sync with the edit.
-  if (req.body.customArea !== undefined) {
-    const customAreaName = cleanCustomAreaName(req.body.customArea);
-    const existingCustom = await prisma.customResearchArea.findUnique({ where: { resourceId } });
-    if (!customAreaName) {
-      if (existingCustom) await prisma.customResearchArea.delete({ where: { id: existingCustom.id } });
-    } else if (existingCustom) {
-      await prisma.customResearchArea.update({ where: { id: existingCustom.id }, data: { name: customAreaName } });
-    } else {
-      await prisma.customResearchArea.create({ data: { name: customAreaName, resourceId } });
-    }
-  }
+  // if (req.body.customArea !== undefined) {
+  //   const customAreaName = cleanCustomAreaName(req.body.customArea);
+  //   const existingCustom = await prisma.customResearchArea.findUnique({ where: { resourceId } });
+  //   if (!customAreaName) {
+  //     if (existingCustom) await prisma.customResearchArea.delete({ where: { id: existingCustom.id } });
+  //   } else if (existingCustom) {
+  //     await prisma.customResearchArea.update({ where: { id: existingCustom.id }, data: { name: customAreaName } });
+  //   } else {
+  //     await prisma.customResearchArea.create({ data: { name: customAreaName, resourceId } });
+  //   }
+  // }
   return { data: updated };
 });
 
@@ -1536,54 +1536,54 @@ export const getQuestionReplies = handle(async (req) => {
   };
 });
 
-export const getCustomAreasQueue = async (req, res, next) => {
-  try {
-    const customAreas = await prisma.customResearchArea.findMany({
-      where: { status: 'PENDING' },
-      include: {
-        resource: { select: { id: true, title: true, url: true } }
-      },
-      orderBy: { createdAt: 'asc' }
-    });
-    res.json({ success: true, data: customAreas });
-  } catch (err) { next(err); }
-};
+// export const getCustomAreasQueue = async (req, res, next) => {
+//   try {
+//     const customAreas = await prisma.customResearchArea.findMany({
+//       where: { status: 'PENDING' },
+//       include: {
+//         resource: { select: { id: true, title: true, url: true } }
+//       },
+//       orderBy: { createdAt: 'asc' }
+//     });
+//     res.json({ success: true, data: customAreas });
+//   } catch (err) { next(err); }
+// };
 
-export const moderateCustomArea = async (req, res, next) => {
-  try {
-    const id = Number(req.params.id);
-    const { status, action, slug, name, researchAreaId } = req.body;
-    
-    const customArea = await prisma.customResearchArea.findUnique({ where: { id } });
-    if (!customArea) return res.status(404).json({ success: false, message: 'Not found' });
-
-    if (status === 'REJECTED') {
-      await prisma.customResearchArea.update({ where: { id }, data: { status: 'REJECTED' } });
-      return res.json({ success: true, message: 'Rejected' });
-    }
-
-    if (status === 'APPROVED') {
-      let finalAreaId = researchAreaId;
-      if (action === 'CREATE') {
-        const finalName = name || customArea.name;
-        const finalSlug = String(slug || finalName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')).trim();
-        const newArea = await prisma.researchArea.create({
-          data: { name: finalName, slug: finalSlug }
-        });
-        finalAreaId = newArea.id;
-      }
-      
-      if (finalAreaId && customArea.resourceId) {
-        await prisma.researchResourceResearchArea.upsert({
-          where: { resourceId_researchAreaId: { resourceId: customArea.resourceId, researchAreaId: finalAreaId } },
-          create: { resourceId: customArea.resourceId, researchAreaId: finalAreaId },
-          update: {}
-        });
-      }
-      await prisma.customResearchArea.update({ where: { id }, data: { status: 'APPROVED' } });
-      return res.json({ success: true, message: 'Approved' });
-    }
-
-    res.status(400).json({ success: false, message: 'Invalid status' });
-  } catch (err) { next(err); }
-};
+// export const moderateCustomArea = async (req, res, next) => {
+//   try {
+//     const id = Number(req.params.id);
+//     const { status, action, slug, name, researchAreaId } = req.body;
+//     
+//     const customArea = await prisma.customResearchArea.findUnique({ where: { id } });
+//     if (!customArea) return res.status(404).json({ success: false, message: 'Not found' });
+// 
+//     if (status === 'REJECTED') {
+//       await prisma.customResearchArea.update({ where: { id }, data: { status: 'REJECTED' } });
+//       return res.json({ success: true, message: 'Rejected' });
+//     }
+// 
+//     if (status === 'APPROVED') {
+//       let finalAreaId = researchAreaId;
+//       if (action === 'CREATE') {
+//         const finalName = name || customArea.name;
+//         const finalSlug = String(slug || finalName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')).trim();
+//         const newArea = await prisma.researchArea.create({
+//           data: { name: finalName, slug: finalSlug }
+//         });
+//         finalAreaId = newArea.id;
+//       }
+//       
+//       if (finalAreaId && customArea.resourceId) {
+//         await prisma.researchResourceResearchArea.upsert({
+//           where: { resourceId_researchAreaId: { resourceId: customArea.resourceId, researchAreaId: finalAreaId } },
+//           create: { resourceId: customArea.resourceId, researchAreaId: finalAreaId },
+//           update: {}
+//         });
+//       }
+//       await prisma.customResearchArea.update({ where: { id }, data: { status: 'APPROVED' } });
+//       return res.json({ success: true, message: 'Approved' });
+//     }
+// 
+//     res.status(400).json({ success: false, message: 'Invalid status' });
+//   } catch (err) { next(err); }
+// };

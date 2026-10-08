@@ -322,7 +322,82 @@ async function main() {
     await prisma.researchOpenPosition.create({ data: positionData3 });
   }
 
-  console.log(`Research Vault demo data is ready. Seeded 3 faculty profiles, ${areaData.length} research-area tags, published and pending experiences, discussions from the local contributor and Sahil (2501CT20), 3 resources, and 3 openings.`);
+  // --- EXTRA SEED DATA FOR ADMIN PANEL ---
+
+  // 1. More pending experiences
+  await saveExperience(sahil.id, faculty['demo-asha-rao'].id, [areaSlugs[0]], {
+    title: 'Demo: Scaling LLMs for Healthcare Diagnostics (Pending)',
+    description: 'Draft submission about using small LLMs for parsing medical records. Explores challenges with RAG and context lengths.',
+    labName: 'Applied AI Lab (Demo)', externalGuideName: 'Dr. Asha Rao (Demo)', duration: '6 months',
+    prerequisites: 'Strong background in NLP and deep learning.',
+    keyLearnings: 'Retrieval augmentation was harder to tune than expected.',
+    outcome: 'A detailed paper draft and an open-source evaluation benchmark.', status: 'PENDING_REVIEW'
+  });
+  
+  await saveExperience(contributor.id, faculty['demo-noor-iqbal'].id, [areaSlugs[2]], {
+    title: 'Demo: Protein folding simulations on edge devices (Pending)',
+    description: 'Testing the limits of running structural biology simulations on limited hardware.',
+    labName: 'Computational Biology Group', externalGuideName: 'Dr. Noor Iqbal', duration: '12 weeks',
+    prerequisites: 'C++ and basic knowledge of molecular dynamics.',
+    keyLearnings: 'Memory bandwidth was the primary bottleneck.',
+    outcome: 'Optimized inference library for edge devices.', status: 'PENDING_REVIEW'
+  });
+
+  // 2. More pending resources
+  await saveResource([areaSlugs[1]], {
+    title: 'Advanced PID Tuning Guide',
+    description: 'An interactive simulator and guide for tuning PID controllers on aerial robots.',
+    url: 'https://example.edu/pid-tuning',
+    resourceType: 'GUIDE',
+    status: 'PENDING',
+    uploadedById: sahil.id
+  });
+
+  await saveResource([areaSlugs[0]], {
+    title: 'Awesome Vision-Language Models',
+    description: 'A curated list of state-of-the-art vision-language models and their evaluation metrics.',
+    url: 'https://example.edu/vlm-repo',
+    resourceType: 'REPOSITORY',
+    status: 'PENDING',
+    uploadedById: contributor.id
+  });
+
+  // 3. More faculty
+  const drMehta = {
+    name: 'Dr. Rohan Mehta (Demo)', slug: 'demo-rohan-mehta', designation: 'Professor', department: 'Mechanical Engineering',
+    email: 'rohan.mehta@example.edu', website: 'https://example.edu',
+    biography: 'Expert in autonomous vehicle dynamics and control systems.',
+    publications: 'Adaptive Control for High-Speed UGVs (2025).',
+  };
+  const mehtaProfile = await prisma.facultyProfile.upsert({
+    where: { slug: drMehta.slug },
+    update: { ...drMehta, researchAreas: areaRelation([areaSlugs[1]], true) },
+    create: { ...drMehta, researchAreas: areaRelation([areaSlugs[1]]) }
+  });
+
+  // 4. More open positions
+  const positionTitle4 = 'Research Assistant - Autonomous Vehicles';
+  const position4 = await prisma.researchOpenPosition.findFirst({
+    where: { title: positionTitle4 }
+  });
+  const positionData4 = {
+    title: positionTitle4,
+    description: 'Join our team to develop planning algorithms for off-road autonomous vehicles.',
+    positionType: 'SEMESTER',
+    eligibility: 'B.Tech in ME/EE/CS with strong control systems background.',
+    applicationUrl: 'https://example.edu/av-lab',
+    deadline: new Date('2026-11-20T00:00:00.000Z'),
+    facultyId: mehtaProfile.id,
+    uploadedById: sahil.id,
+    isActive: true
+  };
+  if (position4) {
+    await prisma.researchOpenPosition.update({ where: { id: position4.id }, data: positionData4 });
+  } else {
+    await prisma.researchOpenPosition.create({ data: positionData4 });
+  }
+
+  console.log(`Research Vault demo data is ready. Seeded extra admin data.`);
 
 }
 

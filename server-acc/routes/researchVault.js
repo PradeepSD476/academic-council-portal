@@ -7,8 +7,8 @@ import {
     createFacultyProfile,
     updateFacultyProfile,
     deleteFacultyProfile,
-    getCustomAreasQueue,
-    moderateCustomArea,
+//    getCustomAreasQueue,
+//    moderateCustomArea,
     getResearchExperiences,
     getResearchExperienceById,
     getMyResearchExperiences,
@@ -165,7 +165,7 @@ router.post('/interest-matching', checkAuth, getInterestMatch);
 
 // ── Admin Analytics & Custom Areas ───────────────────────────────────────────────
 router.get('/admin/analytics', checkAuth, checkResearchAdmin, getResearchAnalytics);
-router.get('/admin/custom-areas', checkAuth, checkResearchAdmin, getCustomAreasQueue);
-router.patch('/admin/custom-areas/:id', checkAuth, checkResearchAdmin, moderateCustomArea);
+// router.get('/admin/custom-areas', checkAuth, checkResearchAdmin, getCustomAreasQueue);
+// router.patch('/admin/custom-areas/:id', checkAuth, checkResearchAdmin, moderateCustomArea);
 
 export default router;
