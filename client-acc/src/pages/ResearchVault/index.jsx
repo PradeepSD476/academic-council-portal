@@ -1199,10 +1199,10 @@ export default function ResearchVault() {
               { value: 'SOP_WRITING', label: 'SOP Writing' },
               { value: 'LOR', label: 'LOR' },
               { value: 'COLD_EMAILING', label: 'Cold Email' },
-              { value: 'PHD_APPLICATIONS', label: 'PhD Apps' },
-              { value: 'GRANT_WRITING', label: 'Grant Writing' },
-              { value: 'TEMPLATE', label: 'Template' },
-              { value: 'GENERAL', label: 'General' },
+//              { value: 'PHD_APPLICATIONS', label: 'PhD Apps' },
+//              { value: 'GRANT_WRITING', label: 'Grant Writing' },
+//              { value: 'TEMPLATE', label: 'Template' },
+//              { value: 'GENERAL', label: 'General' },
             ].map(({ value, label }) => (
               <button
                 key={value}
@@ -1948,10 +1948,10 @@ export default function ResearchVault() {
                     <option value="SOP_WRITING">SOP Writing</option>
                     <option value="LOR">Letter of Recommendation</option>
                     <option value="COLD_EMAILING">Cold Email Templates</option>
-                    <option value="PHD_APPLICATIONS">PhD Applications</option>
-                    <option value="GRANT_WRITING">Grant Writing</option>
-                    <option value="TEMPLATE">Template</option>
-                    <option value="GENERAL">General</option>
+//                    <option value="PHD_APPLICATIONS">PhD Applications</option>
+//                    <option value="GRANT_WRITING">Grant Writing</option>
+//                    <option value="TEMPLATE">Template</option>
+//                    <option value="GENERAL">General</option>
                   </select>
                 </div>
 
@@ -2068,10 +2068,10 @@ export default function ResearchVault() {
                   <option value="SOP_WRITING">SOP Writing</option>
                   <option value="LOR">Letter of Recommendation</option>
                   <option value="COLD_EMAILING">Cold Email Templates</option>
-                  <option value="PHD_APPLICATIONS">PhD Applications</option>
-                  <option value="GRANT_WRITING">Grant Writing</option>
-                  <option value="TEMPLATE">Template</option>
-                  <option value="GENERAL">General</option>
+//                  <option value="PHD_APPLICATIONS">PhD Applications</option>
+//                  <option value="GRANT_WRITING">Grant Writing</option>
+//                  <option value="TEMPLATE">Template</option>
+//                  <option value="GENERAL">General</option>
                 </select>
               </div>
               <div>

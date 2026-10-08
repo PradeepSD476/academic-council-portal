@@ -447,8 +447,8 @@ function ResourceForm({ areas, create, onClose }) {
                     <option value="DATASET">Dataset</option>
                     <option value="SOP_WRITING">SOP writing</option>
                     <option value="COLD_EMAILING">Cold-emailing professors</option>
-                    <option value="PHD_APPLICATIONS">PhD applications</option>
-                    <option value="GRANT_WRITING">Grant writing</option>
+//                    <option value="PHD_APPLICATIONS">PhD applications</option>
+//                    <option value="GRANT_WRITING">Grant writing</option>
                     <option value="OTHER">Other</option>
                   </select>
                 </div>
