@@ -1,8 +1,10 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { planEdit, checkCompensation } from '../../services/careers/postings/editPosting.js';
 import { bulkSkipReason, reviewWhere } from '../../services/careers/postings/reviewService.js';
-import { mergeRunRequest } from '../../controllers/careers/adminSourcesController.js';
-import { computeAlerts, minutesSince } from '../../services/careers/ops/alerts.js';
+import cron from 'node-cron';
+import { mergeRunRequest, runAfterUpdate } from '../../controllers/careers/adminSourcesController.js';
+import { computeAlerts, minutesSince, workerStatus } from '../../services/careers/ops/alerts.js';
+import { JOBS, runRequestsTick } from '../../services/careers/jobs.js';
 import { istDayStart, istMonthStart } from '../../services/careers/ops/llmStatus.js';
 
 const posting = {
@@ -95,6 +97,40 @@ describe('mergeRunRequest', () => {
     });
 });
 
+describe('runAfterUpdate', () => {
+    it('queues a run only when a disabled source is switched back on', () => {
+        expect(runAfterUpdate({ isEnabled: false }, { isEnabled: true })).toBe(true);
+        expect(runAfterUpdate({ isEnabled: true }, { isEnabled: true })).toBe(false);
+        expect(runAfterUpdate({ isEnabled: true }, { isEnabled: false })).toBe(false);
+        expect(runAfterUpdate({ isEnabled: false }, { name: 'Renamed' })).toBe(false);
+    });
+});
+
+describe('runRequestsTick (worker, every 10 s)', () => {
+    it('opens no lock transaction when nothing is queued', async () => {
+        const runLocked = vi.fn();
+        expect(await runRequestsTick({ readRequest: async () => null, runLocked })).toEqual({ requested: false });
+        expect(runLocked).not.toHaveBeenCalled();
+    });
+    it('runs the locked request handler when a request is queued', async () => {
+        const runLocked = vi.fn(async () => ({ ran: true, ok: true }));
+        expect(await runRequestsTick({ readRequest: async () => ({ sourceId: 'ALL' }), runLocked })).toEqual({ ran: true, ok: true });
+        expect(runLocked).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('ingest schedule', () => {
+    it('runs every 6 hours, keeping the 02:00 IST run', () => {
+        expect(JOBS.ingestAll.cron).toBe('0 2,8,14,20 * * *');
+        expect(cron.validate(JOBS.ingestAll.cron)).toBe(true);
+    });
+    it('picks up "Fetch now" requests every 10 s and reports a heartbeat every minute', () => {
+        expect(JOBS.runRequests.cron).toBe('*/10 * * * * *');
+        expect(JOBS.heartbeat.cron).toBe('* * * * *');
+        for (const job of Object.values(JOBS)) expect(cron.validate(job.cron)).toBe(true);
+    });
+});
+
 describe('alerts', () => {
     const quiet = {
         worker: { stale: false, lastHeartbeatAt: 'x', minutesSince: 1 },
@@ -130,6 +166,13 @@ describe('alerts', () => {
     it('minutesSince', () => {
         expect(minutesSince('2026-10-01T10:00:00Z', new Date('2026-10-01T10:21:30Z'))).toBe(21);
         expect(minutesSince(null)).toBeNull();
+    });
+    it('workerStatus: stale after 20 minutes or when it never reported', () => {
+        const now = new Date('2026-10-01T10:21:30Z');
+        expect(workerStatus({ at: '2026-10-01T10:00:00Z', job: 'runRequests' }, now))
+            .toEqual({ lastHeartbeatAt: '2026-10-01T10:00:00Z', lastJob: 'runRequests', minutesSince: 21, stale: true });
+        expect(workerStatus({ at: '2026-10-01T10:05:00Z', job: 'x' }, now).stale).toBe(false);
+        expect(workerStatus(null, now)).toEqual({ lastHeartbeatAt: null, lastJob: null, minutesSince: null, stale: true });
     });
 });
 

@@ -1,6 +1,7 @@
 // Greenhouse public job board API. Field names verified against a live response (29-30 Sep 2026);
 // fixture: tests/careers/fixtures/greenhouse.json.
 import { htmlToText } from '../../text/html.js';
+import { withLazyField } from './lazyField.js';
 
 export const kind = 'GREENHOUSE';
 
@@ -31,19 +32,20 @@ export function mapJob(job) {
         .map((p) => p?.trim())
         .filter(Boolean);
     const locationText = places.length ? [...new Set(places)].join('; ') : null;
-    return {
+    const raw = {
         externalId: String(job.id),
         title: (job.title ?? '').trim(),
         companyName: job.company_name ?? null,
         locationText,
         url: job.absolute_url,
-        descriptionText: htmlToText(job.content ?? '', { escaped: true }),
+        descriptionText: null,
         workplaceText: locationText, // Greenhouse has no workplace field; "Remote - India" lives in the location
         employmentTypeText: metadataValue(job, /employment|job type|commitment/i),
         compensationText: metadataValue(job, /salary|compensation|stipend|pay/i),
         postedAt: job.first_published ?? job.updated_at ?? null,
         deadline: job.application_deadline ?? null,
     };
+    return withLazyField(raw, 'descriptionText', () => htmlToText(job.content ?? '', { escaped: true }));
 }
 
 export function fixtureFrom(body, jobs) {

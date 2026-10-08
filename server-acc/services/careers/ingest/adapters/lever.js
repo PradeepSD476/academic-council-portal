@@ -1,6 +1,7 @@
 // Lever public postings API. Field names verified against a live response (29-30 Sep 2026);
 // fixture: tests/careers/fixtures/lever.json.
 import { htmlToText } from '../../text/html.js';
+import { withLazyField } from './lazyField.js';
 
 export const kind = 'LEVER';
 
@@ -45,19 +46,20 @@ function description(job) {
 export function mapJob(job) {
     const c = job.categories ?? {};
     const locations = Array.isArray(c.allLocations) && c.allLocations.length ? c.allLocations : [c.location].filter(Boolean);
-    return {
+    const raw = {
         externalId: String(job.id),
         title: (job.text ?? '').trim(),
         companyName: null, // a Lever site belongs to one company: the source's company
         locationText: locations.length ? locations.join('; ') : null,
         url: job.hostedUrl ?? job.applyUrl,
-        descriptionText: description(job),
+        descriptionText: null,
         workplaceText: job.workplaceType && job.workplaceType !== 'unspecified' ? job.workplaceType : null,
         employmentTypeText: c.commitment ?? null,
         compensationText: compensationText(job),
         postedAt: job.createdAt ? new Date(job.createdAt).toISOString() : null,
         deadline: null,
     };
+    return withLazyField(raw, 'descriptionText', () => description(job));
 }
 
 export function fixtureFrom(body, jobs) {

@@ -7,8 +7,9 @@ import { ingestAll } from './ingest/ingestAll.js';
 import { processSubmissions } from './links/processSubmission.js';
 import { runExtractions } from './extract/runExtractions.js';
 import { recheckLiveness } from './links/recheckLiveness.js';
+import { heartbeat } from './heartbeat.js';
 
-// Daily ingest of every enabled ATS source.
+// Ingest of every enabled ATS source (every 6 hours, and on admin "Run now" requests).
 export async function ingestJob(options = {}) {
     let result = null;
     const outcome = await withJobLock(JOB_LOCKS.ingestAll, 'ingestAll', async () => {
@@ -18,8 +19,9 @@ export async function ingestJob(options = {}) {
 }
 
 // Consumes careers.runRequest ({ sourceId: id | 'ALL', requestedAt, byUserId }), written by the
-// admin "Run now" buttons. The request is cleared only after the ingest actually ran, and only if
-// no newer request arrived meanwhile; while the daily ingest holds its lock the request waits.
+// admin "Fetch now" buttons. The request is cleared only after the ingest actually ran, and only if
+// no newer request arrived meanwhile; while the scheduled ingest holds its lock the request waits.
+// Only the worker runs it: fetching stays out of the API process, which serves the website.
 export async function checkRunRequests() {
     clearSettingsCache(); // the API process writes this key; don't read a stale cached copy
     const request = await getSetting('careers.runRequest');
@@ -33,6 +35,24 @@ export async function checkRunRequests() {
     const current = await getSetting('careers.runRequest');
     if (current?.requestedAt === request.requestedAt) await setSetting('careers.runRequest', null);
     return { requested: true, ran: true, ok: run.ok };
+}
+
+// One runRequests tick. Most ticks find nothing, so the request is read first (one small query)
+// and the lock transaction is only opened when there is something to run.
+export async function runRequestsTick({ readRequest = readRunRequest, runLocked = runRequestsLocked } = {}) {
+    if (!(await readRequest())) return { requested: false };
+    return runLocked();
+}
+
+async function readRunRequest() {
+    clearSettingsCache();
+    return getSetting('careers.runRequest');
+}
+
+// The lock stops two workers from both picking up the same request. No heartbeat here: the
+// heartbeat job reports every minute on its own.
+function runRequestsLocked() {
+    return withJobLock(JOB_LOCKS.runRequests, 'runRequests', checkRunRequests, { heartbeat: false });
 }
 
 // Student links, then model extraction of the pages that need it (in that order, one lock).
@@ -55,12 +75,14 @@ export async function livenessJob(options = {}) {
 
 // name -> { cron, run }
 export const JOBS = {
-    ingestAll: { cron: '0 2 * * *', run: () => ingestJob() },
+    // Every 6 hours (02:00, 08:00, 14:00, 20:00 IST): one run is ~12 sequential board requests, so this
+    // is cheap, and new openings reach the review queue within hours. Liveness counts missed runs, so a
+    // job that leaves its board expires after ~12 hours (MISSED_RUNS_TO_DROP = 2).
+    ingestAll: { cron: '0 2,8,14,20 * * *', run: () => ingestJob() },
     recheckLiveness: { cron: '30 5 * * *', run: () => livenessJob() },
     linksAndExtraction: { cron: '*/10 * * * *', run: () => linksJob() },
-    runRequests: {
-        cron: '* * * * *',
-        // The outer lock stops two workers from both picking up the same request.
-        run: () => withJobLock(JOB_LOCKS.runRequests, 'runRequests', checkRunRequests),
-    },
+    // Every 10 s (6-field cron with seconds), so "Fetch now" starts within seconds.
+    runRequests: { cron: '*/10 * * * * *', run: () => runRequestsTick() },
+    // Proof of life for the operations page (WORKER_STALE after 20 min of silence).
+    heartbeat: { cron: '* * * * *', run: () => heartbeat('alive') },
 };

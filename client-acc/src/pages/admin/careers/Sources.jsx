@@ -1,12 +1,15 @@
-// Job boards (ATS sources): health, last run, enable/disable, run now, recent runs.
-import { Fragment, useCallback, useEffect, useState } from "react";
+// Job boards (ATS sources): health, last run, enable/disable, fetch now, recent runs.
+// While a fetch is queued the page polls, so the admin sees it finish without reloading.
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Activity, ChevronDown, ChevronUp, Link2, Play, Plus } from "lucide-react";
+import { Activity, AlertTriangle, ChevronDown, ChevronUp, Link2, Play, Plus, RefreshCw } from "lucide-react";
 import toast from "react-hot-toast";
 import { careersAdminApi, errorMessage } from "../../../api/careersApi";
 import AddSourceDialog from "./AddSourceDialog";
 import HealthBadge from "./components/HealthBadge";
 import { PageHeader, Skeleton, cardClass, outlineButton, primaryButton } from "./components/ui";
+
+const POLL_MS = 5000;
 
 const when = (iso) => (iso ? new Date(iso).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "never");
 
@@ -48,6 +51,19 @@ export default function Sources() {
     load();
   }, [load]);
 
+  const pending = data?.pendingRequest;
+  const wasPending = useRef(false);
+  useEffect(() => {
+    if (!pending) {
+      if (wasPending.current) toast.success("Fetch finished. New postings are in Jobs Review.");
+      wasPending.current = false;
+      return undefined;
+    }
+    wasPending.current = true;
+    const timer = setInterval(load, POLL_MS);
+    return () => clearInterval(timer);
+  }, [pending, load]);
+
   const act = async (id, fn) => {
     setBusyId(id);
     try {
@@ -62,19 +78,34 @@ export default function Sources() {
   };
 
   const boards = data?.data.filter((s) => s.boardToken) ?? [];
-  const pending = data?.pendingRequest;
+  const worker = data?.worker;
+  const queued = (id) => Boolean(pending && (pending.sourceId === "ALL" || pending.sourceId === id));
 
   return (
     <div className="space-y-6">
-      <PageHeader icon={Link2} title="Sources" subtitle="Public job boards fetched every night at 02:00 IST. Only roles in India (or remote) and early-career are kept.">
+      <PageHeader icon={Link2} title="Sources" subtitle="Public job boards, fetched every 6 hours (02:00, 08:00, 14:00, 20:00 IST) and right after a board is added. Only roles in India (or remote) and early-career are kept.">
         <Link to="/admin/careers/ops" className={outlineButton}><Activity size={14} /> Operations</Link>
-        <button type="button" className={outlineButton} disabled={busyId === "all"} onClick={() => act("all", careersAdminApi.runAllSources)}><Play size={14} /> Run all</button>
+        <button type="button" className={outlineButton} disabled={busyId === "all" || pending?.sourceId === "ALL"} onClick={() => act("all", careersAdminApi.runAllSources)}>
+          {pending?.sourceId === "ALL" ? <><RefreshCw size={14} className="animate-spin" /> Fetching all…</> : <><Play size={14} /> Fetch all now</>}
+        </button>
         <button type="button" className={primaryButton} onClick={() => setAdding(true)}><Plus size={14} /> Add board</button>
       </PageHeader>
 
+      {worker?.stale && (
+        <p className="flex items-start gap-2 text-xs text-amber-800 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
+          <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+          <span>
+            {worker.lastHeartbeatAt ? `The worker has not reported for ${worker.minutesSince} minutes.` : "The worker has never reported."} Fetches (scheduled or requested here), student links and liveness checks only run while it is running, so requests made here wait until it is back. Start the fetcher-acc container (<code>npm run worker</code> in local development).
+          </span>
+        </p>
+      )}
+
       {pending && (
-        <p className="text-xs text-blue-700 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
-          Run requested for {pending.sourceId === "ALL" ? "all sources" : `source #${pending.sourceId}`} at {when(pending.requestedAt)}. The worker picks it up within about a minute; if this stays here, check that the worker is running.
+        <p className="flex items-start gap-2 text-xs text-blue-700 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3" role="status">
+          <RefreshCw size={14} className="shrink-0 mt-0.5 animate-spin" />
+          <span>
+            Fetching {pending.sourceId === "ALL" ? "all sources" : `source #${pending.sourceId}`} (requested {when(pending.requestedAt)}). The worker starts it within seconds and a full fetch takes under a minute; this page updates when it finishes.
+          </span>
         </p>
       )}
 
@@ -103,7 +134,9 @@ export default function Sources() {
                     <button type="button" className={outlineButton} onClick={() => setOpenRuns(openRuns === s.id ? null : s.id)} aria-expanded={openRuns === s.id}>
                       Runs {openRuns === s.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                     </button>
-                    <button type="button" className={outlineButton} disabled={!s.isEnabled || busyId === s.id} onClick={() => act(s.id, () => careersAdminApi.runSource(s.id))}><Play size={14} /> Run now</button>
+                    <button type="button" className={outlineButton} disabled={!s.isEnabled || busyId === s.id || queued(s.id)} onClick={() => act(s.id, () => careersAdminApi.runSource(s.id))}>
+                      {queued(s.id) && s.isEnabled ? <><RefreshCw size={14} className="animate-spin" /> Fetching…</> : <><Play size={14} /> Fetch now</>}
+                    </button>
                     <label className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 cursor-pointer px-2">
                       <input type="checkbox" className="w-4 h-4 accent-[var(--color-primary)]" checked={s.isEnabled} disabled={busyId === s.id}
                         onChange={() => act(s.id, () => careersAdminApi.updateSource(s.id, { isEnabled: !s.isEnabled }))} />

@@ -138,7 +138,7 @@ export default function JobsPage() {
     } else if (hasAnyFilter(search)) {
       body = <EmptyState icon={SearchX} title="No openings match these filters." detail="Try fewer filters or a different search." action="Clear filters" onAction={clearAll} />;
     } else {
-      body = <EmptyState icon={Briefcase} title="No openings right now." detail="New openings are checked every night and reviewed by ACC before they appear here." />;
+      body = <EmptyState icon={Briefcase} title="No openings right now." detail="New openings are checked several times a day and reviewed by ACC before they appear here." />;
     }
   } else {
     body = (

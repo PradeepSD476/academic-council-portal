@@ -37,14 +37,17 @@ export function classifyLocation(locationText) {
 //   reason:   'ok' | 'location' | 'seniority' | 'level'
 //   type:     INTERNSHIP | FULL_TIME | UNKNOWN
 //   location: result of classifyLocation (callers flag 'unknown' as uncertain)
-export function evaluateRelevance({ title, locationText, descriptionText } = {}) {
+// The description is read only for jobs that pass the location and seniority checks: adapters
+// convert it lazily (adapters/lazyField.js), and most jobs are dropped before this point.
+export function evaluateRelevance(posting = {}) {
+    const { title, locationText } = posting;
     const t = typeof title === 'string' ? title : '';
     const location = classifyLocation(locationText);
     if (location === 'foreign') return { keep: false, reason: 'location', type: 'UNKNOWN', location };
     if (SENIOR_TITLE.test(t) && !INTERNSHIP_TITLE.test(t)) return { keep: false, reason: 'seniority', type: 'UNKNOWN', location };
 
     const juniorTitle = JUNIOR_TITLE.test(t);
-    const juniorText = JUNIOR_DESCRIPTION.test(descriptionText ?? '');
+    const juniorText = JUNIOR_DESCRIPTION.test(posting.descriptionText ?? '');
     if (!juniorTitle && !juniorText) return { keep: false, reason: 'level', type: 'UNKNOWN', location };
 
     const type = guessType(t) ?? (juniorText ? 'FULL_TIME' : 'UNKNOWN');

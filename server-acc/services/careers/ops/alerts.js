@@ -8,6 +8,17 @@ export function minutesSince(iso, now = new Date()) {
     return Math.floor((now.getTime() - new Date(iso).getTime()) / 60000);
 }
 
+// Pure. heartbeat = the careers.workerHeartbeat setting ({ at, job } or null).
+export function workerStatus(heartbeat, now = new Date()) {
+    const since = minutesSince(heartbeat?.at, now);
+    return {
+        lastHeartbeatAt: heartbeat?.at ?? null,
+        lastJob: heartbeat?.job ?? null,
+        minutesSince: since,
+        stale: since === null || since > WORKER_STALE_MINUTES,
+    };
+}
+
 // summary: { worker, sources, queue, llm } as built by the ops controller.
 export function computeAlerts({ worker, sources, queue, llm }) {
     const alerts = [];

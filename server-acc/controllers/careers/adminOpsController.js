@@ -3,7 +3,7 @@ import prisma from '../../config/db.js';
 import { sendError } from '../../services/careers/errors.js';
 import { getSetting, clearSettingsCache } from '../../services/careers/settings.js';
 import { reviewWhere } from '../../services/careers/postings/reviewService.js';
-import { computeAlerts, minutesSince, WORKER_STALE_MINUTES } from '../../services/careers/ops/alerts.js';
+import { computeAlerts, workerStatus } from '../../services/careers/ops/alerts.js';
 import { llmStatus } from '../../services/careers/ops/llmStatus.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -13,13 +13,7 @@ export const getOps = async (req, res) => {
         clearSettingsCache(); // the heartbeat is written by the worker process
         const now = new Date();
         const [heartbeat, threshold] = await Promise.all([getSetting('careers.workerHeartbeat'), getSetting('careers.confidenceThreshold')]);
-        const since = minutesSince(heartbeat?.at, now);
-        const worker = {
-            lastHeartbeatAt: heartbeat?.at ?? null,
-            lastJob: heartbeat?.job ?? null,
-            minutesSince: since,
-            stale: since === null || since > WORKER_STALE_MINUTES,
-        };
+        const worker = workerStatus(heartbeat, now);
 
         const list = await prisma.source.findMany({
             select: { id: true, name: true, kind: true, boardToken: true, isEnabled: true, health: true, lastRunAt: true, lastSuccessAt: true, lastFetchedCount: true, lastKeptCount: true, lastError: true },

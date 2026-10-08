@@ -6,7 +6,7 @@ import { Modal, cardClass, inputClass, outlineButton, primaryButton } from "./co
 
 const TOGGLES = [
   ["careers.visibleToStudents", "Show Jobs & Internships to students", "Off: students get a “not available” page; admins still see everything."],
-  ["careers.ingestionEnabled", "Fetch job boards", "The nightly ingest and “Run now” do nothing while this is off."],
+  ["careers.ingestionEnabled", "Fetch job boards", "The scheduled fetches and “Fetch now” do nothing while this is off."],
   ["careers.llmEnabled", "Automatic extraction for student links", "Uses the configured model. Off: links wait in the queue."],
   ["careers.llmPaidTier", "Gemini key is billed", "Only for Gemini. Turns on the monthly budget cap."],
 ];

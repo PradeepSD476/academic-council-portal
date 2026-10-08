@@ -1,8 +1,10 @@
 // Admin: ATS sources (boards), "Run now" requests for the worker, and recent runs.
+// New and re-enabled boards are queued for a run at once instead of waiting for the next schedule.
 import { z } from 'zod';
 import prisma from '../../config/db.js';
 import { CareersError, sendError, parseId } from '../../services/careers/errors.js';
 import { getSetting, setSetting, clearSettingsCache } from '../../services/careers/settings.js';
+import { workerStatus } from '../../services/careers/ops/alerts.js';
 import { fetchPostings } from '../../services/careers/ingest/adapters/index.js';
 import { ATS_KINDS } from '../../services/careers/ingest/ingestAll.js';
 import { evaluateRelevance } from '../../services/careers/text/relevance.js';
@@ -32,9 +34,11 @@ const sourceSelect = {
 
 export const listSources = async (req, res) => {
     try {
-        const [sources, pendingRequest] = await Promise.all([
+        clearSettingsCache(); // runRequest and the heartbeat are written by the worker process
+        const [sources, pendingRequest, heartbeat] = await Promise.all([
             prisma.source.findMany({ select: sourceSelect, orderBy: [{ kind: 'asc' }, { id: 'asc' }] }),
             getSetting('careers.runRequest'),
+            getSetting('careers.workerHeartbeat'),
         ]);
         const live = await prisma.postingSource.groupBy({ by: ['sourceId'], where: { isLive: true }, _count: { _all: true } });
         const liveBySource = new Map(live.map((r) => [r.sourceId, r._count._all]));
@@ -42,6 +46,7 @@ export const listSources = async (req, res) => {
             success: true,
             data: sources.map((s) => ({ ...s, liveObservations: liveBySource.get(s.id) ?? 0 })),
             pendingRequest,
+            worker: workerStatus(heartbeat),
         });
     } catch (err) {
         return sendError(res, err, 'listSources');
@@ -49,7 +54,7 @@ export const listSources = async (req, res) => {
 };
 
 // Validate-on-create: the board is fetched once; a token that doesn't work is a 400, not a FAILING
-// source the next morning.
+// source on its next run.
 export const createSource = async (req, res) => {
     try {
         const body = createBody.parse(req.body);
@@ -72,10 +77,11 @@ export const createSource = async (req, res) => {
             data: { kind: body.kind, boardToken: body.boardToken, companyId: company.id, name: body.name ?? `${company.name} (${body.kind.toLowerCase()})` },
             select: sourceSelect,
         });
+        const request = await queueRun(source.id, req.user.id, 'createSource');
         return res.status(201).json({
             success: true,
-            message: `Board added: ${check.fetchedCount} jobs now, ${kept} look relevant (India, early career). It runs with the next ingest.`,
-            data: { source, check: { fetchedCount: check.fetchedCount, relevantNow: kept } },
+            message: `Board added: ${check.fetchedCount} jobs now, ${kept} look relevant (India, early career). ${request ? 'Queued for fetching; the worker starts it within seconds.' : 'It runs with the next scheduled ingest.'}`,
+            data: { source, check: { fetchedCount: check.fetchedCount, relevantNow: kept }, runRequest: request },
         });
     } catch (err) {
         return sendError(res, err, 'createSource');
@@ -96,7 +102,8 @@ export const updateSource = async (req, res) => {
         if (body.isEnabled === false) data.health = 'DISABLED';
         if (body.isEnabled === true && !source.isEnabled) data.health = 'UNKNOWN';
         const updated = await prisma.source.update({ where: { id }, data, select: sourceSelect });
-        return res.json({ success: true, message: 'Source updated.', data: updated });
+        const request = runAfterUpdate(source, body) ? await queueRun(id, req.user.id, 'updateSource') : null;
+        return res.json({ success: true, message: request ? 'Source enabled and queued for fetching.' : 'Source updated.', data: updated });
     } catch (err) {
         return sendError(res, err, 'updateSource');
     }
@@ -116,6 +123,22 @@ async function requestRun(sourceId, userId) {
     return request;
 }
 
+// Pure: a source switched from disabled to enabled is fetched at once.
+export function runAfterUpdate(source, body) {
+    return body.isEnabled === true && !source.isEnabled;
+}
+
+// The source is already saved, so a failed request must not fail the call; it is logged and the
+// source simply waits for the next scheduled ingest.
+async function queueRun(sourceId, userId, context) {
+    try {
+        return await requestRun(sourceId, userId);
+    } catch (err) {
+        console.error(`[careers] ${context}: could not queue a run for source #${sourceId}`, err);
+        return null;
+    }
+}
+
 export const runSourceNow = async (req, res) => {
     try {
         const id = parseId(req.params.id);
@@ -124,7 +147,7 @@ export const runSourceNow = async (req, res) => {
         if (!ATS_KINDS.includes(source.kind)) throw new CareersError(400, 'VALIDATION_ERROR', `${source.kind} sources are not fetched from a board.`);
         if (!source.isEnabled) throw new CareersError(409, 'SOURCE_DISABLED', 'Enable the source before running it.');
         const request = await requestRun(id, req.user.id);
-        return res.status(202).json({ success: true, message: 'Run requested. The worker picks it up within about a minute.', data: request });
+        return res.status(202).json({ success: true, message: 'Fetch queued. The worker starts it within seconds; this page updates when it finishes.', data: request });
     } catch (err) {
         return sendError(res, err, 'runSourceNow');
     }
@@ -133,7 +156,7 @@ export const runSourceNow = async (req, res) => {
 export const runAllNow = async (req, res) => {
     try {
         const request = await requestRun('ALL', req.user.id);
-        return res.status(202).json({ success: true, message: 'Run of all sources requested. The worker picks it up within about a minute.', data: request });
+        return res.status(202).json({ success: true, message: 'Fetch of all sources queued. The worker starts it within seconds; this page updates when it finishes.', data: request });
     } catch (err) {
         return sendError(res, err, 'runAllNow');
     }
