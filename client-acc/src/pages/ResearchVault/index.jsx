@@ -2221,10 +2221,16 @@ function ResourceCard({ resource, follow, followedAreaIds, apiUrl }) {
     setViewCount((v) => v + 1);
     researchVaultApi.recordResourceView(resource.id)
       .then((response) => {
+        if (response.data?.data?.ignored) {
+          setViewCount((v) => Math.max(0, v - 1));
+          return;
+        }
         const serverCount = response.data?.data?.viewCount;
-        if (Number.isFinite(serverCount)) setViewCount((v) => Math.max(v, serverCount));
+        if (Number.isFinite(serverCount)) setViewCount(serverCount);
       })
-      .catch(() => {});
+      .catch(() => {
+        setViewCount((v) => Math.max(0, v - 1));
+      });
   };
 
   // The download endpoint increments the counter before streaming the file.

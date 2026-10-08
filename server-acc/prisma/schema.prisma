@@ -587,7 +587,6 @@ model ResourceView {
   resource ResearchResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
   user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([resourceId, userId])
   @@schema("research_vault")
 }
 

@@ -215,12 +215,7 @@ export const getFacultyProfileById = handle(async (req) => {
 
 export const recordFacultyProfileView = handle(async (req) => {
   const numericId = Number.parseInt(req.params.id, 10);
-  
   console.log("recordFacultyProfileView called by:", req.user?.email, "Role:", req.user?.role);
-  
-  if (req.user && ['RESEARCH_ADMIN', 'SUPER_ADMIN', 'FACULTY'].includes(req.user.role)) {
-    return { message: 'View ignored for admin/faculty.' };
-  }
 
 
   const profile = await prisma.facultyProfile.findFirst({
@@ -674,63 +669,22 @@ export const recordResearchResourceView = handle(async (req) => {
   });
   if (!resource) throw fail(404, 'Resource not found.');
 
-  // Atomic upsert into ResourceView; increment view_count only on first insert
-  const existing = await prisma.resourceView.findUnique({
-    where: { resourceId_userId: { resourceId, userId } }
-  });
-
-  if (!existing) {
-    await prisma.$transaction([
-      prisma.resourceView.create({ data: { resourceId, userId } }),
-      prisma.researchResource.update({
-        where: { id: resourceId },
-        data: { viewCount: { increment: 1 } }
-      })
-    ]);
-  }
-
-  const updated = await prisma.researchResource.findUnique({
+  // Always increment view count to match how downloads are counted (total engagement)
+  const updated = await prisma.researchResource.update({
     where: { id: resourceId },
+    data: { viewCount: { increment: 1 } },
     select: { viewCount: true }
   });
+
+  // Record this view for analytics (multiple views allowed per user)
+  await prisma.resourceView.create({ data: { resourceId, userId } });
+
   return { data: { viewCount: updated.viewCount } };
 });
 
 // ── Download endpoint (authenticated, approved + file resources only) ─────────
 
-export const downloadResearchResource = handle(async (req) => {
-  const resourceId = parseId(req.params.id);
-
-  const resource = await prisma.researchResource.findFirst({
-    where: { id: resourceId, status: 'APPROVED' }
-  });
-  if (!resource) throw fail(404, 'Resource not found.');
-  if (!resource.filePath) throw fail(404, 'This resource does not have a downloadable file.');
-
-  // Increment download count
-  await prisma.researchResource.update({
-    where: { id: resourceId },
-    data: { downloadCount: { increment: 1 } }
-  });
-
-  // Sanitize filename from title
-  const safeTitle = (resource.title || 'resource')
-    .replace(/[^\w\s-]/g, '')
-    .replace(/\s+/g, '_')
-    .slice(0, 100);
-  const ext = resource.mimeType === 'application/pdf' ? '.pdf'
-    : resource.mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ? '.docx'
-    : '';
-  const filename = `${safeTitle}${ext}`;
-
-  // Stream from MinIO
-  const stream = await storage.getObject(bucketName, resource.filePath);
-  const inline = req.query.inline === '1' && resource.mimeType === 'application/pdf';
-
-  // Return a special sentinel so handle() doesn't try to call res.json()
-  const result = { __stream__: true, stream, filename, mimeType: resource.mimeType, inline };
-  return result;
-});
+// ── Download endpoint (authenticated, approved + file resources only) ─────────
 
 // Streaming handler needs direct access to res, so we use a wrapper
 export const downloadResearchResourceHandler = async (req, res) => {
@@ -745,10 +699,12 @@ export const downloadResearchResourceHandler = async (req, res) => {
     if (!resource) return res.status(404).json({ success: false, message: 'Resource not found.' });
     if (!resource.filePath) return res.status(404).json({ success: false, message: 'This resource does not have a downloadable file.' });
 
-    await prisma.researchResource.update({
-      where: { id: resourceId },
-      data: { downloadCount: { increment: 1 } }
-    });
+    if (!req.query.admin_view) {
+      await prisma.researchResource.update({
+        where: { id: resourceId },
+        data: { downloadCount: { increment: 1 } }
+      });
+    }
 
     const safeTitle = (resource.title || 'resource')
       .replace(/[^\w\s-]/g, '').replace(/\s+/g, '_').slice(0, 100);

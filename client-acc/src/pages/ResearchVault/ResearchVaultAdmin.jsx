@@ -24,174 +24,72 @@ function FacultyProfileView({ person, onBack }) {
 
   if (!person) return null;
 
+  const availableLinks = [
+    { key: 'email', icon: Mail, label: 'Email', href: `mailto:${person.email}` },
+    { key: 'phone', icon: Phone, label: 'Phone', href: `tel:${person.phone}` },
+    { key: 'website', icon: Globe, label: 'Lab / Dept website', href: person.website },
+    { key: 'personalUrl', icon: LinkIcon, label: 'Personal website', href: person.personalUrl },
+    { key: 'scholarUrl', icon: GraduationCap, label: 'Google Scholar', href: person.scholarUrl },
+    { key: 'linkedinUrl', icon: Linkedin, label: 'LinkedIn', href: person.linkedinUrl }
+  ].filter(link => Boolean(person[link.key]));
+
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 space-y-5">
       <button 
         onClick={onBack}
-        className="mb-6 flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors"
+        className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-[var(--color-primary-accent)] transition-colors"
       >
-        <ArrowLeft size={16} /> Back to Faculty Members
+        <ArrowLeft size={14} /> Back to Faculty Members
       </button>
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        {/* Profile Header */}
-        <div className="border-b border-slate-100 bg-slate-50/50 p-6 sm:p-8 flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">
-          <div className="h-24 w-24 sm:h-32 sm:w-32 shrink-0 overflow-hidden rounded-full bg-slate-100 flex items-center justify-center border-4 border-white shadow-md">
+      <article className="academic-card rounded-3xl border border-slate-200 bg-white/95 p-6 shadow-sm sm:p-8">
+        <div className="flex flex-wrap items-start gap-4">
+          <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full ${person.photoURL ? 'bg-slate-100' : 'bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)]'} text-xl font-bold text-white`}>
             {person.photoURL ? (
-              <img src={person.photoURL} alt={person.name} className="h-full w-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+              <img src={person.photoURL} alt={person.name} className="h-full w-full rounded-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; e.target.parentElement.classList.add('bg-gradient-to-br', 'from-[var(--color-primary)]', 'to-[var(--color-secondary)]'); e.target.parentElement.classList.remove('bg-slate-100'); }} />
             ) : null}
-            <span className="text-2xl font-bold text-slate-400 uppercase" style={{ display: person.photoURL ? 'none' : 'flex' }}>
-              {person.name?.substring(0, 2) || 'FA'}
+            <span style={{ display: person.photoURL ? 'none' : 'flex' }}>
+              {person.name ? person.name.split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('') : 'FA'}
             </span>
           </div>
-          <div className="flex-1 mt-2 sm:mt-4">
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">{person.name}</h2>
-            <div className="mt-2 flex flex-col gap-1 text-slate-600">
-              {person.designation && <p className="text-base font-medium">{person.designation}</p>}
-              {person.department && <p className="text-sm">{person.department}</p>}
-            </div>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-2xl font-extrabold tracking-tight text-slate-950">{person.name}</h1>
+            <p className="mt-0.5 text-sm text-slate-600">{[person.designation, person.department].filter(Boolean).join(' · ')}</p>
+            {person.officeLocation && (
+              <p className="mt-1 inline-flex items-center gap-1 text-xs text-slate-500"><MapPin size={13} /> {person.officeLocation}</p>
+            )}
             {person.researchArea && (
-              <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 border border-blue-100">
-                <Tag size={12} /> {person.researchArea?.name || person.researchArea}
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                <span className="rounded-full border border-[var(--color-secondary-border)] bg-[var(--color-secondary-light)] px-2 py-1 text-[11px] font-semibold text-blue-900">{person.researchArea?.name || person.researchArea}</span>
               </div>
             )}
           </div>
         </div>
 
-        <div className="p-6 sm:p-8 grid gap-8 md:grid-cols-3">
-          
-          {/* Main Content Area - Biography and Publications */}
-          <div className="md:col-span-2 space-y-8">
-            {(person.biography || person.publications) ? (
-              <>
-                {person.biography && (
-                  <section>
-                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3 flex items-center gap-2">
-                      <BookOpen size={16} className="text-slate-400" /> Biography
-                    </h3>
-                    <div className="prose prose-sm prose-slate max-w-none text-slate-600 whitespace-pre-wrap leading-relaxed">
-                      {person.biography}
-                    </div>
-                  </section>
-                )}
-
-                {person.publications && (
-                  <section>
-                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3 flex items-center gap-2">
-                      <FileText size={16} className="text-slate-400" /> Publications & Academic Work
-                    </h3>
-                    <div className="prose prose-sm prose-slate max-w-none text-slate-600 whitespace-pre-wrap leading-relaxed">
-                      {person.publications}
-                    </div>
-                  </section>
-                )}
-              </>
-            ) : (
-              <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50 py-12 px-4 text-center h-full">
-                <BookOpen size={24} className="text-slate-300 mb-2" />
-                <p className="text-sm text-slate-500">No academic work or biography provided.</p>
-              </div>
-            )}
+        {person.biography && (
+          <div className="mt-4 border-t border-slate-100 pt-4">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-500">About</p>
+            <p className="mt-1.5 whitespace-pre-wrap text-sm leading-6 text-slate-700">{person.biography}</p>
           </div>
+        )}
 
-          {/* Sidebar - Contact and Links */}
-          <div className="space-y-8">
-            <section>
-              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">Contact Information</h3>
-              <div className="space-y-4">
-                {person.email ? (
-                  <div className="flex gap-3">
-                    <Mail size={16} className="text-slate-400 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-xs font-semibold text-slate-900">Email</p>
-                      <a href={`mailto:${person.email}`} className="text-sm text-blue-600 hover:underline break-all">{person.email}</a>
-                    </div>
-                  </div>
-                ) : null}
-                
-                {person.phone ? (
-                  <div className="flex gap-3">
-                    <Phone size={16} className="text-slate-400 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-xs font-semibold text-slate-900">Phone</p>
-                      <p className="text-sm text-slate-600">{person.phone}</p>
-                    </div>
-                  </div>
-                ) : null}
-
-                {person.officeLocation ? (
-                  <div className="flex gap-3">
-                    <MapPin size={16} className="text-slate-400 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-xs font-semibold text-slate-900">Office</p>
-                      <p className="text-sm text-slate-600">{person.officeLocation}</p>
-                    </div>
-                  </div>
-                ) : null}
-                
-                {(!person.email && !person.phone && !person.officeLocation) && (
-                  <p className="text-sm text-slate-500 italic">No contact information provided.</p>
-                )}
-              </div>
-            </section>
-
-            {(person.website || person.scholarUrl || person.linkedinUrl || person.personalUrl) && (
-              <section>
-                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">Professional Profiles</h3>
-                <div className="space-y-3">
-                  {person.website && (
-                    <a href={person.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-slate-50 transition-colors group">
-                      <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-100 group-hover:text-blue-700 transition-colors">
-                        <Globe size={14} />
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-slate-900">Lab/Department Website</p>
-                        <p className="text-xs text-blue-600 group-hover:underline">Open Website</p>
-                      </div>
-                    </a>
-                  )}
-
-                  {person.scholarUrl && (
-                    <a href={person.scholarUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-slate-50 transition-colors group">
-                      <div className="h-8 w-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-100 group-hover:text-indigo-700 transition-colors">
-                        <GraduationCap size={14} />
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-slate-900">Google Scholar</p>
-                        <p className="text-xs text-blue-600 group-hover:underline">View Profile</p>
-                      </div>
-                    </a>
-                  )}
-
-                  {person.linkedinUrl && (
-                    <a href={person.linkedinUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-slate-50 transition-colors group">
-                      <div className="h-8 w-8 rounded-full bg-sky-50 flex items-center justify-center text-sky-600 group-hover:bg-sky-100 group-hover:text-sky-700 transition-colors">
-                        <Linkedin size={14} />
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-slate-900">LinkedIn</p>
-                        <p className="text-xs text-blue-600 group-hover:underline">View Profile</p>
-                      </div>
-                    </a>
-                  )}
-
-                  {person.personalUrl && (
-                    <a href={person.personalUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-slate-50 transition-colors group">
-                      <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 group-hover:bg-slate-200 group-hover:text-slate-800 transition-colors">
-                        <LinkIcon size={14} />
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-slate-900">Personal Website</p>
-                        <p className="text-xs text-blue-600 group-hover:underline">Visit Website</p>
-                      </div>
-                    </a>
-                  )}
-                </div>
-              </section>
-            )}
+        {person.publications && (
+          <div className="mt-4 border-t border-slate-100 pt-4">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Publications & Academic Work</p>
+            <p className="mt-1.5 whitespace-pre-wrap text-sm leading-6 text-slate-700">{person.publications}</p>
           </div>
-        </div>
-      </div>
+        )}
+
+        {availableLinks.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
+            {availableLinks.map(({ key, icon: Icon, label, href }) => (
+              <a key={key} href={href} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-[var(--color-secondary)] hover:text-[var(--color-primary-accent)]">
+                <Icon size={13} /> {label}
+              </a>
+            ))}
+          </div>
+        )}
+      </article>
     </div>
   );
 }
@@ -410,12 +308,6 @@ function FacultyForm({ areas, create, onClose }) {
 }
 
 function ResourceProfileView({ resource, onBack }) {
-  useEffect(() => {
-    if (resource?.id) {
-      researchVaultApi.recordResourceView(resource.id).catch(() => {});
-    }
-  }, [resource?.id]);
-
   if (!resource) return null;
 
   return (
@@ -488,7 +380,7 @@ function ResourceProfileView({ resource, onBack }) {
                 </a>
               ) : resource.filePath ? (
                 <a 
-                  href={researchVaultApi.getResourceDownloadUrl(resource.id)} 
+                  href={`${researchVaultApi.getResourceDownloadUrl(resource.id)}?admin_view=1`} 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="inline-flex items-center gap-2 rounded-md bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100 border border-blue-200"
@@ -1469,7 +1361,7 @@ export default function ResearchVaultAdmin() {
                         if (entry.url) {
                           window.open(entry.url, '_blank', 'noopener,noreferrer');
                         } else if (entry.filePath) {
-                          window.open(researchVaultApi.getResourceDownloadUrl(entry.id), '_blank', 'noopener,noreferrer');
+                          window.open(`${researchVaultApi.getResourceDownloadUrl(entry.id)}?admin_view=1`, '_blank', 'noopener,noreferrer');
                         }
                       }}
                     >
@@ -1502,7 +1394,7 @@ export default function ResearchVaultAdmin() {
                           </a>
                         )}
                         {entry.filePath && (
-                          <a href={researchVaultApi.getResourceDownloadUrl(entry.id)} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-sm font-bold text-blue-600 hover:text-blue-700 hover:underline">
+                          <a href={`${researchVaultApi.getResourceDownloadUrl(entry.id)}?admin_view=1`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-sm font-bold text-blue-600 hover:text-blue-700 hover:underline">
                             <Download size={14} /> View attached file
                           </a>
                         )}
@@ -1582,12 +1474,12 @@ export default function ResearchVaultAdmin() {
                       {faculty.map((person) => (
                         <article key={person.id} onClick={() => setSelectedFaculty(person)} className="group relative flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-blue-200 hover:shadow-md cursor-pointer">
                           <div className="flex items-start gap-4">
-                            <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-slate-100 flex items-center justify-center border border-slate-200">
+                            <div className={`h-12 w-12 shrink-0 overflow-hidden rounded-full flex items-center justify-center ${person.photoURL ? 'bg-slate-100 border border-slate-200' : 'bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] text-white'}`}>
                           {person.photoURL ? (
-                            <img src={person.photoURL} alt={person.name} className="h-full w-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+                            <img src={person.photoURL} alt={person.name} className="h-full w-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; e.target.parentElement.className = 'h-12 w-12 shrink-0 overflow-hidden rounded-full flex items-center justify-center bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] text-white'; }} />
                           ) : null}
-                          <span className="text-sm font-bold text-slate-400 uppercase" style={{ display: person.photoURL ? 'none' : 'flex' }}>
-                            {person.name?.substring(0, 2) || 'FA'}
+                          <span className="text-sm font-bold uppercase" style={{ display: person.photoURL ? 'none' : 'flex' }}>
+                            {person.name ? person.name.split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('') : 'FA'}
                           </span>
                         </div>
                         <div className="min-w-0 flex-1">
