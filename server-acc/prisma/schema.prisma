@@ -30,7 +30,6 @@ model User {
   resourceViews       ResourceView[]
   approvedResources   ResearchResource[]   @relation("ApprovedResource")
   bookmarks           Bookmark[]
-
   // Research Vault
   researchExperiences    StudentResearchExperience[]       @relation("ResearchExperienceUploader")
   researchDiscussions    ResearchDiscussion[]
@@ -47,6 +46,12 @@ model User {
   researchExperienceCommentDeletions ResearchExperienceComment[] @relation("ResearchExperienceCommentDeleter")
   researchDiscussionVotes ResearchDiscussionVote[]
   researchReplyVotes     ResearchReplyVote[]
+
+  doubts              Doubt[]
+  doubtAnswers        DoubtAnswer[]
+  doubtVotes          DoubtVote[]
+  doubtReports        DoubtReport[]
+  
   @@schema("public")
 }
 
@@ -752,4 +757,97 @@ model RoadmapChapter {
 
   @@unique([sectionId, slug])
   @@schema("public")
+}
+
+// ---------------------------------------------------------------------------
+// ACC Wiki: doubt-resolution forum
+// ---------------------------------------------------------------------------
+
+model Doubt {
+  id        Int           @id @default(autoincrement())
+  title     String
+  body      String        @db.Text
+  category  String        @default("Other")
+  status    DoubtStatus   @default(OPEN)
+  isPinned  Boolean       @default(false)
+  isLocked  Boolean       @default(false)
+  isHidden  Boolean       @default(false)
+  authorId  Int
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  answers   DoubtAnswer[]
+  votes     DoubtVote[]
+  reports   DoubtReport[]
+
+  @@index([authorId])
+  @@index([category])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model DoubtAnswer {
+  id         Int           @id @default(autoincrement())
+  body       String        @db.Text
+  isAccepted Boolean       @default(false)
+  isHidden   Boolean       @default(false)
+  doubtId    Int
+  authorId   Int
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  doubt      Doubt         @relation(fields: [doubtId], references: [id], onDelete: Cascade)
+  author     User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  votes      DoubtVote[]
+  reports    DoubtReport[]
+
+  @@index([doubtId])
+  @@index([authorId])
+}
+
+// One upvote per user per doubt, and one per user per answer.
+// Exactly one of doubtId / answerId is set on each row.
+model DoubtVote {
+  id        Int          @id @default(autoincrement())
+  userId    Int
+  doubtId   Int?
+  answerId  Int?
+  createdAt DateTime     @default(now())
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  doubt     Doubt?       @relation(fields: [doubtId], references: [id], onDelete: Cascade)
+  answer    DoubtAnswer? @relation(fields: [answerId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, doubtId])
+  @@unique([userId, answerId])
+  @@index([doubtId])
+  @@index([answerId])
+}
+
+// A student flagging a doubt or an answer for the moderators.
+model DoubtReport {
+  id         Int               @id @default(autoincrement())
+  reason     String
+  status     DoubtReportStatus @default(PENDING)
+  reporterId Int
+  doubtId    Int?
+  answerId   Int?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  reporter   User              @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  doubt      Doubt?            @relation(fields: [doubtId], references: [id], onDelete: Cascade)
+  answer     DoubtAnswer?      @relation(fields: [answerId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([doubtId])
+  @@index([answerId])
+}
+
+enum DoubtStatus {
+  OPEN
+  RESOLVED
+}
+
+enum DoubtReportStatus {
+  PENDING
+  ACTIONED
+  DISMISSED
 }

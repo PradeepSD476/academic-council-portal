@@ -13,6 +13,7 @@ import {
   Landmark,
   TrendingUp,
   FileSearch,
+  MessagesSquare,
 } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import AuthContext from "../context/auth/authContext";
@@ -196,6 +197,13 @@ export default function DashboardLayout() {
                   label="Research Vault"
                   onClick={() => setOpen(false)}
                 />
+                <SidebarItem
+                  to="/dashboard/doubts"
+                  icon={<MessagesSquare size={16} />}
+                  iconColor="text-sky-600 bg-sky-50 border-sky-100"
+                  label="Doubt Forum"
+                  onClick={() => setOpen(false)}
+                />
                 {/* Level Up — hidden until feature reveal
                 <SidebarItem
                   to="/dashboard/level-up"
@@ -276,6 +284,15 @@ export default function DashboardLayout() {
                 label="Level Up"
                 onClick={() => setOpen(false)}
               />
+              {(user?.role === "SUPER_ADMIN" || isFaculty) && (
+                <SidebarItem
+                  to="/admin/manage-doubts"
+                  icon={<MessagesSquare size={16} />}
+                  iconColor="text-sky-600 bg-sky-50 border-sky-100"
+                  label="Doubt Forum"
+                  onClick={() => setOpen(false)}
+                />
+              )}
             </>
           )}
 

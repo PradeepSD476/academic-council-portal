@@ -44,6 +44,10 @@ import ResearchQuestionDetail from "./pages/ResearchVault/ResearchQuestionDetail
 import PositionDetail from "./pages/ResearchVault/PositionDetail.jsx";
 import ExperienceDetail from "./pages/ResearchVault/ExperienceDetail.jsx";
 import FacultyDetail from "./pages/ResearchVault/FacultyDetail.jsx";
+import DoubtForum from "./pages/DoubtForum/index.jsx";
+import AskDoubt from "./pages/DoubtForum/AskDoubt.jsx";
+import DoubtThread from "./pages/DoubtForum/DoubtThread.jsx";
+import ManageDoubts from "./pages/admin/ManageDoubts.jsx";
 const AppRoutes = () => {
   return (
     <Routes>
@@ -103,6 +107,12 @@ const AppRoutes = () => {
 
 <Route path="level-up" element={<LevelUp />} />
 <Route path="level-up/:roadmapSlug/:chapterSlug" element={<LevelUp />} />
+
+        {/* ACC Wiki: doubt forum */}
+        <Route path="doubts" element={<DoubtForum />} />
+        <Route path="doubts/ask" element={<AskDoubt />} />
+        <Route path="doubts/:id" element={<DoubtThread />} />
+        <Route path="doubts/:id/edit" element={<AskDoubt />} />
       </Route>
 
       {/* admin  */}
@@ -249,6 +259,14 @@ const AppRoutes = () => {
     </ProtectedRoute>
   }
 />
+        <Route
+          path="manage-doubts"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY"]}>
+              <ManageDoubts />
+            </ProtectedRoute>
+          }
+        />
       </Route>
      
     </Routes>
