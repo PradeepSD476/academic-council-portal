@@ -20,11 +20,7 @@ const tabs = [
 const getData = (response) => response.data?.data || [];
 
 function FacultyProfileView({ person, onBack }) {
-  useEffect(() => {
-    if (person?.id) {
-      researchVaultApi.recordFacultyView(person.id).catch(() => {});
-    }
-  }, [person?.id]);
+  // We do not record views in the admin panel so we don't skew the student view counts.
 
   if (!person) return null;
 
