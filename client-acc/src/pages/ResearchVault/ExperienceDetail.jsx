@@ -234,7 +234,8 @@ export default function ExperienceDetail() {
 
       {experience.faculty && (
         <Link
-          to={`/dashboard/research-vault?section=faculty&faculty=${experience.faculty.id}`}
+          to={location.pathname.startsWith('/admin') ? '/admin/research-vault' : `/dashboard/research-vault?section=faculty&faculty=${experience.faculty.id}`}
+          state={location.pathname.startsWith('/admin') ? { facultyId: experience.faculty.id } : undefined}
           className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:border-[var(--color-secondary)] hover:text-[var(--color-primary-accent)]"
         >
           <GraduationCap size={13} /> View faculty profile

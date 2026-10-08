@@ -215,6 +215,14 @@ export const getFacultyProfileById = handle(async (req) => {
 
 export const recordFacultyProfileView = handle(async (req) => {
   const numericId = Number.parseInt(req.params.id, 10);
+  
+  console.log("recordFacultyProfileView called by:", req.user?.email, "Role:", req.user?.role);
+  
+  if (req.user && ['RESEARCH_ADMIN', 'SUPER_ADMIN', 'FACULTY'].includes(req.user.role)) {
+    return { message: 'View ignored for admin/faculty.' };
+  }
+
+
   const profile = await prisma.facultyProfile.findFirst({
     where: { isActive: true, OR: [
       ...(Number.isInteger(numericId) ? [{ id: numericId }] : []),

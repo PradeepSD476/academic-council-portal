@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, BarChart3, BookOpenCheck, BriefcaseBusiness, CirclePlus, FlaskConical, Trash2, FileText, User, UsersRound, Image as ImageIcon, Link as LinkIcon, BookOpen, Globe, MapPin, Mail, Phone, Linkedin, GraduationCap, Info, Clock, MessageCircle, Eye, Download, AlertCircle, Activity, ChevronRight, Database, Calendar, CheckCircle2, Check, X, Building2, Tag, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { researchVaultApi } from '../../api/researchVaultApi';
@@ -981,6 +981,8 @@ function PositionForm({ faculty, areas, create, onClose }) {
 
 export default function ResearchVaultAdmin() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAutoOpening = Boolean(location.state?.facultyId);
   const [tab, setTab] = useState('analytics');
   const [isFacultyModalOpen, setIsFacultyModalOpen] = useState(false);
   const [selectedFaculty, setSelectedFaculty] = useState(null);
@@ -1015,18 +1017,30 @@ export default function ResearchVaultAdmin() {
       ]);
       setAnalytics(stats.data?.data || null);
       setQueue(getData(moderation));
-      setFaculty(getData(facultyResponse));
+      const facultyData = getData(facultyResponse);
+      setFaculty(facultyData);
       setResources(getData(resourcesResponse));
       setPositions(getData(positionsResponse));
       setAreas(getData(areasResponse));
       setCustomAreasQueue(getData(customAreasResponse));
       setResourceQueue(getData(resourceModResponse));
+
+      if (location.state?.facultyId && facultyData.length > 0) {
+        const found = facultyData.find(f => f.id === location.state.facultyId);
+        if (found) {
+          setTab('faculty');
+          setSelectedFaculty(found);
+          // Clear state so "Back" button works correctly without flashing or hiding the header
+          navigate(location.pathname, { replace: true, state: {} });
+        }
+      }
+
     } catch (error) {
       toast.error(error.response?.data?.message || 'Could not load Research Vault administration.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [location.state]);
 
   useEffect(() => { refresh(); }, [refresh]);
 
@@ -1131,7 +1145,7 @@ export default function ResearchVaultAdmin() {
 
   return (
     <div className="research-vault-theme mx-auto max-w-7xl space-y-6 pb-12 text-slate-900">
-      {(!selectedFaculty && !selectedResource && !selectedPosition && !selectedArea) && (
+      {(!selectedFaculty && !location.state?.facultyId && !selectedResource && !selectedPosition && !selectedArea) && (
         <>
           <header className="mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
