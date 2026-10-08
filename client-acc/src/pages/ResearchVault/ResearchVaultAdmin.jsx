@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BarChart3, BookOpenCheck, BriefcaseBusiness, CirclePlus, FlaskConical, Trash2, FileText, User, UsersRound, Image as ImageIcon, Link as LinkIcon, BookOpen, Globe, MapPin, Mail, Phone, Linkedin, GraduationCap, Info, Clock, MessageCircle, Eye, Download, AlertCircle, Activity, ChevronRight, Database, Calendar, CheckCircle2, Check, X, Building2, Tag } from 'lucide-react';
+import { ArrowLeft, BarChart3, BookOpenCheck, BriefcaseBusiness, CirclePlus, FlaskConical, Trash2, FileText, User, UsersRound, Image as ImageIcon, Link as LinkIcon, BookOpen, Globe, MapPin, Mail, Phone, Linkedin, GraduationCap, Info, Clock, MessageCircle, Eye, Download, AlertCircle, Activity, ChevronRight, Database, Calendar, CheckCircle2, Check, X, Building2, Tag, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { researchVaultApi } from '../../api/researchVaultApi';
 import { getFilePath } from '../../lib/getFilePath';
@@ -19,28 +19,217 @@ const tabs = [
 
 const getData = (response) => response.data?.data || [];
 
-function FacultyForm({ areas, create }) {
+function FacultyProfileView({ person, onBack }) {
+  useEffect(() => {
+    if (person?.id) {
+      researchVaultApi.recordFacultyView(person.id).catch(() => {});
+    }
+  }, [person?.id]);
+
+  if (!person) return null;
+
+  return (
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+      <button 
+        onClick={onBack}
+        className="mb-6 flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors"
+      >
+        <ArrowLeft size={16} /> Back to Faculty Members
+      </button>
+
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        {/* Profile Header */}
+        <div className="border-b border-slate-100 bg-slate-50/50 p-6 sm:p-8 flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">
+          <div className="h-24 w-24 sm:h-32 sm:w-32 shrink-0 overflow-hidden rounded-full bg-slate-100 flex items-center justify-center border-4 border-white shadow-md">
+            {person.photoURL ? (
+              <img src={person.photoURL} alt={person.name} className="h-full w-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+            ) : null}
+            <span className="text-2xl font-bold text-slate-400 uppercase" style={{ display: person.photoURL ? 'none' : 'flex' }}>
+              {person.name?.substring(0, 2) || 'FA'}
+            </span>
+          </div>
+          <div className="flex-1 mt-2 sm:mt-4">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">{person.name}</h2>
+            <div className="mt-2 flex flex-col gap-1 text-slate-600">
+              {person.designation && <p className="text-base font-medium">{person.designation}</p>}
+              {person.department && <p className="text-sm">{person.department}</p>}
+            </div>
+            {person.researchArea && (
+              <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 border border-blue-100">
+                <Tag size={12} /> {person.researchArea?.name || person.researchArea}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="p-6 sm:p-8 grid gap-8 md:grid-cols-3">
+          
+          {/* Main Content Area - Biography and Publications */}
+          <div className="md:col-span-2 space-y-8">
+            {(person.biography || person.publications) ? (
+              <>
+                {person.biography && (
+                  <section>
+                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <BookOpen size={16} className="text-slate-400" /> Biography
+                    </h3>
+                    <div className="prose prose-sm prose-slate max-w-none text-slate-600 whitespace-pre-wrap leading-relaxed">
+                      {person.biography}
+                    </div>
+                  </section>
+                )}
+
+                {person.publications && (
+                  <section>
+                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <FileText size={16} className="text-slate-400" /> Publications & Academic Work
+                    </h3>
+                    <div className="prose prose-sm prose-slate max-w-none text-slate-600 whitespace-pre-wrap leading-relaxed">
+                      {person.publications}
+                    </div>
+                  </section>
+                )}
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50 py-12 px-4 text-center h-full">
+                <BookOpen size={24} className="text-slate-300 mb-2" />
+                <p className="text-sm text-slate-500">No academic work or biography provided.</p>
+              </div>
+            )}
+          </div>
+
+          {/* Sidebar - Contact and Links */}
+          <div className="space-y-8">
+            <section>
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">Contact Information</h3>
+              <div className="space-y-4">
+                {person.email ? (
+                  <div className="flex gap-3">
+                    <Mail size={16} className="text-slate-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-semibold text-slate-900">Email</p>
+                      <a href={`mailto:${person.email}`} className="text-sm text-blue-600 hover:underline break-all">{person.email}</a>
+                    </div>
+                  </div>
+                ) : null}
+                
+                {person.phone ? (
+                  <div className="flex gap-3">
+                    <Phone size={16} className="text-slate-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-semibold text-slate-900">Phone</p>
+                      <p className="text-sm text-slate-600">{person.phone}</p>
+                    </div>
+                  </div>
+                ) : null}
+
+                {person.officeLocation ? (
+                  <div className="flex gap-3">
+                    <MapPin size={16} className="text-slate-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-semibold text-slate-900">Office</p>
+                      <p className="text-sm text-slate-600">{person.officeLocation}</p>
+                    </div>
+                  </div>
+                ) : null}
+                
+                {(!person.email && !person.phone && !person.officeLocation) && (
+                  <p className="text-sm text-slate-500 italic">No contact information provided.</p>
+                )}
+              </div>
+            </section>
+
+            {(person.website || person.scholarUrl || person.linkedinUrl || person.personalUrl) && (
+              <section>
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">Professional Profiles</h3>
+                <div className="space-y-3">
+                  {person.website && (
+                    <a href={person.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-slate-50 transition-colors group">
+                      <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-100 group-hover:text-blue-700 transition-colors">
+                        <Globe size={14} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-slate-900">Lab/Department Website</p>
+                        <p className="text-xs text-blue-600 group-hover:underline">Open Website</p>
+                      </div>
+                    </a>
+                  )}
+
+                  {person.scholarUrl && (
+                    <a href={person.scholarUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-slate-50 transition-colors group">
+                      <div className="h-8 w-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-100 group-hover:text-indigo-700 transition-colors">
+                        <GraduationCap size={14} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-slate-900">Google Scholar</p>
+                        <p className="text-xs text-blue-600 group-hover:underline">View Profile</p>
+                      </div>
+                    </a>
+                  )}
+
+                  {person.linkedinUrl && (
+                    <a href={person.linkedinUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-slate-50 transition-colors group">
+                      <div className="h-8 w-8 rounded-full bg-sky-50 flex items-center justify-center text-sky-600 group-hover:bg-sky-100 group-hover:text-sky-700 transition-colors">
+                        <Linkedin size={14} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-slate-900">LinkedIn</p>
+                        <p className="text-xs text-blue-600 group-hover:underline">View Profile</p>
+                      </div>
+                    </a>
+                  )}
+
+                  {person.personalUrl && (
+                    <a href={person.personalUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-slate-50 transition-colors group">
+                      <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 group-hover:bg-slate-200 group-hover:text-slate-800 transition-colors">
+                        <LinkIcon size={14} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-slate-900">Personal Website</p>
+                        <p className="text-xs text-blue-600 group-hover:underline">Visit Website</p>
+                      </div>
+                    </a>
+                  )}
+                </div>
+              </section>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FacultyForm({ areas, create, onClose }) {
   const [photoPreview, setPhotoPreview] = useState('');
   
   return (
-    <div className="mb-10">
-      <div className="mt-1.5 mb-8">
-        <p className="text-[15px] leading-relaxed text-slate-500">Manage and organize faculty profiles, research information and professional links.</p>
-      </div>
-
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div className="border-b border-slate-100 bg-slate-50/50 px-6 py-4">
-          <h3 className="text-base font-bold text-slate-900">Add Faculty</h3>
-          <p className="text-xs text-slate-500 mt-1">Create a new faculty profile in the directory.</p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 sm:p-6" onClick={(e) => { if (e.target === e.currentTarget && onClose) onClose(); }}>
+      <div className="w-full max-w-3xl max-h-full flex flex-col rounded-xl border border-slate-200 bg-white shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-6 py-4 shrink-0">
+          <div>
+            <h3 className="text-base font-bold text-slate-900">Add Faculty</h3>
+            <p className="text-xs text-slate-500 mt-1">Create a new faculty profile in the directory.</p>
+          </div>
+          <button type="button" onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+            <X size={20} />
+          </button>
         </div>
 
-        <form onSubmit={(event) => {
-            create(event, 'faculty');
-            setPhotoPreview('');
-          }} 
-          onReset={() => setPhotoPreview('')}
-          className="divide-y divide-slate-100"
-        >
+        <div className="overflow-y-auto flex-1">
+          <form onSubmit={async (event) => {
+              const success = await create(event, 'faculty');
+              if (success) {
+                setPhotoPreview('');
+                if (onClose) onClose();
+              }
+            }} 
+            onReset={() => {
+              setPhotoPreview('');
+              if (onClose) onClose();
+            }}
+            className="divide-y divide-slate-100 flex flex-col min-h-full"
+          >
           {/* Basic Information */}
           <div className="p-6">
             <div className="mb-5 flex items-center gap-2 text-blue-600">
@@ -208,7 +397,7 @@ function FacultyForm({ areas, create }) {
           </div>
 
           {/* Action Area */}
-          <div className="bg-slate-50 px-6 py-4 flex items-center justify-end gap-3 border-t border-slate-200">
+          <div className="bg-slate-50 px-6 py-4 flex items-center justify-end gap-3 border-t border-slate-200 sticky bottom-0 z-10 shrink-0">
             <button type="reset" className="rounded-lg px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors">
               Cancel
             </button>
@@ -218,6 +407,577 @@ function FacultyForm({ areas, create }) {
             </button>
           </div>
         </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ResourceProfileView({ resource, onBack }) {
+  useEffect(() => {
+    if (resource?.id) {
+      researchVaultApi.recordResourceView(resource.id).catch(() => {});
+    }
+  }, [resource?.id]);
+
+  if (!resource) return null;
+
+  return (
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+      <button 
+        onClick={onBack}
+        className="mb-6 flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors"
+      >
+        <ArrowLeft size={16} /> Back to Resource Library
+      </button>
+
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        {/* Header */}
+        <div className="border-b border-slate-100 bg-slate-50/50 p-6 sm:p-8">
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">{resource.title}</h2>
+          
+          <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-700 border border-slate-200">
+              {resource.resourceType === 'DATASET' ? <Activity size={14} className="text-slate-500" /> : resource.resourceType === 'GUIDE' ? <BookOpen size={14} className="text-slate-500" /> : <FileText size={14} className="text-slate-500" />}
+              {resource.resourceType.replace(/_/g, ' ')}
+            </span>
+            
+            {(resource.url || resource.filePath) && (
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-50 border border-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                {resource.url ? <LinkIcon size={14} /> : <Download size={14} />}
+                {resource.url ? 'External Link' : 'File Attached'}
+              </span>
+            )}
+          </div>
+          
+          {resource.researchAreas?.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {resource.researchAreas.map(ra => ra.researchArea?.name).filter(Boolean).map((area, idx) => (
+                <span key={idx} className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 border border-slate-200">
+                  <Tag size={12} className="text-slate-400" /> {area}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="p-6 sm:p-8 space-y-8">
+          {/* Description */}
+          {resource.description && (
+            <section>
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <Info size={16} className="text-slate-400" /> Description
+              </h3>
+              <div className="prose prose-sm prose-slate max-w-none text-slate-600 whitespace-pre-wrap leading-relaxed">
+                {resource.description}
+              </div>
+            </section>
+          )}
+
+          {/* Resource Content Link */}
+          {(resource.url || resource.filePath) && (
+            <section className="pt-6 border-t border-slate-100">
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <Database size={16} className="text-slate-400" /> Resource Content
+              </h3>
+              
+              {resource.url ? (
+                <a 
+                  href={resource.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="inline-flex items-center gap-2 rounded-md bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100 border border-blue-200"
+                >
+                  <Globe size={16} /> Open External Resource
+                </a>
+              ) : resource.filePath ? (
+                <a 
+                  href={researchVaultApi.getResourceDownloadUrl(resource.id)} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="inline-flex items-center gap-2 rounded-md bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100 border border-blue-200"
+                >
+                  <Download size={16} /> View / Download Attached File
+                </a>
+              ) : null}
+            </section>
+          )}
+          
+          {(!resource.description && !resource.url && !resource.filePath) && (
+            <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50 py-12 px-4 text-center h-full">
+              <FileText size={24} className="text-slate-300 mb-2" />
+              <p className="text-sm text-slate-500">No additional details provided.</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ResourceForm({ areas, create, onClose }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 sm:p-6" onClick={(e) => { if (e.target === e.currentTarget && onClose) onClose(); }}>
+      <div className="w-full max-w-3xl max-h-full flex flex-col rounded-xl border border-slate-200 bg-white shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-6 py-4 shrink-0">
+          <div>
+            <h3 className="text-base font-bold text-slate-900">Add Resource</h3>
+            <p className="text-xs text-slate-500 mt-1">Create a new resource for the Research Vault.</p>
+          </div>
+          <button type="button" onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="overflow-y-auto flex-1">
+          <form onSubmit={async (event) => {
+              const success = await create(event, 'resource');
+              if (success && onClose) onClose();
+            }} 
+            onReset={() => {
+              if (onClose) onClose();
+            }}
+            className="divide-y divide-slate-100 flex flex-col min-h-full"
+          >
+            {/* Basic Information */}
+            <div className="p-6">
+              <div className="mb-5 flex items-center gap-2 text-blue-600">
+                <BookOpen size={18} />
+                <h4 className="font-bold">Basic Information</h4>
+              </div>
+              
+              <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700">Resource Title <span className="text-rose-500">*</span></label>
+                  <input name="title" required placeholder="e.g. How to write a Research Paper" className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400" />
+                </div>
+                
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700">Resource Type</label>
+                  <select name="resourceType" className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400">
+                    <option value="GUIDE">Guide</option>
+                    <option value="DATASET">Dataset</option>
+                    <option value="SOP_WRITING">SOP writing</option>
+                    <option value="COLD_EMAILING">Cold-emailing professors</option>
+                    <option value="PHD_APPLICATIONS">PhD applications</option>
+                    <option value="GRANT_WRITING">Grant writing</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5 sm:col-span-2">
+                  <label className="text-xs font-semibold text-slate-700">Research Area</label>
+                  <select name="researchAreaId" className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400">
+                    <option value="">Select an area (optional)</option>
+                    {areas.map((area) => (
+                      <option key={area.id} value={area.id}>{area.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Resource Content */}
+            <div className="p-6 bg-slate-50/50">
+              <div className="mb-5 flex items-center gap-2 text-blue-600">
+                <LinkIcon size={18} />
+                <h4 className="font-bold">Resource Content</h4>
+              </div>
+              <p className="text-[13px] text-slate-500 mb-4">Provide the resource using an external URL or upload a file.</p>
+              
+              <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700">External URL</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                      <Globe size={16} />
+                    </div>
+                    <input name="url" type="url" placeholder="https://..." className="w-full rounded-lg border border-slate-300 bg-white pl-10 pr-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400" />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700">Upload File</label>
+                  <input name="file" type="file" className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400 file:mr-4 file:rounded-md file:border-0 file:bg-blue-50 file:px-4 file:py-1 file:text-sm file:font-semibold file:text-blue-600 hover:file:bg-blue-100 cursor-pointer" />
+                </div>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="p-6">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700">Description</label>
+                <p className="text-[11px] text-slate-500 mb-2">Provide a short description of this resource.</p>
+                <textarea name="description" rows={3} placeholder="Enter description here..." className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400 resize-y" />
+              </div>
+            </div>
+
+            {/* Action Area */}
+            <div className="bg-slate-50 px-6 py-4 flex items-center justify-end gap-3 border-t border-slate-200 sticky bottom-0 z-10 shrink-0">
+              <button type="reset" className="rounded-lg px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors">
+                Cancel
+              </button>
+              <button type="submit" className="inline-flex w-fit items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700">
+                <CirclePlus size={16} /> 
+                Add Resource
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PositionProfileView({ position, onBack }) {
+  if (!position) return null;
+  const isOpen = position.status === 'OPEN' && (!position.deadline || new Date(position.deadline) > new Date());
+
+  return (
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+      <button 
+        onClick={onBack}
+        className="mb-6 flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors"
+      >
+        <ArrowLeft size={16} /> Back to Available Opportunities
+      </button>
+
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        {/* Header */}
+        <div className="border-b border-slate-100 bg-slate-50/50 p-6 sm:p-8">
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">{position.title}</h2>
+          
+          <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-700 border border-slate-200">
+              <BriefcaseBusiness size={14} className="text-slate-500" />
+              {position.positionType?.replace(/_/g, ' ')}
+            </span>
+            
+            <span className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1 text-xs font-semibold ${isOpen ? 'bg-blue-50 border-blue-100 text-blue-700' : 'bg-slate-50 border-slate-200 text-slate-500'}`}>
+              <div className={`h-2 w-2 rounded-full ${isOpen ? 'bg-blue-600' : 'bg-slate-400'}`}></div>
+              {isOpen ? 'Open' : 'Closed'}
+            </span>
+
+            {position.deadline && (
+              <span className="inline-flex items-center gap-1.5 text-xs text-slate-500">
+                <Calendar size={14} /> Deadline: {new Date(position.deadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </span>
+            )}
+          </div>
+          
+          <div className="mt-6 flex flex-col gap-3">
+            {position.faculty?.name && (
+              <div>
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Linked Faculty</h4>
+                <div className="flex items-center gap-2 text-sm font-medium text-slate-800">
+                  <User size={16} className="text-slate-400" /> {position.faculty.name}
+                </div>
+              </div>
+            )}
+            {position.researchAreas && position.researchAreas.length > 0 && (
+              <div>
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Research Area</h4>
+                <div className="flex flex-wrap items-center gap-2 text-sm font-medium text-slate-800">
+                  <FlaskConical size={16} className="text-slate-400" /> 
+                  {position.researchAreas.map(ra => ra.researchArea.name).join(', ')}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="p-6 sm:p-8 space-y-8">
+          {position.description && (
+            <section>
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3">Description</h3>
+              <div className="prose prose-sm prose-slate max-w-none text-slate-600 whitespace-pre-wrap leading-relaxed">
+                {position.description}
+              </div>
+            </section>
+          )}
+
+          {position.eligibility && (
+            <section>
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3">Eligibility</h3>
+              <div className="prose prose-sm prose-slate max-w-none text-slate-600 whitespace-pre-wrap leading-relaxed">
+                {position.eligibility}
+              </div>
+            </section>
+          )}
+
+          {position.applicationInstructions && (
+            <section>
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3">Application Instructions</h3>
+              <div className="prose prose-sm prose-slate max-w-none text-slate-600 whitespace-pre-wrap leading-relaxed">
+                {position.applicationInstructions}
+              </div>
+            </section>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AreaProfileView({ area, onBack }) {
+  if (!area) return null;
+
+  return (
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+      <button 
+        onClick={onBack}
+        className="mb-6 flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors"
+      >
+        <ArrowLeft size={16} /> Back to Research Area Directory
+      </button>
+
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-100 bg-slate-50/50 p-6 sm:p-8">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+              <FlaskConical size={24} />
+            </div>
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">{area.name}</h2>
+              {area.slug && (
+                <p className="mt-1 flex items-center gap-2 text-sm font-medium text-slate-500 font-mono">
+                  Slug: <span className="bg-slate-100 px-2 py-0.5 rounded text-slate-600 border border-slate-200">{area.slug}</span>
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {area.description && (
+          <div className="p-6 sm:p-8">
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3">Description</h3>
+            <div className="prose prose-sm prose-slate max-w-none text-slate-600 whitespace-pre-wrap leading-relaxed">
+              {area.description}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AreaForm({ create, onClose }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 sm:p-6" onClick={(e) => { if (e.target === e.currentTarget && onClose) onClose(); }}>
+      <div className="w-full max-w-2xl max-h-full flex flex-col rounded-xl border border-slate-200 bg-white shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-6 py-4 shrink-0">
+          <div>
+            <h3 className="text-base font-bold text-slate-900">Add Research Area</h3>
+            <p className="text-xs text-slate-500 mt-1">Create a research category for organizing faculty, resources and academic opportunities.</p>
+          </div>
+          <button type="button" onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="overflow-y-auto flex-1">
+          <form onSubmit={async (event) => {
+              const success = await create(event, 'area');
+              if (success && onClose) onClose();
+            }} 
+            onReset={() => {
+              if (onClose) onClose();
+            }}
+            className="divide-y divide-slate-100 flex flex-col min-h-full"
+          >
+            <div className="p-6">
+              <div className="mb-5 flex items-center gap-2 text-blue-600">
+                <FlaskConical size={18} />
+                <div>
+                  <h4 className="font-bold">Basic Information</h4>
+                  <p className="text-[11px] text-slate-500 font-normal">Define the name and description of the research area.</p>
+                </div>
+              </div>
+              
+              <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700">Research Area Name <span className="text-rose-500">*</span></label>
+                  <input name="name" required placeholder="e.g. Artificial Intelligence" className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400" />
+                </div>
+                
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700">Slug</label>
+                  <input name="slug" placeholder="e.g. artificial-intelligence" className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400" />
+                  <p className="text-[11px] text-slate-500">Leave blank to generate automatically.</p>
+                </div>
+
+                <div className="space-y-1.5 sm:col-span-2">
+                  <label className="text-xs font-semibold text-slate-700">Description</label>
+                  <textarea name="description" rows={3} placeholder="Provide a short explanation of this research area..." className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400 resize-y" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 px-6 py-4 flex items-center justify-end gap-3 border-t border-slate-200 sticky bottom-0 z-10 shrink-0">
+              <button type="reset" className="rounded-lg px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors">
+                Cancel
+              </button>
+              <button type="submit" className="inline-flex w-fit items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700">
+                <CirclePlus size={16} /> 
+                Add Research Area
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PositionForm({ faculty, areas, create, onClose }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 sm:p-6" onClick={(e) => { if (e.target === e.currentTarget && onClose) onClose(); }}>
+      <div className="w-full max-w-3xl max-h-full flex flex-col rounded-xl border border-slate-200 bg-white shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-6 py-4 shrink-0">
+          <div>
+            <h3 className="text-base font-bold text-slate-900">Add Open Position</h3>
+            <p className="text-xs text-slate-500 mt-1">Create a new research opportunity or academic position.</p>
+          </div>
+          <button type="button" onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="overflow-y-auto flex-1">
+          <form onSubmit={async (event) => {
+              const success = await create(event, 'position');
+              if (success && onClose) onClose();
+            }} 
+            onReset={() => {
+              if (onClose) onClose();
+            }}
+            className="divide-y divide-slate-100 flex flex-col min-h-full"
+          >
+            {/* Position Details */}
+            <div className="p-6">
+              <div className="mb-5 flex items-center gap-2 text-blue-600">
+                <BriefcaseBusiness size={18} />
+                <div>
+                  <h4 className="font-bold">Position Details</h4>
+                  <p className="text-[11px] text-slate-500 font-normal">Define the role, availability and academic context.</p>
+                </div>
+              </div>
+              
+              <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700">Position Title <span className="text-rose-500">*</span></label>
+                  <input name="title" required placeholder="e.g. Summer Intern - Machine Learning" className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400" />
+                </div>
+                
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700">Position Type</label>
+                  <select name="positionType" className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400">
+                    <option value="SUMMER_RESEARCH">Summer research</option>
+                    <option value="THESIS">Thesis slot</option>
+                    <option value="READING_PROJECT">Reading project</option>
+                    <option value="RA_SHIP">Research assistantship</option>
+                    <option value="PHD_ASSIST">PhD assistant</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700">Linked Faculty</label>
+                  <select name="facultyId" className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400">
+                    <option value="">No linked faculty</option>
+                    {faculty.map((person) => <option key={person.id} value={person.id}>{person.name}</option>)}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700">Research Area</label>
+                  <select name="researchAreaId" className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400">
+                    <option value="">Select an area (optional)</option>
+                    {areas.map((area) => <option key={area.id} value={area.id}>{area.name}</option>)}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700">Application Deadline</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                      <Calendar size={16} />
+                    </div>
+                    <input name="deadline" type="date" className="w-full rounded-lg border border-slate-300 bg-white pl-10 pr-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400" />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700">Status</label>
+                  <select name="status" className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400">
+                    <option value="OPEN">Open (Active)</option>
+                    <option value="CLOSED">Closed (Early close)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Application Information */}
+            <div className="p-6 bg-slate-50/50">
+              <div className="mb-5 flex items-center gap-2 text-blue-600">
+                <FileText size={18} />
+                <div>
+                  <h4 className="font-bold">Application Information</h4>
+                  <p className="text-[11px] text-slate-500 font-normal">Provide applicants with instructions and eligibility details.</p>
+                </div>
+              </div>
+              
+              <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700">Application URL</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                      <LinkIcon size={16} />
+                    </div>
+                    <input name="applicationUrl" type="url" placeholder="https://..." className="w-full rounded-lg border border-slate-300 bg-white pl-10 pr-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400" />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700">How to Apply</label>
+                  <input name="howToApply" placeholder="Short instructions or email" className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400" />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700">Description</label>
+                  <textarea name="description" rows={3} placeholder="Provide a brief description of the role..." className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400 resize-y" />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700">Eligibility</label>
+                  <textarea name="eligibility" rows={3} placeholder="e.g. 2nd/3rd year undergraduates..." className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400 resize-y" />
+                </div>
+
+                <div className="space-y-1.5 sm:col-span-2">
+                  <label className="text-xs font-semibold text-slate-700">Requirements / Skills</label>
+                  <p className="text-[11px] text-slate-500 mb-2">List required skills or qualifications, one per line (using '-').</p>
+                  <textarea name="requirements" rows={3} placeholder="- Python&#10;- Machine Learning&#10;- Strong work ethic" className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400 resize-y" />
+                </div>
+
+                <div className="space-y-1.5 sm:col-span-2">
+                  <label className="text-xs font-semibold text-slate-700">Application Instructions</label>
+                  <p className="text-[11px] text-slate-500 mb-2">Provide detailed instructions for applicants.</p>
+                  <textarea name="applicationInstructions" rows={4} placeholder="Enter full instructions here..." className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400 resize-y" />
+                </div>
+              </div>
+            </div>
+
+            {/* Action Area */}
+            <div className="bg-slate-50 px-6 py-4 flex items-center justify-end gap-3 border-t border-slate-200 sticky bottom-0 z-10 shrink-0">
+              <button type="reset" className="rounded-lg px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors">
+                Cancel
+              </button>
+              <button type="submit" className="inline-flex w-fit items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700">
+                <CirclePlus size={16} /> 
+                Add Position
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
@@ -226,6 +986,14 @@ function FacultyForm({ areas, create }) {
 export default function ResearchVaultAdmin() {
   const navigate = useNavigate();
   const [tab, setTab] = useState('analytics');
+  const [isFacultyModalOpen, setIsFacultyModalOpen] = useState(false);
+  const [selectedFaculty, setSelectedFaculty] = useState(null);
+  const [isResourceModalOpen, setIsResourceModalOpen] = useState(false);
+  const [selectedResource, setSelectedResource] = useState(null);
+  const [isPositionModalOpen, setIsPositionModalOpen] = useState(false);
+  const [selectedPosition, setSelectedPosition] = useState(null);
+  const [isAreaModalOpen, setIsAreaModalOpen] = useState(false);
+  const [selectedArea, setSelectedArea] = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [queue, setQueue] = useState([]);
   const [faculty, setFaculty] = useState([]);
@@ -303,8 +1071,10 @@ export default function ResearchVaultAdmin() {
       form.reset();
       toast.success('Research Vault record created.');
       await refresh();
+      return true;
     } catch (error) {
       toast.error(error.response?.data?.message || 'Could not create this record.');
+      return false;
     }
   };
 
@@ -365,40 +1135,54 @@ export default function ResearchVaultAdmin() {
 
   return (
     <div className="research-vault-theme mx-auto max-w-7xl space-y-6 pb-12 text-slate-900">
-      <header className="border-b border-slate-200 pb-5">
-        <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-blue-600">Research Vault</p>
-        <h1 className="flex items-center gap-3 text-3xl font-bold tracking-tight text-slate-950"><FlaskConical size={28} className="text-blue-600" /> Administration</h1>
-        <p className="mt-2 text-sm text-slate-600">Review contributions and maintain the research directory.</p>
-      </header>
+      {(!selectedFaculty && !selectedResource && !selectedPosition && !selectedArea) && (
+        <>
+          <header className="mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-[3px] h-6 bg-[var(--color-secondary)] rounded-full shadow-[0_0_8px_var(--color-secondary)]" />
+                  <h1 className="text-2xl md:text-3xl font-extrabold text-[var(--color-primary)] tracking-tight flex items-center gap-2.5">
+                    <FlaskConical className="text-[var(--color-secondary)]" size={24} /> Research Vault Admin
+                  </h1>
+                </div>
+                <p className="text-slate-500 text-sm ml-4">
+                  Review contributions and maintain the research directory.
+                </p>
+              </div>
+            </div>
+          </header>
 
-      <nav className="vault-tabs flex items-center gap-2 overflow-x-auto px-1 pb-2 pt-1 scrollbar-none" aria-label="Research administration sections">
-        {tabs.map(({ id, label, icon: Icon }) => (
-          <button 
-            key={id} 
-            onClick={() => setTab(id)} 
-            className={`flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold transition-all duration-200 ${
-              tab === id 
-                ? '!bg-blue-600 !border-blue-600 !text-white shadow-md scale-[1.02]' 
-                : 'border-slate-200 bg-white text-slate-500 shadow-sm hover:border-slate-300 hover:bg-slate-50 hover:text-blue-600'
-            }`}
-            style={tab === id ? { backgroundColor: '#2563EB', borderColor: '#2563EB', color: '#ffffff' } : {}}
-          >
-            <span className="sr-only">{label}</span>
-            <Icon size={16} />
-            <span>{label}</span>
-            {id === 'moderation' && queue.length > 0 && (
-              <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${tab === id ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-900'}`}>
-                {queue.length}
-              </span>
-            )}
-            {id === 'resource-queue' && resourceQueue.length > 0 && (
-              <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${tab === id ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-900'}`}>
-                {resourceQueue.length}
-              </span>
-            )}
-          </button>
-        ))}
-      </nav>
+          <nav className="vault-tabs flex items-center gap-2 overflow-x-auto px-1 pb-2 pt-1 scrollbar-none" aria-label="Research administration sections">
+            {tabs.map(({ id, label, icon: Icon }) => (
+              <button 
+                key={id} 
+                onClick={() => setTab(id)} 
+                className={`flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold transition-all duration-200 ${
+                  tab === id 
+                    ? '!bg-blue-600 !border-blue-600 !text-white shadow-md scale-[1.02]' 
+                    : 'border-slate-200 bg-white text-slate-500 shadow-sm hover:border-slate-300 hover:bg-slate-50 hover:text-blue-600'
+                }`}
+                style={tab === id ? { backgroundColor: '#2563EB', borderColor: '#2563EB', color: '#ffffff' } : {}}
+              >
+                <span className="sr-only">{label}</span>
+                <Icon size={16} />
+                <span>{label}</span>
+                {id === 'moderation' && queue.length > 0 && (
+                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${tab === id ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-900'}`}>
+                    {queue.length}
+                  </span>
+                )}
+                {id === 'resource-queue' && resourceQueue.length > 0 && (
+                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${tab === id ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-900'}`}>
+                    {resourceQueue.length}
+                  </span>
+                )}
+              </button>
+            ))}
+          </nav>
+        </>
+      )}
 
       {loading ? <p className="py-10 text-center text-sm text-slate-500">Loading vault records...</p> : <>
         {tab === 'analytics' && (
@@ -747,35 +1531,48 @@ export default function ResearchVaultAdmin() {
 
         {tab === 'faculty' && (
           <section>
-            <div className="mb-6">
-              <h2 className="text-[22px] font-bold text-slate-900 tracking-tight">Faculty Directory</h2>
-            </div>
-            
-            <FacultyForm areas={areas} create={create} />
-            
-            <div className="mt-12">
-              <div className="mb-6">
-                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <UsersRound size={20} className="text-blue-600" />
-                  Faculty Members
-                </h3>
-                <p className="text-sm text-slate-500 mt-1">Manage existing faculty profiles and directory listings.</p>
-              </div>
-
-              {faculty.length === 0 ? (
-                <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 py-16 px-4 text-center">
-                  <div className="rounded-full bg-blue-50 p-4 mb-4">
-                    <User size={32} className="text-blue-600" />
+            {selectedFaculty ? (
+              <FacultyProfileView person={selectedFaculty} onBack={() => setSelectedFaculty(null)} />
+            ) : (
+              <>
+                <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-[22px] font-bold text-slate-900 tracking-tight">Faculty Directory</h2>
+                    <div className="mt-1.5">
+                      <p className="text-[15px] leading-relaxed text-slate-500">Manage and organize faculty profiles, research information and professional links.</p>
+                    </div>
                   </div>
-                  <h4 className="text-base font-bold text-slate-900">No faculty members yet</h4>
-                  <p className="mt-1 text-sm text-slate-500 max-w-sm">Add your first faculty member using the form above to start building the directory.</p>
                 </div>
-              ) : (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
-                  {faculty.map((person) => (
-                    <article key={person.id} className="group relative flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-blue-200 hover:shadow-md">
-                      <div className="flex items-start gap-4">
-                        <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-slate-100 flex items-center justify-center border border-slate-200">
+                
+                <div className="mb-12">
+                  <div className="mb-6 flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <UsersRound size={20} className="text-blue-600" />
+                        Faculty Members
+                      </h3>
+                      <p className="text-sm text-slate-500 mt-1">Manage existing faculty profiles and directory listings.</p>
+                    </div>
+                    <button onClick={() => setIsFacultyModalOpen(true)} className="inline-flex shrink-0 w-fit items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 shadow-sm">
+                      <CirclePlus size={16} /> 
+                      Add Faculty
+                    </button>
+                  </div>
+
+                  {faculty.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 py-16 px-4 text-center">
+                      <div className="rounded-full bg-blue-50 p-4 mb-4">
+                        <User size={32} className="text-blue-600" />
+                      </div>
+                      <h4 className="text-base font-bold text-slate-900">No faculty members yet</h4>
+                      <p className="mt-1 text-sm text-slate-500 max-w-sm">Add your first faculty member using the Add Faculty button to start building the directory.</p>
+                    </div>
+                  ) : (
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
+                      {faculty.map((person) => (
+                        <article key={person.id} onClick={() => setSelectedFaculty(person)} className="group relative flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-blue-200 hover:shadow-md cursor-pointer">
+                          <div className="flex items-start gap-4">
+                            <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-slate-100 flex items-center justify-center border border-slate-200">
                           {person.photoURL ? (
                             <img src={person.photoURL} alt={person.name} className="h-full w-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
                           ) : null}
@@ -794,7 +1591,10 @@ export default function ResearchVaultAdmin() {
                       
                       <div className="mt-5 flex items-center justify-end border-t border-slate-100 pt-3">
                         <button 
-                          onClick={() => remove('faculty', person.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            remove('faculty', person.id);
+                          }}
                           className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-semibold text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-1"
                           aria-label={`Delete ${person.name}`}
                           title={`Delete ${person.name}`}
@@ -808,127 +1608,37 @@ export default function ResearchVaultAdmin() {
                 </div>
               )}
             </div>
+
+            {isFacultyModalOpen && (
+              <FacultyForm areas={areas} create={create} onClose={() => setIsFacultyModalOpen(false)} />
+            )}
+            </>
+          )}
           </section>
         )}
 
         {tab === 'resources' && (
           <section className="animate-in fade-in duration-300">
-            <div className="mb-6">
-              <h2 className="text-[22px] font-bold text-slate-900 tracking-tight">Resources</h2>
-              <p className="mt-1 text-sm text-slate-500">Manage research materials, guides, datasets and other academic resources.</p>
-            </div>
-            
-            {/* Add Resource Form */}
-            <div className="mb-10">
-              <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                <div className="border-b border-slate-100 bg-slate-50/50 px-6 py-4">
-                  <h3 className="text-base font-bold text-slate-900">Add Resource</h3>
-                  <p className="text-xs text-slate-500 mt-1">Create a new resource for the Research Vault.</p>
-                </div>
-                
-                <form onSubmit={(event) => create(event, 'resource')} className="divide-y divide-slate-100">
-                  {/* Basic Information */}
-                  <div className="p-6">
-                    <div className="mb-5 flex items-center gap-2 text-blue-600">
-                      <BookOpen size={18} />
-                      <h4 className="font-bold">Basic Information</h4>
-                    </div>
-                    
-                    <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-700">Resource Title <span className="text-rose-500">*</span></label>
-                        <input name="title" required placeholder="e.g. How to write a Research Paper" className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400" />
-                      </div>
-                      
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-700">Resource Type</label>
-                        <select name="resourceType" className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400">
-                          <option value="GUIDE">Guide</option>
-                          <option value="DATASET">Dataset</option>
-                          <option value="SOP_WRITING">SOP writing</option>
-                          <option value="COLD_EMAILING">Cold-emailing professors</option>
-                          <option value="PHD_APPLICATIONS">PhD applications</option>
-                          <option value="GRANT_WRITING">Grant writing</option>
-                          <option value="OTHER">Other</option>
-                        </select>
-                      </div>
-
-                      <div className="space-y-1.5 sm:col-span-2">
-                        <label className="text-xs font-semibold text-slate-700">Research Area</label>
-                        <select name="researchAreaId" className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400">
-                          <option value="">Select an area (optional)</option>
-                          {areas.map((area) => (
-                            <option key={area.id} value={area.id}>{area.name}</option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Resource Content */}
-                  <div className="p-6 bg-slate-50/50">
-                    <div className="mb-5 flex items-center gap-2 text-blue-600">
-                      <LinkIcon size={18} />
-                      <h4 className="font-bold">Resource Content</h4>
-                    </div>
-                    <p className="text-[13px] text-slate-500 mb-4">Provide the resource using an external URL or upload a file.</p>
-                    
-                    <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-700">External URL</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                            <Globe size={16} />
-                          </div>
-                          <input name="url" type="url" placeholder="https://..." className="w-full rounded-lg border border-slate-300 bg-white pl-10 pr-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400" />
-                        </div>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-700">Upload File</label>
-                        <input name="file" type="file" className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400 file:mr-4 file:rounded-md file:border-0 file:bg-blue-50 file:px-4 file:py-1 file:text-sm file:font-semibold file:text-blue-600 hover:file:bg-blue-100 cursor-pointer" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <div className="p-6">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-slate-700">Description</label>
-                      <p className="text-[11px] text-slate-500 mb-2">Provide a short description of this resource.</p>
-                      <textarea name="description" rows={3} placeholder="Enter description here..." className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400 resize-y" />
-                    </div>
-                  </div>
-
-                  {/* Action Area */}
-                  <div className="bg-slate-50 px-6 py-4 flex items-center justify-end gap-3 border-t border-slate-200">
-                    <button type="reset" className="rounded-lg px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors">
-                      Cancel
-                    </button>
-                    <button type="submit" className="inline-flex w-fit items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700">
-                      <CirclePlus size={16} /> 
-                      Add Resource
-                    </button>
-                  </div>
-                </form>
+            {selectedResource ? (
+              <ResourceProfileView resource={selectedResource} onBack={() => setSelectedResource(null)} />
+            ) : (
+              <>
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-[22px] font-bold text-slate-900 tracking-tight">Resource Library</h2>
+                <p className="mt-1 text-sm text-slate-500">Manage research materials, guides, datasets and other academic resources.</p>
               </div>
+              <button 
+                onClick={() => setIsResourceModalOpen(true)}
+                className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+              >
+                <CirclePlus size={16} /> 
+                Add Resource
+              </button>
             </div>
 
             {/* Resource Library List */}
-            <div className="mt-12">
-              <div className="mb-6 flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                    <FileText size={20} className="text-blue-600" />
-                    Resource Library
-                  </h3>
-                  <p className="text-sm text-slate-500 mt-1">Manage existing research materials and academic resources.</p>
-                </div>
-                <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                  {resources.length} resources
-                </div>
-              </div>
-
+            <div className="mt-8">
               {resources.length === 0 ? (
                 <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 py-16 px-4 text-center">
                   <div className="rounded-full bg-blue-50 p-4 mb-4">
@@ -940,13 +1650,17 @@ export default function ResearchVaultAdmin() {
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
                   {resources.map((resource) => (
-                    <article key={resource.id} className="group relative flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-blue-200 hover:shadow-md">
+                    <article 
+                      key={resource.id} 
+                      onClick={() => setSelectedResource(resource)}
+                      className="group relative flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-blue-200 hover:shadow-md cursor-pointer"
+                    >
                       <div className="flex items-start gap-4">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 group-hover:bg-blue-100 transition-colors">
                           {resource.resourceType === 'DATASET' ? <Activity size={18} /> : resource.resourceType === 'GUIDE' ? <BookOpen size={18} /> : <FileText size={18} />}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h4 className="font-bold text-slate-900 line-clamp-1" title={resource.title}>{resource.title}</h4>
+                          <h4 className="font-bold text-slate-900 line-clamp-1 group-hover:text-blue-700 transition-colors" title={resource.title}>{resource.title}</h4>
                           <div className="mt-1 flex flex-wrap gap-2">
                             <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
                               {resource.resourceType.replace(/_/g, ' ')}
@@ -971,7 +1685,10 @@ export default function ResearchVaultAdmin() {
                       
                       <div className="mt-5 flex items-center justify-end border-t border-slate-100 pt-3">
                         <button 
-                          onClick={() => remove('resource', resource.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            remove('resource', resource.id);
+                          }}
                           className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-semibold text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-1"
                           aria-label={`Delete ${resource.title}`}
                           title={`Delete ${resource.title}`}
@@ -985,15 +1702,33 @@ export default function ResearchVaultAdmin() {
                 </div>
               )}
             </div>
+
+            {isResourceModalOpen && (
+              <ResourceForm areas={areas} create={create} onClose={() => setIsResourceModalOpen(false)} />
+            )}
+            </>
+            )}
           </section>
         )}
 
         {tab === 'positions' && (
           <section className="animate-in fade-in duration-300">
-            {/* Page Header */}
-            <div className="mb-6">
-              <h2 className="text-[22px] font-bold text-slate-900 tracking-tight">Open Positions</h2>
-              <p className="mt-1 text-sm text-slate-500">Manage research opportunities, internships and academic positions.</p>
+            {selectedPosition ? (
+              <PositionProfileView position={selectedPosition} onBack={() => setSelectedPosition(null)} />
+            ) : (
+              <>
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-[22px] font-bold text-slate-900 tracking-tight">Available Opportunities</h2>
+                <p className="mt-1 text-sm text-slate-500">Manage current research opportunities and academic positions.</p>
+              </div>
+              <button 
+                onClick={() => setIsPositionModalOpen(true)}
+                className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+              >
+                <CirclePlus size={16} /> 
+                Add Open Position
+              </button>
             </div>
 
             {/* Summary Area */}
@@ -1004,158 +1739,8 @@ export default function ResearchVaultAdmin() {
               </div>
             </div>
 
-            {/* Add Position Form */}
-            <div className="mb-10">
-              <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                <div className="border-b border-slate-100 bg-slate-50/50 px-6 py-4">
-                  <h3 className="text-base font-bold text-slate-900">Add Open Position</h3>
-                  <p className="text-xs text-slate-500 mt-1">Create a new research opportunity or academic position.</p>
-                </div>
-                
-                <form onSubmit={(event) => create(event, 'position')} className="divide-y divide-slate-100">
-                  {/* Position Details */}
-                  <div className="p-6">
-                    <div className="mb-5 flex items-center gap-2 text-blue-600">
-                      <BriefcaseBusiness size={18} />
-                      <div>
-                        <h4 className="font-bold">Position Details</h4>
-                        <p className="text-[11px] text-slate-500 font-normal">Define the role, availability and academic context.</p>
-                      </div>
-                    </div>
-                    
-                    <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-700">Position Title <span className="text-rose-500">*</span></label>
-                        <input name="title" required placeholder="e.g. Summer Intern - Machine Learning" className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400" />
-                      </div>
-                      
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-700">Position Type</label>
-                        <select name="positionType" className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400">
-                          <option value="SUMMER_RESEARCH">Summer research</option>
-                          <option value="THESIS">Thesis slot</option>
-                          <option value="READING_PROJECT">Reading project</option>
-                          <option value="RA_SHIP">Research assistantship</option>
-                          <option value="PHD_ASSIST">PhD assistant</option>
-                        </select>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-700">Linked Faculty</label>
-                        <select name="facultyId" className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400">
-                          <option value="">No linked faculty</option>
-                          {faculty.map((person) => <option key={person.id} value={person.id}>{person.name}</option>)}
-                        </select>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-700">Research Area</label>
-                        <select name="researchAreaId" className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400">
-                          <option value="">Select an area (optional)</option>
-                          {areas.map((area) => <option key={area.id} value={area.id}>{area.name}</option>)}
-                        </select>
-                      </div>
-
-
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-700">Application Deadline</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                            <Calendar size={16} />
-                          </div>
-                          <input name="deadline" type="date" className="w-full rounded-lg border border-slate-300 bg-white pl-10 pr-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400" />
-                        </div>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-700">Status</label>
-                        <select name="status" className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400">
-                          <option value="OPEN">Open (Active)</option>
-                          <option value="CLOSED">Closed (Early close)</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Application Information */}
-                  <div className="p-6 bg-slate-50/50">
-                    <div className="mb-5 flex items-center gap-2 text-blue-600">
-                      <FileText size={18} />
-                      <div>
-                        <h4 className="font-bold">Application Information</h4>
-                        <p className="text-[11px] text-slate-500 font-normal">Provide applicants with instructions and eligibility details.</p>
-                      </div>
-                    </div>
-                    
-                    <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-700">Application URL</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                            <LinkIcon size={16} />
-                          </div>
-                          <input name="applicationUrl" type="url" placeholder="https://..." className="w-full rounded-lg border border-slate-300 bg-white pl-10 pr-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400" />
-                        </div>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-700">How to Apply</label>
-                        <input name="howToApply" placeholder="Short instructions or email" className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400" />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-700">Description</label>
-                        <textarea name="description" rows={3} placeholder="Provide a brief description of the role..." className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400 resize-y" />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-700">Eligibility</label>
-                        <textarea name="eligibility" rows={3} placeholder="e.g. 2nd/3rd year undergraduates..." className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400 resize-y" />
-                      </div>
-
-                      <div className="space-y-1.5 sm:col-span-2">
-                        <label className="text-xs font-semibold text-slate-700">Requirements / Skills</label>
-                        <p className="text-[11px] text-slate-500 mb-2">List required skills or qualifications, one per line (using '-').</p>
-                        <textarea name="requirements" rows={3} placeholder="- Python&#10;- Machine Learning&#10;- Strong work ethic" className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400 resize-y" />
-                      </div>
-
-                      <div className="space-y-1.5 sm:col-span-2">
-                        <label className="text-xs font-semibold text-slate-700">Application Instructions</label>
-                        <p className="text-[11px] text-slate-500 mb-2">Provide detailed instructions for applicants.</p>
-                        <textarea name="applicationInstructions" rows={4} placeholder="Enter full instructions here..." className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400 resize-y" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action Area */}
-                  <div className="bg-slate-50 px-6 py-4 flex items-center justify-end gap-3 border-t border-slate-200">
-                    <button type="reset" className="rounded-lg px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors">
-                      Cancel
-                    </button>
-                    <button type="submit" className="inline-flex w-fit items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700">
-                      <CirclePlus size={16} /> 
-                      Add Position
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-
             {/* Existing Positions List */}
-            <div className="mt-12">
-              <div className="mb-6 flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                    <BriefcaseBusiness size={20} className="text-blue-600" />
-                    Available Opportunities
-                  </h3>
-                  <p className="text-sm text-slate-500 mt-1">Manage current research opportunities and academic positions.</p>
-                </div>
-                <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                  {positions.length} opportunities
-                </div>
-              </div>
-
+            <div className="mt-8">
               {positions.length === 0 ? (
                 <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 py-16 px-4 text-center">
                   <div className="rounded-full bg-blue-50 p-4 mb-4">
@@ -1175,14 +1760,18 @@ export default function ResearchVaultAdmin() {
                     const openStatus = isOpen();
 
                     return (
-                      <article key={position.id} className="group relative flex flex-col sm:flex-row sm:items-center justify-between gap-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:border-blue-200 hover:shadow-md">
+                      <article 
+                        key={position.id} 
+                        onClick={() => setSelectedPosition(position)}
+                        className="group relative flex flex-col sm:flex-row sm:items-center justify-between gap-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:border-blue-200 hover:shadow-md cursor-pointer"
+                      >
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start gap-4">
-                            <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${openStatus ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-400'}`}>
+                            <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${openStatus ? 'bg-blue-50 text-blue-600 group-hover:bg-blue-100 transition-colors' : 'bg-slate-100 text-slate-400 group-hover:bg-slate-200 transition-colors'}`}>
                               <BriefcaseBusiness size={24} />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <h4 className="text-[17px] font-bold text-slate-900 truncate" title={position.title}>{position.title}</h4>
+                              <h4 className="text-[17px] font-bold text-slate-900 truncate group-hover:text-blue-700 transition-colors" title={position.title}>{position.title}</h4>
                               <div className="mt-1.5 flex flex-wrap items-center gap-2">
                                 <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
                                   {position.positionType?.replace(/_/g, ' ')}
@@ -1202,10 +1791,10 @@ export default function ResearchVaultAdmin() {
                               </div>
                               
                               <div className="mt-3 flex flex-wrap gap-4 text-[13px] text-slate-500">
-                                {position.researchArea?.name && (
+                                {position.researchAreas && position.researchAreas.length > 0 && (
                                   <div className="flex items-center gap-1.5">
                                     <FlaskConical size={14} className="text-slate-400" />
-                                    <span className="truncate max-w-[200px]">{position.researchArea.name}</span>
+                                    <span className="truncate max-w-[200px]">{position.researchAreas.map(ra => ra.researchArea.name).join(', ')}</span>
                                   </div>
                                 )}
                                 {position.faculty?.name && (
@@ -1223,7 +1812,8 @@ export default function ResearchVaultAdmin() {
                         <div className="flex flex-col sm:items-end gap-4 shrink-0 sm:pl-6 sm:border-l border-slate-100">
                           <div className="flex items-center gap-2 mt-auto">
                             <button 
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 if (position.status === 'OPEN') {
                                   if (window.confirm('Are you sure you want to close this position early? Students will no longer see it as active.')) {
                                     updateRecord('position', position.id, { status: 'CLOSED' });
@@ -1238,7 +1828,10 @@ export default function ResearchVaultAdmin() {
                             </button>
                             
                             <button 
-                              onClick={() => remove('position', position.id)} 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                remove('position', position.id);
+                              }} 
                               title="Delete Position" 
                               className="flex items-center justify-center rounded-lg border border-transparent p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors focus:ring-2 focus:ring-rose-200 focus:outline-none"
                             >
@@ -1252,129 +1845,104 @@ export default function ResearchVaultAdmin() {
                 </div>
               )}
             </div>
+
+            {isPositionModalOpen && (
+              <PositionForm faculty={faculty} areas={areas} create={create} onClose={() => setIsPositionModalOpen(false)} />
+            )}
+            </>
+            )}
           </section>
         )}
         {tab === 'areas' && (
           <section className="animate-in fade-in duration-300">
-            {/* Page Header */}
-            <div className="mb-6">
-              <h2 className="text-[22px] font-bold text-slate-900 tracking-tight">Research Areas</h2>
-              <p className="mt-1 text-sm text-slate-500">Organize and manage the research areas used across the Research Vault.</p>
-            </div>
-
-            {/* Add Research Area Form */}
-            <div className="mb-10">
-              <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                <div className="border-b border-slate-100 bg-slate-50/50 px-6 py-4">
-                  <h3 className="text-base font-bold text-slate-900">Add Research Area</h3>
-                  <p className="text-xs text-slate-500 mt-1">Create a research category for organizing faculty, resources and academic opportunities.</p>
-                </div>
+            {selectedArea ? (
+              <AreaProfileView area={selectedArea} onBack={() => setSelectedArea(null)} />
+            ) : (
+              <>
+                {isAreaModalOpen && (
+                  <AreaForm create={create} onClose={() => setIsAreaModalOpen(false)} />
+                )}
                 
-                <form onSubmit={(event) => create(event, 'area')} className="divide-y divide-slate-100">
-                  <div className="p-6">
-                    <div className="mb-5 flex items-center gap-2 text-blue-600">
-                      <FlaskConical size={18} />
-                      <div>
-                        <h4 className="font-bold">Basic Information</h4>
-                        <p className="text-[11px] text-slate-500 font-normal">Define the name and description of the research area.</p>
-                      </div>
-                    </div>
-                    
-                    <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-700">Research Area Name <span className="text-rose-500">*</span></label>
-                        <input name="name" required placeholder="e.g. Artificial Intelligence" className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400" />
-                      </div>
-                      
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-700">Slug</label>
-                        <input name="slug" placeholder="e.g. artificial-intelligence" className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400" />
-                        <p className="text-[11px] text-slate-500">Leave blank to generate automatically.</p>
-                      </div>
-
-                      <div className="space-y-1.5 sm:col-span-2">
-                        <label className="text-xs font-semibold text-slate-700">Description</label>
-                        <textarea name="description" rows={3} placeholder="Provide a short explanation of this research area..." className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400 resize-y" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action Area */}
-                  <div className="bg-slate-50 px-6 py-4 flex items-center justify-end gap-3 border-t border-slate-200">
-                    <button type="reset" className="rounded-lg px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors">
-                      Cancel
-                    </button>
-                    <button type="submit" className="inline-flex w-fit items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700">
-                      <CirclePlus size={16} /> 
-                      Add Research Area
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-
-            {/* Research Areas List */}
-            <div className="mt-12">
-              <div className="mb-6 flex items-center justify-between">
+                {/* Research Areas List */}
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                    <FlaskConical size={20} className="text-blue-600" />
-                    Research Area Directory
-                  </h3>
-                  <p className="text-sm text-slate-500 mt-1">Manage the research taxonomy used across the Research Vault.</p>
-                </div>
-                <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                  {areas.length} research areas
-                </div>
-              </div>
-
-              {areas.length === 0 ? (
-                <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 py-16 px-4 text-center">
-                  <div className="rounded-full bg-blue-50 p-4 mb-4">
-                    <FlaskConical size={32} className="text-blue-600" />
+                  <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <h3 className="text-[22px] font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                        <FlaskConical size={24} className="text-blue-600" />
+                        Research Area Directory
+                      </h3>
+                      <p className="mt-1 text-sm text-slate-500">Manage the research taxonomy used across the Research Vault.</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="hidden sm:flex rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600 border border-slate-200">
+                        {areas.length} research areas
+                      </div>
+                      <button 
+                        onClick={() => setIsAreaModalOpen(true)}
+                        className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow"
+                      >
+                        <Plus size={18} />
+                        Add Research Area
+                      </button>
+                    </div>
                   </div>
-                  <h4 className="text-base font-bold text-slate-900">No research areas yet</h4>
-                  <p className="mt-1 text-sm text-slate-500 max-w-sm">Create your first research area to organize Research Vault content.</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {areas.map((area) => (
-                    <article key={area.id} className="group relative flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-blue-200 hover:shadow-md">
-                      <div className="flex items-start gap-4">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-                          <FlaskConical size={20} />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0">
-                              <h4 className="text-base font-bold text-slate-900 truncate" title={area.name}>{area.name}</h4>
-                              {area.slug && (
-                                <p className="mt-0.5 text-[11px] font-medium text-slate-400 font-mono truncate" title={area.slug}>
-                                  {area.slug}
+
+                  {areas.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 py-16 px-4 text-center">
+                      <div className="rounded-full bg-blue-50 p-4 mb-4">
+                        <FlaskConical size={32} className="text-blue-600" />
+                      </div>
+                      <h4 className="text-base font-bold text-slate-900">No research areas yet</h4>
+                      <p className="mt-1 text-sm text-slate-500 max-w-sm">Create your first research area to organize Research Vault content.</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {areas.map((area) => (
+                        <article 
+                          key={area.id} 
+                          onClick={() => setSelectedArea(area)}
+                          className="group relative flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-blue-200 hover:shadow-md cursor-pointer"
+                        >
+                          <div className="flex items-start gap-4">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 group-hover:bg-blue-100 transition-colors">
+                              <FlaskConical size={20} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                  <h4 className="text-base font-bold text-slate-900 truncate group-hover:text-blue-700 transition-colors" title={area.name}>{area.name}</h4>
+                                  {area.slug && (
+                                    <p className="mt-0.5 text-[11px] font-medium text-slate-400 font-mono truncate" title={area.slug}>
+                                      {area.slug}
+                                    </p>
+                                  )}
+                                </div>
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toast.error('Research areas used by existing records cannot be removed here.');
+                                  }} 
+                                  title="Delete research area" 
+                                  className="shrink-0 flex items-center justify-center rounded-lg border border-transparent p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors focus:ring-2 focus:ring-rose-200 focus:outline-none -mr-2"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                              
+                              {area.description && (
+                                <p className="mt-3 text-sm text-slate-600 line-clamp-2" title={area.description}>
+                                  {area.description}
                                 </p>
                               )}
                             </div>
-                            <button 
-                              onClick={() => toast.error('Research areas used by existing records cannot be removed here.')} 
-                              title="Delete research area" 
-                              className="shrink-0 flex items-center justify-center rounded-lg border border-transparent p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors focus:ring-2 focus:ring-rose-200 focus:outline-none -mr-2"
-                            >
-                              <Trash2 size={16} />
-                            </button>
                           </div>
-                          
-                          {area.description && (
-                            <p className="mt-3 text-sm text-slate-600 line-clamp-2" title={area.description}>
-                              {area.description}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </article>
-                  ))}
+                        </article>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </>
+            )}
           </section>
         )}
         {tab === 'custom-areas' && (

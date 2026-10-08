@@ -163,6 +163,11 @@ const AdminDashboard = () => {
               navigateTo="/admin/finance-vault"
               accentColor="bg-purple-50 text-purple-700"
             />
+            <AddQuickAction
+              title="Manage Research Vault"
+              navigateTo="/admin/research-vault"
+              accentColor="bg-slate-50 text-slate-700"
+            />
           </div>
         </div>
       </div>

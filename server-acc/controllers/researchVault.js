@@ -210,9 +210,20 @@ export const getFacultyProfileById = handle(async (req) => {
     include: facultyInclude
   });
   if (!profile) throw fail(404, 'Faculty profile not found.');
+  return { data: withComputedOpenings(profile) };
+});
+
+export const recordFacultyProfileView = handle(async (req) => {
+  const numericId = Number.parseInt(req.params.id, 10);
+  const profile = await prisma.facultyProfile.findFirst({
+    where: { isActive: true, OR: [
+      ...(Number.isInteger(numericId) ? [{ id: numericId }] : []),
+      { slug: req.params.id }
+    ] }
+  });
+  if (!profile) throw fail(404, 'Faculty profile not found.');
   await prisma.$executeRaw`UPDATE "research_vault"."FacultyProfile" SET "profileViewCount" = "profileViewCount" + 1 WHERE "id" = ${profile.id}`;
-  const data = await prisma.facultyProfile.findUnique({ where: { id: profile.id }, include: facultyInclude });
-  return { data: withComputedOpenings(data) };
+  return { message: 'View recorded.' };
 });
 
 export const createFacultyProfile = handle(async (req) => {
@@ -1336,24 +1347,48 @@ export const getResearchPositionBookmarks = handle(async (req) => {
 });
 
 export const createOpenPosition = handle(async (req) => {
-  const { id: ignoredId, uploadedById, ...data } = req.body;
+  const { id: ignoredId, uploadedById, researchAreaIds, ...data } = req.body;
   if (!data.title) throw fail(400, 'Position title is required.');
   if (data.deadline) data.deadline = new Date(data.deadline);
   if (data.facultyId) data.facultyId = parseId(data.facultyId);
   const position = await prisma.researchOpenPosition.create({
-    data: { ...data, uploadedById: req.user.id },
-    include: { faculty: true }
+    data: { 
+      ...data, 
+      uploadedById: req.user.id,
+      ...(researchAreaIds && researchAreaIds.length > 0 && {
+        researchAreas: {
+          create: researchAreaIds.map((areaId) => ({ researchAreaId: areaId }))
+        }
+      })
+    },
+    include: { faculty: true, researchAreas: { include: { researchArea: true } } }
   });
   return { status: 201, data: position };
 });
 
 export const updateOpenPosition = handle(async (req) => {
-  const { id: ignoredId, uploadedById, ...data } = req.body;
+  const { id: ignoredId, uploadedById, researchAreaIds, ...data } = req.body;
   if (data.deadline === '') data.deadline = null;
   else if (data.deadline) data.deadline = new Date(data.deadline);
   if (data.facultyId) data.facultyId = parseId(data.facultyId);
+
+  let updateData = { ...data };
+  
+  if (researchAreaIds !== undefined) {
+    await prisma.researchOpenPositionResearchArea.deleteMany({
+      where: { positionId: parseId(req.params.id) }
+    });
+    if (researchAreaIds.length > 0) {
+      updateData.researchAreas = {
+        create: researchAreaIds.map((areaId) => ({ researchAreaId: areaId }))
+      };
+    }
+  }
+
   const position = await prisma.researchOpenPosition.update({
-    where: { id: parseId(req.params.id) }, data, include: { faculty: true }
+    where: { id: parseId(req.params.id) }, 
+    data: updateData, 
+    include: { faculty: true, researchAreas: { include: { researchArea: true } } }
   });
   return { data: position };
 });
@@ -1371,7 +1406,7 @@ export const getResearchAnalytics = handle(async () => {
     prisma.researchDiscussion.count(),
     prisma.researchDiscussion.count({ where: { isResolved: false, replies: { none: {} } } }),
     prisma.researchResource.findMany({ orderBy: [{ viewCount: 'desc' }, { downloadCount: 'desc' }], take: 10 }),
-    prisma.$queryRaw`SELECT "id", "name", "department", "profileViewCount" FROM "research_vault"."FacultyProfile" WHERE "isActive" = true ORDER BY "profileViewCount" DESC LIMIT 10`
+    prisma.facultyProfile.findMany({ where: { isActive: true }, orderBy: { profileViewCount: 'desc' }, take: 10 })
   ]);
   const researchAreas = await prisma.researchArea.findMany({
     include: { _count: { select: { facultyProfiles: true, experiences: true, discussions: true, resources: true } } },

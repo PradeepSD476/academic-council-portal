@@ -11,6 +11,7 @@ export const researchVaultApi = {
   // ── Faculty ───────────────────────────────────────────────────────────
   getFaculty: (params) => api.get('/faculty', { params }),
   getFacultyProfileById: (id) => api.get(`/faculty/${id}`),
+  recordFacultyView: (id) => api.post(`/faculty/${id}/view`),
   getFacultyOpenings: (id) => api.get(`/faculty/openings/${id}`),
   createFaculty: (data) => api.post('/faculty', data),
   updateFaculty: (id, data) => api.put(`/faculty/${id}`, data),

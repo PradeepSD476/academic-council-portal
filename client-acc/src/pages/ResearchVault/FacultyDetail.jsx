@@ -44,7 +44,11 @@ export default function FacultyDetail() {
     let active = true;
     setLoading(true);
     researchVaultApi.getFacultyProfileById(facultyId)
-      .then((response) => { if (active) setFaculty(response.data?.data || null); })
+      .then((response) => {
+        if (active) setFaculty(response.data?.data || null);
+        // Fire and forget view tracking
+        researchVaultApi.recordFacultyView(facultyId).catch(() => {});
+      })
       .catch(() => { if (active) setError('This faculty profile could not be found.'); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
