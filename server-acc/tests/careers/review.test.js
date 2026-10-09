@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { planEdit, checkCompensation } from '../../services/careers/postings/editPosting.js';
 import { bulkSkipReason, reviewWhere } from '../../services/careers/postings/reviewService.js';
 import cron from 'node-cron';
-import { mergeRunRequest, runAfterUpdate } from '../../controllers/careers/adminSourcesController.js';
+import { mergeRunRequest, runAfterUpdate, runsSummary } from '../../controllers/careers/adminSourcesController.js';
 import { computeAlerts, minutesSince, workerStatus } from '../../services/careers/ops/alerts.js';
 import { JOBS, runRequestsTick } from '../../services/careers/jobs.js';
 import { istDayStart, istMonthStart } from '../../services/careers/ops/llmStatus.js';
@@ -187,5 +187,14 @@ describe('IST boundaries', () => {
         expect(istDayStart(now).toISOString()).toBe('2026-10-31T18:30:00.000Z');
         expect(istMonthStart(now).toISOString()).toBe('2026-10-31T18:30:00.000Z');
         expect(istMonthStart(new Date('2026-10-15T00:00:00Z')).toISOString()).toBe('2026-09-30T18:30:00.000Z');
+    });
+});
+
+describe('runsSummary (B-17: what a finished "Fetch now" found)', () => {
+    it('counts finished runs, new postings and failures', () => {
+        expect(runsSummary([
+            { status: 'SUCCESS', newCount: 2 }, { status: 'SUCCESS', newCount: 0 }, { status: 'FAILED', newCount: 0 }, { status: 'RUNNING', newCount: 0 },
+        ])).toEqual({ runs: 3, newPostings: 2, failed: 1 });
+        expect(runsSummary([])).toEqual({ runs: 0, newPostings: 0, failed: 0 });
     });
 });

@@ -70,7 +70,7 @@ export const careersAdminApi = {
   listSubmissions: (params) => api.get('/careers/admin/submissions', { params }).then((r) => r.data),
 
   // Sources and operations
-  listSources: () => api.get('/careers/admin/sources').then((r) => r.data),
+  listSources: (params = {}) => api.get('/careers/admin/sources', { params }).then((r) => r.data),
   createSource: (body) => api.post('/careers/admin/sources', body).then((r) => r.data),
   updateSource: (id, body) => api.patch(`/careers/admin/sources/${id}`, body).then((r) => r.data),
   runSource: (id) => api.post(`/careers/admin/sources/${id}/run`).then((r) => r.data),

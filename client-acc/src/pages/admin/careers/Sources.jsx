@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { careersAdminApi, errorMessage } from "../../../api/careersApi";
 import AddSourceDialog from "./AddSourceDialog";
 import HealthBadge from "./components/HealthBadge";
+import { fetchFinishedMessage } from "./components/format";
 import { PageHeader, Skeleton, cardClass, outlineButton, primaryButton } from "./components/ui";
 
 const POLL_MS = 5000;
@@ -52,14 +53,20 @@ export default function Sources() {
   }, [load]);
 
   const pending = data?.pendingRequest;
-  const wasPending = useRef(false);
+  const wasPending = useRef(null); // requestedAt of the fetch being watched
   useEffect(() => {
     if (!pending) {
-      if (wasPending.current) toast.success("Fetch finished. New postings are in Jobs Review.");
-      wasPending.current = false;
+      const since = wasPending.current;
+      wasPending.current = null;
+      if (since) {
+        // Say what the fetch found, not just that it finished.
+        careersAdminApi.listSources({ runsSince: since })
+          .then((res) => toast.success(fetchFinishedMessage(res.runsSince)))
+          .catch(() => toast.success(fetchFinishedMessage(null)));
+      }
       return undefined;
     }
-    wasPending.current = true;
+    wasPending.current = pending.requestedAt;
     const timer = setInterval(load, POLL_MS);
     return () => clearInterval(timer);
   }, [pending, load]);

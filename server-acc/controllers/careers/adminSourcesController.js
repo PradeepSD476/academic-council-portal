@@ -35,6 +35,9 @@ const sourceSelect = {
 export const listSources = async (req, res) => {
     try {
         clearSettingsCache(); // runRequest and the heartbeat are written by the worker process
+        // ?runsSince=<requestedAt>: what the runs since a "Fetch now" found (B-17).
+        const since = req.query?.runsSince ? new Date(String(req.query.runsSince)) : null;
+        if (since && Number.isNaN(since.getTime())) throw new CareersError(400, 'VALIDATION_ERROR', 'runsSince must be a date.');
         const [sources, pendingRequest, heartbeat] = await Promise.all([
             prisma.source.findMany({ select: sourceSelect, orderBy: [{ kind: 'asc' }, { id: 'asc' }] }),
             getSetting('careers.runRequest'),
@@ -42,16 +45,28 @@ export const listSources = async (req, res) => {
         ]);
         const live = await prisma.postingSource.groupBy({ by: ['sourceId'], where: { isLive: true }, _count: { _all: true } });
         const liveBySource = new Map(live.map((r) => [r.sourceId, r._count._all]));
+        const runs = since ? await prisma.sourceRun.findMany({ where: { startedAt: { gte: since } }, select: { status: true, newCount: true } }) : null;
         return res.json({
             success: true,
             data: sources.map((s) => ({ ...s, liveObservations: liveBySource.get(s.id) ?? 0 })),
             pendingRequest,
             worker: workerStatus(heartbeat),
+            ...(runs ? { runsSince: runsSummary(runs) } : {}),
         });
     } catch (err) {
         return sendError(res, err, 'listSources');
     }
 };
+
+// Pure. Finished runs, the new postings they created, and how many failed.
+export function runsSummary(runs) {
+    const finished = runs.filter((r) => r.status !== 'RUNNING');
+    return {
+        runs: finished.length,
+        newPostings: finished.reduce((n, r) => n + (r.newCount ?? 0), 0),
+        failed: finished.filter((r) => r.status === 'FAILED').length,
+    };
+}
 
 // Validate-on-create: the board is fetched once; a token that doesn't work is a 400, not a FAILING
 // source on its next run.
