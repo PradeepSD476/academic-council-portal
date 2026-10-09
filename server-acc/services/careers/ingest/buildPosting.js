@@ -2,6 +2,7 @@
 // 2-6 and 8). Pure and deterministic: no LLM, no database. Unknown stays unknown (null / UNKNOWN /
 // NOT_DISCLOSED) and is listed in uncertainFields so the review queue highlights it.
 import { normalizeTitle, normalizeLocation } from '../text/normalize.js';
+import { parseEligibility } from '../text/eligibility.js';
 import { parseCompensation } from '../text/compensation.js';
 import { simhash64 } from '../text/fingerprint.js';
 import { extractSkills } from '../text/skills.js';
@@ -56,12 +57,13 @@ export function confidenceFor(uncertainFields) {
 
 // raw: RawPosting; relevance: result of evaluateRelevance (keep === true);
 // company: { companyId, uncertain }; uncertain: extra fields the caller already doubts (e.g. applyUrl).
-export function buildPostingData(raw, { relevance, company, uncertain = [] }) {
+export function buildPostingData(raw, { relevance, company, uncertain = [], now = new Date() }) {
     const title = raw.title.trim();
     const description = raw.descriptionText ?? '';
     const type = resolveType(relevance.type, raw.employmentTypeText);
     const comp = compensationFields(raw.compensationText, type);
     const location = raw.locationText?.trim() || null;
+    const eligibility = parseEligibility(description, now);
 
     const uncertainFields = [];
     if (type === 'UNKNOWN') uncertainFields.push('type');
@@ -69,6 +71,8 @@ export function buildPostingData(raw, { relevance, company, uncertain = [] }) {
     if (company.uncertain) uncertainFields.push('company');
     // Pay was stated but could not be read with certainty; the raw text is kept for the reviewer.
     if (comp.stipendDisclosure === 'UNCLEAR' || comp.ctcDisclosure === 'UNCLEAR') uncertainFields.push('compensation');
+    // Eligibility from the description is only a suggestion until a reviewer confirms it.
+    if (eligibility.mentioned) uncertainFields.push('eligibility');
     uncertainFields.push(...uncertain);
 
     return {
@@ -80,9 +84,11 @@ export function buildPostingData(raw, { relevance, company, uncertain = [] }) {
         locationNormalized: normalizeLocation(location),
         workMode: detectWorkMode({ workplaceText: raw.workplaceText, text: description }),
         skills: extractSkills(`${title}\n${description}`),
-        // ATS boards don't state eligibility; [] = not stated (never leave the arrays NULL).
-        eligibleBranches: [],
-        eligibleYears: [],
+        // Boards have no eligibility field; what the description states, else [] / null = not stated
+        // (never leave the arrays NULL).
+        eligibleBranches: eligibility.branches,
+        eligibleYears: eligibility.years,
+        minCpi: eligibility.minCpi,
         ...comp,
         descriptionText: description,
         contentFingerprint: simhash64(description),

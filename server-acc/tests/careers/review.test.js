@@ -20,6 +20,11 @@ describe('planEdit', () => {
         expect(changes).toEqual({ type: { from: 'UNKNOWN', to: 'INTERNSHIP' } });
         expect(data).toEqual({ type: 'INTERNSHIP', uncertainFields: ['location'] });
     });
+    it('editing branches, years or min CPI clears the "eligibility" uncertainty (B-03)', () => {
+        const p = { ...posting, eligibleBranches: ['CS', 'EE'], eligibleYears: [4, 5], uncertainFields: ['eligibility', 'type'] };
+        expect(planEdit(p, { eligibleYears: [4] }).data.uncertainFields).toEqual(['type']);
+        expect(planEdit(p, { minCpi: 8 }).data.uncertainFields).toEqual(['type']);
+    });
     it('recomputes derived columns', () => {
         const { data } = planEdit(posting, { roleTitle: 'SDE Intern (Summer 2027)', location: 'Bangalore' });
         expect(data.roleTitleNormalized).toBe('software engineer intern');

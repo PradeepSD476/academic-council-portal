@@ -107,7 +107,13 @@ describe('buildPostingData', () => {
     };
 
     it('sets eligibility to [] (not stated), never leaves it NULL', () => {
-        expect(build()).toMatchObject({ eligibleBranches: [], eligibleYears: [] });
+        expect(build()).toMatchObject({ eligibleBranches: [], eligibleYears: [], minCpi: null });
+    });
+    it('B-03: eligibility stated in the description is read and flagged for the reviewer', () => {
+        const r = { ...raw, descriptionText: `${JD}\nMinimum eligibility criteria\n- CGPA 8 and above\n- 2027 graduates of Circuital branches only` };
+        const d = buildPostingData(r, { relevance: evaluateRelevance(r), company: { companyId: 7, uncertain: false }, now: new Date('2026-10-09T00:00:00+05:30') });
+        expect(d).toMatchObject({ minCpi: 8, eligibleYears: [4, 5], uncertainFields: ['eligibility'], extractionConfidence: 0.85 });
+        expect(d.eligibleBranches).toEqual(expect.arrayContaining(['CS', 'EE', 'EC']));
     });
 
     it('maps a clean internship with full confidence', () => {

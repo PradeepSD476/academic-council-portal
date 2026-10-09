@@ -98,7 +98,11 @@ export function planEdit(posting, rawEdits) {
 
     Object.assign(data, derived(data));
     // A field the admin set is no longer uncertain.
-    const confirmed = new Set(Object.keys(changes).map((f) => (/^(stipend|ctc|comp)/.test(f) ? 'compensation' : f === 'companyId' ? 'company' : f)));
+    const confirmed = new Set(Object.keys(changes).map((f) => {
+        if (/^(stipend|ctc|comp)/.test(f)) return 'compensation';
+        if (/^(eligible|minCpi)/.test(f)) return 'eligibility';
+        return f === 'companyId' ? 'company' : f;
+    }));
     const remaining = (posting.uncertainFields ?? []).filter((f) => !confirmed.has(f));
     if (remaining.length !== (posting.uncertainFields ?? []).length) data.uncertainFields = remaining;
     return { data, changes };

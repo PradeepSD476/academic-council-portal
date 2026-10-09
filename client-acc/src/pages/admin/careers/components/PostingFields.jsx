@@ -83,13 +83,13 @@ export default function PostingFields({ form, set, uncertain = [], confidence = 
       </UncertainField>
 
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <UncertainField id="pf-branches" label="Eligible branches" className="sm:col-span-2" hint="Roll-number codes, e.g. CS, EE. Empty = not stated.">
+        <UncertainField id="pf-branches" label="Eligible branches" className="sm:col-span-2" uncertain={unsure("eligibility")} confidence={confidence} hint="Roll-number codes, e.g. CS, EE. Empty = not stated.">
           <input id="pf-branches" className={inputClass} value={form.eligibleBranches} onChange={(e) => set("eligibleBranches", e.target.value)} />
         </UncertainField>
-        <UncertainField id="pf-years" label="Years" hint="e.g. 3, 4">
+        <UncertainField id="pf-years" label="Years" uncertain={unsure("eligibility")} confidence={confidence} hint="e.g. 3, 4">
           <input id="pf-years" className={inputClass} value={form.eligibleYears} onChange={(e) => set("eligibleYears", e.target.value)} />
         </UncertainField>
-        <UncertainField id="pf-cpi" label="Min CPI">
+        <UncertainField id="pf-cpi" label="Min CPI" uncertain={unsure("eligibility")} confidence={confidence}>
           <input id="pf-cpi" type="number" step="0.01" min="0" max="10" className={inputClass} value={form.minCpi} onChange={(e) => set("minCpi", e.target.value)} />
         </UncertainField>
       </div>
