@@ -17,12 +17,17 @@ describe('ipGuard: every blocked range (Architecture 7a)', () => {
         ['::', '::'], ['::1', '::1'], ['fc00::/7', 'fc00::1'], ['fd00::/8', 'fd12:3456::1'], ['fe80::/10', 'fe80::1'], ['fe80 with zone', 'fe80::1%eth0'],
         ['mapped 127', '::ffff:127.0.0.1'], ['mapped 10 (hex)', '::ffff:a00:1'], ['mapped metadata', '::ffff:169.254.169.254'], ['compatible 10', '::10.0.0.1'],
         ['ff00::/8 multicast', 'ff02::1'], ['not an IP', 'localhost'], ['empty', ''],
+        // B-05: IPv6 forms that carry an IPv4 address (the NAT64 one was fetched in the 8 Oct review).
+        ['NAT64 127 (hex)', '64:ff9b::7f00:1'], ['NAT64 127 (dotted)', '64:ff9b::127.0.0.1'], ['NAT64 metadata', '64:ff9b::a9fe:a9fe'], ['NAT64 10', '64:ff9b::10.0.0.1'],
+        ['local-use NAT64 64:ff9b:1::/48', '64:ff9b:1::808:808'], ['6to4 127', '2002:7f00:1::1'], ['6to4 metadata', '2002:a9fe:a9fe::1'], ['6to4 192.168', '2002:c0a8:101::'],
+        ['IPv4-translated 127', '::ffff:0:127.0.0.1'], ['site-local fec0::/10', 'fec0::1'], ['Teredo 2001::/32', '2001:0:4136:e378:8000:63bf:3fff:fdd2'],
     ])('blocks %s (%s)', (_, ip) => {
         expect(isBlockedAddress(ip)).toBe(true);
     });
     it.each([
         ['public v4', '8.8.8.8'], ['just below 10/8', '9.255.255.255'], ['just outside 172.16/12', '172.32.0.1'], ['just outside 100.64/10', '100.128.0.1'],
         ['public 169.x', '169.253.1.1'], ['192.0.2 (docs, not listed)', '192.0.2.1'], ['public v6', '2606:4700:4700::1111'], ['mapped public', '::ffff:8.8.8.8'],
+        ['NAT64 public', '64:ff9b::808:808'], ['6to4 public', '2002:808:808::1'], ['2001:db8 is not Teredo', '2001:4860:4860::8888'],
     ])('allows %s (%s)', (_, ip) => {
         expect(isBlockedAddress(ip)).toBe(false);
     });

@@ -43,11 +43,21 @@ function v6Blocked(ip) {
     if ((g[0] & 0xfe00) === 0xfc00) return true; // fc00::/7 unique local
     if ((g[0] & 0xffc0) === 0xfe80) return true; // fe80::/10 link local
     if ((g[0] & 0xff00) === 0xff00) return true; // ff00::/8 multicast
-    // IPv4-mapped (::ffff:a.b.c.d) and IPv4-compatible (::a.b.c.d): judge the embedded IPv4 address.
-    if (g.slice(0, 5).every((x) => x === 0) && (g[5] === 0xffff || g[5] === 0)) {
-        const v4 = `${g[6] >> 8}.${g[6] & 0xff}.${g[7] >> 8}.${g[7] & 0xff}`;
-        return v4Blocked(v4);
-    }
+    if ((g[0] & 0xffc0) === 0xfec0) return true; // fec0::/10 old site-local
+    if (g[0] === 0x64 && g[1] === 0xff9b && g[2] === 1) return true; // 64:ff9b:1::/48 local-use NAT64
+    if (g[0] === 0x2001 && g[1] === 0) return true; // 2001::/32 Teredo (client address is obfuscated)
+
+    // Forms that carry an IPv4 address, which a NAT64 / 6to4 gateway would connect to: judge that address.
+    const v4 = (hi, lo) => v4Blocked(`${hi >> 8}.${hi & 0xff}.${lo >> 8}.${lo & 0xff}`);
+    const zeros = (from, to) => g.slice(from, to).every((x) => x === 0);
+    // IPv4-mapped (::ffff:a.b.c.d) and IPv4-compatible (::a.b.c.d)
+    if (zeros(0, 5) && (g[5] === 0xffff || g[5] === 0)) return v4(g[6], g[7]);
+    // IPv4-translated (::ffff:0:a.b.c.d)
+    if (zeros(0, 4) && g[4] === 0xffff && g[5] === 0) return v4(g[6], g[7]);
+    // NAT64 well-known prefix 64:ff9b::/96
+    if (g[0] === 0x64 && g[1] === 0xff9b && zeros(2, 6)) return v4(g[6], g[7]);
+    // 6to4 2002:aabb:ccdd::/48 = a.b.c.d
+    if (g[0] === 0x2002) return v4(g[1], g[2]);
     return false;
 }
 
