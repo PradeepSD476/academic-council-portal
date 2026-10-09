@@ -36,8 +36,9 @@ function PayFields({ side, label, form, set, uncertain, confidence }) {
   );
 }
 
-// form: see postingForm.toForm; set(field, value); uncertain: string[] from the posting.
-export default function PostingFields({ form, set, uncertain = [], confidence = null, companySlot }) {
+// form: see postingForm.toForm; set(field, value); uncertain: string[] from the posting;
+// linkCheck: applyLinkCheck() for the current apply link, or null.
+export default function PostingFields({ form, set, uncertain = [], confidence = null, companySlot, linkCheck = null }) {
   const unsure = (key) => uncertain.includes(key);
   const payUnsure = unsure("compensation");
   return (
@@ -94,8 +95,14 @@ export default function PostingFields({ form, set, uncertain = [], confidence = 
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <UncertainField id="pf-url" label="Apply link" className="sm:col-span-2">
+        <UncertainField id="pf-url" label="Apply link" className="sm:col-span-2" uncertain={unsure("applyUrl")} confidence={confidence}>
           <input id="pf-url" type="url" className={inputClass} value={form.applyUrl} onChange={(e) => set("applyUrl", e.target.value)} required />
+          {linkCheck && (
+            <p className={`mt-1 text-[11px] ${linkCheck.warn ? "font-semibold text-red-600" : "text-slate-500"}`}>
+              Goes to {linkCheck.site}
+              {linkCheck.warn && ": not the company's website or a known job board. Open it and check before publishing."}
+            </p>
+          )}
         </UncertainField>
         <UncertainField id="pf-deadline" label="Deadline stated by source" hint="Only if the source publishes one.">
           <input id="pf-deadline" type="date" className={inputClass} value={form.deadlineStated} onChange={(e) => set("deadlineStated", e.target.value)} />

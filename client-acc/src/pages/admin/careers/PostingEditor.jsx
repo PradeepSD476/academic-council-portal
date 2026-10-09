@@ -8,6 +8,7 @@ import { careersAdminApi, errorMessage } from "../../../api/careersApi";
 import ConfidenceMeter from "./components/ConfidenceMeter";
 import CompanyPicker from "./components/CompanyPicker";
 import PostingFields from "./components/PostingFields";
+import { applyLinkCheck } from "./components/applyLink";
 import UncertainField from "./components/UncertainField";
 import { REJECT_REASONS, changedFields, toForm } from "./components/postingForm";
 import { Skeleton, StatusChip, dangerButton, inputClass, outlineButton, primaryButton } from "./components/ui";
@@ -142,6 +143,11 @@ export default function PostingEditor({ postingId, onClose, onChanged }) {
             <section className="p-5 xl:overflow-y-auto">
               {posting.rejectReason && <p className="mb-4 text-xs text-rose-700 bg-rose-50 border border-rose-100 rounded-xl px-3 py-2">Rejected: {posting.rejectReason}</p>}
               <PostingFields form={form} set={set} uncertain={posting.uncertainFields} confidence={posting.extractionConfidence}
+                linkCheck={applyLinkCheck(form.applyUrl, {
+                  tier: posting.extractionTier,
+                  // A company picked here has no website loaded, so only the original company can vouch.
+                  companyWebsite: company?.companyId === posting.company.id ? posting.company.website : null,
+                })}
                 companySlot={(
                   <UncertainField id="pe-company" label="Company" uncertain={posting.uncertainFields.includes("company")} confidence={posting.extractionConfidence}
                     hint={company?.status === "CANDIDATE" ? "Candidate company: approve or merge it in Companies before publishing, or pick the right company here." : undefined}>

@@ -12,6 +12,7 @@ import { isBlockedDomain } from './blockedDomains.js';
 import { parseAtsLink, fetchAtsJob } from './atsLink.js';
 import { safeFetch } from './safeFetch.js';
 import { extractJsonLd } from './jsonLd.js';
+import { linkTrust } from './linkTrust.js';
 import { htmlToText } from '../text/html.js';
 import { guessType, classifyLocation } from '../text/relevance.js';
 import { loadCompanyIndex } from '../companies/companyIndex.js';
@@ -38,6 +39,8 @@ function nameFromHost(hostname) {
     return labels.length > 2 ? labels[labels.length - 2] : labels[0];
 }
 
+// Returns { companyId, uncertain, fromHost, website }; fromHost and website let linkTrust check a
+// name the page claims against the page's own host.
 export async function companyFor({ kind, boardToken }, companyName, hostname) {
     if (kind) {
         const source = await prisma.source.findUnique({ where: { kind_boardToken: { kind, boardToken } }, include: { company: { select: { status: true } } } });
@@ -46,7 +49,8 @@ export async function companyFor({ kind, boardToken }, companyName, hostname) {
     const name = companyName || boardToken || nameFromHost(hostname);
     const resolved = await resolveCompany(prisma, name, await loadCompanyIndex(prisma), { fuzzyThreshold: await getSetting('careers.fuzzyThreshold') });
     if (!resolved) throw new Error('Could not tell which company this job belongs to');
-    return { companyId: resolved.companyId, uncertain: resolved.uncertain };
+    const company = await prisma.company.findUnique({ where: { id: resolved.companyId }, select: { website: true } });
+    return { companyId: resolved.companyId, uncertain: resolved.uncertain, fromHost: !companyName && !boardToken, website: company?.website ?? null };
 }
 
 // A student link is never dropped by the relevance filter (a person chose to share it); a place
@@ -56,11 +60,24 @@ export function linkLocationClass(locationText) {
     return place === 'foreign' ? 'unknown' : place;
 }
 
-// Saves a structured RawPosting from a link; returns the submission update.
-async function savePosting(submission, raw, company, tier) {
+// Pure: Posting fields for a structured RawPosting from a link. pageUrl is set for a page's own
+// JSON-LD, which (unlike an ATS API) can claim any company and apply link (linkTrust).
+export function linkPostingData(raw, company, tier, pageUrl = null) {
     const relevance = { type: guessType(raw.title) ?? 'UNKNOWN', location: linkLocationClass(raw.locationText) };
-    const data = { ...buildPostingData(raw, { relevance, company }), extractionTier: tier };
-    return saveLinkPosting(submission, raw, data);
+    let uncertain = [];
+    if (pageUrl) {
+        const trust = linkTrust({ pageUrl, applyUrl: raw.url, company });
+        raw = { ...raw, url: trust.applyUrl };
+        company = { ...company, uncertain: company.uncertain || trust.companyUncertain };
+        if (trust.applyUrlUncertain) uncertain = ['applyUrl'];
+    }
+    return { raw, data: { ...buildPostingData(raw, { relevance, company, uncertain }), extractionTier: tier } };
+}
+
+// Saves a structured RawPosting from a link; returns the submission update.
+async function savePosting(submission, raw, company, tier, pageUrl = null) {
+    const built = linkPostingData(raw, company, tier, pageUrl);
+    return saveLinkPosting(submission, built.raw, built.data);
 }
 
 // Dedup + save under the STUDENT_LINK source; the observation is keyed by the canonical link.
@@ -113,7 +130,7 @@ export async function processSubmission(submission) {
         } else {
             const page = await safeFetch(submission.canonicalUrl);
             const raw = page.contentType.includes('html') ? extractJsonLd(page.body, page.url) : null;
-            if (raw) result = await savePosting(submission, raw, await companyFor({}, raw.companyName, new URL(page.url).hostname), 'JSON_LD');
+            if (raw) result = await savePosting(submission, raw, await companyFor({}, raw.companyName, new URL(page.url).hostname), 'JSON_LD', page.url);
             else result = await queueForModel(submission, page);
         }
     } catch (err) {

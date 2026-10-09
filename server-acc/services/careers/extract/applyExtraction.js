@@ -5,16 +5,18 @@ import { createHash } from 'node:crypto';
 import { buildPostingData, UNCERTAIN_FIELD_PENALTY } from '../ingest/buildPosting.js';
 import { companyFor, saveLinkPosting, linkLocationClass } from '../links/processSubmission.js';
 import { LOCAL_MODEL_CAP } from './verify.js';
+import { linkTrust } from '../links/linkTrust.js';
 
-// Pure: the Posting fields from a verified extraction. company = { companyId, uncertain }.
+// Pure: the Posting fields from a verified extraction. company = companyFor's { companyId, uncertain, fromHost, website }.
 export function extractionPostingData({ verified, extraction, company, provider }) {
     const f = verified.fields;
+    const trust = linkTrust({ pageUrl: extraction.sourceUrl, applyUrl: f.applyUrl, company });
     const raw = {
         externalId: createHash('sha1').update(extraction.sourceUrl).digest('hex'),
         title: f.roleTitle,
         companyName: f.companyName,
         locationText: f.location,
-        url: f.applyUrl ?? extraction.sourceUrl,
+        url: trust.applyUrl,
         descriptionText: extraction.inputText,
         workplaceText: null,
         employmentTypeText: null,
@@ -22,7 +24,11 @@ export function extractionPostingData({ verified, extraction, company, provider 
         postedAt: null,
         deadline: f.deadline,
     };
-    const data = buildPostingData(raw, { relevance: { type: f.type, location: linkLocationClass(f.location) }, company });
+    const data = buildPostingData(raw, {
+        relevance: { type: f.type, location: linkLocationClass(f.location) },
+        company: { ...company, uncertain: company.uncertain || trust.companyUncertain },
+        uncertain: trust.applyUrlUncertain ? ['applyUrl'] : [],
+    });
 
     // Fields only buildPostingData noticed (e.g. a candidate company, unclear pay) also cost confidence.
     const extra = data.uncertainFields.filter((u) => !verified.uncertainFields.includes(u));

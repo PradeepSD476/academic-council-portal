@@ -55,8 +55,8 @@ export function confidenceFor(uncertainFields) {
 }
 
 // raw: RawPosting; relevance: result of evaluateRelevance (keep === true);
-// company: { companyId, uncertain }.
-export function buildPostingData(raw, { relevance, company }) {
+// company: { companyId, uncertain }; uncertain: extra fields the caller already doubts (e.g. applyUrl).
+export function buildPostingData(raw, { relevance, company, uncertain = [] }) {
     const title = raw.title.trim();
     const description = raw.descriptionText ?? '';
     const type = resolveType(relevance.type, raw.employmentTypeText);
@@ -69,6 +69,7 @@ export function buildPostingData(raw, { relevance, company }) {
     if (company.uncertain) uncertainFields.push('company');
     // Pay was stated but could not be read with certainty; the raw text is kept for the reviewer.
     if (comp.stipendDisclosure === 'UNCLEAR' || comp.ctcDisclosure === 'UNCLEAR') uncertainFields.push('compensation');
+    uncertainFields.push(...uncertain);
 
     return {
         companyId: company.companyId,

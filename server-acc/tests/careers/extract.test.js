@@ -256,7 +256,7 @@ describe('extractionPostingData', () => {
     const extraction = { tier: 'LLM_FAST', inputText: page, inputTruncated: false, sourceUrl: 'https://careers.acme.example/j/1' };
 
     it('pay numbers come from our parser; tier and capped confidence are set; lands in Flagged (< 0.8)', () => {
-        const { data } = extractionPostingData({ verified, extraction, company: { companyId: 4, uncertain: false }, provider: 'ollama' });
+        const { data } = extractionPostingData({ verified, extraction, company: { companyId: 4, uncertain: false, website: 'https://acme.example' }, provider: 'ollama' });
         expect(data).toMatchObject({
             companyId: 4, roleTitle: 'Software Engineering Intern', type: 'INTERNSHIP', stipendMin: 30000, stipendMax: 30000,
             stipendDisclosure: 'DISCLOSED', extractionTier: 'LLM_FAST', extractionConfidence: 0.7, applyUrl: 'https://careers.acme.example/j/1',
@@ -267,6 +267,30 @@ describe('extractionPostingData', () => {
         const { data } = extractionPostingData({ verified, extraction: { ...extraction, inputTruncated: true }, company: { companyId: 9, uncertain: true }, provider: 'gemini' });
         expect(data.uncertainFields).toEqual(expect.arrayContaining(['company', 'description']));
         expect(data.extractionConfidence).toBe(0.55); // 0.7 (verified, local cap) - 0.15 (candidate company)
+    });
+    it('B-02: a real company named on an unrelated page with an off-site apply link -> page URL, company and link flagged', () => {
+        const phishPage = 'Google is hiring a Software Engineering Intern in Pune. Apply at https://login-google.evil.example/apply now.';
+        const v = verifyExtraction(base({
+            company_name: 'Google', role_title: 'Software Engineering Intern', location: 'Pune', type: 'INTERNSHIP',
+            apply_url: 'https://login-google.evil.example/apply', overall_confidence: 0.9,
+        }), phishPage, { provider: 'gemini' });
+        const ex = { tier: 'LLM_FAST', inputText: phishPage, inputTruncated: false, sourceUrl: 'https://jobs-portal.example/google' };
+        const { data } = extractionPostingData({ verified: v, extraction: ex, company: { companyId: 1, uncertain: false, website: 'https://google.com' }, provider: 'gemini' });
+        expect(data.applyUrl).toBe('https://jobs-portal.example/google');
+        expect(data.uncertainFields).toEqual(expect.arrayContaining(['company', 'applyUrl']));
+        expect(data.extractionConfidence).toBeLessThan(v.confidence);
+    });
+    it('B-02: an apply link on the company website is kept and nothing extra is flagged', () => {
+        const page2 = 'Acme Robotics Pvt Ltd is hiring a Software Engineering Intern in Pune. Apply at https://careers.acme.example/apply/1';
+        const v = verifyExtraction(base({
+            company_name: 'Acme Robotics Pvt Ltd', role_title: 'Software Engineering Intern', location: 'Pune', type: 'INTERNSHIP',
+            apply_url: 'https://careers.acme.example/apply/1', overall_confidence: 0.9,
+        }), page2, { provider: 'gemini' });
+        const ex = { tier: 'LLM_FAST', inputText: page2, inputTruncated: false, sourceUrl: 'https://acme.example/jobs/1' };
+        const { data } = extractionPostingData({ verified: v, extraction: ex, company: { companyId: 4, uncertain: false, website: 'https://acme.example' }, provider: 'gemini' });
+        expect(data.applyUrl).toBe('https://careers.acme.example/apply/1');
+        expect(data.uncertainFields).not.toContain('applyUrl');
+        expect(data.uncertainFields).not.toContain('company');
     });
 });
 

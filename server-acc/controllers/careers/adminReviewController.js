@@ -65,7 +65,7 @@ export const getPosting = async (req, res) => {
         const posting = await prisma.posting.findUnique({
             where: { id },
             include: {
-                company: { select: { id: true, name: true, slug: true, status: true } },
+                company: { select: { id: true, name: true, slug: true, status: true, website: true } },
                 observations: { include: { source: { select: { id: true, name: true, kind: true, boardToken: true } } }, orderBy: { firstSeenAt: 'asc' } },
                 reviews: { orderBy: { createdAt: 'desc' }, take: 50 },
             },
