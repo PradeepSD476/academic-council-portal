@@ -6,6 +6,9 @@ import { istDayStart } from '../istDate.js';
 
 export const MISSED_RUNS_TO_DROP = 2;
 
+// Expiry reasons that never come back by themselves (B-07): an admin's decision, a passed deadline.
+export const STAYS_EXPIRED = ['ADMIN', 'DEADLINE'];
+
 // Statuses that expire when every observation of the posting has gone.
 const EXPIRABLE = ['LIVE', 'PENDING_REVIEW'];
 
@@ -17,12 +20,12 @@ export function deadlinePassed(posting, now = new Date()) {
 
 // Pure. Status of a posting whose observation was just seen on a board.
 //   observationWasLive: the observation was live before this sighting (always false for a new observation)
-// Only a posting that expired because it left its board comes back; one an admin expired while it
-// was still listed stays expired, one past its stated deadline stays expired, and REJECTED never
-// changes. It returns to LIVE only if it had been approved before (publishedAt), otherwise to the
+// Only a posting that expired because it left its board comes back; one an admin expired, one past
+// its stated deadline, and REJECTED never change. It returns to LIVE only if it had been approved before (publishedAt), otherwise to the
 // review queue.
 export function statusWhenSeen(posting, observationWasLive, now = new Date()) {
     if (posting.status !== 'EXPIRED' || observationWasLive || deadlinePassed(posting, now)) return posting.status;
+    if (STAYS_EXPIRED.includes(posting.expiredReason)) return posting.status;
     return posting.publishedAt ? 'LIVE' : 'PENDING_REVIEW';
 }
 
@@ -53,7 +56,7 @@ export async function applyMissedRuns(db, sourceId, seenExternalIds, now = new D
     });
     for (const posting of postings) {
         if (!shouldExpire(posting, posting.observations)) continue;
-        await db.posting.update({ where: { id: posting.id }, data: { status: 'EXPIRED' } });
+        await db.posting.update({ where: { id: posting.id }, data: { status: 'EXPIRED', expiredReason: 'BOARD' } });
         expired++;
     }
     if (expired) console.info(`[careers] liveness: source #${sourceId} expired ${expired} posting(s) (${now.toISOString()})`);

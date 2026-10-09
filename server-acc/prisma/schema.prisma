@@ -539,6 +539,7 @@ model Posting {
   reviewedById         Int?
   reviewedAt           DateTime?
   publishedAt          DateTime? // first time it went LIVE
+  expiredReason        ExpiryReason? // why it is EXPIRED; null = not expired, or expired before this was recorded
   createdAt            DateTime        @default(now())
   updatedAt            DateTime        @updatedAt
   observations         PostingSource[]
@@ -671,4 +672,11 @@ model PostingApplication {
 
   @@unique([userId, postingId])
   @@index([postingId])
+}
+
+// Why a posting expired: only BOARD (it left its board / its page is gone) may come back by itself.
+enum ExpiryReason {
+  BOARD
+  ADMIN
+  DEADLINE
 }

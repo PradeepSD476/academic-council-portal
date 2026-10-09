@@ -71,7 +71,7 @@ export async function recheckLiveness({ db = prisma, fetchPage = safeFetch, now 
             select: { id: true, status: true, observations: { select: { isLive: true } } },
         });
         if (!posting || !shouldExpire(posting, posting.observations)) continue;
-        await db.posting.update({ where: { id: postingId }, data: { status: 'EXPIRED' } });
+        await db.posting.update({ where: { id: postingId }, data: { status: 'EXPIRED', expiredReason: 'BOARD' } });
         counts.expired++;
     }
     if (counts.expired) console.info(`[careers] recheck: expired ${counts.expired} posting(s) (${now.toISOString()})`);

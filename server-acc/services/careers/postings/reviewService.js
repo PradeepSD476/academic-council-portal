@@ -97,7 +97,7 @@ export async function expirePosting(id, userId, note) {
     return prisma.$transaction(async (tx) => {
         const posting = await load(tx, id);
         requireStatus(posting, ['PENDING_REVIEW', 'LIVE'], 'expired');
-        const updated = await tx.posting.update({ where: { id }, data: { status: 'EXPIRED' } });
+        const updated = await tx.posting.update({ where: { id }, data: { status: 'EXPIRED', expiredReason: 'ADMIN' } });
         await review(tx, id, 'EXPIRE', userId, null, note);
         return { posting: updated };
     });
@@ -110,7 +110,7 @@ export async function reopenPosting(id, userId, note) {
         requireStatus(posting, ['EXPIRED', 'REJECTED'], 'reopened');
         const status = posting.status === 'EXPIRED' && posting.publishedAt ? 'LIVE' : 'PENDING_REVIEW';
         if (status === 'LIVE') await companyMustBeActive(tx, posting.companyId);
-        const updated = await tx.posting.update({ where: { id }, data: { status, rejectReason: null, lastSeenLiveAt: new Date() } });
+        const updated = await tx.posting.update({ where: { id }, data: { status, rejectReason: null, expiredReason: null, lastSeenLiveAt: new Date() } });
         await review(tx, id, 'REOPEN', userId, null, note);
         return { posting: updated };
     });

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { isSamePosting, findPossibleDuplicates } from '../../services/careers/ingest/dedup.js';
 import { nextHealth } from '../../services/careers/ingest/health.js';
 import { statusWhenSeen, shouldExpire, deadlinePassed } from '../../services/careers/ingest/liveness.js';
+import { refreshPosting, matchUpdate } from '../../services/careers/ingest/upsertPosting.js';
 import { buildPostingData, resolveType, compensationFields, confidenceFor } from '../../services/careers/ingest/buildPosting.js';
 import { evaluateRelevance } from '../../services/careers/text/relevance.js';
 import { simhash64 } from '../../services/careers/text/fingerprint.js';
@@ -203,5 +204,38 @@ describe('zero is not pay', () => {
     it('a 0 amount without "unpaid" is NOT_DISCLOSED, never DISCLOSED 0', () => {
         expect(compensationFields('INR 0 per year', 'FULL_TIME')).toMatchObject({ ctcMin: null, ctcDisclosure: 'NOT_DISCLOSED', compensationRaw: 'INR 0 per year' });
         expect(compensationFields('₹0 per month', 'INTERNSHIP')).toMatchObject({ stipendMin: null, stipendDisclosure: 'NOT_DISCLOSED' });
+    });
+});
+
+describe('expired postings seen again (B-07)', () => {
+    const now = new Date('2026-10-09T10:00:00Z');
+    const approved = { id: 5, status: 'EXPIRED', publishedAt: new Date('2026-09-01'), deadlineStated: null };
+
+    it('the same job back on its board: only a BOARD expiry revives it, and the reason is cleared', () => {
+        expect(refreshPosting({ ...approved, expiredReason: 'BOARD' }, false, now)).toEqual({ status: 'LIVE', expiredReason: null, lastSeenLiveAt: now });
+        expect(refreshPosting({ ...approved, expiredReason: 'ADMIN' }, false, now)).toEqual({});
+        expect(refreshPosting({ ...approved, expiredReason: 'DEADLINE' }, false, now)).toEqual({});
+    });
+    it('a re-posted role (new job id) matching a board-expired posting goes back to review with the new text and deadline', () => {
+        const data = { descriptionText: 'New text', contentFingerprint: 'abcdabcdabcdabcd', deadlineStated: new Date('2026-11-01'), applyUrl: 'https://x/2' };
+        expect(matchUpdate({ ...approved, expiredReason: 'BOARD' }, data, now)).toEqual({
+            status: 'PENDING_REVIEW', expiredReason: null, lastSeenLiveAt: now,
+            descriptionText: 'New text', contentFingerprint: 'abcdabcdabcdabcd', deadlineStated: data.deadlineStated, applyUrl: 'https://x/2',
+        });
+        // Expired before this change (no reason recorded): treated the same, a reviewer decides.
+        expect(matchUpdate({ ...approved, expiredReason: null }, data, now).status).toBe('PENDING_REVIEW');
+    });
+    it('a re-posted role never revives a posting an admin expired or whose deadline passed', () => {
+        const data = { descriptionText: 'New', contentFingerprint: 'f'.repeat(16), deadlineStated: null, applyUrl: 'https://x/3' };
+        expect(matchUpdate({ ...approved, expiredReason: 'ADMIN' }, data, now)).toEqual({});
+        expect(matchUpdate({ ...approved, expiredReason: 'DEADLINE' }, data, now)).toEqual({});
+    });
+    it('a deadline-expired role re-posted with a new future deadline is a new round: back to review', () => {
+        const data = { descriptionText: 'Round 2', contentFingerprint: 'e'.repeat(16), deadlineStated: new Date('2026-12-01'), applyUrl: 'https://x/4' };
+        const old = { ...approved, expiredReason: 'DEADLINE', deadlineStated: new Date('2026-09-30') };
+        expect(matchUpdate(old, data, now)).toMatchObject({ status: 'PENDING_REVIEW', deadlineStated: data.deadlineStated, expiredReason: null });
+    });
+    it('a re-posted role matching a LIVE posting just confirms it', () => {
+        expect(matchUpdate({ id: 6, status: 'LIVE', publishedAt: new Date() }, {}, now)).toEqual({ lastSeenLiveAt: now });
     });
 });

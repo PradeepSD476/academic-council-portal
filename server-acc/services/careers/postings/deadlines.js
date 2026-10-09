@@ -15,7 +15,7 @@ export async function expirePastDeadlines({ db = prisma, now = new Date() } = {}
 
     const ids = due.map((p) => p.id);
     // Same where again, so a posting an admin changed in between is left alone.
-    const { count } = await db.posting.updateMany({ where: { ...where, id: { in: ids } }, data: { status: 'EXPIRED' } });
+    const { count } = await db.posting.updateMany({ where: { ...where, id: { in: ids } }, data: { status: 'EXPIRED', expiredReason: 'DEADLINE' } });
     console.info(`[careers] deadlines: expired ${count} posting(s) whose stated deadline passed: ${due.map((p) => `#${p.id} ${p.roleTitle}`).join('; ')}`);
     return { expired: count, ids };
 }
