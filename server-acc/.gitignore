@@ -9,3 +9,5 @@ firebase-service-account-key.json
 
 # Seed file — local dev only, never commit
 prisma/seed.js
+
+.env*
