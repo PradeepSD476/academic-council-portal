@@ -19,6 +19,14 @@ export function workerStatus(heartbeat, now = new Date()) {
     };
 }
 
+// The worker writes a heartbeat every minute; the container health check (docker-compose
+// fetcher-acc) calls it unhealthy after this many minutes without one (B-19).
+export const WORKER_HEALTHCHECK_MINUTES = 5;
+export function workerHealthy(heartbeat, now = new Date()) {
+    const since = minutesSince(heartbeat?.at, now);
+    return since !== null && since <= WORKER_HEALTHCHECK_MINUTES;
+}
+
 // summary: { worker, sources, queue, llm } as built by the ops controller.
 export function computeAlerts({ worker, sources, queue, llm }) {
     const alerts = [];

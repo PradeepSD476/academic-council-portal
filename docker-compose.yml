@@ -83,6 +83,14 @@ services:
     command: ["node", "worker.js"]
     env_file:
       - ./server-acc/.env
+    # Unhealthy when the worker's heartbeat (written every minute) is over 5 minutes old. Compose
+    # shows it in `docker ps`; it does not restart an unhealthy container by itself.
+    healthcheck:
+      test: ["CMD", "node", "scripts/careers/workerHealth.js"]
+      interval: 60s
+      timeout: 15s
+      retries: 3
+      start_period: 120s
     depends_on:
       - postgres-acc
     networks:

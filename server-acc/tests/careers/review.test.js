@@ -3,7 +3,7 @@ import { planEdit, checkCompensation } from '../../services/careers/postings/edi
 import { bulkSkipReason, reviewWhere } from '../../services/careers/postings/reviewService.js';
 import cron from 'node-cron';
 import { mergeRunRequest, runAfterUpdate, runsSummary } from '../../controllers/careers/adminSourcesController.js';
-import { computeAlerts, minutesSince, workerStatus } from '../../services/careers/ops/alerts.js';
+import { computeAlerts, minutesSince, workerStatus, workerHealthy } from '../../services/careers/ops/alerts.js';
 import { JOBS, runRequestsTick } from '../../services/careers/jobs.js';
 import { istDayStart, istMonthStart } from '../../services/careers/ops/llmStatus.js';
 
@@ -196,5 +196,16 @@ describe('runsSummary (B-17: what a finished "Fetch now" found)', () => {
             { status: 'SUCCESS', newCount: 2 }, { status: 'SUCCESS', newCount: 0 }, { status: 'FAILED', newCount: 0 }, { status: 'RUNNING', newCount: 0 },
         ])).toEqual({ runs: 3, newPostings: 2, failed: 1 });
         expect(runsSummary([])).toEqual({ runs: 0, newPostings: 0, failed: 0 });
+    });
+});
+
+describe('workerHealthy (B-19: container health check)', () => {
+    const now = new Date('2026-10-09T12:00:00Z');
+    it('healthy while the heartbeat is at most 5 minutes old', () => {
+        expect(workerHealthy({ at: '2026-10-09T11:56:00Z', job: 'alive' }, now)).toBe(true);
+        expect(workerHealthy({ at: '2026-10-09T11:54:00Z', job: 'alive' }, now)).toBe(false);
+    });
+    it('no heartbeat at all is unhealthy', () => {
+        expect(workerHealthy(null, now)).toBe(false);
     });
 });
