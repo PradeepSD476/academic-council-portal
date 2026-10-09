@@ -7,6 +7,7 @@
 import { z } from 'zod';
 import { normalizeLocation } from '../text/normalize.js';
 import { canonicalSkillName } from '../text/skills.js';
+import { likeSafe } from '../text/likeSafe.js';
 
 export const MAX_LIMIT = 50;
 export const DEFAULT_LIMIT = 20;
@@ -82,8 +83,8 @@ export function baseWhere(params, { includeUndisclosed = params.includeUndisclos
         const skill = canonicalSkillName(params.q);
         and.push({
             OR: [
-                { roleTitle: { contains: params.q, mode: 'insensitive' } },
-                { company: { name: { contains: params.q, mode: 'insensitive' } } },
+                { roleTitle: { contains: likeSafe(params.q), mode: 'insensitive' } },
+                { company: { name: { contains: likeSafe(params.q), mode: 'insensitive' } } },
                 ...(skill ? [{ skills: { has: skill } }] : []),
             ],
         });
@@ -94,7 +95,7 @@ export function baseWhere(params, { includeUndisclosed = params.includeUndisclos
         // "Bangalore" and "Bengaluru" both normalise to bengaluru; a multi-city posting is
         // stored as "bengaluru|hyderabad", so match each normalised city.
         const cities = (normalizeLocation(params.location) ?? '').split('|').filter(Boolean);
-        and.push({ OR: cities.map((c) => ({ locationNormalized: { contains: c } })) });
+        and.push({ OR: cities.map((c) => ({ locationNormalized: { contains: likeSafe(c) } })) });
     }
     if (params.skills.length) and.push({ skills: { hasSome: params.skills } });
     if (params.companyId) and.push({ companyId: params.companyId });

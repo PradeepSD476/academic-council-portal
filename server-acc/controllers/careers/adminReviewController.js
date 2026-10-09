@@ -7,6 +7,7 @@ import { getSetting } from '../../services/careers/settings.js';
 import {
     editPosting, approvePosting, rejectPosting, expirePosting, reopenPosting, bulkApprove, createManualPosting, reviewWhere,
 } from '../../services/careers/postings/reviewService.js';
+import { likeSafe } from '../../services/careers/text/likeSafe.js';
 
 const reviewQuery = z.object({
     tab: z.enum(['pending', 'flagged']).default('pending'),
@@ -37,7 +38,7 @@ export const listReview = async (req, res) => {
     try {
         const { tab, page, limit, q } = reviewQuery.parse(req.query);
         const threshold = await getSetting('careers.confidenceThreshold');
-        const search = q ? { OR: [{ roleTitle: { contains: q, mode: 'insensitive' } }, { company: { name: { contains: q, mode: 'insensitive' } } }] } : {};
+        const search = q ? { OR: [{ roleTitle: { contains: likeSafe(q), mode: 'insensitive' } }, { company: { name: { contains: likeSafe(q), mode: 'insensitive' } } }] } : {};
         const where = { AND: [reviewWhere(tab, threshold), search] };
         const [items, total, pendingCount, flaggedCount, candidateCount, submissionCount] = await Promise.all([
             prisma.posting.findMany({ where, select: listSelect, orderBy: [{ firstSeenAt: 'desc' }, { id: 'desc' }], skip: (page - 1) * limit, take: limit }),

@@ -4,6 +4,7 @@ import prisma from '../../config/db.js';
 import { CareersError, sendError, parseId } from '../../services/careers/errors.js';
 import { normalizeCompanyName } from '../../services/careers/text/normalize.js';
 import { uniqueSlug } from '../../services/careers/companies/slug.js';
+import { likeSafe } from '../../services/careers/text/likeSafe.js';
 
 const PAGE_SIZE_MAX = 100;
 
@@ -54,8 +55,8 @@ export const listCompanies = async (req, res) => {
             ...(status === 'ALL' ? {} : { status }),
             ...(q ? {
                 OR: [
-                    { name: { contains: q, mode: 'insensitive' } },
-                    { aliases: { some: { alias: { contains: q, mode: 'insensitive' } } } },
+                    { name: { contains: likeSafe(q), mode: 'insensitive' } },
+                    { aliases: { some: { alias: { contains: likeSafe(q), mode: 'insensitive' } } } },
                 ],
             } : {}),
         };

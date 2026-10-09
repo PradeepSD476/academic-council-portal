@@ -7,6 +7,7 @@ import { sendError, CareersError } from '../../services/careers/errors.js';
 import { buildIndex } from '../../services/careers/companies/matcher.js';
 import { suggestCompany } from '../../services/careers/companies/suggest.js';
 import { getSetting } from '../../services/careers/settings.js';
+import { likeSafe } from '../../services/careers/text/likeSafe.js';
 
 const listQuery = z.object({
     view: z.enum(['unlinked', 'linked']).default('unlinked'),
@@ -39,7 +40,7 @@ export const listBackfill = async (req, res) => {
         const { view, q, page, limit } = listQuery.parse(req.query);
         const where = {
             companyId: view === 'linked' ? { not: null } : null,
-            ...(q ? { title: { contains: q, mode: 'insensitive' } } : {}),
+            ...(q ? { title: { contains: likeSafe(q), mode: 'insensitive' } } : {}),
         };
         const [total, unlinked, linked, rows] = await Promise.all([
             prisma.experience.count({ where }),

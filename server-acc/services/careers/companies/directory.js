@@ -1,6 +1,7 @@
 // The student company directory (Architecture 9.1): which companies are listed and in what order.
 // Pure parts are unit-tested; the queries live in controllers/careers/companiesController.js.
 import { z } from 'zod';
+import { likeSafe } from '../text/likeSafe.js';
 
 export const directoryQuery = z.object({
     q: z.string().trim().max(100).optional().transform((v) => v || undefined),
@@ -17,8 +18,8 @@ export function directoryWhere(q) {
     if (q) {
         where.AND = [{
             OR: [
-                { name: { contains: q, mode: 'insensitive' } },
-                { aliases: { some: { alias: { contains: q, mode: 'insensitive' } } } },
+                { name: { contains: likeSafe(q), mode: 'insensitive' } },
+                { aliases: { some: { alias: { contains: likeSafe(q), mode: 'insensitive' } } } },
             ],
         }];
     }

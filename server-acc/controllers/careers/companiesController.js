@@ -6,6 +6,7 @@ import { sendError, CareersError } from '../../services/careers/errors.js';
 import { cardFields, loadProfile, toCard } from '../../services/careers/postings/cards.js';
 import { withTracking } from '../../services/careers/postings/tracking.js';
 import { directoryQuery, directoryWhere, countSelect, rankCompanies } from '../../services/careers/companies/directory.js';
+import { likeSafe } from '../../services/careers/text/likeSafe.js';
 
 const searchQuery = z.object({ q: z.string().trim().max(100).optional().default('') });
 const PAGE_ITEMS = 50; // postings / experiences shown on one company page (counts cover all)
@@ -17,8 +18,8 @@ export const searchCompanies = async (req, res) => {
         const where = { status: 'ACTIVE' };
         if (q) {
             where.OR = [
-                { name: { contains: q, mode: 'insensitive' } },
-                { aliases: { some: { alias: { contains: q, mode: 'insensitive' } } } },
+                { name: { contains: likeSafe(q), mode: 'insensitive' } },
+                { aliases: { some: { alias: { contains: likeSafe(q), mode: 'insensitive' } } } },
             ];
         }
         const data = await prisma.company.findMany({ where, select: { id: true, name: true, slug: true }, orderBy: { name: 'asc' }, take: 10 });
