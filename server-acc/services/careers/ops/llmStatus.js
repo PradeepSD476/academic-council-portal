@@ -5,19 +5,12 @@ import prisma from '../../../config/db.js';
 import { getSetting } from '../settings.js';
 import { providerStatus, isUsable } from '../extract/providerStatus.js';
 
-const IST_OFFSET_MS = 330 * 60 * 1000;
+import { istDayStart, istMonthStart } from '../istDate.js';
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// Start of the current IST day / month, as UTC instants.
-export function istDayStart(now = new Date()) {
-    const ist = new Date(now.getTime() + IST_OFFSET_MS);
-    return new Date(Date.UTC(ist.getUTCFullYear(), ist.getUTCMonth(), ist.getUTCDate()) - IST_OFFSET_MS);
-}
-
-export function istMonthStart(now = new Date()) {
-    const ist = new Date(now.getTime() + IST_OFFSET_MS);
-    return new Date(Date.UTC(ist.getUTCFullYear(), ist.getUTCMonth(), 1) - IST_OFFSET_MS);
-}
+// Start of the current IST day / month (moved to istDate.js; still exported here for existing imports).
+export { istDayStart, istMonthStart };
 
 export async function llmStatus(now = new Date()) {
     const provider = process.env.LLM_PROVIDER || 'ollama';

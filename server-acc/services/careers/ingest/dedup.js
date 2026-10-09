@@ -47,7 +47,7 @@ export function findPossibleDuplicates(postings) {
 
 const DEDUP_SELECT = {
     id: true, roleTitle: true, roleTitleNormalized: true, locationNormalized: true, contentFingerprint: true,
-    status: true, publishedAt: true,
+    status: true, publishedAt: true, deadlineStated: true,
 };
 
 // Postings of one company that a new observation may belong to: not rejected, touched recently.

@@ -9,7 +9,7 @@ import { statusWhenSeen } from './liveness.js';
 const SHOWS_AS_LIVE = ['LIVE', 'PENDING_REVIEW'];
 
 function refreshPosting(posting, observationWasLive, now) {
-    const status = statusWhenSeen(posting, observationWasLive);
+    const status = statusWhenSeen(posting, observationWasLive, now);
     const data = {};
     if (status !== posting.status) data.status = status;
     if (SHOWS_AS_LIVE.includes(status)) data.lastSeenLiveAt = now;
@@ -21,7 +21,7 @@ export async function upsertPosting(db, { sourceId, raw, data, now = new Date() 
     return db.$transaction(async (tx) => {
         const observation = await tx.postingSource.findUnique({
             where: { sourceId_externalId: { sourceId, externalId: raw.externalId } },
-            select: { id: true, isLive: true, posting: { select: { id: true, status: true, publishedAt: true } } },
+            select: { id: true, isLive: true, posting: { select: { id: true, status: true, publishedAt: true, deadlineStated: true } } },
         });
 
         if (observation) {

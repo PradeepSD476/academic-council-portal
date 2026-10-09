@@ -7,6 +7,7 @@ import { ingestAll } from './ingest/ingestAll.js';
 import { processSubmissions } from './links/processSubmission.js';
 import { runExtractions } from './extract/runExtractions.js';
 import { recheckLiveness } from './links/recheckLiveness.js';
+import { expirePastDeadlines } from './postings/deadlines.js';
 import { heartbeat } from './heartbeat.js';
 
 // Ingest of every enabled ATS source (every 6 hours, and on admin "Run now" requests).
@@ -64,11 +65,12 @@ export async function linksJob(options = {}) {
     return { ...outcome, result };
 }
 
-// Daily URL recheck of manual and student-link postings (ATS postings are covered by the ingest).
+// Daily URL recheck of manual and student-link postings (ATS postings are covered by the ingest),
+// then expiry of postings whose stated deadline has passed.
 export async function livenessJob(options = {}) {
     let result = null;
     const outcome = await withJobLock(JOB_LOCKS.recheckLiveness, 'recheckLiveness', async () => {
-        result = await recheckLiveness();
+        result = { ...(await recheckLiveness()), deadlines: await expirePastDeadlines() };
     }, { heartbeat: options.heartbeat ?? true });
     return { ...outcome, result };
 }

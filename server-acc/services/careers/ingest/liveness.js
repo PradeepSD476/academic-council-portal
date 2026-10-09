@@ -2,18 +2,27 @@
 // expired at once (boards glitch); it must be missing from MISSED_RUNS_TO_DROP successful runs.
 // Manual and student-link postings have no board; links/recheckLiveness.js fetches their URL daily
 // and uses recheckUpdate below.
+import { istDayStart } from '../istDate.js';
+
 export const MISSED_RUNS_TO_DROP = 2;
 
 // Statuses that expire when every observation of the posting has gone.
 const EXPIRABLE = ['LIVE', 'PENDING_REVIEW'];
 
+// Pure. The stated deadline was before today (IST). A deadline is a date; applications are open
+// through that whole day.
+export function deadlinePassed(posting, now = new Date()) {
+    return Boolean(posting.deadlineStated) && new Date(posting.deadlineStated) < istDayStart(now);
+}
+
 // Pure. Status of a posting whose observation was just seen on a board.
 //   observationWasLive: the observation was live before this sighting (always false for a new observation)
 // Only a posting that expired because it left its board comes back; one an admin expired while it
-// was still listed stays expired, and REJECTED never changes. It returns to LIVE only if it had
-// been approved before (publishedAt), otherwise to the review queue.
-export function statusWhenSeen(posting, observationWasLive) {
-    if (posting.status !== 'EXPIRED' || observationWasLive) return posting.status;
+// was still listed stays expired, one past its stated deadline stays expired, and REJECTED never
+// changes. It returns to LIVE only if it had been approved before (publishedAt), otherwise to the
+// review queue.
+export function statusWhenSeen(posting, observationWasLive, now = new Date()) {
+    if (posting.status !== 'EXPIRED' || observationWasLive || deadlinePassed(posting, now)) return posting.status;
     return posting.publishedAt ? 'LIVE' : 'PENDING_REVIEW';
 }
 

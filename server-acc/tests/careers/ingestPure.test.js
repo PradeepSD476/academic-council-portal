@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { isSamePosting, findPossibleDuplicates } from '../../services/careers/ingest/dedup.js';
 import { nextHealth } from '../../services/careers/ingest/health.js';
-import { statusWhenSeen, shouldExpire } from '../../services/careers/ingest/liveness.js';
+import { statusWhenSeen, shouldExpire, deadlinePassed } from '../../services/careers/ingest/liveness.js';
 import { buildPostingData, resolveType, compensationFields, confidenceFor } from '../../services/careers/ingest/buildPosting.js';
 import { evaluateRelevance } from '../../services/careers/text/relevance.js';
 import { simhash64 } from '../../services/careers/text/fingerprint.js';
@@ -81,6 +81,17 @@ describe('liveness decisions', () => {
     });
     it('an admin-expired posting still listed on the board stays expired', () => {
         expect(statusWhenSeen({ status: 'EXPIRED', publishedAt: new Date() }, true)).toBe('EXPIRED');
+    });
+    it('B-06: a stated deadline has passed from the next IST day on', () => {
+        const posting = { deadlineStated: new Date('2026-10-15T00:00:00.000Z') }; // "2026-10-15" from a board
+        expect(deadlinePassed(posting, new Date('2026-10-15T23:00:00+05:30'))).toBe(false);
+        expect(deadlinePassed(posting, new Date('2026-10-16T00:10:00+05:30'))).toBe(true);
+        expect(deadlinePassed({ deadlineStated: null }, new Date('2030-01-01T00:00:00Z'))).toBe(false);
+    });
+    it('B-06: a posting past its deadline is not revived when seen again', () => {
+        const past = new Date('2026-10-01T00:00:00Z');
+        expect(statusWhenSeen({ status: 'EXPIRED', publishedAt: new Date(), deadlineStated: past }, false, new Date('2026-10-09T10:00:00Z'))).toBe('EXPIRED');
+        expect(statusWhenSeen({ status: 'EXPIRED', publishedAt: null, deadlineStated: past }, false, new Date('2026-10-09T10:00:00Z'))).toBe('EXPIRED');
     });
     it('REJECTED is never re-queued', () => {
         expect(statusWhenSeen({ status: 'REJECTED', publishedAt: null }, false)).toBe('REJECTED');
