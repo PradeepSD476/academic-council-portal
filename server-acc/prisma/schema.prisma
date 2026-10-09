@@ -548,6 +548,7 @@ model Posting {
   applications         PostingApplication[]
 
   @@index([status, lastSeenLiveAt])
+  @@index([status, publishedAt]) // "Newest first" (B-15)
   @@index([companyId, status])
   @@index([companyId, roleTitleNormalized])
   @@index([contentFingerprint])
