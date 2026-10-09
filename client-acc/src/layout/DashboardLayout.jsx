@@ -13,9 +13,11 @@ import {
   Landmark,
   TrendingUp,
   FileSearch,
+  MessagesSquare,
 } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import AuthContext from "../context/auth/authContext";
+import { getInitials } from "../lib/utils";
 import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
 
 export default function DashboardLayout() {
@@ -128,7 +130,7 @@ export default function DashboardLayout() {
 
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
-              {user?.displayName?.charAt(0)?.toUpperCase() || "S"}
+              {getInitials(user?.displayName, 'S')}
             </div>
             <div className="overflow-hidden min-w-0 pr-4">
               <p className="text-xs font-bold text-slate-950 truncate leading-tight">
@@ -153,7 +155,7 @@ export default function DashboardLayout() {
         </div>
 
         {/* Navigation Items */}
-        <nav className="flex-1 px-3 space-y-1 overflow-y-auto scrollbar-thin">
+        <nav className="flex-1 px-3 space-y-1 overflow-y-auto scrollbar-thin" data-lenis-prevent>
           {(isSTUDENT ||
             ((isAdmin || isCareerAdmin || isResearchAdmin) && viewRole === "STUDENT")) && (
               <>
@@ -177,7 +179,7 @@ export default function DashboardLayout() {
                 <SidebarItem
                   to="/dashboard/career-vault"
                   icon={<Briefcase size={16} />}
-                  iconColor="text-emerald-600 bg-emerald-50 border-emerald-100"
+                  iconColor="text-blue-500 bg-blue-50 border-blue-100"
                   label="Career Vault"
                   onClick={() => setOpen(false)}
                 />
@@ -193,6 +195,13 @@ export default function DashboardLayout() {
                   icon={<FileSearch size={16} />}
                   iconColor="text-rose-700 bg-rose-50 border-rose-100"
                   label="Research Vault"
+                  onClick={() => setOpen(false)}
+                />
+                <SidebarItem
+                  to="/dashboard/doubts"
+                  icon={<MessagesSquare size={16} />}
+                  iconColor="text-sky-600 bg-sky-50 border-sky-100"
+                  label="Doubt Forum"
                   onClick={() => setOpen(false)}
                 />
                 {/* Level Up — hidden until feature reveal
@@ -229,7 +238,7 @@ export default function DashboardLayout() {
               <SidebarItem
                 to="/admin/manage-users"
                 icon={<Users size={16} />}
-                iconColor="text-emerald-600 bg-emerald-50 border-emerald-100"
+                iconColor="text-blue-500 bg-blue-50 border-blue-100"
                 label="Users"
                 onClick={() => setOpen(false)}
               />
@@ -275,6 +284,15 @@ export default function DashboardLayout() {
                 label="Level Up"
                 onClick={() => setOpen(false)}
               />
+              {(user?.role === "SUPER_ADMIN" || isFaculty) && (
+                <SidebarItem
+                  to="/admin/manage-doubts"
+                  icon={<MessagesSquare size={16} />}
+                  iconColor="text-sky-600 bg-sky-50 border-sky-100"
+                  label="Doubt Forum"
+                  onClick={() => setOpen(false)}
+                />
+              )}
             </>
           )}
 

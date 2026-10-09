@@ -41,6 +41,13 @@ import ResearchVault from "./pages/ResearchVault/index.jsx";
 import ResearchVaultAdmin from "./pages/ResearchVault/ResearchVaultAdmin.jsx";
 import ResearchQuestionList from "./pages/ResearchVault/ResearchQuestionList.jsx";
 import ResearchQuestionDetail from "./pages/ResearchVault/ResearchQuestionDetail.jsx";
+import PositionDetail from "./pages/ResearchVault/PositionDetail.jsx";
+import ExperienceDetail from "./pages/ResearchVault/ExperienceDetail.jsx";
+import FacultyDetail from "./pages/ResearchVault/FacultyDetail.jsx";
+import DoubtForum from "./pages/DoubtForum/index.jsx";
+import AskDoubt from "./pages/DoubtForum/AskDoubt.jsx";
+import DoubtThread from "./pages/DoubtForum/DoubtThread.jsx";
+import ManageDoubts from "./pages/admin/ManageDoubts.jsx";
 const AppRoutes = () => {
   return (
     <Routes>
@@ -89,6 +96,9 @@ const AppRoutes = () => {
 <Route path="research-vault" element={<ResearchVault />} />
 <Route path="research-vault/questions" element={<ResearchQuestionList />} />
 <Route path="research-vault/questions/:questionId" element={<ResearchQuestionDetail />} />
+<Route path="research-vault/positions/:positionId" element={<PositionDetail />} />
+<Route path="research-vault/faculty/:facultyId" element={<FacultyDetail />} />
+          <Route path="research-vault/experiences/:experienceId" element={<ExperienceDetail />} />
 
 <Route
   path="finance-vault/:id"
@@ -97,6 +107,12 @@ const AppRoutes = () => {
 
 <Route path="level-up" element={<LevelUp />} />
 <Route path="level-up/:roadmapSlug/:chapterSlug" element={<LevelUp />} />
+
+        {/* ACC Wiki: doubt forum */}
+        <Route path="doubts" element={<DoubtForum />} />
+        <Route path="doubts/ask" element={<AskDoubt />} />
+        <Route path="doubts/:id" element={<DoubtThread />} />
+        <Route path="doubts/:id/edit" element={<AskDoubt />} />
       </Route>
 
       {/* admin  */}
@@ -124,6 +140,14 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY", "RESEARCH_ADMIN"]}>
               <ResearchVaultAdmin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="research-vault/experiences/:experienceId"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY", "RESEARCH_ADMIN"]}>
+              <ExperienceDetail />
             </ProtectedRoute>
           }
         />
@@ -235,6 +259,14 @@ const AppRoutes = () => {
     </ProtectedRoute>
   }
 />
+        <Route
+          path="manage-doubts"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY"]}>
+              <ManageDoubts />
+            </ProtectedRoute>
+          }
+        />
       </Route>
      
     </Routes>

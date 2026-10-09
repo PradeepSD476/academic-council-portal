@@ -54,7 +54,7 @@ const AdminDashboard = () => {
           </p>
         </div>
         <div className="text-xs font-bold text-slate-700 bg-white shadow-2xs px-3.5 py-1.5 rounded-lg border border-slate-200 self-start sm:self-auto flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-500" />
+          <span className="w-2 h-2 rounded-full bg-blue-500" />
           <span>
             {new Date().toLocaleDateString("en-US", {
               weekday: "short",
@@ -100,7 +100,7 @@ const AdminDashboard = () => {
           title="Online Users"
           count={stats.liveUserCount}
           icon={<Activity size={20} />}
-          colorStyle="bg-emerald-50 text-emerald-600 border-emerald-100"
+          colorStyle="bg-blue-50 text-blue-500 border-blue-100"
           loading={loading}
         />
       </div>
@@ -115,8 +115,8 @@ const AdminDashboard = () => {
               </div>
               <span>System Activity</span>
             </h3>
-            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <span className="text-[11px] font-bold text-blue-600 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
               <span>All Systems Operational</span>
             </span>
           </div>
@@ -162,6 +162,11 @@ const AdminDashboard = () => {
               title="Manage Finance Vault"
               navigateTo="/admin/finance-vault"
               accentColor="bg-purple-50 text-purple-700"
+            />
+            <AddQuickAction
+              title="Manage Research Vault"
+              navigateTo="/admin/research-vault"
+              accentColor="bg-slate-50 text-slate-700"
             />
           </div>
         </div>

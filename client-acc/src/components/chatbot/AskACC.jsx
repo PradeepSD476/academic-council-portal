@@ -58,7 +58,7 @@ export default function AskACC({ onClose }) {
               <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-[var(--color-secondary)]/15 text-[var(--color-secondary)]">AI Guide</span>
             </div>
             <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
               <span className="text-slate-500 text-[10px] font-semibold">IIT Patna · Online</span>
             </div>
           </div>

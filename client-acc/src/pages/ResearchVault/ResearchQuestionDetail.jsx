@@ -167,7 +167,7 @@ export default function ResearchQuestionDetail() {
       <article className="academic-card rounded-2xl p-5 sm:p-7">
         <div className="flex flex-wrap items-start gap-2">
           {question.researchAreas?.map(({ researchArea }) => <span key={researchArea.id} className="rounded-md border border-blue-100 bg-blue-50 px-2 py-1 text-[11px] font-semibold text-blue-800">{researchArea.name}</span>)}
-          {question.isResolved && <span className="inline-flex items-center gap-1 rounded-md bg-emerald-100 px-2 py-1 text-[11px] font-bold text-emerald-800"><Check size={12} /> Resolved</span>}
+          {question.isResolved && <span className="inline-flex items-center gap-1 rounded-md bg-blue-100 px-2 py-1 text-[11px] font-bold text-blue-700"><Check size={12} /> Resolved</span>}
         </div>
         <h1 className="mt-3 text-2xl font-bold leading-snug text-slate-950">{question.title}</h1>
         <p className="mt-3 whitespace-pre-wrap text-base leading-7 text-slate-700">{question.content}</p>
@@ -190,19 +190,18 @@ export default function ResearchQuestionDetail() {
         <div className="space-y-3 py-4">
           {replies.map((reply) => {
             const isOwnReply = reply.uploadedBy?.id === user?.id;
-            return <article key={reply.id} className={`w-full max-w-[92%] rounded-xl border p-4 ${isOwnReply ? 'ml-auto border-blue-200 bg-blue-50/80 text-right' : 'mr-auto border-emerald-200 bg-emerald-50/40 text-left'}`}>
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className={`flex flex-wrap items-center gap-2 ${isOwnReply ? 'ml-auto justify-end' : ''}`}>
-                  {reply.isAccepted && <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-bold uppercase text-emerald-800"><CheckCircle2 size={12} /> Accepted answer</span>}
-                  <span className={`text-xs font-semibold ${isOwnReply ? 'text-blue-700' : 'text-slate-600'}`}>{authorLabel(reply.uploadedBy)}</span>
-                  <time className="text-[11px] text-slate-400" dateTime={reply.createdAt}>{relativeTime(reply.createdAt)}</time>
-                </div>
-                <div className="flex items-center gap-3">
-                  {canAcceptAnswer && !acceptedReply && <button onClick={() => markAccepted(reply.id)} className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--color-primary-accent)] hover:text-[var(--color-secondary)]"><CheckCircle2 size={14} /> Mark as answer</button>}
-                  <button onClick={() => toggleReplyVote(reply.id)} aria-pressed={reply.hasVoted || false} className={`inline-flex items-center gap-1 text-xs font-semibold ${reply.hasVoted ? 'text-blue-700' : 'text-slate-500 hover:text-blue-700'}`}><ThumbsUp size={14} fill={reply.hasVoted ? 'currentColor' : 'none'} /> {reply.voteCount || 0}</button>
-                </div>
-              </div>
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-700">{reply.content}</p>
+            return <article key={reply.id} className={`w-full max-w-[92%] rounded-xl border p-4 ${isOwnReply ? 'ml-auto border-blue-200 bg-blue-50/80 text-right' : 'mr-auto border-blue-200 bg-blue-50/40 text-left'}`}>
+              {reply.isAccepted && <p className="mb-2 inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-1 text-[10px] font-bold uppercase text-blue-700"><CheckCircle2 size={12} /> Accepted answer</p>}
+              <header className="flex flex-wrap items-center gap-2 mb-2 justify-end">
+                <span className={`font-semibold text-sm ${isOwnReply ? 'text-blue-900' : 'text-slate-900'}`}>{authorLabel(reply.uploadedBy)}</span>
+                <time className="text-xs text-slate-400" dateTime={reply.createdAt}>{relativeTime(reply.createdAt)}</time>
+              </header>
+              <p className="text-sm leading-6 text-slate-700">{reply.content}</p>
+              <footer className="mt-3 flex items-center gap-4 pt-2 border-t border-slate-100 justify-end">
+                {canAcceptAnswer && !acceptedReply && <button onClick={() => markAccepted(reply.id)} className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--color-primary-accent)] hover:text-[var(--color-secondary)]"><CheckCircle2 size={14} /> Mark as answer</button>}
+                <button onClick={() => toggleReplyVote(reply.id)} aria-pressed={reply.hasVoted || false} className={`inline-flex items-center gap-1 text-xs font-semibold ${reply.hasVoted ? 'text-blue-700' : 'text-slate-500 hover:text-blue-700'}`}><ThumbsUp size={14} fill={reply.hasVoted ? 'currentColor' : 'none'} /> {reply.voteCount || 0}</button>
+                <button className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-[var(--color-primary-accent)]"><MessageCircle size={14} /> Reply</button>
+              </footer>
               {reply.childReplyCount > 0 && <p className="mt-2 text-xs text-slate-500">{reply.childReplyCount} nested repl{reply.childReplyCount === 1 ? 'y' : 'ies'}</p>}
             </article>;
           })}

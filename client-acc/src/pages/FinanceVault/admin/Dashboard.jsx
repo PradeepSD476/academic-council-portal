@@ -6,7 +6,7 @@ import { Plus, Pencil, Trash2, Award, TrendingUp, CheckCircle, XCircle, Loader2 
 
 const CATEGORY_META = {
   SCHOLARSHIP:          { label: "Scholarship",           bg: "bg-purple-950/60 text-purple-300 border-purple-800/60" },
-  FEE_WAIVER:           { label: "Fee Waiver",            bg: "bg-emerald-950/60 text-emerald-300 border-emerald-800/60" },
+  FEE_WAIVER:           { label: "Fee Waiver",            bg: "bg-blue-950/60 text-blue-300 border-blue-700/60" },
   EDUCATION_LOAN:       { label: "Education Loan",        bg: "bg-amber-950/60 text-amber-300 border-amber-800/60" },
   FINANCIAL_ASSISTANCE: { label: "Financial Assistance",  bg: "bg-rose-950/60 text-rose-300 border-rose-800/60" },
   GRANT:                { label: "Grant",                 bg: "bg-blue-950/60 text-blue-300 border-blue-800/60" },
@@ -80,7 +80,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { icon: Award, label: "Total Opportunities", value: opportunities.length, color: "text-[var(--color-secondary)]" },
-          { icon: CheckCircle, label: "Active Listings", value: active, color: "text-emerald-400" },
+          { icon: CheckCircle, label: "Active Listings", value: active, color: "text-blue-400" },
           { icon: XCircle, label: "Inactive / Expired", value: inactive, color: "text-rose-400" },
         ].map(({ icon: Icon, label, value, color }) => (
           <div key={label} className="bg-white/95 backdrop-blur-xl shadow-xs border border-slate-200 rounded-2xl p-5 shadow-md flex items-center gap-4 hover:border-[var(--color-secondary)]/40 transition">
@@ -155,10 +155,10 @@ const Dashboard = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2.5 py-0.5 inline-flex items-center text-[10px] font-bold border rounded-full uppercase tracking-wider ${
                           item.isActive
-                            ? "bg-emerald-950/60 text-emerald-300 border-emerald-800/60"
+                            ? "bg-blue-950/60 text-blue-300 border-blue-700/60"
                             : "bg-rose-950/60 text-rose-300 border-rose-800/60"
                         }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${item.isActive ? "bg-emerald-400 animate-pulse" : "bg-rose-400"}`} />
+                          <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${item.isActive ? "bg-blue-400 animate-pulse" : "bg-rose-400"}`} />
                           {item.isActive ? "Active" : "Inactive"}
                         </span>
                       </td>

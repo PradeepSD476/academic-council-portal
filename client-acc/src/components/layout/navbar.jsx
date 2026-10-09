@@ -12,6 +12,7 @@ import {
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import AuthContext from "../../context/auth/authContext";
+import { getInitials } from "../../lib/utils";
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -135,7 +136,7 @@ function Navbar() {
                     aria-expanded={dropdown}
                   >
                     <span className="flex items-center justify-center w-6 h-6 rounded-md bg-blue-50 text-blue-600 border border-blue-100 font-bold text-[11px] shrink-0">
-                      {displayName.charAt(0).toUpperCase()}
+                      {getInitials(user?.displayName || user?.email || 'Student')}
                     </span>
                     <span className="font-semibold text-slate-800 text-xs truncate max-w-[120px]">
                       {displayName}

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Users, Shield, ChevronLeft, ChevronRight, Loader2, Wifi } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getInitials } from '../../lib/utils';
 
 const ManageUsers = () => {
   const [users, setUsers] = useState([]);
@@ -98,11 +99,11 @@ const ManageUsers = () => {
           onClick={() => { setOnlineOnly(prev => !prev); setPage(1); }}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-xs font-bold transition-all duration-200 cursor-pointer shrink-0 ${
             onlineOnly
-              ? 'bg-emerald-50 border-emerald-300 text-emerald-700 shadow-sm'
+              ? 'bg-blue-50 border-blue-300 text-blue-600 shadow-sm'
               : 'bg-white/95 border-slate-200 text-slate-500 hover:border-slate-300'
           }`}
         >
-          <Wifi size={14} className={onlineOnly ? 'text-emerald-500' : 'text-slate-400'} />
+          <Wifi size={14} className={onlineOnly ? 'text-blue-500' : 'text-slate-400'} />
           {onlineOnly ? 'Online Only' : 'Show Online'}
         </button>
       </div>
@@ -132,7 +133,7 @@ const ManageUsers = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10 bg-[var(--color-secondary)]/15 border border-[var(--color-secondary)]/30 text-[var(--color-secondary)] rounded-xl flex items-center justify-center font-bold text-sm">
-                            {user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}
+                            {getInitials(user.displayName, 'U')}
                           </div>
                           <div className="ml-3.5 min-w-0">
                             <div className="text-sm font-bold text-[var(--color-primary)] leading-snug">
@@ -179,7 +180,7 @@ const ManageUsers = () => {
                 <div key={user.id} className="p-4 flex flex-col gap-3 hover:bg-white/5 transition-colors">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-9 w-9 bg-[var(--color-secondary)]/15 border border-[var(--color-secondary)]/30 text-[var(--color-secondary)] rounded-xl flex items-center justify-center font-bold text-xs">
-                      {user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}
+                      {getInitials(user.displayName, 'U')}
                     </div>
                     <div className="ml-3 min-w-0">
                       <div className="text-sm font-bold text-[var(--color-primary)] truncate">
@@ -261,7 +262,7 @@ const RoleBadge = ({ role }) => {
     'SUPER_ADMIN': 'bg-purple-950/60 text-purple-300 border-purple-800/60',
     'ANNOUNCEMENT_ADMIN': 'bg-rose-950/60 text-rose-300 border-rose-800/60',
     'RESOURCE_ADMIN': 'bg-amber-950/60 text-amber-300 border-amber-800/60',
-    'STUDENT': 'bg-emerald-950/60 text-emerald-300 border-emerald-800/60',
+    'STUDENT': 'bg-blue-950/60 text-blue-300 border-blue-700/60',
     'FACULTY': 'bg-blue-950/60 text-blue-300 border-blue-800/60',
     'CAREER_ADMIN': 'bg-[var(--color-secondary)]/10 text-[var(--color-secondary)] border-[var(--color-secondary)]/30',
     'FINANCE_ADMIN': 'bg-teal-950/60 text-teal-300 border-teal-800/60'

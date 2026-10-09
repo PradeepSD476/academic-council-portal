@@ -6,7 +6,7 @@
 export const CATEGORIES = [
   { label: "📋 Admissions",        key: "Admissions",          color: "bg-blue-500",    textColor: "text-blue-700",  bgLight: "bg-blue-50",   border: "border-blue-200" },
   { label: "🏠 Hostel",            key: "Hostel",               color: "bg-indigo-500",  textColor: "text-indigo-700", bgLight: "bg-indigo-50", border: "border-indigo-200" },
-  { label: "💰 Finance",           key: "Finance",              color: "bg-emerald-500", textColor: "text-emerald-700",bgLight: "bg-emerald-50",border: "border-emerald-200"},
+  { label: "💰 Finance",           key: "Finance",              color: "bg-blue-500", textColor: "text-blue-600",bgLight: "bg-blue-50",border: "border-blue-200"},
   { label: "📚 Registration",      key: "Registration",         color: "bg-violet-500",  textColor: "text-violet-700", bgLight: "bg-violet-50", border: "border-violet-200" },
   { label: "🎓 Academics",         key: "Academics",            color: "bg-sky-500",     textColor: "text-sky-700",   bgLight: "bg-sky-50",    border: "border-sky-200" },
   { label: "💼 Placements",        key: "Placements",           color: "bg-amber-500",   textColor: "text-amber-700", bgLight: "bg-amber-50",  border: "border-amber-200" },

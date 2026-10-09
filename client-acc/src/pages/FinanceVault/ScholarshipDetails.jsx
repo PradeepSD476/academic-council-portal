@@ -80,9 +80,9 @@ const ScholarshipDetails = () => {
               <span className="text-[11px] font-bold text-[var(--color-secondary)] uppercase tracking-wider bg-[var(--color-secondary)]/10 border border-[var(--color-secondary)]/20 px-3 py-0.5 rounded-full">
                 {scholarship.category?.replace(/_/g, " ")}
               </span>
-              <span className={`px-2.5 py-0.5 inline-flex items-center text-[10px] font-bold border rounded-full ${scholarship.isActive ? "bg-emerald-950/60 text-emerald-300 border-emerald-800/60" : "bg-neutral-800 text-slate-500 border-slate-300"
+              <span className={`px-2.5 py-0.5 inline-flex items-center text-[10px] font-bold border rounded-full ${scholarship.isActive ? "bg-blue-950/60 text-blue-300 border-blue-700/60" : "bg-neutral-800 text-slate-500 border-slate-300"
                 }`}>
-                <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${scholarship.isActive ? "bg-emerald-400 animate-pulse" : "bg-neutral-500"}`} />
+                <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${scholarship.isActive ? "bg-blue-400 animate-pulse" : "bg-neutral-500"}`} />
                 {scholarship.isActive ? "Active Listing" : "Closed / Inactive"}
               </span>
             </div>
@@ -178,7 +178,7 @@ const ScholarshipDetails = () => {
                       {scholarship.state.map((s) => (
                         <span
                           key={s}
-                          className="px-3 py-1 rounded-xl bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 text-xs font-bold"
+                          className="px-3 py-1 rounded-xl bg-blue-950/60 border border-blue-700/60 text-blue-300 text-xs font-bold"
                         >
                           {s}
                         </span>
