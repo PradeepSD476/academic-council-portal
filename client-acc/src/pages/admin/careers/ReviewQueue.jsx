@@ -9,7 +9,7 @@ import { careersAdminApi, errorMessage } from "../../../api/careersApi";
 import PostingEditor from "./PostingEditor";
 import ReviewCandidates from "./ReviewCandidates";
 import ReviewLinks from "./ReviewLinks";
-import { PageHeader, Skeleton, StatusChip, cardClass, outlineButton, primaryButton } from "./components/ui";
+import { Modal, PageHeader, Skeleton, StatusChip, cardClass, outlineButton, primaryButton } from "./components/ui";
 import { plural } from "./components/format";
 
 const TABS = [
@@ -45,6 +45,7 @@ export default function ReviewQueue() {
   const [openId, setOpenId] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [confirming, setConfirming] = useState(false);
 
   const refresh = useCallback(() => setRefreshKey((k) => k + 1), []);
   const closeEditor = useCallback(() => setOpenId(null), []);
@@ -76,6 +77,7 @@ export default function ReviewQueue() {
   const allSelected = items.length > 0 && items.every((p) => selected.includes(p.id));
 
   const bulkApprove = async () => {
+    setConfirming(false);
     setBusy(true);
     try {
       const res = await careersAdminApi.bulkApprove(selected);
@@ -124,7 +126,7 @@ export default function ReviewQueue() {
               Select page
             </label>
             {selected.length > 0 && (
-              <button type="button" className={primaryButton} onClick={bulkApprove} disabled={busy}>Approve {plural(selected.length, "selected posting")}</button>
+              <button type="button" className={primaryButton} onClick={() => setConfirming(true)} disabled={busy}>Approve {plural(selected.length, "selected posting")}</button>
             )}
           </div>
           <div className={`${cardClass} overflow-hidden`}>
@@ -165,6 +167,33 @@ export default function ReviewQueue() {
       ))}
 
       {openId && <PostingEditor postingId={openId} onClose={closeEditor} onChanged={refresh} />}
+
+      {confirming && (
+        <BulkApproveDialog postings={items.filter((p) => selected.includes(p.id))} count={selected.length}
+          onCancel={() => setConfirming(false)} onConfirm={bulkApprove} />
+      )}
     </div>
+  );
+}
+
+// Publishing is one click away from every student, so bulk approve asks first and shows what it covers.
+function BulkApproveDialog({ postings, count, onCancel, onConfirm }) {
+  const shown = postings.slice(0, 5);
+  const more = count - shown.length;
+  return (
+    <Modal title={`Publish ${plural(count, "posting")}?`} onClose={onCancel}
+      footer={(
+        <>
+          <button type="button" className={outlineButton} onClick={onCancel}>Cancel</button>
+          <button type="button" className={primaryButton} onClick={onConfirm}>Publish {plural(count, "posting")}</button>
+        </>
+      )}>
+      <p className="text-sm text-slate-600">These go live for every student right away:</p>
+      <ul className="mt-2 space-y-1 text-sm text-slate-800">
+        {shown.map((p) => <li key={p.id} className="truncate">{p.roleTitle} <span className="text-slate-500">· {p.company.name}</span></li>)}
+        {more > 0 && <li className="text-slate-500">and {more} more</li>}
+      </ul>
+      <p className="mt-3 text-xs text-slate-500">Postings with unsure fields, low confidence or a candidate company are skipped; open those one by one.</p>
+    </Modal>
   );
 }

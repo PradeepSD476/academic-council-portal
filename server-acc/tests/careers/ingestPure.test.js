@@ -145,6 +145,11 @@ describe('buildPostingData', () => {
         expect(d.uncertainFields).toEqual(['type', 'location', 'company']);
         expect(d.extractionConfidence).toBe(0.55);
     });
+    it('B-04: a doubtful relevance verdict lands in Flagged', () => {
+        const d = buildPostingData(raw, { relevance: { type: 'INTERNSHIP', location: 'india', uncertain: true }, company: { companyId: 7, uncertain: false } });
+        expect(d.uncertainFields).toEqual(['relevance']);
+        expect(d.extractionConfidence).toBe(0.85);
+    });
     it('missing location is flagged and stored as null', () => {
         expect(build({ locationText: null })).toMatchObject({ location: null, locationNormalized: null, uncertainFields: ['location'] });
     });

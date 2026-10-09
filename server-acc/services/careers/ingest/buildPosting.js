@@ -69,6 +69,7 @@ export function buildPostingData(raw, { relevance, company, uncertain = [], now 
     if (type === 'UNKNOWN') uncertainFields.push('type');
     if (!location || relevance.location === 'unknown') uncertainFields.push('location');
     if (company.uncertain) uncertainFields.push('company');
+    if (relevance.uncertain) uncertainFields.push('relevance');
     // Pay was stated but could not be read with certainty; the raw text is kept for the reviewer.
     if (comp.stipendDisclosure === 'UNCLEAR' || comp.ctcDisclosure === 'UNCLEAR') uncertainFields.push('compensation');
     // Eligibility from the description is only a suggestion until a reviewer confirms it.

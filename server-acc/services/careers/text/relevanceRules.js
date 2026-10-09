@@ -4,6 +4,14 @@
 // Seniority in the title -> drop.
 export const SENIOR_TITLE = /\b(senior|sr\.?|staff|principal|lead|leader|manager|director|head|vp|vice president|architect|chief|president|expert|specialist ii|ii|iii|iv)\b|\blevel\s*[2-9]\b|\bl[4-9]\b/i;
 
+// An experience requirement in the title -> drop ("Exp - 1 to 3 Yrs", "2+ years", "3 years experience").
+// A bare duration ("2 years rotational programme") and "0-1 years" are not requirements.
+export const EXPERIENCE_TITLE = /\bexp(?:erience)?\b\.?\s*(?:of\s*)?[-:–]?\s*[1-9]|\b[1-9]\d?\s*\+\s*(?:yrs?|years?)\b|\b[1-9]\d?\s*(?:-|–|to)\s*\d{1,2}\s*(?:yrs?|years?)\b|\b[1-9]\d?\s*(?:yrs?|years?)\s*(?:of\s*)?exp(?:erience)?\b/i;
+
+// Roles that are rarely campus hires (8 Oct review: tele caller, insurance sales, collections) -> keep,
+// but flag for the reviewer instead of dropping silently.
+export const NON_CAMPUS_TITLE = /\b(tele[\s-]?call\w*|telesales|sales|collections?|customer (?:support|service|care)|executive assistant|receptionist|back office|data entry|call cent(?:er|re)|field (?:executive|officer)|insurance (?:advisor|agent))\b/i;
+
 // Early-career signals in the title -> keep.
 export const JUNIOR_TITLE = /\b(intern|internship|trainee|apprentice|apprenticeship|co-?op|graduate|new grad|campus|fresher|freshers|entry[\s-]level|junior|jr\.?|associate|sde[\s-]?(i|1)|engineer\s+(i|1)|analyst|early career|university)\b/i;
 

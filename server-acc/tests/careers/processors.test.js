@@ -137,3 +137,26 @@ describe('relevance', () => {
         expect(guessType('ML Research Intern')).toBe('INTERNSHIP');
     });
 });
+
+describe('relevance rules from the 8 Oct review (B-04)', () => {
+    const at = (title, descriptionText = 'Freshers welcome.') => evaluateRelevance({ title, locationText: 'Mumbai', descriptionText });
+
+    it.each(['Risk Analyst | Exp - 1 to 3 Yrs', 'Associate Engineer (2+ years)', 'Data Analyst - 3 years experience', 'Business Analyst, Experience: 2-4 yrs'])(
+        'a title asking for experience is dropped: %s', (title) => {
+            expect(at(title)).toMatchObject({ keep: false, reason: 'experience' });
+        });
+    it.each(['Graduate Engineer (0-1 years)', 'Analyst, 0 to 2 yrs', 'Intern - 6 months'])('0 years or a duration is not an experience requirement: %s', (title) => {
+        expect(at(title)).toMatchObject({ keep: true });
+    });
+    it.each(['Tele caller - Associate', 'Sales/Services Associate - Health Insurance', 'Collections Associate', 'Customer Support Associate', 'Executive Assistant'])(
+        'a non-campus role is kept but flagged for the reviewer: %s', (title) => {
+            expect(at(title)).toMatchObject({ keep: true, uncertain: true });
+        });
+    it('relevance that comes only from the description is flagged', () => {
+        expect(at('Software Engineer - Cloud: Azure', 'We hire recent graduates.')).toMatchObject({ keep: true, uncertain: true });
+    });
+    it('a clear early-career title is not flagged', () => {
+        expect(at('Software Engineer Intern')).toMatchObject({ keep: true, uncertain: false });
+        expect(at('Graduate Analyst')).toMatchObject({ keep: true, uncertain: false });
+    });
+});
