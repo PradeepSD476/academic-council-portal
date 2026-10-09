@@ -50,12 +50,18 @@ const review = (tx, postingId, action, userId, changes, note) => tx.postingRevie
     data: { postingId, action, byUserId: userId, changes: changes && Object.keys(changes).length ? changes : undefined, note: note ?? null },
 });
 
+// Pure. A LIVE posting moved to another company must stay visible, so that company must be ACTIVE (B-10).
+export function companyChangeNeedsActive(posting, data) {
+    return posting.status === 'LIVE' && data.companyId !== undefined && data.companyId !== posting.companyId;
+}
+
 export async function editPosting(id, edits, userId) {
     return prisma.$transaction(async (tx) => {
         const posting = await load(tx, id);
         requireStatus(posting, ['PENDING_REVIEW', 'LIVE', 'EXPIRED'], 'edited');
         const { data, changes } = planEdit(posting, edits);
         if (!Object.keys(changes).length) return { posting, changes };
+        if (companyChangeNeedsActive(posting, data)) await companyMustBeActive(tx, data.companyId);
         const updated = await tx.posting.update({ where: { id }, data });
         await review(tx, id, 'EDIT', userId, changes);
         return { posting: updated, changes };

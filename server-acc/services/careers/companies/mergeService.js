@@ -36,13 +36,25 @@ async function moveIds(tx, model, ids, fromCompanyId, toCompanyId) {
     return result.count;
 }
 
+// Pure. Why from can't be merged into to (a CareersError), or null. An ACTIVE company's postings and
+// experiences would land on a CANDIDATE, whose page students can't open (B-10); candidate into
+// candidate is fine (clean-up of the matcher's guesses).
+export function mergeProblem(from, to) {
+    if (from.status === 'MERGED') return new CareersError(409, 'ALREADY_MERGED', `${from.name} is already merged into another company.`);
+    if (to.status === 'MERGED') return new CareersError(409, 'TARGET_MERGED', `${to.name} is merged; merge into the company it points to instead.`);
+    if (from.status === 'ACTIVE' && to.status === 'CANDIDATE') {
+        return new CareersError(409, 'TARGET_NOT_ACTIVE', `${to.name} is a candidate company. Approve it first, or merge ${to.name} into ${from.name} instead.`);
+    }
+    return null;
+}
+
 export async function mergeCompanies({ fromId, toId, userId }) {
     if (fromId === toId) throw new CareersError(400, 'VALIDATION_ERROR', 'A company cannot be merged into itself.');
     return prisma.$transaction(async (tx) => {
         const from = await loadCompany(tx, fromId, 'Source');
         const to = await loadCompany(tx, toId, 'Target');
-        if (from.status === 'MERGED') throw new CareersError(409, 'ALREADY_MERGED', `${from.name} is already merged into another company.`);
-        if (to.status === 'MERGED') throw new CareersError(409, 'TARGET_MERGED', `${to.name} is merged; merge into the company it points to instead.`);
+        const problem = mergeProblem(from, to);
+        if (problem) throw problem;
 
         const moved = emptyMoved();
         for (const { key, model } of MOVABLE) {
