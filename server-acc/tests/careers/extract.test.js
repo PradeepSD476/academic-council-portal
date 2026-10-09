@@ -105,6 +105,22 @@ describe('verify.js', () => {
         expect(v.uncertainFields).toContain('eligibility');
         expect(verifyExtraction(base({ role_title: 'Intern', eligibility: { branches: [], years: [], min_cpi: 8 } }), 'Intern').fields.minCpi).toBeNull();
     });
+    it('B-09: a CPI counts only next to CGPA / CPI / GPA, not any digit on the page', () => {
+        const elig = (min_cpi) => base({ role_title: 'Intern', eligibility: { branches: [], years: [], min_cpi } });
+        expect(verifyExtraction(elig(7), 'Intern. Work 7 days a week during launch.').fields.minCpi).toBeNull();
+        expect(verifyExtraction(elig(8), 'Intern. Minimum CGPA: 8.0 out of 10.').fields.minCpi).toBe(8);
+        expect(verifyExtraction(elig(7.5), 'Intern. Candidates with 7.5+ CPI may apply.').fields.minCpi).toBe(7.5);
+    });
+    it('B-09: study years must be written in the page (ordinals, (pre-)final year, graduation batch)', () => {
+        const years = (y, text) => verifyExtraction(base({ role_title: 'Intern', eligibility: { branches: [], years: y, min_cpi: null } }), text, { now: new Date('2026-10-09T00:00:00+05:30') });
+        const invented = years([3, 4], 'Intern role in Pune for engineering students.');
+        expect(invented.fields.eligibleYears).toEqual([]);
+        expect(invented.uncertainFields).toContain('eligibility');
+        expect(years([4, 5], 'Intern. Open to 2027 graduates.').fields.eligibleYears).toEqual([4, 5]);
+        expect(years([3], 'Intern for pre-final year students.').fields.eligibleYears).toEqual([3]);
+        expect(years([5], 'Intern for pre-final year students.').fields.eligibleYears).toEqual([]); // pre-final = 3 (B.Tech) or 4 (dual)
+        expect(years([2, 3], 'Intern open to second year and third-year students.').fields.eligibleYears).toEqual([2, 3]);
+    });
     it('an apply URL not in the page is ignored', () => {
         expect(verifyExtraction(base({ role_title: 'Intern', apply_url: 'https://evil.example/apply' }), 'Intern').fields.applyUrl).toBeNull();
         expect(verifyExtraction(base({ role_title: 'Intern', apply_url: 'https://acme.example/apply' }), 'Intern. Apply at https://acme.example/apply').fields.applyUrl).toBe('https://acme.example/apply');

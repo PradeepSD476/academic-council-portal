@@ -12,6 +12,7 @@ import { guessType } from '../text/relevance.js';
 import { detectWorkMode } from '../text/workMode.js';
 import { extractSkills, canonicalSkillName } from '../text/skills.js';
 import { branchCodes } from '../postings/branchCodes.js';
+import { parseEligibility } from '../text/eligibility.js';
 
 export const DROPPED_FIELD_PENALTY = 0.15;
 export const TYPE_OVERRIDE_PENALTY = 0.1;
@@ -48,11 +49,35 @@ export function deadlineGrounded(value, haystack) {
     return dayOk && monthOk;
 }
 
+// A CPI counts only when the number is written within ~30 characters of CGPA / CPI / GPA (B-09):
+// "7 days a week" must not ground a cutoff of 7. "8" also matches "8.0", "7.5" matches "7.50".
+const CPI_WORD = /\b(cgpa|cpi|gpa)\b/;
+export function cpiGrounded(value, haystack) {
+    if (typeof value !== 'number' || !(value >= 0 && value <= 10)) return false;
+    const [int, frac] = String(value).split('.');
+    const number = new RegExp(`(?<![\\d.])${int}${frac ? `\\.${frac}0*` : '(?:\\.0+)?'}(?!\\.?\\d)`, 'g');
+    for (const m of haystack.matchAll(number)) {
+        if (CPI_WORD.test(haystack.slice(Math.max(0, m.index - 30), m.index + m[0].length + 30))) return true;
+    }
+    return false;
+}
+
+// Years of study the page states (B-09): "3rd year", "third-year", "3rd or 4th year", "(pre-)final
+// year" and graduation batches ("2027 graduates"), the last two through text/eligibility.js.
+const ORDINALS = { 1: '1st|first', 2: '2nd|second', 3: '3rd|third', 4: '4th|fourth', 5: '5th|fifth' };
+export function statedYears(haystack, now = new Date()) {
+    const years = new Set(parseEligibility(haystack, now).years);
+    for (const [year, words] of Object.entries(ORDINALS)) {
+        if (new RegExp(`\\b(?:${words})\\b(?=[^.\\n]{0,20}\\byears?\\b)`).test(haystack)) years.add(Number(year));
+    }
+    return years;
+}
+
 const validConfidence = (n) => typeof n === 'number' && Number.isFinite(n) && n >= 0 && n <= 1;
 
 // output: validated model output (schema.js); input: the page text sent to the model.
 // Returns { isJobPosting, fields, uncertainFields, confidence, corrections }.
-export function verifyExtraction(output, input, { provider = 'ollama' } = {}) {
+export function verifyExtraction(output, input, { provider = 'ollama', now = new Date() } = {}) {
     const haystack = normalizeForMatch(input);
     const uncertain = new Set();
     const corrections = [];
@@ -90,12 +115,13 @@ export function verifyExtraction(output, input, { provider = 'ollama' } = {}) {
     }
 
     // Eligibility: branch names must be in the text and map to an IIT Patna code; CPI must be 0..10
-    // and written in the text; years must be 1..5.
+    // and written next to CGPA / CPI / GPA; years must be 1..5 and stated in the text.
     const groundedBranches = output.eligibility.branches.filter((b) => grounded(b, haystack));
     const { codes: eligibleBranches, unknown } = branchCodes(groundedBranches);
-    const eligibleYears = [...new Set(output.eligibility.years.filter((y) => y >= 1 && y <= 5))];
+    const stated = statedYears(haystack, now);
+    const eligibleYears = [...new Set(output.eligibility.years.filter((y) => y >= 1 && y <= 5 && stated.has(y)))];
     let minCpi = output.eligibility.min_cpi;
-    if (minCpi !== null && !(minCpi >= 0 && minCpi <= 10 && grounded(String(minCpi), haystack))) {
+    if (minCpi !== null && !cpiGrounded(minCpi, haystack)) {
         corrections.push(`min CPI ${minCpi} is not written in the page; dropped`);
         minCpi = null;
         dropped++;
