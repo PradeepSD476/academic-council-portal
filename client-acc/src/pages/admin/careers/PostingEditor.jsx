@@ -12,6 +12,7 @@ import { applyLinkCheck } from "./components/applyLink";
 import UncertainField from "./components/UncertainField";
 import { REJECT_REASONS, changedFields, toForm } from "./components/postingForm";
 import { Skeleton, StatusChip, dangerButton, inputClass, outlineButton, primaryButton } from "./components/ui";
+import { safeHref } from "../../Careers/lib/format";
 
 const STATUS_STYLE = {
   PENDING_REVIEW: "text-amber-800 bg-amber-50 border-amber-100",
@@ -115,7 +116,7 @@ export default function PostingEditor({ postingId, onClose, onChanged }) {
                     <li key={o.id} className="text-xs text-slate-600 flex items-center gap-2">
                       <span className={`w-1.5 h-1.5 rounded-full ${o.isLive ? "bg-emerald-500" : "bg-slate-300"}`} aria-hidden />
                       <span className="truncate">{o.source.name}</span>
-                      <a href={o.url} target="_blank" rel="noopener noreferrer" className="ml-auto text-[var(--color-secondary)] hover:underline inline-flex items-center gap-1">Open <ExternalLink size={12} /></a>
+                      <a href={safeHref(o.url) ?? undefined} target="_blank" rel="noopener noreferrer" className="ml-auto text-[var(--color-secondary)] hover:underline inline-flex items-center gap-1">Open <ExternalLink size={12} /></a>
                     </li>
                   ))}
                 </ul>

@@ -5,6 +5,7 @@ import { careersAdminApi, errorMessage } from "../../../api/careersApi";
 import { Modal, Skeleton, StatusChip, inputClass, outlineButton, primaryButton } from "./components/ui";
 import MergeDialog from "./MergeDialog";
 import SplitDialog from "./SplitDialog";
+import { safeHref } from "../../Careers/lib/format";
 
 const ORIGIN_LABEL = { SEED: "seed", MANUAL: "admin", AUTO: "auto", MERGE: "merge" };
 
@@ -68,7 +69,7 @@ export default function CompanyDetail({ companyId, onClose, onChanged, onOpenCom
             <StatusChip status={company.status} />
             <span className="text-xs text-slate-500">/{company.slug}</span>
             {company.website && (
-              <a href={company.website} target="_blank" rel="noopener noreferrer" className="text-xs text-[var(--color-secondary)] hover:underline">{company.website}</a>
+              <a href={safeHref(company.website) ?? undefined} target="_blank" rel="noopener noreferrer" className="text-xs text-[var(--color-secondary)] hover:underline">{company.website}</a>
             )}
           </div>
 

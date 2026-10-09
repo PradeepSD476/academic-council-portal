@@ -4,6 +4,7 @@ import { ExternalLink } from "lucide-react";
 import toast from "react-hot-toast";
 import { careersAdminApi, errorMessage } from "../../../api/careersApi";
 import { Skeleton, cardClass, inputClass } from "./components/ui";
+import { safeHref } from "../../Careers/lib/format";
 
 const STATUSES = ["ALL", "RECEIVED", "PROCESSING", "EXTRACTING", "PENDING_REVIEW", "STORED_ONLY", "DUPLICATE", "FAILED"];
 const STYLE = {
@@ -44,7 +45,7 @@ export default function ReviewLinks({ refreshKey, onOpenPosting }) {
               <li key={s.id} className="px-4 py-3 space-y-1">
                 <div className="flex items-center gap-2">
                   <span className={`px-2 py-0.5 rounded-md border text-[10px] font-bold uppercase tracking-wider ${STYLE[s.status] || "text-blue-700 bg-blue-50 border-blue-100"}`}>{s.status.replace("_", " ")}</span>
-                  <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-sm text-[var(--color-secondary)] hover:underline truncate inline-flex items-center gap-1 min-w-0">
+                  <a href={safeHref(s.url) ?? undefined} target="_blank" rel="noopener noreferrer" className="text-sm text-[var(--color-secondary)] hover:underline truncate inline-flex items-center gap-1 min-w-0">
                     <span className="truncate">{s.url}</span> <ExternalLink size={12} className="shrink-0" />
                   </a>
                 </div>
