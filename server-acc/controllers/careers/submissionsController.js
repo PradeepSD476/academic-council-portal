@@ -4,6 +4,13 @@ import { z } from 'zod';
 import prisma from '../../config/db.js';
 import { sendError, CareersError } from '../../services/careers/errors.js';
 import { canonicalUrl, MAX_URL_LENGTH } from '../../services/careers/links/canonicalUrl.js';
+import { getSetting } from '../../services/careers/settings.js';
+import { isCareerAdmin } from '../../middlewares/careers/requireCareerAdmin.js';
+import { limitMessage, recentSubmissionCount } from '../../middlewares/careers/submissionRateLimit.js';
+
+// Advisory lock namespace (first key) for "one student's submissions"; the second key is the user id.
+// Job locks use single bigint keys 81001-81004, a different key space.
+const SUBMISSION_LOCK = 81010;
 
 const submitBody = z.object({
     url: z.string().trim().min(1).max(MAX_URL_LENGTH),
@@ -45,9 +52,18 @@ export const submitLink = async (req, res) => {
             return res.status(200).json({ success: true, message: 'This link was already shared. Thanks! It is in your list below.', data });
         }
 
-        const created = await prisma.linkSubmission.create({
-            data: { url, canonicalUrl: canonical, note: note || null, submittedById: req.user.id },
-            select: publicFields,
+        // Count and insert under one per-student lock, so parallel requests can't all pass the count (B-11).
+        const created = await prisma.$transaction(async (tx) => {
+            await tx.$executeRaw`SELECT pg_advisory_xact_lock(${SUBMISSION_LOCK}::int, ${req.user.id}::int)`;
+            if (!isCareerAdmin(req.user)) {
+                const limit = await getSetting('careers.submissionDailyLimit');
+                const used = await recentSubmissionCount(tx, req.user.id);
+                if (used >= limit) throw new CareersError(429, 'RATE_LIMITED', limitMessage(limit), { limit, used });
+            }
+            return tx.linkSubmission.create({
+                data: { url, canonicalUrl: canonical, note: note || null, submittedById: req.user.id },
+                select: publicFields,
+            });
         });
         return res.status(201).json({ success: true, message: 'Thanks! An admin reviews shared links before they appear.', data: created });
     } catch (err) {

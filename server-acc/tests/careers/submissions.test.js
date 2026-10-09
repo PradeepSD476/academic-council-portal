@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const db = vi.hoisted(() => ({}));
 vi.mock('../../config/db.js', () => ({ default: db }));
+vi.mock('../../services/careers/settings.js', () => ({ getSetting: async () => 5 }));
 
 const { submitLink, mySubmissions, reshareDecision, STORED_ONLY_RESHARE_DAYS } = await import('../../controllers/careers/submissionsController.js');
 
@@ -60,7 +61,11 @@ beforeEach(() => {
             findMany: async ({ where }) => shares.filter((x) => x.userId === where.userId),
         },
         posting: { findMany: async () => [] },
+        // Interactive transaction: the callback gets the same fake client; raw calls are recorded.
+        $transaction: async (fn) => fn(db),
+        $executeRaw: vi.fn(async () => 1),
     });
+    db.linkSubmission.count = async ({ where }) => submissions.filter((s) => s.submittedById === where.submittedById && s.createdAt >= where.createdAt.gte).length;
 });
 
 describe('submitLink / mySubmissions (B-08)', () => {
@@ -88,5 +93,17 @@ describe('submitLink / mySubmissions (B-08)', () => {
         const mine = res();
         await mySubmissions({ user: { id: 10 } }, mine);
         expect(mine.body.data[0]).toMatchObject({ id: 1, note: 'my friend works here', sharedEarlier: false });
+    });
+});
+
+describe('daily limit inside the insert (B-11)', () => {
+    it('counts under a per-student lock in the same transaction and refuses the 6th link', async () => {
+        for (let i = 0; i < 5; i++) submissions.push({ id: 100 + i, canonicalUrl: `https://x.example/${i}`, submittedById: 30, status: 'FAILED', createdAt: now });
+        const r = res();
+        await submitLink({ body: { url: 'https://jobs.example.com/new-one' }, user: { id: 30, role: 'STUDENT' } }, r);
+        expect(db.$executeRaw).toHaveBeenCalled();
+        expect(r.statusCode).toBe(429);
+        expect(r.body).toMatchObject({ error: 'RATE_LIMITED' });
+        expect(submissions.filter((s) => s.submittedById === 30)).toHaveLength(5);
     });
 });
