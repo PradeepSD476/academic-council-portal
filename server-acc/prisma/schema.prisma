@@ -597,9 +597,23 @@ model LinkSubmission {
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 
+  shares        LinkShare[]
+
   @@index([submittedById, createdAt])
   @@index([status])
   @@index([canonicalUrl])
+}
+
+// A student who shared a link someone had already shared (B-08): it shows in their "My submissions".
+model LinkShare {
+  id           Int            @id @default(autoincrement())
+  submissionId Int
+  submission   LinkSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  userId       Int
+  createdAt    DateTime       @default(now())
+
+  @@unique([submissionId, userId])
+  @@index([userId, createdAt])
 }
 
 model Extraction {

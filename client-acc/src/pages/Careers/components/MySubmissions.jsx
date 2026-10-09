@@ -24,7 +24,7 @@ export default function MySubmissions({ items }) {
               </span>
             </div>
             <p className="mt-0.5 text-slate-500">
-              Shared {daysAgo(s.createdAt)}
+              {s.sharedEarlier ? `First shared by another student ${daysAgo(s.createdAt)}` : `Shared ${daysAgo(s.createdAt)}`}
               {s.postingLive && s.postingId && (
                 <> · <Link to={`/dashboard/career-vault/jobs/${s.postingId}`} className="font-semibold text-[var(--color-secondary)] hover:underline">View posting</Link></>
               )}

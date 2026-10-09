@@ -12,16 +12,37 @@ const submitBody = z.object({
 
 const publicFields = { id: true, url: true, status: true, postingId: true, createdAt: true, updatedAt: true };
 
+// A store-only link (LinkedIn, ...) shared again after this many days is queued again for the admins.
+export const STORED_ONLY_RESHARE_DAYS = 7;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// Pure (B-08). What sharing a link means, given the latest earlier submission of the same link:
+//   NEW   = create a submission and process it (none yet, the last one failed, or an old store-only one)
+//   SHARE = don't process it twice; record that this student shared it too
+export function reshareDecision(existing, now = new Date()) {
+    if (!existing || existing.status === 'FAILED') return 'NEW';
+    if (existing.status === 'STORED_ONLY' && now - new Date(existing.createdAt) > STORED_ONLY_RESHARE_DAYS * DAY_MS) return 'NEW';
+    return 'SHARE';
+}
+
 export const submitLink = async (req, res) => {
     try {
         const { url, note } = submitBody.parse(req.body);
         const canonical = canonicalUrl(url);
         if (!canonical) throw new CareersError(400, 'VALIDATION_ERROR', 'Enter a full http(s) link to the job posting.');
 
-        // The same job link shared before (by anyone) is not processed twice.
-        const existing = await prisma.linkSubmission.findFirst({ where: { canonicalUrl: canonical }, orderBy: { createdAt: 'asc' }, select: publicFields });
-        if (existing) {
-            return res.status(200).json({ success: true, message: 'This link was already shared. Thanks!', data: existing });
+        // The same job link shared before (by anyone) is not processed twice, unless that attempt failed.
+        const existing = await prisma.linkSubmission.findFirst({ where: { canonicalUrl: canonical }, orderBy: { createdAt: 'desc' }, select: { ...publicFields, submittedById: true } });
+        if (reshareDecision(existing) === 'SHARE') {
+            const { submittedById, ...data } = existing;
+            if (submittedById !== req.user.id) {
+                await prisma.linkShare.upsert({
+                    where: { submissionId_userId: { submissionId: existing.id, userId: req.user.id } },
+                    create: { submissionId: existing.id, userId: req.user.id },
+                    update: {},
+                });
+            }
+            return res.status(200).json({ success: true, message: 'This link was already shared. Thanks! It is in your list below.', data });
         }
 
         const created = await prisma.linkSubmission.create({
@@ -34,14 +55,27 @@ export const submitLink = async (req, res) => {
     }
 };
 
+// The student's own submissions plus links they re-shared (sharedEarlier: true). Another student's
+// note is private and never returned.
 export const mySubmissions = async (req, res) => {
     try {
-        const items = await prisma.linkSubmission.findMany({
-            where: { submittedById: req.user.id },
-            orderBy: { createdAt: 'desc' },
-            take: 50,
-            select: { ...publicFields, note: true, error: true },
-        });
+        const [own, shares] = await Promise.all([
+            prisma.linkSubmission.findMany({
+                where: { submittedById: req.user.id },
+                orderBy: { createdAt: 'desc' },
+                take: 50,
+                select: { ...publicFields, note: true, error: true },
+            }),
+            prisma.linkShare.findMany({ where: { userId: req.user.id }, orderBy: { createdAt: 'desc' }, take: 50, select: { submissionId: true, createdAt: true } }),
+        ]);
+        const shared = shares.length
+            ? await prisma.linkSubmission.findMany({ where: { id: { in: shares.map((x) => x.submissionId) } }, select: { ...publicFields, error: true } })
+            : [];
+        const sharedAt = new Map(shares.map((x) => [x.submissionId, x.createdAt]));
+        const items = [
+            ...own.map((s) => ({ ...s, sharedEarlier: false, at: s.createdAt })),
+            ...shared.map((s) => ({ ...s, sharedEarlier: true, at: sharedAt.get(s.id) })),
+        ].sort((a, b) => new Date(b.at) - new Date(a.at)).slice(0, 50).map(({ at, ...s }) => s);
         // Only "is it live on the portal" is shared about the resulting posting, nothing about review.
         const postingIds = [...new Set(items.map((s) => s.postingId).filter(Boolean))];
         const live = new Set((await prisma.posting.findMany({ where: { id: { in: postingIds }, status: 'LIVE' }, select: { id: true } })).map((p) => p.id));
