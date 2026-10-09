@@ -10,8 +10,9 @@ const SHORT = 60; // longest line that can be a heading
 
 const clean = (s) => s.replace(/\s+/g, " ").trim();
 
-// A short line with no sentence ending, e.g. "Who we are" or "What we are looking for:".
-const isHeadingShaped = (line) => line.length <= SHORT && line.split(" ").length <= 9 && !/[.!?,;]$/.test(line);
+// A short line with no sentence ending, e.g. "Who we are" or "What we are looking for:". A line of
+// " | "-separated items ("Linkedin | X | Instagram") is a list of links, not a heading (B-16).
+const isHeadingShaped = (line) => line.length <= SHORT && line.split(" ").length <= 9 && !/[.!?,;]$/.test(line) && !/\s\|\s/.test(line);
 
 // Splits one raw line into [{ bullet: boolean, text, n? }] (n = the number of a numbered item),
 // handling "• a • b" on one line.

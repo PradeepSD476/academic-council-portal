@@ -2,6 +2,8 @@
 // fixture: tests/careers/fixtures/greenhouse.json.
 import { htmlToText } from '../../text/html.js';
 import { withLazyField } from './lazyField.js';
+import { normalizeLocation } from '../../text/normalize.js';
+import { classifyLocation } from '../../text/relevance.js';
 
 export const kind = 'GREENHOUSE';
 
@@ -26,12 +28,32 @@ function metadataValue(job, pattern) {
     return String(field.value);
 }
 
+const CONCRETE = ['india', 'foreign'];
+const text = (p) => (typeof p === 'string' && p.trim()) || null;
+
+// location.name, then offices[].location. An office *name* is often a department or a label
+// ("Payments", "India Locations"), so names are used only when nothing before is a concrete place:
+// some boards put "In-Office" in location.name and the place only in the office name, and "Remote"
+// alone says nothing about the country ("Remote; US" must stay a US job). Places that normalise to
+// the same city are kept once ("Bangalore" + "Bangalore East, Bengaluru, ...").
+export function greenhousePlaces(job) {
+    const offices = job.offices ?? [];
+    const places = [text(job.location?.name), ...offices.map((o) => text(o.location))].filter(Boolean);
+    if (!places.some((p) => CONCRETE.includes(classifyLocation(p)))) places.push(...offices.map((o) => text(o.name)).filter(Boolean));
+    const seen = new Set();
+    return places.filter((p) => {
+        // The class too: every remote variant normalises to "remote", but "Remote India" and
+        // "United States - Remote" are not the same place as "Remote".
+        const key = `${normalizeLocation(p) ?? p.toLowerCase()}|${classifyLocation(p)}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+}
+
 export function mapJob(job) {
-    // Some boards put "Hybrid" / "In-Office" in location.name and the real cities in offices[].
-    const places = [job.location?.name, ...(job.offices ?? []).map((o) => o.location || o.name)]
-        .map((p) => p?.trim())
-        .filter(Boolean);
-    const locationText = places.length ? [...new Set(places)].join('; ') : null;
+    const places = greenhousePlaces(job);
+    const locationText = places.length ? places.join('; ') : null;
     const raw = {
         externalId: String(job.id),
         title: (job.title ?? '').trim(),

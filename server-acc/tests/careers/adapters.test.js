@@ -43,6 +43,16 @@ describe('greenhouse adapter (real fixture: rubrik)', () => {
         expect(raw.locationText).toBe('Hybrid; Bengaluru, India');
         expect(raw.descriptionText).toBe('Hi');
     });
+    it.each([
+        ['a department in an office name (Razorpay)', { name: 'Bengaluru' }, [{ name: 'Payments', location: null }], 'Bengaluru'],
+        ['a label in an office name', { name: 'Bengaluru' }, [{ name: 'India Locations', location: null }], 'Bengaluru'],
+        ['the same city written twice', { name: 'Bangalore' }, [{ name: 'BLR East', location: 'Bangalore East, Bengaluru, Karnataka, India' }], 'Bangalore'],
+        ['office names when nothing else is a place', { name: 'In-Office' }, [{ name: 'Remote India', location: null }], 'In-Office; Remote India'],
+        ['"Remote" alone is not a place: the office name keeps the country (Stripe)', { name: 'Remote' }, [{ name: 'US', location: null }], 'Remote; US'],
+        ['"Remote" alone is not a place (Cloudflare)', { name: 'Hybrid or Remote' }, [{ name: 'Remote India', location: null }], 'Hybrid or Remote; Remote India'],
+    ])('B-16 locations: %s', (_, location, offices, expected) => {
+        expect(greenhouse.mapJob({ id: 3, title: 'Intern', absolute_url: 'https://x.test/3', content: '', location, offices }).locationText).toBe(expected);
+    });
     it('reads pay and employment type from custom metadata when present', () => {
         const raw = greenhouse.mapJob({
             id: 2, title: 'Intern', absolute_url: 'https://x.test/2', content: '',
