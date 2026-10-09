@@ -76,6 +76,18 @@ export async function setSetting(key, value, updatedById = null) {
     return parsed;
 }
 
+// Several keys at once, all or nothing (B-13): every value is validated first, then all are written
+// in one transaction, so a failed write leaves none of them changed.
+export async function setSettings(values, updatedById = null) {
+    const parsed = Object.entries(values).map(([key, value]) => [key, definitionFor(key).schema.parse(value)]);
+    await prisma.$transaction(parsed.map(([key, value]) => {
+        const json = value === null ? Prisma.JsonNull : value;
+        return prisma.appSetting.upsert({ where: { key }, update: { value: json, updatedById }, create: { key, value: json, updatedById } });
+    }));
+    for (const [key] of parsed) cache.delete(key);
+    return Object.fromEntries(parsed);
+}
+
 export function clearSettingsCache() {
     cache.clear();
 }

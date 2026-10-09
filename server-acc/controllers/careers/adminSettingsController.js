@@ -1,4 +1,4 @@
-import { SETTINGS, getAllSettings, setSetting } from '../../services/careers/settings.js';
+import { SETTINGS, getAllSettings, setSettings } from '../../services/careers/settings.js';
 
 export const getSettings = async (req, res) => {
     try {
@@ -55,9 +55,7 @@ export const updateSettings = async (req, res) => {
     }
 
     try {
-        for (const [key, value] of Object.entries(parsed)) {
-            await setSetting(key, value, req.user.id);
-        }
+        await setSettings(parsed, req.user.id);
         const data = await getAllSettings();
         return res.status(200).json({ success: true, message: 'Settings updated.', data });
     } catch (err) {
