@@ -23,6 +23,81 @@ async function fail(extraction, attempts, error, output = undefined) {
     }
 }
 
+// One QUEUED row: call the model, verify, then save a posting, escalate or fail it. Returns 'STOP' when a
+// provider problem means the rest of the run must wait.
+async function processRow(extraction, { provider, threshold, paidTier, now }, summary) {
+    const started = Date.now();
+    let result;
+    try {
+        result = await callModel(extraction.tier, extraction.inputText);
+    } catch (err) {
+        if (!(err instanceof LlmError)) throw err;
+        const plan = afterCallError(extraction, err, now);
+        if (plan.extraction) await prisma.extraction.update({ where: { id: extraction.id }, data: plan.extraction });
+        if (plan.submission && extraction.submissionId) await prisma.linkSubmission.update({ where: { id: extraction.submissionId }, data: plan.submission });
+        if (plan.extraction?.state === 'FAILED') summary.failed++;
+        else if (plan.extraction) summary.retried++;
+        console.warn(`[careers] extraction #${extraction.id}: ${err.kind} ${err.message}`);
+        if (plan.stopRun) {
+            summary.stopped = err.kind;
+            summary.alert = plan.alert;
+            return 'STOP';
+        }
+        return null;
+    }
+
+    summary.called++;
+    const attempts = extraction.attempts + 1;
+    const cost = costUsd({ provider, model: result.model, usage: result.usage, paidTier });
+    if (cost === null) console.error(`[careers] no price known for paid model ${result.model}; cost recorded as 0`);
+    await prisma.llmUsage.create({
+        data: {
+            model: result.model, provider, purpose: extraction.tier === 'LLM_STRONG' ? 'escalate' : 'extract',
+            inputTokens: result.usage.inputTokens, outputTokens: result.usage.outputTokens, costUsd: cost ?? 0, extractionId: extraction.id,
+        },
+    });
+    console.info(`[careers] extraction #${extraction.id}: ${result.model} answered in ${((Date.now() - started) / 1000).toFixed(1)} s (${result.usage.inputTokens} in / ${result.usage.outputTokens} out tokens)`);
+
+    const problem = callResultProblem(result);
+    if (problem) {
+        await fail(extraction, attempts, problem);
+        summary.failed++;
+        return null;
+    }
+    let output;
+    try {
+        output = parseExtraction(result.text);
+    } catch (err) {
+        await fail(extraction, attempts, err.message);
+        summary.failed++;
+        return null;
+    }
+
+    const verified = verifyExtraction(output, extraction.inputText, { provider });
+    const step = nextStep({ verified, tier: extraction.tier, threshold, strongModel: modelFor('LLM_STRONG') });
+    const done = { state: 'DONE', attempts, model: result.model, output: { model: output, verified }, confidence: verified.confidence, error: null };
+
+    if (step === 'NOT_JOB' || step === 'NO_TITLE') {
+        const reason = step === 'NOT_JOB' ? 'The page does not look like a single job or internship posting.' : 'No role title could be found in the page.';
+        await fail(extraction, attempts, reason, done.output);
+        summary.failed++;
+    } else if (step === 'ESCALATE') {
+        await prisma.extraction.update({ where: { id: extraction.id }, data: done });
+        await prisma.extraction.create({
+            data: { submissionId: extraction.submissionId, tier: 'LLM_STRONG', inputText: extraction.inputText, inputTruncated: extraction.inputTruncated, sourceUrl: extraction.sourceUrl },
+        });
+        summary.escalated++;
+    } else {
+        const submission = await prisma.linkSubmission.findUnique({ where: { id: extraction.submissionId } });
+        const saved = await applyExtraction({ submission, extraction, verified, provider });
+        await prisma.extraction.update({ where: { id: extraction.id }, data: { ...done, postingId: saved.postingId } });
+        await prisma.linkSubmission.update({ where: { id: submission.id }, data: { status: saved.status, postingId: saved.postingId, error: null } });
+        if (saved.status === 'DUPLICATE') summary.duplicates++;
+        else summary.applied++;
+    }
+    return null;
+}
+
 // Returns a summary { skipped?, called, applied, duplicates, failed, retried, escalated, stopped, alert }.
 export async function runExtractions({ now = new Date() } = {}) {
     const summary = { called: 0, applied: 0, duplicates: 0, failed: 0, retried: 0, escalated: 0, stopped: null, alert: null };
@@ -53,74 +128,14 @@ export async function runExtractions({ now = new Date() } = {}) {
             break;
         }
 
-        const started = Date.now();
-        let result;
         try {
-            result = await callModel(extraction.tier, extraction.inputText);
+            if ((await processRow(extraction, { provider, threshold, paidTier, now }, summary)) === 'STOP') break;
         } catch (err) {
-            if (!(err instanceof LlmError)) throw err;
-            const plan = afterCallError(extraction, err, now);
-            if (plan.extraction) await prisma.extraction.update({ where: { id: extraction.id }, data: plan.extraction });
-            if (plan.submission && extraction.submissionId) await prisma.linkSubmission.update({ where: { id: extraction.submissionId }, data: plan.submission });
-            if (plan.extraction?.state === 'FAILED') summary.failed++;
-            else if (plan.extraction) summary.retried++;
-            console.warn(`[careers] extraction #${extraction.id}: ${err.kind} ${err.message}`);
-            if (plan.stopRun) {
-                summary.stopped = err.kind;
-                summary.alert = plan.alert;
-                break;
-            }
-            continue;
-        }
-
-        summary.called++;
-        const attempts = extraction.attempts + 1;
-        const cost = costUsd({ provider, model: result.model, usage: result.usage, paidTier });
-        if (cost === null) console.error(`[careers] no price known for paid model ${result.model}; cost recorded as 0`);
-        await prisma.llmUsage.create({
-            data: {
-                model: result.model, provider, purpose: extraction.tier === 'LLM_STRONG' ? 'escalate' : 'extract',
-                inputTokens: result.usage.inputTokens, outputTokens: result.usage.outputTokens, costUsd: cost ?? 0, extractionId: extraction.id,
-            },
-        });
-        console.info(`[careers] extraction #${extraction.id}: ${result.model} answered in ${((Date.now() - started) / 1000).toFixed(1)} s (${result.usage.inputTokens} in / ${result.usage.outputTokens} out tokens)`);
-
-        const problem = callResultProblem(result);
-        if (problem) {
-            await fail(extraction, attempts, problem);
+            // Anything else (an unreadable reply, a company that can't be resolved, a DB error while saving)
+            // fails only this row. Left QUEUED it would be first again every run and block every row behind it.
+            console.error(`[careers] extraction #${extraction.id} failed unexpectedly`, err);
+            await fail(extraction, extraction.attempts + 1, `Unexpected error: ${err.message}`);
             summary.failed++;
-            continue;
-        }
-        let output;
-        try {
-            output = parseExtraction(result.text);
-        } catch (err) {
-            await fail(extraction, attempts, err.message);
-            summary.failed++;
-            continue;
-        }
-
-        const verified = verifyExtraction(output, extraction.inputText, { provider });
-        const step = nextStep({ verified, tier: extraction.tier, threshold, strongModel: modelFor('LLM_STRONG') });
-        const done = { state: 'DONE', attempts, model: result.model, output: { model: output, verified }, confidence: verified.confidence, error: null };
-
-        if (step === 'NOT_JOB' || step === 'NO_TITLE') {
-            const reason = step === 'NOT_JOB' ? 'The page does not look like a single job or internship posting.' : 'No role title could be found in the page.';
-            await fail(extraction, attempts, reason, done.output);
-            summary.failed++;
-        } else if (step === 'ESCALATE') {
-            await prisma.extraction.update({ where: { id: extraction.id }, data: done });
-            await prisma.extraction.create({
-                data: { submissionId: extraction.submissionId, tier: 'LLM_STRONG', inputText: extraction.inputText, inputTruncated: extraction.inputTruncated, sourceUrl: extraction.sourceUrl },
-            });
-            summary.escalated++;
-        } else {
-            const submission = await prisma.linkSubmission.findUnique({ where: { id: extraction.submissionId } });
-            const saved = await applyExtraction({ submission, extraction, verified, provider });
-            await prisma.extraction.update({ where: { id: extraction.id }, data: { ...done, postingId: saved.postingId } });
-            await prisma.linkSubmission.update({ where: { id: submission.id }, data: { status: saved.status, postingId: saved.postingId, error: null } });
-            if (saved.status === 'DUPLICATE') summary.duplicates++;
-            else summary.applied++;
         }
 
         if (provider === 'gemini' && i < rows.length - 1) await new Promise((r) => setTimeout(r, GEMINI_PAUSE_MS));
