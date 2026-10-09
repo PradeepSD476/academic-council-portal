@@ -101,7 +101,7 @@ export const getAllPosts = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "Data fetched Successfully",
-            data: await withOpenRoles(resultWithUrls),
+            data: await withOpenRoles(resultWithUrls, { user: req.user }),
             pagination: {
                 total,
                 page,
