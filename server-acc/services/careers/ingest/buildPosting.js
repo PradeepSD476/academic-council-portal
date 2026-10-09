@@ -3,7 +3,7 @@
 // NOT_DISCLOSED) and is listed in uncertainFields so the review queue highlights it.
 import { normalizeTitle, normalizeLocation } from '../text/normalize.js';
 import { parseEligibility } from '../text/eligibility.js';
-import { parseCompensation } from '../text/compensation.js';
+import { parseCompensation, findPayText } from '../text/compensation.js';
 import { simhash64 } from '../text/fingerprint.js';
 import { extractSkills } from '../text/skills.js';
 import { detectWorkMode } from '../text/workMode.js';
@@ -61,7 +61,9 @@ export function buildPostingData(raw, { relevance, company, uncertain = [], now 
     const title = raw.title.trim();
     const description = raw.descriptionText ?? '';
     const type = resolveType(relevance.type, raw.employmentTypeText);
-    const comp = compensationFields(raw.compensationText, type);
+    // No pay field: pay stated in the description is used, but only as a suggestion for the reviewer (B-21).
+    const payFromText = raw.compensationText ? null : findPayText(description);
+    const comp = compensationFields(raw.compensationText ?? payFromText, type);
     const location = raw.locationText?.trim() || null;
     const eligibility = parseEligibility(description, now);
 
@@ -71,7 +73,8 @@ export function buildPostingData(raw, { relevance, company, uncertain = [], now 
     if (company.uncertain) uncertainFields.push('company');
     if (relevance.uncertain) uncertainFields.push('relevance');
     // Pay was stated but could not be read with certainty; the raw text is kept for the reviewer.
-    if (comp.stipendDisclosure === 'UNCLEAR' || comp.ctcDisclosure === 'UNCLEAR') uncertainFields.push('compensation');
+    const payStated = comp.stipendDisclosure !== 'NOT_DISCLOSED' || comp.ctcDisclosure !== 'NOT_DISCLOSED';
+    if (comp.stipendDisclosure === 'UNCLEAR' || comp.ctcDisclosure === 'UNCLEAR' || (payFromText && payStated)) uncertainFields.push('compensation');
     // Eligibility from the description is only a suggestion until a reviewer confirms it.
     if (eligibility.mentioned) uncertainFields.push('eligibility');
     uncertainFields.push(...uncertain);

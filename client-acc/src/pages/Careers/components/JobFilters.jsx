@@ -91,6 +91,8 @@ export default function JobFilters({ search, onChange, meta, onClear }) {
             {payFilter && includeUndisclosed && meta && <span className="block text-slate-500">{meta.undisclosedIncluded} included</span>}
           </span>
         </label>
+        {/* Most boards publish no pay, so a pay filter alone mostly matches undisclosed postings (B-21). */}
+        {payFilter && <p className="text-[11px] text-slate-500">Most company job boards don’t publish pay, so most openings are “Undisclosed”.</p>}
       </fieldset>
 
       <fieldset>

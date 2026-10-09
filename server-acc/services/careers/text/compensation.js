@@ -109,3 +109,19 @@ export function parseCompensation(text, { kind = 'stipend' } = {}) {
     if (max === 0) return notDisclosed(raw);
     return { min, max, disclosure: min === max ? 'DISCLOSED' : 'RANGE', currency, raw };
 }
+
+// Job boards rarely have a pay field; some state pay in the description (B-21). Returns the line that
+// states it ("Stipend: ₹40,000 per month", or a "Compensation:" label plus the next line), or null.
+// Only a line with a pay word *and* an amount counts, so "competitive compensation" or "₹500 crore
+// raised" never become pay. The caller still parses it with parseCompensation and flags it.
+const PAY_WORD = /\b(stipend|salary|ctc|compensation|pay)\b/i;
+const PAY_AMOUNT = /(₹|\brs\.?\s?\d|\binr\b|\busd\b|\$\s?\d|\blpa\b|\blakhs?\b|per month|\/\s?month|\bp\.?m\.?\b|\d{1,3}(,\d{2,3})+|\d{4,})/i;
+export function findPayText(description) {
+    const lines = String(description ?? '').split('\n').map((l) => l.trim());
+    for (const [i, line] of lines.entries()) {
+        if (!PAY_WORD.test(line)) continue;
+        const candidate = /:\s*$/.test(line) && lines[i + 1] ? `${line} ${lines[i + 1]}` : line;
+        if (/\d/.test(candidate) && PAY_AMOUNT.test(candidate)) return candidate;
+    }
+    return null;
+}

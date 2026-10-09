@@ -239,3 +239,32 @@ describe('expired postings seen again (B-07)', () => {
         expect(matchUpdate({ id: 6, status: 'LIVE', publishedAt: new Date() }, {}, now)).toEqual({ lastSeenLiveAt: now });
     });
 });
+
+describe('pay stated only in the description (B-21)', () => {
+    const base = {
+        externalId: '9', title: 'Software Engineer Intern', companyName: 'Acme', locationText: 'Bengaluru, India', url: 'https://x.test/9',
+        workplaceText: null, employmentTypeText: null, compensationText: null, postedAt: null, deadline: null,
+    };
+    const build = (descriptionText) => {
+        const r = { ...base, descriptionText };
+        return buildPostingData(r, { relevance: evaluateRelevance(r), company: { companyId: 1, uncertain: false } });
+    };
+    it('"Stipend: ₹40,000 per month" in the text is read by the pay parser and flagged', () => {
+        const d = build('About the role\nStipend: ₹40,000 per month\nPerks: lunch');
+        expect(d).toMatchObject({ stipendMin: 40000, stipendMax: 40000, stipendDisclosure: 'DISCLOSED' });
+        expect(d.uncertainFields).toContain('compensation');
+    });
+    it('a "Compensation:" label with the amount on the next line', () => {
+        expect(build('Compensation:\nINR 30,000 - 50,000 per month')).toMatchObject({ stipendMin: 30000, stipendMax: 50000 });
+    });
+    it.each([
+        'Compensation: If you are the right fit, we believe in creating wealth for you.',
+        'We offer competitive compensation, both cash and equity-based.',
+        'We raised ₹500 crore last year and serve 10,000 merchants.',
+        'Including recruiting, hiring, promotion, compensation, training, leave, and termination.',
+    ])('no amount next to a pay word -> stays NOT_DISCLOSED: %s', (text) => {
+        const d = build(text);
+        expect(d).toMatchObject({ stipendDisclosure: 'NOT_DISCLOSED', stipendMin: null, compensationRaw: null });
+        expect(d.uncertainFields).not.toContain('compensation');
+    });
+});
