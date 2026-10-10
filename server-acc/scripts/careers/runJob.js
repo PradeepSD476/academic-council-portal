@@ -1,10 +1,10 @@
 // Runs a careers job once from the command line, under the same lock the worker uses, so a manual
 // run and a scheduled run never overlap.
-// Usage: node scripts/careers/runJob.js ingest [sourceId] | links | liveness
+// Usage: node scripts/careers/runJob.js ingest [sourceId] | links | liveness | alerts
 import prisma from '../../config/db.js';
-import { ingestJob, linksJob, livenessJob } from '../../services/careers/jobs.js';
+import { ingestJob, linksJob, livenessJob, alertsJob } from '../../services/careers/jobs.js';
 
-const USAGE = 'Usage: node scripts/careers/runJob.js ingest [sourceId] | links | liveness';
+const USAGE = 'Usage: node scripts/careers/runJob.js ingest [sourceId] | links | liveness | alerts';
 
 function printIngest({ skipped, results }) {
     if (skipped) {
@@ -48,6 +48,11 @@ try {
     } else if (job === 'liveness') {
         const outcome = await livenessJob({ heartbeat: false });
         if (!outcome.ran) console.log('Another recheck is in progress (lock held). Nothing done.');
+        else if (!outcome.ok) exitCode = 1;
+        else console.log(JSON.stringify(outcome.result));
+    } else if (job === 'alerts') {
+        const outcome = await alertsJob({ heartbeat: false });
+        if (!outcome.ran) console.log('Another alerts run is in progress (lock held). Nothing done.');
         else if (!outcome.ok) exitCode = 1;
         else console.log(JSON.stringify(outcome.result));
     } else {

@@ -36,6 +36,14 @@ export const careersApi = {
   reportPosting: (id, body) => api.post(`/careers/postings/${id}/report`, body).then((r) => r.data),
   listSaved: () => api.get('/careers/saved').then((r) => r.data),
 
+  // Job alerts (P7-T1); unsubscribe / resubscribe work without login (the link in the email)
+  listAlerts: () => api.get('/careers/alerts').then((r) => r.data),
+  createAlert: (body) => api.post('/careers/alerts', body).then((r) => r.data),
+  updateAlert: (id, body) => api.patch(`/careers/alerts/${id}`, body).then((r) => r.data.data),
+  deleteAlert: (id) => api.delete(`/careers/alerts/${id}`).then((r) => r.data),
+  unsubscribeAlert: (token) => api.post('/careers/alerts/unsubscribe', { token }).then((r) => r.data.data),
+  resubscribeAlert: (token) => api.post('/careers/alerts/resubscribe', { token }).then((r) => r.data.data),
+
   // Shared job links
   submitLink: (body) => api.post('/careers/submissions', body).then((r) => r.data),
   mySubmissions: () => api.get('/careers/submissions/mine').then((r) => r.data.data),

@@ -24,6 +24,8 @@ export const SETTINGS = {
     'careers.confidenceThreshold': { default: 0.8, editable: true, schema: z.number().min(0).max(1) },
     'careers.fuzzyThreshold': { default: 0.92, editable: true, schema: z.number().min(0.5).max(1) },
     'careers.submissionDailyLimit': { default: 5, editable: true, schema: z.number().int().min(0).max(100) },
+    // P7-T1 (F-19): job-alert digests are only emailed while this is on (and students can see the feature).
+    'careers.alertEmailsEnabled': { default: false, editable: true, schema: z.boolean() },
     'careers.runRequest': { default: null, editable: false, schema: runRequestSchema },
     'careers.workerHeartbeat': { default: null, editable: false, schema: heartbeatSchema },
 };

@@ -7,6 +7,7 @@ import { submitLink, mySubmissions, withdrawLink } from '../controllers/careers/
 import { getMyEligibility, updateMyCpi } from '../controllers/careers/eligibilityController.js';
 import { listPostings, newPostingsCount, getPosting, reportPosting } from '../controllers/careers/postingsController.js';
 import { searchCompanies, listCompanies, getCompanyPage } from '../controllers/careers/companiesController.js';
+import { listAlerts, createAlert, updateAlert, deleteAlert, unsubscribeAlert, resubscribeAlert } from '../controllers/careers/alertsController.js';
 import { savePosting, unsavePosting, hidePosting, unhidePosting, setApplication, setApplicationNote, listSaved } from '../controllers/careers/trackingController.js';
 
 // Student-facing careers routes. requireCareersEnabled is applied per route (not router-wide)
@@ -35,6 +36,14 @@ router.delete('/careers/postings/:id/hide', checkAuth, requireCareersEnabled, un
 router.put('/careers/postings/:id/application', checkAuth, requireCareersEnabled, setApplication);
 router.put('/careers/postings/:id/application/note', checkAuth, requireCareersEnabled, setApplicationNote);
 router.get('/careers/saved', checkAuth, requireCareersEnabled, listSaved);
+
+router.get('/careers/alerts', checkAuth, requireCareersEnabled, listAlerts);
+router.post('/careers/alerts', checkAuth, requireCareersEnabled, createAlert);
+router.patch('/careers/alerts/:id', checkAuth, requireCareersEnabled, updateAlert);
+router.delete('/careers/alerts/:id', checkAuth, requireCareersEnabled, deleteAlert);
+// The link in the digest email: no login and no flag gate (stopping emails must always work).
+router.post('/careers/alerts/unsubscribe', unsubscribeAlert);
+router.post('/careers/alerts/resubscribe', resubscribeAlert);
 
 router.get('/careers/me/eligibility', checkAuth, requireCareersEnabled, getMyEligibility);
 router.patch('/careers/me/cpi', checkAuth, requireCareersEnabled, updateMyCpi);

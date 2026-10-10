@@ -59,5 +59,7 @@ export function computeAlerts({ worker, sources, queue, llm }) {
     if (queue.submissions.waitingOver48h > 0) amber('LINKS_WAITING', `${queue.submissions.waitingOver48h} student link(s) have waited more than 48 hours for an admin (Jobs review → Student links → Needs a person).`);
     // F-05: live postings students reported several times (All postings → Reported).
     if (queue.reported > 0) amber('POSTINGS_REPORTED', `${queue.reported} live posting(s) were reported by several students (Jobs review → All postings → Reported).`);
+    // F-19: job-alert digests that could not be sent (no SMTP, CLIENT_URL missing, or the send failed).
+    if (queue.alertEmailsFailing > 0) amber('ALERT_EMAILS_FAILING', `${queue.alertEmailsFailing} job alert(s) could not be emailed. Check the SMTP settings and the API log.`);
     return alerts;
 }

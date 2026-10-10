@@ -9,6 +9,7 @@ import { runExtractions } from './extract/runExtractions.js';
 import { recheckLiveness } from './links/recheckLiveness.js';
 import { expirePastDeadlines } from './postings/deadlines.js';
 import { heartbeat } from './heartbeat.js';
+import { runAlerts } from './alerts/runAlerts.js';
 
 // Ingest of every enabled ATS source (every 6 hours, and on admin "Run now" requests).
 export async function ingestJob(options = {}) {
@@ -75,6 +76,15 @@ export async function livenessJob(options = {}) {
     return { ...outcome, result };
 }
 
+// Job-alert digests (P7-T1): daily and weekly alerts, each at most once per period.
+export async function alertsJob(options = {}) {
+    let result = null;
+    const outcome = await withJobLock(JOB_LOCKS.alerts, 'alerts', async () => {
+        result = await runAlerts(options.runOptions ?? {});
+    }, { heartbeat: options.heartbeat ?? true });
+    return { ...outcome, result };
+}
+
 // name -> { cron, run }
 export const JOBS = {
     // Every 6 hours (02:00, 08:00, 14:00, 20:00 IST): one run is ~12 sequential board requests, so this
@@ -82,6 +92,8 @@ export const JOBS = {
     // job that leaves its board expires after ~12 hours (MISSED_RUNS_TO_DROP = 2).
     ingestAll: { cron: '0 2,8,14,20 * * *', run: () => ingestJob() },
     recheckLiveness: { cron: '30 5 * * *', run: () => livenessJob() },
+    // 09:00 IST, after the 08:00 ingest has been reviewed or not: a digest lists only approved (LIVE) postings.
+    alerts: { cron: '0 9 * * *', run: () => alertsJob() },
     linksAndExtraction: { cron: '*/10 * * * *', run: () => linksJob() },
     // Every 10 s (6-field cron with seconds), so "Fetch now" starts within seconds.
     runRequests: { cron: '*/10 * * * * *', run: () => runRequestsTick() },

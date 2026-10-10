@@ -2,7 +2,7 @@ import { useCallback, useContext, useEffect, useMemo, useState, useSyncExternalS
 import { useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { motion, useReducedMotion } from "framer-motion";
-import { Briefcase, ChevronLeft, ChevronRight, EyeOff, Info, Search, SearchX, Share2, SlidersHorizontal, X } from "lucide-react";
+import { Bell, Briefcase, ChevronLeft, ChevronRight, EyeOff, Info, Search, SearchX, Share2, SlidersHorizontal, X } from "lucide-react";
 import AuthContext from "../../context/auth/authContext";
 import { careersApi, errorMessage } from "../../api/careersApi";
 import { useCareersStatus } from "../../hooks/useCareersStatus";
@@ -16,6 +16,8 @@ import EmptyState from "./components/EmptyState";
 import SubmitLinkModal from "./components/SubmitLinkModal";
 import DraftInput from "./components/DraftInput";
 import { AboutBanner, AboutPanel } from "./components/AboutOpenings";
+import JobAlertsDialog from "./components/JobAlertsDialog";
+import { alertFilters } from "./lib/alerts";
 import { apiParams, withChanges, activeFilterCount, hasAnyFilter, cleared } from "./lib/filters";
 import { plural } from "./lib/format";
 
@@ -79,6 +81,7 @@ export default function JobsPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [about, setAbout] = useState(false);
+  const [alerting, setAlerting] = useState(false);
   const isDesktop = useIsDesktop();
   const reduceMotion = useReducedMotion();
   // Previous visit, for the "New" badges (read once per browser session; only while the feature is on).
@@ -260,6 +263,9 @@ export default function JobsPage() {
                   Show hidden ({meta.hiddenByYou})
                 </button>
               )}
+              <button type="button" onClick={() => setAlerting(true)} className="ml-auto inline-flex items-center gap-1 text-xs font-semibold text-[var(--color-secondary)] hover:underline cursor-pointer">
+                <Bell size={13} aria-hidden="true" /> Job alerts
+              </button>
             </div>
           )}
 
@@ -281,6 +287,7 @@ export default function JobsPage() {
 
       {sharing && <SubmitLinkModal onClose={() => setSharing(false)} />}
       {about && <AboutPanel onClose={() => setAbout(false)} />}
+      {alerting && <JobAlertsDialog filters={alertFilters(search)} onClose={() => setAlerting(false)} />}
 
       {!isDesktop && drawerOpen && (
         <div className="fixed inset-0 z-[70] flex justify-end bg-black/30" role="dialog" aria-modal="true" aria-label="Filters" onClick={() => setDrawerOpen(false)}>

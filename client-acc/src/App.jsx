@@ -32,6 +32,7 @@ import JobDetailPage from "./pages/Careers/JobDetailPage.jsx";
 import CompaniesPage from "./pages/Careers/CompaniesPage.jsx";
 import CompanyPage from "./pages/Careers/CompanyPage.jsx";
 import SavedPage from "./pages/Careers/SavedPage.jsx";
+import UnsubscribePage from "./pages/Careers/UnsubscribePage.jsx";
 import ManagePost from "./pages/admin/ManagePost.jsx";
 import AdminPostEditor from "./components/Editor.jsx";
 import FAQPage from "./pages/FAQ/page.jsx";
@@ -60,6 +61,7 @@ const AppRoutes = () => {
       <Route path="/wing/:wingId" element={<WingPage />} />
       <Route path="/wings" element={<Wings />} />
       <Route path="/faq" element={<FAQPage />} />
+      <Route path="/alerts/unsubscribe" element={<UnsubscribePage />} />
       <Route path="/login" element={<SignIn />} />
       <Route path="/register" element={<SignUp />} />
       <Route path="/login-with-roll" element={<VerifyRoll />} />

@@ -48,7 +48,9 @@ export const getOps = async (req, res) => {
         const waiting = await needsPersonCounts(llm.enabled && llm.usable === true, now);
         // P6-T7: LIVE postings that students reported REPORT_FLAG_AT or more times (still open).
         const reported = await prisma.posting.count({ where: { status: 'LIVE', uncertainFields: { has: 'reported' } } });
-        const queue = { pending, flagged, candidates, reported, submissions: { received, extracting, failed, storedOnly, ...waiting } };
+        // P7-T1: active job alerts whose last digest could not be sent.
+        const alertEmailsFailing = await prisma.savedSearch.count({ where: { unsubscribedAt: null, lastError: { not: null } } });
+        const queue = { pending, flagged, candidates, reported, alertEmailsFailing, submissions: { received, extracting, failed, storedOnly, ...waiting } };
         const postings = { live, expiredLast7d, newLast24h };
         const alerts = computeAlerts({ worker, sources, queue, llm });
 

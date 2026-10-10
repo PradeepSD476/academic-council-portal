@@ -35,6 +35,7 @@ model User {
   postingApplications PostingApplication[] // careers P4-lite (relation only, no column)
   postingReports      PostingReport[] // careers P6 (relation only, no column)
   hiddenPostings      HiddenPosting[] // careers P6 (relation only, no column)
+  savedSearches       SavedSearch[] // careers P7 (relation only, no column)
 }
 
 model Experience {
@@ -739,4 +740,30 @@ model HiddenPosting {
 
   @@unique([userId, postingId])
   @@index([postingId])
+}
+
+enum AlertFrequency {
+  DAILY
+  WEEKLY
+}
+
+// careers P7-T1 (F-19): a student's job alert. filters = the jobs-page query params; the digest lists
+// LIVE postings published since lastRunAt. token = the no-login unsubscribe link.
+model SavedSearch {
+  id             Int            @id @default(autoincrement())
+  userId         Int
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String
+  filters        Json
+  frequency      AlertFrequency @default(WEEKLY)
+  token          String         @unique
+  unsubscribedAt DateTime?
+  lastRunAt      DateTime?
+  lastSentAt     DateTime?
+  lastSentCount  Int?
+  lastError      String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([userId])
 }
