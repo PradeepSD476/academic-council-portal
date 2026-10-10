@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { istWeekStart, weekStarts, visitorKey, usageQuery, recordVisit, recordApplyClick } from '../../services/careers/usage/usage.js';
+import { istWeekStart, weekStarts, visitorKey, usageQuery, recordVisit, recordApplyClick, firstClickToday } from '../../services/careers/usage/usage.js';
 
 describe('IST weeks (F-30)', () => {
     it('starts on Monday 00:00 IST (= Sunday 18:30 UTC)', () => {
@@ -61,5 +61,17 @@ describe('recording', () => {
             create: { postingId: 9, day: new Date('2026-10-10T18:30:00Z'), applyClicks: 1 },
             update: { applyClicks: { increment: 1 } },
         });
+    });
+});
+
+describe('Apply clicks are limited (security review of P7-T4)', () => {
+    it('one per student, posting and IST day', () => {
+        const state = { day: null, seen: new Set(), full: false };
+        const t = new Date('2026-10-10T06:00:00Z');
+        expect(firstClickToday(1, 9, t, state)).toBe(true);
+        expect(firstClickToday(1, 9, t, state)).toBe(false);
+        expect(firstClickToday(2, 9, t, state)).toBe(true);
+        expect(firstClickToday(1, 10, t, state)).toBe(true);
+        expect(firstClickToday(1, 9, new Date('2026-10-10T19:00:00Z'), state)).toBe(true); // next IST day
     });
 });

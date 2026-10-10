@@ -10,7 +10,7 @@ import { adminInfo } from '../../services/careers/postings/adminInfo.js';
 import { newCountQuery, newSinceWhere } from '../../services/careers/postings/newCount.js';
 import { reportBody, fileReport } from '../../services/careers/postings/reports.js';
 import { hiddenWhere } from '../../services/careers/postings/hidden.js';
-import { recordVisit, recordApplyClick } from '../../services/careers/usage/usage.js';
+import { recordVisit, recordApplyClick, firstClickToday } from '../../services/careers/usage/usage.js';
 import {
     postingsQuery, baseWhere, eligibilityWhere, withEligibility, orderByFor, hasPayFilter,
 } from '../../services/careers/postings/query.js';
@@ -50,15 +50,16 @@ export const reportPosting = async (req, res) => {
     }
 };
 
-// POST /careers/postings/:id/apply-click (P7-T4, F-30): +1 on the posting's daily counter. Who
-// clicked is not stored.
+// POST /careers/postings/:id/apply-click (P7-T4, F-30): +1 on the posting's daily counter, at most once
+// per student, posting and day. Who clicked is not stored.
 export const applyClick = async (req, res) => {
     try {
         const id = parseId(req.params.id);
         const posting = await prisma.posting.findUnique({ where: { id }, select: { status: true } });
         if (posting?.status !== 'LIVE') throw new CareersError(404, 'NOT_FOUND', 'This posting is not available.');
-        await recordApplyClick(prisma, id);
-        return res.json({ success: true });
+        const counted = firstClickToday(req.user.id, id);
+        if (counted) await recordApplyClick(prisma, id);
+        return res.json({ success: true, data: { counted } });
     } catch (err) {
         return sendError(res, err, 'applyClick');
     }

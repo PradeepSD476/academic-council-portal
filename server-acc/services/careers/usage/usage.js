@@ -43,6 +43,25 @@ export async function recordVisit(db, user, { isAdmin, now = new Date(), secret 
     await db.careersWeeklyVisitor.createMany({ data: [{ weekStart, visitorKey: visitorKey(user.id, weekStart, secret) }], skipDuplicates: true });
 }
 
+// One counted Apply click per student, posting and IST day, so repeated clicks (or a script) cannot
+// inflate the numbers. Kept in memory only: nothing that names the student reaches the database.
+// With several API processes a click may count once per process; fine for usage numbers.
+export const MAX_TRACKED_CLICKS = 200_000;
+const clickState = { day: null, seen: new Set(), full: false };
+export function firstClickToday(userId, postingId, now = new Date(), state = clickState) {
+    const day = istDayStart(now).getTime();
+    if (state.day !== day) Object.assign(state, { day, seen: new Set(), full: false });
+    const key = `${userId}:${postingId}`;
+    if (state.seen.has(key)) return false;
+    if (state.seen.size >= MAX_TRACKED_CLICKS) {
+        if (!state.full) console.error(`[careers] usage: ${MAX_TRACKED_CLICKS} Apply clicks today, not counting more`);
+        state.full = true;
+        return false;
+    }
+    state.seen.add(key);
+    return true;
+}
+
 export async function recordApplyClick(db, postingId, now = new Date()) {
     const day = istDayStart(now);
     await db.postingDailyStat.upsert({
