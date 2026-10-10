@@ -204,8 +204,8 @@ const CreatePostView = ({ onBack, onSubmitted }) => {
             />
           </div>
           {resumeFile && (
-            <div className="flex items-center gap-2 text-xs text-slate-600 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
-              <FileText size={14} className="text-emerald-600 shrink-0" />
+            <div className="flex items-center gap-2 text-xs text-slate-600 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+              <FileText size={14} className="text-blue-500 shrink-0" />
               <span className="truncate">{resumeFile.name}</span>
               <span className="text-slate-400 shrink-0">({(resumeFile.size / 1024).toFixed(0)} KB)</span>
               <button

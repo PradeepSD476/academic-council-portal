@@ -5,6 +5,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("POSTGRES_DATABASE_URL")
+  schemas  = ["public", "research_vault"]
 }
 
 model User {
@@ -26,11 +27,32 @@ model User {
   experiences         Experience[]
   likes               Like[]
   uploadedResources   Resource[]
+  resourceViews       ResourceView[]
+  approvedResources   ResearchResource[]   @relation("ApprovedResource")
   bookmarks           Bookmark[]
+  // Research Vault
+  researchExperiences    StudentResearchExperience[]       @relation("ResearchExperienceUploader")
+  researchDiscussions    ResearchDiscussion[]
+  researchDiscussionReplies ResearchDiscussionReply[]
+  researchResources      ResearchResource[]
+  researchPositions      ResearchOpenPosition[]
+  researchInterest       ResearchInterest?
+  researchFacultyFollows ResearchFacultyFollow[]
+  researchAreaFollows    ResearchAreaFollow[]
+  researchPositionBookmarks ResearchOpenPositionBookmark[]
+  researchExperienceLikes ResearchExperienceLike[]
+  researchExperienceBookmarks ResearchExperienceBookmark[]
+  researchExperienceComments ResearchExperienceComment[] @relation("ResearchExperienceCommenter")
+  researchExperienceCommentDeletions ResearchExperienceComment[] @relation("ResearchExperienceCommentDeleter")
+  researchDiscussionVotes ResearchDiscussionVote[]
+  researchReplyVotes     ResearchReplyVote[]
+
   doubts              Doubt[]
   doubtAnswers        DoubtAnswer[]
   doubtVotes          DoubtVote[]
   doubtReports        DoubtReport[]
+  
+  @@schema("public")
 }
 
 model Experience {
@@ -48,6 +70,7 @@ model Experience {
   uploadedBy     User           @relation(fields: [uploadedById], references: [id])
   likes          Like[]
   bookmarks      Bookmark[]
+  @@schema("public")
 }
 
 model Bookmark {
@@ -62,6 +85,7 @@ model Bookmark {
   @@unique([userId, postId])
   @@index([postId])
   @@index([userId])
+  @@schema("public")
 }
 
 model Comment {
@@ -82,6 +106,7 @@ model Comment {
   @@index([rootId])
   @@index([parentId])
   @@index([postId, rootId])
+  @@schema("public")
 }
 
 model Like {
@@ -95,6 +120,7 @@ model Like {
 
   @@unique([userId, postId])
   @@index([postId])
+  @@schema("public")
 }
 
 model Verification {
@@ -108,6 +134,7 @@ model Verification {
 
   @@index([email])
   @@index([expiringAt])
+  @@schema("public")
 }
 
 model Course {
@@ -123,6 +150,7 @@ model Course {
   credits       Decimal    @db.Decimal
   instructor    String
   resources     Resource[]
+  @@schema("public")
 }
 
 model Resource {
@@ -137,6 +165,7 @@ model Resource {
   updatedAt    DateTime     @updatedAt
   course       Course?      @relation(fields: [courseId], references: [id])
   uploadedBy   User?        @relation(fields: [uploadedById], references: [id])
+  @@schema("public")
 }
 
 model Announcement {
@@ -151,6 +180,7 @@ model Announcement {
   updatedAt      DateTime @updatedAt
   type           String   @default("GENERAL")
   uploadedBy     User?    @relation(fields: [uploadedById], references: [id])
+  @@schema("public")
 }
 
 model FinanceVault {
@@ -186,6 +216,7 @@ model FinanceVault {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@schema("public")
 }
 
 enum Role {
@@ -196,12 +227,15 @@ enum Role {
   FACULTY
   CAREER_ADMIN
   FINANCE_ADMIN
+  RESEARCH_ADMIN
+  @@schema("public")
 }
 
 enum VerificationType {
   EMAIL_VERIFICATION
   PASSWORD_RESET
   LOGIN_OTP
+  @@schema("public")
 }
 
 enum Program {
@@ -209,17 +243,27 @@ enum Program {
   BTECH
   PHD
   MSC
+  @@schema("public")
 }
 
 enum ContentStatus {
   DRAFT
   PUBLISHED
+  @@schema("public")
+}
+
+enum ExperienceStatus {
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  @@schema("research_vault")
 }
 
 enum ExperienceType {
   INTERNSHIP
   PLACEMENT
   STARTUP
+  @@schema("public")
 }
 
 enum ResourceType {
@@ -244,6 +288,7 @@ enum ResourceType {
   EXAM_NOTICE
   TIME_TABLE
   OTHER
+  @@schema("public")
 }
 
 enum FinanceCategory {
@@ -254,12 +299,426 @@ enum FinanceCategory {
   GRANT
   FEE_REIMBURSEMENT
   OTHER
+  @@schema("public")
+}
+
+// ── Research Vault ──────────────────────────────────────────────────────────
+
+model ResearchArea {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+
+  facultyProfiles FacultyProfileResearchArea[]
+  experiences     StudentResearchExperienceResearchArea[]
+  discussions     ResearchDiscussionResearchArea[]
+  positions       ResearchOpenPositionResearchArea[]
+  resources       ResearchResourceResearchArea[]
+  followers       ResearchAreaFollow[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@schema("research_vault")
+}
+
+model FacultyProfile {
+  id            Int      @id @default(autoincrement())
+  name          String
+  slug          String   @unique
+  designation   String?
+  department    String?
+  email         String?
+  phone         String?
+  photoURL      String?
+  website       String?
+  biography     String?  @db.Text
+  publications  String?  @db.Text
+  isActive      Boolean  @default(true)
+  profileViewCount Int   @default(0)
+
+  // Profile links (all optional; UI hides each individually when null).
+  // `website` remains the lab/department site; personalWebsiteUrl is the
+  // professor's own page.
+  googleScholarUrl  String?
+  linkedinUrl       String?
+  personalWebsiteUrl String?
+  officeLocation    String?
+
+  researchAreas FacultyProfileResearchArea[]
+  experiences   StudentResearchExperience[]
+  followers     ResearchFacultyFollow[]
+  positions     ResearchOpenPosition[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@schema("research_vault")
+}
+
+model FacultyProfileResearchArea {
+  facultyProfileId Int
+  researchAreaId   Int
+
+  facultyProfile FacultyProfile @relation(fields: [facultyProfileId], references: [id], onDelete: Cascade)
+  researchArea   ResearchArea   @relation(fields: [researchAreaId], references: [id], onDelete: Cascade)
+
+  @@id([facultyProfileId, researchAreaId])
+  @@schema("research_vault")
+}
+
+model StudentResearchExperience {
+  id             Int      @id @default(autoincrement())
+  title          String
+  summary        String?
+  description    String   @db.Text
+  labName        String?
+  department     String?
+  duration       String?
+  prerequisites  String?
+  keyLearnings   String?
+  outcome        String?
+  experienceType String?
+  status         ExperienceStatus @default(PENDING_REVIEW)
+  reviewNote     String?
+  facultyId      Int?
+
+  // External guide — set only when the guide is NOT in our faculty directory
+  // (e.g. a professor at another institute or an industry mentor). Mutually
+  // exclusive with the facultyId link; validated in the controller.
+  externalGuideName        String?
+  externalGuideAffiliation String?
+
+  faculty  FacultyProfile?               @relation(fields: [facultyId], references: [id])
+  uploadedById Int
+  uploadedBy   User                       @relation("ResearchExperienceUploader", fields: [uploadedById], references: [id])
+  researchAreas StudentResearchExperienceResearchArea[]
+  likes         ResearchExperienceLike[]
+  bookmarks     ResearchExperienceBookmark[]
+  comments      ResearchExperienceComment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@schema("research_vault")
+}
+
+model ResearchExperienceComment {
+  id            Int      @id @default(autoincrement())
+  content       String   @db.Text
+  experienceId  Int
+  uploadedById  Int
+  deletedAt     DateTime?
+  deletedById   Int?
+
+  experience StudentResearchExperience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  uploadedBy User                      @relation("ResearchExperienceCommenter", fields: [uploadedById], references: [id])
+  deletedBy  User?                     @relation("ResearchExperienceCommentDeleter", fields: [deletedById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([experienceId, createdAt])
+  @@schema("research_vault")
+}
+
+model StudentResearchExperienceResearchArea {
+  experienceId  Int
+  researchAreaId Int
+
+  experience   StudentResearchExperience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  researchArea ResearchArea              @relation(fields: [researchAreaId], references: [id], onDelete: Cascade)
+
+  @@id([experienceId, researchAreaId])
+  @@schema("research_vault")
+}
+
+model ResearchExperienceLike {
+  id           Int @id @default(autoincrement())
+  experienceId Int
+  userId       Int
+
+  experience StudentResearchExperience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  user       User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([experienceId, userId])
+  @@schema("research_vault")
+}
+
+model ResearchExperienceBookmark {
+  id           Int @id @default(autoincrement())
+  experienceId Int
+  userId       Int
+
+  experience StudentResearchExperience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  user       User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([experienceId, userId])
+  @@schema("research_vault")
+}
+
+model ResearchDiscussion {
+  id         Int      @id @default(autoincrement())
+  title      String
+  content    String   @db.Text
+  isResolved Boolean  @default(false)
+  uploadedById Int
+  uploadedBy   User   @relation(fields: [uploadedById], references: [id])
+
+  researchAreas ResearchDiscussionResearchArea[]
+  replies       ResearchDiscussionReply[]
+  votes         ResearchDiscussionVote[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([createdAt, id])
+  @@index([isResolved, createdAt, id])
+  @@schema("research_vault")
+}
+
+model ResearchDiscussionResearchArea {
+  discussionId   Int
+  researchAreaId Int
+
+  discussion   ResearchDiscussion @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+  researchArea ResearchArea       @relation(fields: [researchAreaId], references: [id], onDelete: Cascade)
+
+  @@id([discussionId, researchAreaId])
+  @@index([researchAreaId, discussionId])
+  @@schema("research_vault")
+}
+
+model ResearchDiscussionReply {
+  id           Int      @id @default(autoincrement())
+  content      String   @db.Text
+  discussionId Int
+  parentId     Int?
+  uploadedById Int
+  isAccepted   Boolean  @default(false)
+
+  discussion ResearchDiscussion         @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+  parent     ResearchDiscussionReply?   @relation("ReplyParent", fields: [parentId], references: [id])
+  replies    ResearchDiscussionReply[]  @relation("ReplyParent")
+  uploadedBy User                       @relation(fields: [uploadedById], references: [id])
+  votes      ResearchReplyVote[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([discussionId, parentId, createdAt])
+  @@schema("research_vault")
+}
+
+model ResearchDiscussionVote {
+  id           Int @id @default(autoincrement())
+  discussionId Int
+  userId       Int
+  value        Int @default(1)
+
+  discussion ResearchDiscussion @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([discussionId, userId])
+  @@schema("research_vault")
+}
+
+model ResearchReplyVote {
+  id      Int @id @default(autoincrement())
+  replyId Int
+  userId  Int
+  value   Int @default(1)
+
+  reply ResearchDiscussionReply @relation(fields: [replyId], references: [id], onDelete: Cascade)
+  user  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([replyId, userId])
+  @@schema("research_vault")
+}
+
+model ResearchResource {
+  id               Int         @id @default(autoincrement())
+  title            String
+  description      String?
+  url              String?
+  filePath         String?
+  fileSize         Int?
+  mimeType         String?
+  resourceType     String      @default("GUIDE")
+  format           String?
+  // Where the payload lives: a file we host (MinIO) or an external URL.
+  // sourceType is authoritative; format/url/filePath are derived context.
+  sourceType       String      @default("FILE")
+  status           ResourceStatus @default(PENDING)
+  rejection_reason String?
+  consent_confirmed Boolean    @default(false)
+
+  viewCount       Int          @default(0)
+  downloadCount   Int          @default(0)
+
+  uploadedById    Int?
+  uploadedBy      User?        @relation(fields: [uploadedById], references: [id])
+  approvedById    Int?
+  approvedBy      User?        @relation("ApprovedResource", fields: [approvedById], references: [id])
+  reviewedAt      DateTime?
+
+  views           ResourceView[]
+//  customArea      CustomResearchArea?
+
+  researchAreas ResearchResourceResearchArea[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@schema("research_vault")
+}
+
+// Custom research areas submitted by users in the Submit Resource modal.
+// Flagged for admin review; normalized (renamed/merged into ResearchArea or
+// rejected) by an admin before becoming filterable app-wide.
+// model CustomResearchArea {
+//   id         Int      @id @default(autoincrement())
+//   name       String
+//   resourceId Int?     @unique
+//   status     String   @default("PENDING") // PENDING | APPROVED | REJECTED
+//   createdAt  DateTime @default(now())
+// 
+//   resource ResearchResource? @relation(fields: [resourceId], references: [id], onDelete: SetNull)
+// 
+//   @@index([status])
+//   @@schema("research_vault")
+// }
+
+model ResourceView {
+  id         Int      @id @default(autoincrement())
+  resourceId Int
+  userId     Int
+  createdAt  DateTime @default(now())
+
+  resource ResearchResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@schema("research_vault")
+}
+
+enum ResourceStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  @@schema("research_vault")
+}
+
+model ResearchResourceResearchArea {
+  resourceId     Int
+  researchAreaId Int
+
+  resource     ResearchResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  researchArea ResearchArea     @relation(fields: [researchAreaId], references: [id], onDelete: Cascade)
+
+  @@id([resourceId, researchAreaId])
+  @@schema("research_vault")
+}
+
+model ResearchOpenPosition {
+  id              Int      @id @default(autoincrement())
+  title           String
+  description     String?  @db.Text
+  positionType    String   @default("RA")
+  eligibility     String?
+  applicationUrl  String?
+  applicationInstructions String? @db.Text
+  deadline        DateTime?
+  isActive        Boolean  @default(true)
+  facultyId       Int?
+
+  faculty  FacultyProfile? @relation(fields: [facultyId], references: [id])
+  uploadedById Int
+  uploadedBy   User         @relation(fields: [uploadedById], references: [id])
+
+  researchAreas ResearchOpenPositionResearchArea[]
+  bookmarkedBy  ResearchOpenPositionBookmark[]
+
+  // Structured openings data (admin panel writes; user side is read-only).
+  // `status` is the admin's explicit switch (e.g. manual early close); the
+  // student-facing OPEN/CLOSED is always computed on read — see
+  // utils/openingStatus.js (explicit CLOSED OR filled>=available OR deadline
+  // past => treated as closed everywhere on the user side).
+  requirements        String? @db.Text
+  positionsAvailable  Int     @default(1)
+  positionsFilled     Int     @default(0)
+  status              OpeningStatus @default(OPEN)
+  howToApply          String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@schema("research_vault")
+}
+
+enum OpeningStatus {
+  OPEN
+  CLOSED
+  @@schema("research_vault")
+}
+
+model ResearchOpenPositionResearchArea {
+  positionId     Int
+  researchAreaId Int
+
+  position      ResearchOpenPosition @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  researchArea  ResearchArea         @relation(fields: [researchAreaId], references: [id], onDelete: Cascade)
+
+  @@id([positionId, researchAreaId])
+  @@schema("research_vault")
+}
+
+model ResearchOpenPositionBookmark {
+  id        Int      @id @default(autoincrement())
+  positionId Int
+  userId    Int
+  createdAt DateTime @default(now())
+
+  position ResearchOpenPosition @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  user     User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([positionId, userId])
+  @@schema("research_vault")
+}
+
+model ResearchInterest {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @unique
+  department   String?
+  subArea      String?
+  projectType  String?
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  @@schema("research_vault")
+}
+
+model ResearchFacultyFollow {
+  id             Int @id @default(autoincrement())
+  userId         Int
+  facultyProfileId Int
+
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  facultyProfile FacultyProfile @relation(fields: [facultyProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, facultyProfileId])
+  @@schema("research_vault")
+}
+
+model ResearchAreaFollow {
+  id             Int @id @default(autoincrement())
+  userId         Int
+  researchAreaId Int
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  researchArea ResearchArea @relation(fields: [researchAreaId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, researchAreaId])
+  @@schema("research_vault")
 }
 
 enum GenderEligibility {
   ALL
   MALE
   FEMALE
+  @@schema("public")
 }
 
 model Roadmap {
@@ -273,6 +732,7 @@ model Roadmap {
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   sections    RoadmapSection[]
+  @@schema("public")
 }
 
 model RoadmapSection {
@@ -282,6 +742,7 @@ model RoadmapSection {
   order     Int              @default(0)
   roadmap   Roadmap          @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
   chapters  RoadmapChapter[]
+  @@schema("public")
 }
 
 model RoadmapChapter {
@@ -295,6 +756,7 @@ model RoadmapChapter {
   section   RoadmapSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 
   @@unique([sectionId, slug])
+  @@schema("public")
 }
 
 // ---------------------------------------------------------------------------

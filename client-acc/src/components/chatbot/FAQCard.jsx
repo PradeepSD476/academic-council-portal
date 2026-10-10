@@ -65,8 +65,8 @@ const FAQCard = memo(function FAQCard({ faq }) {
                 aria-label="Mark as helpful"
                 className={`p-1 rounded-lg transition-colors cursor-pointer ${
                   feedback === "up"
-                    ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
-                    : "text-gray-500 hover:text-emerald-400 hover:bg-slate-100"
+                    ? "bg-blue-950 text-blue-400 border border-blue-700"
+                    : "text-gray-500 hover:text-blue-400 hover:bg-slate-100"
                 }`}
               >
                 <ThumbsUp size={11} />

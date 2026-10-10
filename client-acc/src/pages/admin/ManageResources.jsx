@@ -229,7 +229,7 @@ const ManageResources = () => {
       case "PYQ":
         return "bg-purple-950/60 text-purple-300 border-purple-800/60";
       case "NOTES":
-        return "bg-emerald-950/60 text-emerald-300 border-emerald-800/60";
+        return "bg-blue-950/60 text-blue-300 border-blue-700/60";
       case "LECTURE_SLIDE":
         return "bg-[var(--color-secondary)]/10 text-[var(--color-secondary)] border-[var(--color-secondary)]/20";
       case "TUTORIAL":

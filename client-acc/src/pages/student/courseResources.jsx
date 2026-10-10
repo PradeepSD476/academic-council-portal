@@ -54,7 +54,7 @@ const CourseResources = () => {
       case "PYQ":
         return "bg-indigo-50 text-indigo-700 border border-indigo-200";
       case "NOTES":
-        return "bg-emerald-50 text-emerald-700 border border-emerald-200";
+        return "bg-blue-50 text-blue-600 border border-blue-200";
       case "LECTURE_SLIDE":
         return "bg-sky-50 text-[var(--color-primary)] border border-sky-200";
       default:

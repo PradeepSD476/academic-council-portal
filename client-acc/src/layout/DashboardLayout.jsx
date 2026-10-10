@@ -12,10 +12,12 @@ import {
   Briefcase,
   Landmark,
   TrendingUp,
+  FileSearch,
   MessagesSquare,
 } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import AuthContext from "../context/auth/authContext";
+import { getInitials } from "../lib/utils";
 import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
 
 export default function DashboardLayout() {
@@ -32,6 +34,8 @@ export default function DashboardLayout() {
     user?.role === "FINANCE_ADMIN";
   const isCareerAdmin = user?.role === "CAREER_ADMIN";
   const isFinanceAdmin = user?.role === "FINANCE_ADMIN";
+  const isResearchAdmin = user?.role === "RESEARCH_ADMIN";
+  const canManageResearch = ["SUPER_ADMIN", "FACULTY", "RESEARCH_ADMIN"].includes(user?.role);
   const isSTUDENT = user?.role === "STUDENT";
   const isFaculty = user?.role === "FACULTY";
 
@@ -46,14 +50,14 @@ export default function DashboardLayout() {
       return;
     }
 
-    if (isAdmin) {
+    if (isAdmin || isResearchAdmin) {
       if (location.pathname.startsWith("/admin")) {
         setViewRole("admin");
       } else {
         setViewRole("STUDENT");
       }
     }
-  }, [location.pathname, isAdmin, isFaculty, isCareerAdmin]);
+  }, [location.pathname, isAdmin, isFaculty, isCareerAdmin, isResearchAdmin]);
 
   return (
     <div className="flex h-[calc(100vh-64px)] bg-[#F8FAFC] text-slate-800 relative overflow-hidden">
@@ -101,7 +105,7 @@ export default function DashboardLayout() {
 
         {/* User Card */}
         <div className="bg-gradient-to-br from-slate-50 via-white to-slate-50 rounded-xl mx-3.5 p-3.5 my-3 border border-slate-200/90 shadow-2xs relative">
-          {(isAdmin || isCareerAdmin || isFinanceAdmin) && !isFaculty && (
+          {(isAdmin || isCareerAdmin || isFinanceAdmin || isResearchAdmin) && !isFaculty && (
             <button
               onClick={() => {
                 const target =
@@ -110,6 +114,8 @@ export default function DashboardLayout() {
                       ? "/admin/manage-posts"
                       : isFinanceAdmin
                         ? "/admin/finance-vault"
+                        : isResearchAdmin
+                          ? "/admin/research-vault"
                         : "/admin/dashboard"
                     : "/dashboard/courses";
                 setViewRole(viewRole === "STUDENT" ? "admin" : "STUDENT");
@@ -124,7 +130,7 @@ export default function DashboardLayout() {
 
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
-              {user?.displayName?.charAt(0)?.toUpperCase() || "S"}
+              {getInitials(user?.displayName, 'S')}
             </div>
             <div className="overflow-hidden min-w-0 pr-4">
               <p className="text-xs font-bold text-slate-950 truncate leading-tight">
@@ -133,7 +139,11 @@ export default function DashboardLayout() {
               <span className="inline-flex items-center gap-1 text-[9px] font-bold text-slate-700 mt-1 uppercase tracking-wider bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded">
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
                 <span>
-                  {isAdmin
+                  {isResearchAdmin
+                    ? viewRole === "admin"
+                      ? "Admin Mode"
+                      : "Student View"
+                    : isAdmin
                     ? viewRole === "admin"
                       ? "Admin Mode"
                       : "Student View"
@@ -145,9 +155,9 @@ export default function DashboardLayout() {
         </div>
 
         {/* Navigation Items */}
-        <nav className="flex-1 px-3 space-y-1 overflow-y-auto scrollbar-thin">
+        <nav className="flex-1 px-3 space-y-1 overflow-y-auto scrollbar-thin" data-lenis-prevent>
           {(isSTUDENT ||
-            ((isAdmin || isCareerAdmin) && viewRole === "STUDENT")) && (
+            ((isAdmin || isCareerAdmin || isResearchAdmin) && viewRole === "STUDENT")) && (
               <>
                 <p className="px-3 text-[10px] font-bold text-slate-400 uppercase my-2 tracking-wider">
                   Student Navigation
@@ -169,7 +179,7 @@ export default function DashboardLayout() {
                 <SidebarItem
                   to="/dashboard/career-vault"
                   icon={<Briefcase size={16} />}
-                  iconColor="text-emerald-600 bg-emerald-50 border-emerald-100"
+                  iconColor="text-blue-500 bg-blue-50 border-blue-100"
                   label="Career Vault"
                   onClick={() => setOpen(false)}
                 />
@@ -178,6 +188,13 @@ export default function DashboardLayout() {
                   icon={<Landmark size={16} />}
                   iconColor="text-purple-600 bg-purple-50 border-purple-100"
                   label="Finance Vault"
+                  onClick={() => setOpen(false)}
+                />
+                <SidebarItem
+                  to="/dashboard/research-vault"
+                  icon={<FileSearch size={16} />}
+                  iconColor="text-rose-700 bg-rose-50 border-rose-100"
+                  label="Research Vault"
                   onClick={() => setOpen(false)}
                 />
                 <SidebarItem
@@ -220,7 +237,7 @@ export default function DashboardLayout() {
               <SidebarItem
                 to="/admin/manage-users"
                 icon={<Users size={16} />}
-                iconColor="text-emerald-600 bg-emerald-50 border-emerald-100"
+                iconColor="text-blue-500 bg-blue-50 border-blue-100"
                 label="Users"
                 onClick={() => setOpen(false)}
               />
@@ -252,6 +269,13 @@ export default function DashboardLayout() {
                 label="Finance Vault"
                 onClick={() => setOpen(false)}
               />
+              {canManageResearch && <SidebarItem
+                to="/admin/research-vault"
+                icon={<FileSearch size={16} />}
+                iconColor="text-rose-700 bg-rose-50 border-rose-100"
+                label="Research Vault"
+                onClick={() => setOpen(false)}
+              />}
               <SidebarItem
                 to="/admin/level-up"
                 icon={<TrendingUp size={16} />}
@@ -310,6 +334,19 @@ export default function DashboardLayout() {
                 icon={<TrendingUp size={16} />}
                 iconColor="text-blue-600 bg-blue-50 border-blue-100"
                 label="Level Up"
+                onClick={() => setOpen(false)}
+              />
+            </>
+          )}
+
+          {isResearchAdmin && viewRole === "admin" && (
+            <>
+              <p className="px-3 text-[10px] font-bold text-slate-400 uppercase my-2 tracking-wider">Research Admin</p>
+              <SidebarItem
+                to="/admin/research-vault"
+                icon={<FileSearch size={16} />}
+                iconColor="text-rose-700 bg-rose-50 border-rose-100"
+                label="Research Vault"
                 onClick={() => setOpen(false)}
               />
             </>

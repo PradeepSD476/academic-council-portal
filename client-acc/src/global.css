@@ -240,3 +240,85 @@ main {
 .animate-askacc-slide-up {
   animation: askaccSlideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+.research-vault-theme .vault-tabs {
+  border-bottom: 0;
+}
+
+.research-vault-theme .vault-tabs button {
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.95);
+  color: #64748b;
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.research-vault-theme .vault-tabs button.is-active,
+.research-vault-theme .vault-tabs button[class~="border-emerald-700"] {
+  border-color: var(--color-secondary);
+  background: var(--color-secondary);
+  color: #fff;
+  box-shadow: 0 4px 16px var(--color-secondary-glow);
+}
+
+.research-vault-theme article {
+  margin-bottom: 1rem;
+  border: 1px solid #dbeafe;
+  border-radius: 1.5rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(239, 246, 255, 0.72));
+  padding: 1.25rem;
+  box-shadow: 0 8px 24px rgba(11, 30, 63, 0.045);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.research-vault-theme article:hover {
+  border-color: rgba(37, 99, 235, 0.38);
+  box-shadow: 0 12px 32px rgba(11, 30, 63, 0.08);
+}
+
+.research-vault-theme [class~="text-emerald-700"],
+.research-vault-theme [class~="text-emerald-800"] {
+  color: var(--color-secondary);
+}
+
+.research-vault-theme [class~="text-emerald-900"],
+.research-vault-theme [class~="text-emerald-950"] {
+  color: var(--color-primary-accent);
+}
+
+.research-vault-theme [class~="bg-emerald-50"],
+.research-vault-theme [class~="bg-emerald-50/60"],
+.research-vault-theme [class~="bg-emerald-100"] {
+  background-color: var(--color-secondary-light);
+}
+
+.research-vault-theme [class~="bg-emerald-800"] {
+  background-color: var(--color-secondary);
+}
+
+.research-vault-theme [class~="border-emerald-200"] {
+  border-color: var(--color-secondary-border);
+}
+
+.research-vault-theme [class~="border-emerald-700"] {
+  border-color: var(--color-secondary);
+}
+
+.research-vault-theme [class~="hover:bg-emerald-900"]:hover {
+  background-color: var(--color-primary-accent);
+}
+
+.research-vault-theme [class~="hover:text-emerald-800"]:hover {
+  color: var(--color-primary-accent);
+}
+
+.research-vault-theme [class~="hover:border-emerald-700"]:hover {
+  border-color: var(--color-secondary);
+}
+
+.research-vault-theme [class~="accent-emerald-800"] {
+  accent-color: var(--color-secondary);
+}

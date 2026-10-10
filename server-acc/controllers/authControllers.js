@@ -304,7 +304,11 @@ export const sendEmailVerification = async (req, res) => {
     const localPart = normalizedEmail.split('@')[0];
     const name = localPart.split('_')[0];
 
-    await sendOTP({ to: normalizedEmail, name: name, otp: otp });
+    if (process.env.NODE_ENV !== 'production' && process.env.DEV_OTP_MODE === 'true') {
+      console.info(`[DEV OTP] ${normalizedEmail}: ${otp}`);
+    } else {
+      await sendOTP({ to: normalizedEmail, name: name, otp: otp });
+    }
 
     await prisma.verification.create({
       data: {

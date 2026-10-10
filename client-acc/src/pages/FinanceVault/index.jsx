@@ -175,7 +175,7 @@ const Index = () => {
       </div>
 
       {/* ── Category Quick Tabs (Horizontal) ── */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+      <div className="flex items-center gap-2 overflow-x-auto px-1 pb-1 scrollbar-none">
         {CATEGORIES.map((cat) => {
           const isActive = filters.category === cat.id;
           return (
