@@ -14,6 +14,7 @@ import EmptyState from "./components/EmptyState";
 import SaveButton from "./components/SaveButton";
 import JobDescription from "./components/JobDescription";
 import ApplicationStatusButton from "./components/ApplicationStatusButton";
+import SharePosting from "./components/SharePosting";
 import ApplyNudge from "./components/ApplyNudge";
 import ApplicationNote from "./components/ApplicationNote";
 import ReportProblemDialog from "./components/ReportProblemDialog";
@@ -202,6 +203,7 @@ export default function JobDetailPage() {
             </a>
           )}
           <SaveButton key={`${posting.id}-${posting.saved}`} posting={posting} withLabel />
+          {posting.status === "LIVE" && <SharePosting posting={posting} />}
           <button type="button" onClick={() => setSharing(true)} className="academic-btn-outline inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer">
             <Share2 size={14} aria-hidden="true" /> Share another job link
           </button>
