@@ -57,7 +57,8 @@ export const applyClick = async (req, res) => {
         const id = parseId(req.params.id);
         const posting = await prisma.posting.findUnique({ where: { id }, select: { status: true } });
         if (posting?.status !== 'LIVE') throw new CareersError(404, 'NOT_FOUND', 'This posting is not available.');
-        const counted = firstClickToday(req.user.id, id);
+        // Career admins open Apply links while reviewing; like visits, their clicks are not counted.
+        const counted = !isCareerAdmin(req.user) && firstClickToday(req.user.id, id);
         if (counted) await recordApplyClick(prisma, id);
         return res.json({ success: true, data: { counted } });
     } catch (err) {
