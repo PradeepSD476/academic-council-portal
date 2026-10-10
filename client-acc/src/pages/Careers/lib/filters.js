@@ -12,6 +12,16 @@ export const WORK_MODES = [
   { value: "HYBRID", label: "Hybrid" },
   { value: "REMOTE", label: "Remote" },
 ];
+export const SEASONS = [
+  { value: "", label: "Any season" },
+  { value: "SUMMER", label: "Summer" },
+  { value: "WINTER", label: "Winter" },
+];
+export const DURATIONS = [
+  { value: "", label: "Any length" },
+  { value: "2", label: "2 months or more" },
+  { value: "6", label: "6 months or more" },
+];
 export const SORTS = [
   { value: "newest", label: "Newest first" },
   { value: "lastSeen", label: "Recently confirmed live" },
@@ -20,12 +30,12 @@ export const SORTS = [
 export const PAGE_SIZE = 20;
 
 // Keys that narrow the results (counted on the mobile "Filters (n)" button).
-const FILTER_KEYS = ["type", "workMode", "location", "skills", "minStipend", "minCtc", "eligibleOnly", "postedWithin", "companyId"];
+const FILTER_KEYS = ["type", "workMode", "location", "skills", "minStipend", "minCtc", "eligibleOnly", "postedWithin", "companyId", "season", "minDurationMonths"];
 
 // URLSearchParams -> params for GET /careers/postings.
 export function apiParams(search) {
   const params = { limit: PAGE_SIZE };
-  for (const key of ["q", "type", "workMode", "location", "skills", "sort", "page"]) {
+  for (const key of ["q", "type", "workMode", "location", "skills", "sort", "page", "season"]) {
     const v = search.get(key);
     if (v) params[key] = v;
   }
@@ -41,6 +51,8 @@ export function apiParams(search) {
   // Company filter (P6-T5): companyName is only the label shown in the picker.
   const companyId = Number(search.get("companyId"));
   if (Number.isInteger(companyId) && companyId > 0) params.companyId = companyId;
+  const months = Number(search.get("minDurationMonths"));
+  if (Number.isInteger(months) && months >= 1 && months <= 12) params.minDurationMonths = months;
   const days = Number(search.get("postedWithin"));
   if (Number.isInteger(days) && days >= 1 && days <= 90) params.postedWithin = days;
   return params;

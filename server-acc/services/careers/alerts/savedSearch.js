@@ -13,6 +13,7 @@ export const DIGEST_LIMIT = 10; // postings listed in one email; the rest are "a
 // for a digest). companyName only labels the company filter on the page.
 export const ALERT_FILTER_KEYS = [
     'q', 'type', 'workMode', 'location', 'skills', 'companyId', 'minStipend', 'minCtc', 'includeUndisclosed', 'eligibleOnly',
+    'season', 'minDurationMonths',
 ];
 const LABEL_KEYS = ['companyName'];
 
@@ -85,6 +86,8 @@ export function filterSummary(filters = {}) {
     if (filters.q) parts.push(`“${filters.q}”`);
     if (filters.type) parts.push(TYPE_LABEL[filters.type] ?? filters.type);
     if (filters.workMode) parts.push(MODE_LABEL[filters.workMode] ?? filters.workMode);
+    if (filters.season) parts.push(filters.season === 'SUMMER' ? 'Summer' : 'Winter');
+    if (filters.minDurationMonths) parts.push(`${filters.minDurationMonths}+ months`);
     if (filters.location) parts.push(filters.location);
     if (filters.companyId) parts.push(filters.companyName || `Company #${filters.companyId}`);
     if (filters.skills) parts.push(`Skills: ${filters.skills}`);

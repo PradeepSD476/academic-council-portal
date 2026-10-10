@@ -145,3 +145,13 @@ export function safeHref(url) {
     return null;
   }
 }
+
+// Internship season / start / length (P7-T3), as stated by the source: "Summer · from May 2026 · 3 months".
+const monthYear = (d) => new Date(d).toLocaleDateString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" });
+export function seasonText(p) {
+  const parts = [];
+  if (p.season) parts.push(p.season === "SUMMER" ? "Summer" : "Winter");
+  if (p.startMonth) parts.push(`from ${monthYear(p.startMonth)}`);
+  if (p.durationMonths) parts.push(plural(p.durationMonths, "month"));
+  return parts.join(" · ");
+}

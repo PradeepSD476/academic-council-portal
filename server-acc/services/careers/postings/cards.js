@@ -10,6 +10,7 @@ export const cardFields = {
     ctcMin: true, ctcMax: true, ctcDisclosure: true,
     eligibleBranches: true, eligibleYears: true, eligibleGradYears: true, minCpi: true,
     firstSeenAt: true, lastSeenLiveAt: true, publishedAt: true, deadlineStated: true,
+    season: true, startMonth: true, durationMonths: true,
     company: { select: { id: true, name: true, slug: true } },
 };
 

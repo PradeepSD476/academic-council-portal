@@ -112,6 +112,24 @@ export default function PostingFields({ form, set, uncertain = [], confidence = 
         </UncertainField>
       </div>
 
+      {form.type !== "FULL_TIME" && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <UncertainField id="pf-season" label="Internship season" uncertain={unsure("season")} confidence={confidence} hint="Only if the source says summer or winter.">
+            <select id="pf-season" className={inputClass} value={form.season} onChange={(e) => set("season", e.target.value)}>
+              <option value="">Not stated</option>
+              <option value="SUMMER">Summer</option>
+              <option value="WINTER">Winter</option>
+            </select>
+          </UncertainField>
+          <UncertainField id="pf-start" label="Starts" uncertain={unsure("season")} confidence={confidence} hint="Stated start month.">
+            <input id="pf-start" type="month" className={inputClass} value={form.startMonth} onChange={(e) => set("startMonth", e.target.value)} />
+          </UncertainField>
+          <UncertainField id="pf-duration" label="Length (months)" uncertain={unsure("season")} confidence={confidence}>
+            <input id="pf-duration" type="number" min="1" max="12" className={inputClass} value={form.durationMonths} onChange={(e) => set("durationMonths", e.target.value)} />
+          </UncertainField>
+        </div>
+      )}
+
       <UncertainField id="pf-desc" label="Description">
         <textarea id="pf-desc" rows={8} className={`${inputClass} font-mono text-xs`} value={form.descriptionText} onChange={(e) => set("descriptionText", e.target.value)} required />
       </UncertainField>

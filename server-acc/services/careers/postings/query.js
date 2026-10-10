@@ -31,6 +31,9 @@ export const postingsQuery = z.object({
     postedWithin: z.coerce.number().int().min(1).max(90).optional(),
     // "Show hidden" (P6-T9): only the postings this student marked "Not for me".
     showHidden: bool(false),
+    // Internship season / length (P7-T3): only postings that state it match.
+    season: z.enum(['SUMMER', 'WINTER']).optional(),
+    minDurationMonths: z.coerce.number().int().min(1).max(12).optional(),
     sort: z.enum(['newest', 'lastSeen', 'deadline']).default('newest'),
     page: z.coerce.number().int().min(1).default(1),
     limit: z.coerce.number().int().min(1).max(MAX_LIMIT).default(DEFAULT_LIMIT),
@@ -110,6 +113,8 @@ export function baseWhere(params, { includeUndisclosed = params.includeUndisclos
     if (params.companyId) and.push({ companyId: params.companyId });
     if (params.minStipend !== undefined) and.push(compensationWhere('stipend', params.minStipend, includeUndisclosed));
     if (params.minCtc !== undefined) and.push(compensationWhere('ctc', params.minCtc, includeUndisclosed));
+    if (params.season) and.push({ season: params.season });
+    if (params.minDurationMonths) and.push({ durationMonths: { gte: params.minDurationMonths } });
     if (params.postedWithin) and.push({ publishedAt: { gte: new Date(now.getTime() - params.postedWithin * 24 * 60 * 60 * 1000) } });
     return { AND: and };
 }

@@ -2,7 +2,7 @@
 // sends, minus paging, sort, "new this week" and "show hidden"), plus the company label.
 import { apiParams } from "./filters";
 
-const KEEP = ["q", "type", "workMode", "location", "skills", "companyId", "minStipend", "minCtc", "includeUndisclosed", "eligibleOnly"];
+const KEEP = ["q", "type", "workMode", "location", "skills", "companyId", "minStipend", "minCtc", "includeUndisclosed", "eligibleOnly", "season", "minDurationMonths"];
 
 export function alertFilters(search) {
   const params = apiParams(search);
@@ -31,6 +31,8 @@ export function alertSummary(f = {}) {
   if (f.q) parts.push(`“${f.q}”`);
   if (f.type) parts.push(TYPE[f.type] ?? f.type);
   if (f.workMode) parts.push(MODE[f.workMode] ?? f.workMode);
+  if (f.season) parts.push(f.season === "SUMMER" ? "Summer" : "Winter");
+  if (f.minDurationMonths) parts.push(`${f.minDurationMonths}+ months`);
   if (f.location) parts.push(f.location);
   if (f.companyId) parts.push(f.companyName || `Company #${f.companyId}`);
   if (f.skills) parts.push(`Skills: ${f.skills}`);

@@ -18,7 +18,7 @@ export function chipChanges(search, chip) {
 
 // "My last filters": the filter part of the URL (not the page), remembered in this browser.
 const KEY = "careers.lastFilters";
-export const FILTER_PARAMS = ["q", "type", "workMode", "location", "skills", "minStipend", "minCtcLpa", "includeUndisclosed", "eligibleOnly", "postedWithin", "companyId", "companyName", "sort"];
+export const FILTER_PARAMS = ["q", "type", "workMode", "location", "skills", "minStipend", "minCtcLpa", "includeUndisclosed", "eligibleOnly", "postedWithin", "companyId", "companyName", "season", "minDurationMonths", "sort"];
 
 export function filterPart(search) {
   const out = new URLSearchParams();

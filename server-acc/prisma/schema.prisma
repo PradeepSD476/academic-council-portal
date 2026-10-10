@@ -534,6 +534,9 @@ model Posting {
   eligibleBranches     String[] // roll-number branch codes; [] = not stated
   eligibleYears        Int[] // academic years; [] = not stated
   eligibleGradYears    Int[] // careers P7-T2: graduation batches ("2027 graduates"); [] / NULL = not stated
+  season               String? // careers P7-T3: SUMMER | WINTER, only when the text says so
+  startMonth           DateTime? // careers P7-T3: 1st of the stated start month (UTC)
+  durationMonths       Int? // careers P7-T3: stated internship length
   minCpi               Decimal?        @db.Decimal(4, 2)
   deadlineStated       DateTime? // only when the source published one
   firstSeenAt          DateTime        @default(now())

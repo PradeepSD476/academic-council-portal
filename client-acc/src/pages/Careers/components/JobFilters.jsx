@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { SlidersHorizontal } from "lucide-react";
 import DraftInput from "./DraftInput";
 import CompanyPicker from "./CompanyPicker";
-import { TYPES, WORK_MODES, SORTS, hasAnyFilter } from "../lib/filters";
+import { TYPES, WORK_MODES, SORTS, SEASONS, DURATIONS, hasAnyFilter } from "../lib/filters";
 
 const label = "block text-xs font-semibold text-slate-600 mb-1.5";
 const group = "text-[10px] font-bold uppercase tracking-wider text-slate-500";
@@ -42,7 +42,7 @@ export default function JobFilters({ search, onChange, meta, onClear }) {
               key={t.value || "all"}
               type="button"
               aria-pressed={type === t.value}
-              onClick={() => onChange({ type: t.value, ...(t.value === "INTERNSHIP" ? { minCtcLpa: "" } : t.value === "FULL_TIME" ? { minStipend: "" } : {}) })}
+              onClick={() => onChange({ type: t.value, ...(t.value === "INTERNSHIP" ? { minCtcLpa: "" } : t.value === "FULL_TIME" ? { minStipend: "", season: "", minDurationMonths: "" } : {}) })}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors cursor-pointer ${type === t.value
                 ? "bg-[var(--color-secondary-light)] border-blue-200 text-[var(--color-secondary)]"
                 : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"}`}
@@ -59,6 +59,24 @@ export default function JobFilters({ search, onChange, meta, onClear }) {
           {WORK_MODES.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
         </select>
       </div>
+
+      {type !== "FULL_TIME" && (
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label htmlFor="f-season" className={label}>Internship season</label>
+            <select id="f-season" value={get("season")} onChange={(e) => onChange({ season: e.target.value })} className={select}>
+              {SEASONS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="f-duration" className={label}>Length</label>
+            <select id="f-duration" value={get("minDurationMonths")} onChange={(e) => onChange({ minDurationMonths: e.target.value })} className={select}>
+              {DURATIONS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+            </select>
+          </div>
+          {(get("season") || get("minDurationMonths")) && <p className="col-span-2 text-[11px] text-slate-500">Only openings whose source states it.</p>}
+        </div>
+      )}
 
       <div>
         <label htmlFor="f-company" className={label}>Company</label>

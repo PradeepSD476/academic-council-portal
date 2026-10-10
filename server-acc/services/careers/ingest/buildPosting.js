@@ -3,6 +3,7 @@
 // NOT_DISCLOSED) and is listed in uncertainFields so the review queue highlights it.
 import { normalizeTitle, normalizeLocation } from '../text/normalize.js';
 import { parseEligibility } from '../text/eligibility.js';
+import { parseSeason } from '../text/season.js';
 import { parseCompensation, findPayText } from '../text/compensation.js';
 import { simhash64 } from '../text/fingerprint.js';
 import { extractSkills } from '../text/skills.js';
@@ -66,6 +67,8 @@ export function buildPostingData(raw, { relevance, company, uncertain = [], now 
     const comp = compensationFields(raw.compensationText ?? payFromText, type);
     const location = raw.locationText?.trim() || null;
     const eligibility = parseEligibility(description, now);
+    // P7-T3: season / start / length, internships only.
+    const season = type === 'INTERNSHIP' ? parseSeason(title, description) : { season: null, startMonth: null, durationMonths: null, found: false };
 
     const uncertainFields = [];
     if (type === 'UNKNOWN') uncertainFields.push('type');
@@ -77,6 +80,7 @@ export function buildPostingData(raw, { relevance, company, uncertain = [], now 
     if (comp.stipendDisclosure === 'UNCLEAR' || comp.ctcDisclosure === 'UNCLEAR' || (payFromText && payStated)) uncertainFields.push('compensation');
     // Eligibility from the description is only a suggestion until a reviewer confirms it.
     if (eligibility.mentioned) uncertainFields.push('eligibility');
+    if (season.found) uncertainFields.push('season');
     uncertainFields.push(...uncertain);
 
     return {
@@ -93,6 +97,9 @@ export function buildPostingData(raw, { relevance, company, uncertain = [], now 
         eligibleBranches: eligibility.branches,
         eligibleYears: eligibility.years,
         eligibleGradYears: eligibility.gradYears,
+        season: season.season,
+        startMonth: season.startMonth,
+        durationMonths: season.durationMonths,
         minCpi: eligibility.minCpi,
         ...comp,
         descriptionText: description,

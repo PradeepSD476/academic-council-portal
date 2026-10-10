@@ -54,6 +54,9 @@ export function toForm(p = {}) {
     eligibleGradYears: (p.eligibleGradYears || []).join(", "),
     minCpi: p.minCpi === null || p.minCpi === undefined ? "" : String(Number(p.minCpi)),
     deadlineStated: p.deadlineStated ? String(p.deadlineStated).slice(0, 10) : "",
+    season: p.season ?? "",
+    startMonth: p.startMonth ? String(p.startMonth).slice(0, 7) : "",
+    durationMonths: str(p.durationMonths),
   };
 }
 
@@ -91,6 +94,10 @@ export function fromForm(form) {
     eligibleGradYears: list(form.eligibleGradYears).map(Number),
     minCpi: num(form.minCpi),
     deadlineStated: form.deadlineStated ? new Date(`${form.deadlineStated}T00:00:00Z`).toISOString() : null,
+    // Season fields (P7-T3) only mean something for internships.
+    season: form.type === "FULL_TIME" ? null : form.season || null,
+    startMonth: form.type === "FULL_TIME" || !form.startMonth ? null : new Date(`${form.startMonth}-01T00:00:00Z`).toISOString(),
+    durationMonths: form.type === "FULL_TIME" ? null : num(form.durationMonths),
   };
 }
 

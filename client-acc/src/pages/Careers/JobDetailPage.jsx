@@ -1,6 +1,6 @@
 import { useCallback, useContext, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, CalendarDays, ClipboardCheck, ExternalLink, Flag, GraduationCap, MapPin, SearchX, Share2, Wallet } from "lucide-react";
+import { ArrowLeft, CalendarDays, CalendarRange, ClipboardCheck, ExternalLink, Flag, GraduationCap, MapPin, SearchX, Share2, Wallet } from "lucide-react";
 import AuthContext from "../../context/auth/authContext";
 import { careersApi, errorMessage } from "../../api/careersApi";
 import { useCareersStatus } from "../../hooks/useCareersStatus";
@@ -19,7 +19,7 @@ import ApplicationNote from "./components/ApplicationNote";
 import ReportProblemDialog from "./components/ReportProblemDialog";
 import { applyNudgeAt, recordApplyClick } from "./lib/applyNudge";
 import AdminBar from "./components/AdminBar";
-import { collectedBy, formatDate, safeHref } from "./lib/format";
+import { collectedBy, formatDate, safeHref, seasonText } from "./lib/format";
 
 const TYPE_LABELS = { INTERNSHIP: "Internship", FULL_TIME: "Full-time" };
 const MODE_LABELS = { ONSITE: "On-site", HYBRID: "Hybrid", REMOTE: "Remote" };
@@ -172,6 +172,12 @@ export default function JobDetailPage() {
             <span className={posting.location ? "" : "italic"}>{posting.location || "Location not stated"}</span>
           </span>
           <FreshnessLine posting={posting} />
+          {seasonText(posting) && (
+            <span className="inline-flex items-center gap-1 text-slate-600">
+              <CalendarRange size={14} className="text-slate-400" aria-hidden="true" />
+              Internship: {seasonText(posting)}
+            </span>
+          )}
           {posting.deadlineStated && (
             <span className="inline-flex items-center gap-1 text-slate-600">
               <CalendarDays size={14} className="text-slate-400" aria-hidden="true" />
