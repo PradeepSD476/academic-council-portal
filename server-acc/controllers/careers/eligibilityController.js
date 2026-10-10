@@ -3,9 +3,9 @@
 // back in. They only ever return the caller's own row.
 import prisma from '../../config/db.js';
 import { sendError } from '../../services/careers/errors.js';
-import { eligibilityProfile, cpiBody } from '../../services/careers/postings/eligibility.js';
+import { eligibilityProfile, cpiBody, programmeBody } from '../../services/careers/postings/eligibility.js';
 
-const profileFields = { branchName: true, admissionYear: true, cpi: true, cpiUpdatedAt: true };
+const profileFields = { branchName: true, admissionYear: true, cpi: true, cpiUpdatedAt: true, programme: true, graduationYear: true };
 
 export const getMyEligibility = async (req, res) => {
     try {
@@ -28,5 +28,16 @@ export const updateMyCpi = async (req, res) => {
         return res.status(200).json({ success: true, message, data: eligibilityProfile(user) });
     } catch (err) {
         return sendError(res, err, 'updateMyCpi');
+    }
+};
+
+// P7-T2: the student corrects their programme and expected graduation year (both private).
+export const updateMyProgramme = async (req, res) => {
+    try {
+        const body = programmeBody.parse(req.body ?? {});
+        const user = await prisma.user.update({ where: { id: req.user.id }, data: body, select: profileFields });
+        return res.status(200).json({ success: true, message: 'Saved. "Eligible for me" now uses it.', data: eligibilityProfile(user) });
+    } catch (err) {
+        return sendError(res, err, 'updateMyProgramme');
     }
 };

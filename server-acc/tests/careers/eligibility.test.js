@@ -11,7 +11,10 @@ const posting = (over = {}) => ({ eligibleBranches: [], eligibleYears: [], minCp
 
 describe('eligibilityProfile', () => {
     it('derives branch and academic year, converts CPI', () => {
-        expect(cs3).toEqual({ branchName: 'CS', academicYear: 3, cpi: 8.25, cpiUpdatedAt: null, hasRollNumber: true });
+        expect(cs3).toEqual({
+            branchName: 'CS', academicYear: 3, programme: null, graduationYear: 2028, graduationYearSource: 'ASSUMED',
+            cpi: 8.25, cpiUpdatedAt: null, hasRollNumber: true,
+        });
     });
     it('uses the July academic-year boundary', () => {
         expect(eligibilityProfile({ branchName: 'EE', admissionYear: 2024 }, new Date('2026-06-30T12:00:00')).academicYear).toBe(2);

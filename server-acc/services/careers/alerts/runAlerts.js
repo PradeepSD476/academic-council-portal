@@ -21,7 +21,7 @@ export async function runAlerts({ now = new Date(), transport, configured = mail
 
     const alerts = await prisma.savedSearch.findMany({
         where: { unsubscribedAt: null, ...(onlyIds ? { id: { in: onlyIds } } : {}) },
-        include: { user: { select: { email: true, branchName: true, admissionYear: true, cpi: true } } },
+        include: { user: { select: { email: true, branchName: true, admissionYear: true, cpi: true, programme: true, graduationYear: true } } },
         orderBy: { id: 'asc' },
     });
     const due = alerts.filter((a) => isDue(a, now));

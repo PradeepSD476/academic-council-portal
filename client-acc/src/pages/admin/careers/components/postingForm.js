@@ -51,6 +51,7 @@ export function toForm(p = {}) {
     descriptionText: str(p.descriptionText),
     eligibleBranches: (p.eligibleBranches || []).join(", "),
     eligibleYears: (p.eligibleYears || []).join(", "),
+    eligibleGradYears: (p.eligibleGradYears || []).join(", "),
     minCpi: p.minCpi === null || p.minCpi === undefined ? "" : String(Number(p.minCpi)),
     deadlineStated: p.deadlineStated ? String(p.deadlineStated).slice(0, 10) : "",
   };
@@ -87,6 +88,7 @@ export function fromForm(form) {
     descriptionText: form.descriptionText.trim(),
     eligibleBranches: list(form.eligibleBranches).map((b) => b.toUpperCase()),
     eligibleYears: list(form.eligibleYears).map(Number),
+    eligibleGradYears: list(form.eligibleGradYears).map(Number),
     minCpi: num(form.minCpi),
     deadlineStated: form.deadlineStated ? new Date(`${form.deadlineStated}T00:00:00Z`).toISOString() : null,
   };

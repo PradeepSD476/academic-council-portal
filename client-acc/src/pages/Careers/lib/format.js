@@ -82,6 +82,7 @@ export function eligibilityText(e) {
       const parts = e.reasons.map((r) => {
         if (r.field === "branch") return `${r.allowed.join(", ")} only`;
         if (r.field === "year") return `${years(r.allowed)} year only`;
+        if (r.field === "gradYear") return `${r.allowed.join(", ")} graduates only`;
         return `CPI ≥ ${cpi(r.min)}`;
       });
       return { tone: "notEligible", text: `Not eligible: ${parts.join(" · ")}` };

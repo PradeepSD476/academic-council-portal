@@ -46,6 +46,7 @@ export function extractionPostingData({ verified, extraction, company, provider 
             ppoMentioned: f.ppoMentioned,
             eligibleBranches: f.eligibleBranches,
             eligibleYears: f.eligibleYears,
+            eligibleGradYears: f.eligibleGradYears ?? [],
             minCpi: f.minCpi,
             extractionTier: extraction.tier,
             extractionConfidence: confidence,

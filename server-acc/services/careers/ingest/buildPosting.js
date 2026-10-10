@@ -92,6 +92,7 @@ export function buildPostingData(raw, { relevance, company, uncertain = [], now 
         // (never leave the arrays NULL).
         eligibleBranches: eligibility.branches,
         eligibleYears: eligibility.years,
+        eligibleGradYears: eligibility.gradYears,
         minCpi: eligibility.minCpi,
         ...comp,
         descriptionText: description,

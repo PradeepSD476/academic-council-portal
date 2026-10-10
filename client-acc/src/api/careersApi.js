@@ -25,6 +25,7 @@ export const careersApi = {
   // The student's own eligibility profile and CPI
   getEligibility: () => api.get('/careers/me/eligibility').then((r) => r.data.data),
   updateCpi: (cpi) => api.patch('/careers/me/cpi', { cpi }).then((r) => r.data),
+  updateProgramme: (body) => api.patch('/careers/me/programme', body).then((r) => r.data),
 
   // Saved postings and application status (P4-lite)
   savePosting: (id) => api.put(`/careers/postings/${id}/save`).then((r) => r.data.data),

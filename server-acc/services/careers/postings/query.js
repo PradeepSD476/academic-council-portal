@@ -70,10 +70,15 @@ const notStated = (field) => [{ [field]: { isEmpty: true } }, { [field]: { equal
 // profile: from eligibility.js. Returns the where clause, or null when it can't apply.
 export function eligibilityWhere(profile) {
     if (!profile.hasRollNumber) return null;
+    const studyYear = { OR: [...notStated('eligibleYears'), { eligibleYears: { has: profile.academicYear } }] };
+    // P7-T2: a stated graduation batch decides first; the year of study only when none is stated.
+    const year = profile.graduationYear
+        ? { OR: [{ eligibleGradYears: { has: profile.graduationYear } }, { AND: [{ OR: notStated('eligibleGradYears') }, studyYear] }] }
+        : studyYear;
     return {
         AND: [
             { OR: [...notStated('eligibleBranches'), { eligibleBranches: { has: profile.branchName } }] },
-            { OR: [...notStated('eligibleYears'), { eligibleYears: { has: profile.academicYear } }] },
+            year,
             ...(profile.cpi !== null ? [{ OR: [{ minCpi: null }, { minCpi: { lte: profile.cpi } }] }] : []),
         ],
     };

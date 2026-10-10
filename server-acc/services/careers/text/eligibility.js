@@ -49,16 +49,20 @@ function yearsForGraduation(gradYear, now) {
 
 function studyYears(text, now) {
     const years = new Set();
-    let gradMentioned = false;
+    const gradYears = new Set();
     for (const pattern of GRAD_YEAR) {
         for (const [, year] of text.matchAll(pattern)) {
-            gradMentioned = true;
+            gradYears.add(Number(year));
             yearsForGraduation(Number(year), now).forEach((y) => years.add(y));
         }
     }
     if (/\bpre[- ]?final[- ]year\b/i.test(text)) [3, 4].forEach((y) => years.add(y));
     if (/(?<!pre[- ]?)\bfinal[- ]year\b/i.test(text.replace(/\bpre[- ]?final[- ]year\b/gi, ''))) [4, 5].forEach((y) => years.add(y));
-    return { years: [...years].sort((a, b) => a - b), mentioned: gradMentioned || years.size > 0 };
+    return {
+        years: [...years].sort((a, b) => a - b),
+        gradYears: [...gradYears].sort((a, b) => a - b),
+        mentioned: gradYears.size > 0 || years.size > 0,
+    };
 }
 
 // Returns { codes, listed }; listed = the text names allowed branches, even if we couldn't map them.
@@ -72,7 +76,8 @@ function branches(text) {
     return { codes: unknown.length ? [] : codes, listed: true };
 }
 
-// Returns { minCpi: number | null, years: number[], branches: string[], mentioned }.
+// Returns { minCpi: number | null, years: number[], gradYears: number[], branches: string[], mentioned }.
+// gradYears (P7-T2): the batches as stated ("2027 graduates"); years: the same as years of study.
 // mentioned: the text talks about eligibility at all, even when nothing could be read from it.
 export function parseEligibility(text, now = new Date()) {
     const body = String(text ?? '');
@@ -80,5 +85,5 @@ export function parseEligibility(text, now = new Date()) {
     const study = studyYears(body, now);
     const branch = branches(body);
     const mentioned = minCpi !== null || study.mentioned || branch.listed || MENTION.test(body);
-    return { minCpi, years: study.years, branches: branch.codes, mentioned };
+    return { minCpi, years: study.years, gradYears: study.gradYears, branches: branch.codes, mentioned };
 }

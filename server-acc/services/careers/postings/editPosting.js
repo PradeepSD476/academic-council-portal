@@ -33,6 +33,7 @@ export const postingFields = z.object({
     applyUrl: z.url({ protocol: /^https?$/ }).max(2000),
     eligibleBranches: z.array(z.string().trim().toUpperCase().regex(/^[A-Z]{2}$/, 'Branch codes are 2 letters, e.g. CS.')).max(30),
     eligibleYears: z.array(z.number().int().min(1).max(5)).max(5),
+    eligibleGradYears: z.array(z.number().int().min(2000).max(2100)).max(6),
     minCpi: z.number().min(0).max(10).nullable(),
     deadlineStated: z.coerce.date().nullable(),
 }).partial().strict();

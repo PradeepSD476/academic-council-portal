@@ -31,6 +31,8 @@ model User {
   // every query by the global omit in config/db.js; only /careers/me/* opts in.
   cpi                 Decimal?       @db.Decimal(4, 2)
   cpiUpdatedAt        DateTime?
+  programme           String? // careers P7-T2: self-reported (BTECH, DUAL, MTECH, MSC, MBA, PHD, OTHER); private like cpi
+  graduationYear      Int? // careers P7-T2: self-reported expected graduation year; private like cpi
   savedPostings       SavedPosting[] // careers P4-lite (relation only, no column)
   postingApplications PostingApplication[] // careers P4-lite (relation only, no column)
   postingReports      PostingReport[] // careers P6 (relation only, no column)
@@ -531,6 +533,7 @@ model Posting {
   applyUrl             String
   eligibleBranches     String[] // roll-number branch codes; [] = not stated
   eligibleYears        Int[] // academic years; [] = not stated
+  eligibleGradYears    Int[] // careers P7-T2: graduation batches ("2027 graduates"); [] / NULL = not stated
   minCpi               Decimal?        @db.Decimal(4, 2)
   deadlineStated       DateTime? // only when the source published one
   firstSeenAt          DateTime        @default(now())

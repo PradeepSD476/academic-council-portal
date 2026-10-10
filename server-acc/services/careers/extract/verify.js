@@ -173,6 +173,8 @@ export function verifyExtraction(output, input, { provider = 'ollama', now = new
         fields: {
             companyName, roleTitle, type, location, workMode, skills, compensationText, deadline, applyUrl,
             ppoMentioned, eligibleBranches, eligibleYears, minCpi,
+            // P7-T2: batches read from the page itself (deterministic, so grounded by construction).
+            eligibleGradYears: parseEligibility(haystack, now).gradYears,
         },
         uncertainFields: [...uncertain],
         confidence,

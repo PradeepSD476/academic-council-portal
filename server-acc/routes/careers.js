@@ -4,7 +4,7 @@ import { getCareersStatus } from '../controllers/careers/statusController.js';
 import { requireCareersEnabled } from '../middlewares/careers/requireCareersEnabled.js';
 import { submissionRateLimit } from '../middlewares/careers/submissionRateLimit.js';
 import { submitLink, mySubmissions, withdrawLink } from '../controllers/careers/submissionsController.js';
-import { getMyEligibility, updateMyCpi } from '../controllers/careers/eligibilityController.js';
+import { getMyEligibility, updateMyCpi, updateMyProgramme } from '../controllers/careers/eligibilityController.js';
 import { listPostings, newPostingsCount, getPosting, reportPosting } from '../controllers/careers/postingsController.js';
 import { searchCompanies, listCompanies, getCompanyPage } from '../controllers/careers/companiesController.js';
 import { listAlerts, createAlert, updateAlert, deleteAlert, unsubscribeAlert, resubscribeAlert } from '../controllers/careers/alertsController.js';
@@ -47,5 +47,6 @@ router.post('/careers/alerts/resubscribe', resubscribeAlert);
 
 router.get('/careers/me/eligibility', checkAuth, requireCareersEnabled, getMyEligibility);
 router.patch('/careers/me/cpi', checkAuth, requireCareersEnabled, updateMyCpi);
+router.patch('/careers/me/programme', checkAuth, requireCareersEnabled, updateMyProgramme);
 
 export default router;

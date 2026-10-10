@@ -8,7 +8,7 @@ const parse = (text, at = now) => parseEligibility(text, at);
 describe('parseEligibility (B-03)', () => {
     it('reads the Rubrik #17 criteria seen on 8 Oct', () => {
         const text = 'Minimum eligibility criteria\n- CGPA 8 and above\n- 2027 graduates of Circuital branches only\n- Available from January 2027 to May 2027 in Bangalore';
-        expect(parse(text)).toEqual({ minCpi: 8, years: [4, 5], branches: CIRCUITAL_BRANCHES, mentioned: true });
+        expect(parse(text)).toEqual({ minCpi: 8, years: [4, 5], gradYears: [2027], branches: CIRCUITAL_BRANCHES, mentioned: true });
     });
 
     it.each([
@@ -26,7 +26,7 @@ describe('parseEligibility (B-03)', () => {
         expect(parse('GPA 3.5/4 or higher')).toMatchObject({ minCpi: null, mentioned: true });
     });
     it('a number away from any CPI word is not a cutoff', () => {
-        expect(parse('Work 5 days a week; 7 days of onboarding.')).toEqual({ minCpi: null, years: [], branches: [], mentioned: false });
+        expect(parse('Work 5 days a week; 7 days of onboarding.')).toEqual({ minCpi: null, years: [], gradYears: [], branches: [], mentioned: false });
     });
 
     it.each([
@@ -54,6 +54,6 @@ describe('parseEligibility (B-03)', () => {
     });
     it('"degree in Computer Science or a related field" does not restrict branches', () => {
         expect(parse('Pursuing a Bachelor’s degree in Computer Science, Engineering, Information Systems or a related field.'))
-            .toEqual({ minCpi: null, years: [], branches: [], mentioned: false });
+            .toEqual({ minCpi: null, years: [], gradYears: [], branches: [], mentioned: false });
     });
 });

@@ -70,6 +70,7 @@ function Rail({ posting, onChange }) {
         {e.status !== "NOT_STATED" && (
           <dl className="mt-3 space-y-1 text-xs text-slate-600">
             <div><dt className="inline font-semibold">Branches: </dt><dd className="inline">{posting.eligibleBranches.length ? posting.eligibleBranches.join(", ") : "not stated"}</dd></div>
+            {posting.eligibleGradYears?.length > 0 && <div><dt className="inline font-semibold">Graduating in: </dt><dd className="inline">{posting.eligibleGradYears.join(", ")}</dd></div>}
             <div><dt className="inline font-semibold">Years: </dt><dd className="inline">{posting.eligibleYears.length ? posting.eligibleYears.map((y) => YEAR_NAMES[y - 1] ?? y).join(", ") : "not stated"}</dd></div>
             <div><dt className="inline font-semibold">Minimum CPI: </dt><dd className="inline">{posting.minCpi ?? "not stated"}</dd></div>
           </dl>
