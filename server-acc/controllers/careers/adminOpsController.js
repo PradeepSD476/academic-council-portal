@@ -8,6 +8,7 @@ import { llmStatus } from '../../services/careers/ops/llmStatus.js';
 import { needsPersonCounts } from '../../services/careers/links/waiting.js';
 import { sourceQuality, QUALITY_DAYS } from '../../services/careers/sources/quality.js';
 import { usageQuery, usageSummary } from '../../services/careers/usage/usage.js';
+import { ALERT_AFTER_HOURS } from '../../services/careers/ops/reviewReminder.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -51,7 +52,10 @@ export const getOps = async (req, res) => {
         const reported = await prisma.posting.count({ where: { status: 'LIVE', uncertainFields: { has: 'reported' } } });
         // P7-T1: active job alerts whose last digest could not be sent.
         const alertEmailsFailing = await prisma.savedSearch.count({ where: { unsubscribedAt: null, lastError: { not: null } } });
-        const queue = { pending, flagged, candidates, reported, alertEmailsFailing, submissions: { received, extracting, failed, storedOnly, ...waiting } };
+        // P7-T5: postings waiting for review longer than ALERT_AFTER_HOURS, and the last reminder email.
+        const reviewOverdue = await prisma.posting.count({ where: { status: 'PENDING_REVIEW', firstSeenAt: { lt: new Date(now - ALERT_AFTER_HOURS * 3600 * 1000) } } });
+        const reminder = await getSetting('careers.reviewReminderStatus');
+        const queue = { pending, flagged, candidates, reported, alertEmailsFailing, reviewOverdue, reminder, submissions: { received, extracting, failed, storedOnly, ...waiting } };
         const postings = { live, expiredLast7d, newLast24h };
         const alerts = computeAlerts({ worker, sources, queue, llm });
 

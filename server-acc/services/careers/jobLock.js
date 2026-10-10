@@ -16,6 +16,7 @@ export const JOB_LOCKS = {
     linksAndExtraction: 81003,
     runRequests: 81004,
     alerts: 81005,
+    reviewReminder: 81006,
 };
 
 // Runs fn at most once at a time per lockKey. Never throws: failures are logged and reported in

@@ -61,5 +61,8 @@ export function computeAlerts({ worker, sources, queue, llm }) {
     if (queue.reported > 0) amber('POSTINGS_REPORTED', `${queue.reported} live posting(s) were reported by several students (Jobs review → All postings → Reported).`);
     // F-19: job-alert digests that could not be sent (no SMTP, CLIENT_URL missing, or the send failed).
     if (queue.alertEmailsFailing > 0) amber('ALERT_EMAILS_FAILING', `${queue.alertEmailsFailing} job alert(s) could not be emailed. Check the SMTP settings and the API log.`);
+    // F-31: postings left in the review queue for over 48 hours, and a reminder email that failed.
+    if (queue.reviewOverdue > 0) amber('REVIEW_WAITING', `${queue.reviewOverdue} posting(s) have waited more than 48 hours for review. Students only see approved openings.`);
+    if (queue.reminder?.error) amber('REVIEW_REMINDER_FAILING', `The review reminder email was not sent on ${queue.reminder.at.slice(0, 10)}: ${queue.reminder.error}`);
     return alerts;
 }

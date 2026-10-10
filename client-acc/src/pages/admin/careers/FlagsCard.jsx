@@ -9,6 +9,8 @@ const TOGGLES = [
   ["careers.ingestionEnabled", "Fetch job boards", "The scheduled fetches and “Fetch now” do nothing while this is off."],
   ["careers.llmEnabled", "Automatic extraction for student links", "Uses the configured model. Off: links wait in the queue."],
   ["careers.llmPaidTier", "Gemini key is billed", "Only for Gemini. Turns on the monthly budget cap."],
+  ["careers.alertEmailsEnabled", "Email job alerts to students", "Daily / weekly digests for students who saved an alert. Needs the SMTP settings on the server."],
+  ["careers.reviewReminderEmails", "Remind career admins by email", "Once a day, only when something has waited over 24 hours for review."],
 ];
 const NUMBERS = [
   ["careers.confidenceThreshold", "Flag below confidence", 0.05],

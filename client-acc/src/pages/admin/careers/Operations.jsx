@@ -16,6 +16,7 @@ const ALERT_LINKS = {
   FLAGGED_BACKLOG: "/admin/careers/review",
   SUBMISSIONS_FAILED: "/admin/careers/review",
   POSTINGS_REPORTED: "/admin/careers/postings?reported=yes",
+  REVIEW_WAITING: "/admin/careers/review",
 };
 
 function ago(minutes) {

@@ -11,6 +11,7 @@ const runRequestSchema = z.object({
 }).nullable();
 
 const heartbeatSchema = z.object({ at: z.string(), job: z.string() }).nullable();
+const reminderStatusSchema = z.object({ at: z.string(), sent: z.number().int(), error: z.string().nullable() }).nullable();
 
 // editable = may be changed through PUT /careers/admin/settings. The others are written by
 // dedicated endpoints (run requests) or by the worker (heartbeat).
@@ -26,6 +27,9 @@ export const SETTINGS = {
     'careers.submissionDailyLimit': { default: 5, editable: true, schema: z.number().int().min(0).max(100) },
     // P7-T1 (F-19): job-alert digests are only emailed while this is on (and students can see the feature).
     'careers.alertEmailsEnabled': { default: false, editable: true, schema: z.boolean() },
+    // P7-T5 (F-31): the daily "items waiting for review" email to career admins.
+    'careers.reviewReminderEmails': { default: false, editable: true, schema: z.boolean() },
+    'careers.reviewReminderStatus': { default: null, editable: false, schema: reminderStatusSchema },
     'careers.runRequest': { default: null, editable: false, schema: runRequestSchema },
     'careers.workerHeartbeat': { default: null, editable: false, schema: heartbeatSchema },
 };
