@@ -1,8 +1,8 @@
 // The daily job-alert run (P7-T1): for every due alert, find the LIVE postings published since its
 // last run and email a digest. Nothing is sent while the feature is hidden from students or the admin
 // switch is off. A digest with no postings is not sent (the window still moves on). A failed send
-// leaves lastRunAt alone, so the next run retries with the same window, and records lastError (shown
-// to the student and as an ops alert).
+// leaves lastRunAt alone, so the next run retries with the same window, and records lastError (the student
+// only sees that the last email failed; ACC gets an ops alert).
 import prisma from '../../../config/db.js';
 import { getSetting } from '../settings.js';
 import { eligibilityProfile } from '../postings/eligibility.js';

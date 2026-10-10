@@ -11,7 +11,9 @@ const alertSelect = {
     id: true, name: true, filters: true, frequency: true, unsubscribedAt: true,
     lastSentAt: true, lastSentCount: true, lastError: true, createdAt: true,
 };
-const withSummary = (a) => ({ ...a, summary: filterSummary(a.filters) });
+// The send error can carry SMTP server details, so students only learn that the last email failed
+// (the text stays in the row and the API log for ACC).
+const withSummary = ({ lastError, ...a }) => ({ ...a, emailFailed: Boolean(lastError), summary: filterSummary(a.filters) });
 
 async function ownAlert(id, userId) {
     const alert = await prisma.savedSearch.findFirst({ where: { id, userId }, select: { id: true } });

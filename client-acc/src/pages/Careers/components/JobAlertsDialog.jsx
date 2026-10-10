@@ -34,7 +34,7 @@ function AlertRow({ alert, onChanged, onClose }) {
 
   let state = "No email sent yet.";
   if (paused) state = "Paused: no emails.";
-  else if (alert.lastError) state = "The last email could not be sent; ACC has been told.";
+  else if (alert.emailFailed) state = "The last email could not be sent; ACC has been told.";
   else if (alert.lastSentAt) state = `Last email ${formatDate(alert.lastSentAt)} (${alert.lastSentCount} opening${alert.lastSentCount === 1 ? "" : "s"}).`;
 
   return (
@@ -43,7 +43,7 @@ function AlertRow({ alert, onChanged, onClose }) {
         <div className="min-w-0">
           <p className="text-sm font-semibold text-[var(--color-primary)] break-words">{alert.name}</p>
           {alert.summary !== alert.name && <p className="text-xs text-slate-500 break-words">{alert.summary}</p>}
-          <p className={`text-[11px] mt-0.5 ${alert.lastError && !paused ? "text-amber-700" : "text-slate-500"}`}>{state}</p>
+          <p className={`text-[11px] mt-0.5 ${alert.emailFailed && !paused ? "text-amber-700" : "text-slate-500"}`}>{state}</p>
         </div>
         <label className="sr-only" htmlFor={`alert-freq-${alert.id}`}>How often</label>
         <select id={`alert-freq-${alert.id}`} value={alert.frequency} disabled={busy}
