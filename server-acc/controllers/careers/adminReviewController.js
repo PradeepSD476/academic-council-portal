@@ -17,6 +17,7 @@ import { aiTierUsable, needsPersonWhere } from '../../services/careers/links/wai
 import { reviewCounts } from '../../services/careers/postings/reviewCounts.js';
 import { reportsForAdmin, handleReports } from '../../services/careers/postings/reports.js';
 import { bulkBodies, undoBulkApprove, bulkReject, bulkExpire } from '../../services/careers/postings/bulkActions.js';
+import { applyClicksFor } from '../../services/careers/usage/usage.js';
 
 const reviewQuery = z.object({
     tab: z.enum(['pending', 'flagged']).default('pending'),
@@ -89,9 +90,10 @@ export const listAllPostings = async (req, res) => {
         const counts = Object.fromEntries(ADMIN_STATUSES.map((s) => [s, 0]));
         for (const g of byStatus) counts[g.status] = g._count._all;
         counts.ALL = ADMIN_STATUSES.reduce((n, s) => n + counts[s], 0);
+        const clicks = await applyClicksFor(prisma, items.map((p) => p.id)); // P7-T4: per posting, never per student
         return res.json({
             success: true,
-            data: items,
+            data: items.map((p) => ({ ...p, applyClicks: clicks[p.id] ?? 0 })),
             pagination: { total, page: params.page, limit: params.limit, totalPages: Math.ceil(total / params.limit) },
             counts,
         });

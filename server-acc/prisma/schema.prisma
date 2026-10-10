@@ -558,6 +558,7 @@ model Posting {
   applications         PostingApplication[]
   reports              PostingReport[]
   hiddenBy             HiddenPosting[]
+  dailyStats           PostingDailyStat[] // careers P7-T4 (relation only, no column)
 
   @@index([status, lastSeenLiveAt])
   @@index([status, publishedAt]) // "Newest first" (B-15)
@@ -772,4 +773,26 @@ model SavedSearch {
   updatedAt      DateTime       @updatedAt
 
   @@index([userId])
+}
+
+// careers P7-T4 (F-30): Apply clicks per posting and IST day. Counts only, never who clicked.
+model PostingDailyStat {
+  id          Int      @id @default(autoincrement())
+  postingId   Int
+  posting     Posting  @relation(fields: [postingId], references: [id], onDelete: Cascade)
+  day         DateTime // start of the IST day (UTC instant)
+  applyClicks Int      @default(0)
+
+  @@unique([postingId, day])
+  @@index([day])
+}
+
+// careers P7-T4: one row per student and IST week who opened the jobs list. visitorKey is a keyed
+// hash of the user id and the week, so a row cannot be tied to a student, or to the same student
+// in another week. Only counted, never listed.
+model CareersWeeklyVisitor {
+  weekStart  DateTime
+  visitorKey String
+
+  @@id([weekStart, visitorKey])
 }

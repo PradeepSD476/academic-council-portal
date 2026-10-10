@@ -35,6 +35,7 @@ export const careersApi = {
   setApplication: (id, status) => api.put(`/careers/postings/${id}/application`, { status }).then((r) => r.data.data),
   setApplicationNote: (id, note) => api.put(`/careers/postings/${id}/application/note`, { note }).then((r) => r.data.data),
   reportPosting: (id, body) => api.post(`/careers/postings/${id}/report`, body).then((r) => r.data),
+  countApplyClick: (id) => api.post(`/careers/postings/${id}/apply-click`).then((r) => r.data),
   listSaved: () => api.get('/careers/saved').then((r) => r.data),
 
   // Job alerts (P7-T1); unsubscribe / resubscribe work without login (the link in the email)
@@ -104,6 +105,7 @@ export const careersAdminApi = {
   runAllSources: () => api.post('/careers/admin/sources/run-all').then((r) => r.data),
   listRuns: (id, limit = 20) => api.get(`/careers/admin/sources/${id}/runs`, { params: { limit } }).then((r) => r.data.data),
   getOps: () => api.get('/careers/admin/ops').then((r) => r.data.data),
+  getUsage: (weeks) => api.get('/careers/admin/usage', { params: { weeks } }).then((r) => r.data.data),
 
   // Settings
   getSettings: () => api.get('/careers/admin/settings').then((r) => r.data.data),

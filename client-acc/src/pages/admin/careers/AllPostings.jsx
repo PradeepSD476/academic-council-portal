@@ -187,7 +187,7 @@ export default function AllPostings() {
                   <span className="flex sm:flex-col items-center sm:items-end gap-2 shrink-0">
                     {p.company.status !== "ACTIVE" && <StatusChip status={p.company.status} />}
                     {p._count.reports > 0 && <ReportCount count={p._count.reports} />}
-                    <span className="text-[11px] text-slate-500">{plural(p._count.saves, "save")} · {p._count.applications} tracking</span>
+                    <span className="text-[11px] text-slate-500">{plural(p._count.saves, "save")} · {p._count.applications} tracking · {plural(p.applyClicks ?? 0, "apply click")}</span>
                     {p.status === "LIVE" && (
                       <button type="button" onClick={() => setTakingDown(p)} className="text-xs font-semibold text-rose-700 hover:underline cursor-pointer">Take down</button>
                     )}

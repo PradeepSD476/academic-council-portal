@@ -84,6 +84,9 @@ function Rail({ posting, onChange }) {
   );
 }
 
+// P7-T4: an anonymous +1 for ACC's usage numbers. Best effort: the click must work even if this fails.
+const countApplyClick = (id) => careersApi.countApplyClick(id).catch((err) => console.warn("Apply click not counted", err?.message));
+
 export default function JobDetailPage() {
   const { id } = useParams();
   const { user } = useContext(AuthContext);
@@ -192,7 +195,7 @@ export default function JobDetailPage() {
               href={applyHref}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => { recordApplyClick(posting.id); setNudgeHidden(false); }}
+              onClick={() => { recordApplyClick(posting.id); setNudgeHidden(false); countApplyClick(posting.id); }}
               className="inline-flex items-center gap-2 bg-[var(--color-secondary)] hover:opacity-90 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-[0_8px_20px_var(--color-secondary-glow)]"
             >
               Apply on the company site <ExternalLink size={14} aria-hidden="true" />

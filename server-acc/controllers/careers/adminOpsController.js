@@ -7,6 +7,7 @@ import { computeAlerts, workerStatus } from '../../services/careers/ops/alerts.j
 import { llmStatus } from '../../services/careers/ops/llmStatus.js';
 import { needsPersonCounts } from '../../services/careers/links/waiting.js';
 import { sourceQuality, QUALITY_DAYS } from '../../services/careers/sources/quality.js';
+import { usageQuery, usageSummary } from '../../services/careers/usage/usage.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -57,5 +58,16 @@ export const getOps = async (req, res) => {
         return res.json({ success: true, data: { worker, sources, queue, llm, postings, alerts, generatedAt: now.toISOString() } });
     } catch (err) {
         return sendError(res, err, 'getOps');
+    }
+};
+
+// GET /careers/admin/usage?weeks=8 (P7-T4, F-30): weekly aggregate counts, newest week first.
+export const getUsage = async (req, res) => {
+    try {
+        const { weeks } = usageQuery.parse(req.query);
+        const data = await usageSummary(prisma, { weeks });
+        return res.json({ success: true, data });
+    } catch (err) {
+        return sendError(res, err, 'getUsage');
     }
 };

@@ -5,7 +5,7 @@ import { requireCareersEnabled } from '../middlewares/careers/requireCareersEnab
 import { submissionRateLimit } from '../middlewares/careers/submissionRateLimit.js';
 import { submitLink, mySubmissions, withdrawLink } from '../controllers/careers/submissionsController.js';
 import { getMyEligibility, updateMyCpi, updateMyProgramme } from '../controllers/careers/eligibilityController.js';
-import { listPostings, newPostingsCount, getPosting, reportPosting } from '../controllers/careers/postingsController.js';
+import { listPostings, newPostingsCount, getPosting, reportPosting, applyClick } from '../controllers/careers/postingsController.js';
 import { searchCompanies, listCompanies, getCompanyPage } from '../controllers/careers/companiesController.js';
 import { listAlerts, createAlert, updateAlert, deleteAlert, unsubscribeAlert, resubscribeAlert } from '../controllers/careers/alertsController.js';
 import { savePosting, unsavePosting, hidePosting, unhidePosting, setApplication, setApplicationNote, listSaved } from '../controllers/careers/trackingController.js';
@@ -23,7 +23,8 @@ router.get('/careers/companies/:slug', checkAuth, requireCareersEnabled, getComp
 router.get('/careers/postings', checkAuth, requireCareersEnabled, listPostings);
 router.get('/careers/postings/new-count', checkAuth, requireCareersEnabled, newPostingsCount); // before /:id
 router.get('/careers/postings/:id', checkAuth, requireCareersEnabled, getPosting);
-router.post('/careers/postings/:id/report', checkAuth, requireCareersEnabled, reportPosting); // one per student and posting (unique)
+router.post('/careers/postings/:id/report', checkAuth, requireCareersEnabled, reportPosting);
+router.post('/careers/postings/:id/apply-click', checkAuth, requireCareersEnabled, applyClick); // counts only (P7-T4) // one per student and posting (unique)
 
 router.post('/careers/submissions', checkAuth, requireCareersEnabled, submissionRateLimit, submitLink);
 router.get('/careers/submissions/mine', checkAuth, requireCareersEnabled, mySubmissions);
