@@ -1,5 +1,6 @@
 import prisma from '../config/db.js';
 import { getPublicUrl } from '../utils/signedUrl.js';
+import sendDoubtAnswerNotification from '../utils/mail/sendDoubtAnswerNotification.js';
 
 // ---------------------------------------------------------------------------
 // ACC Wiki: doubt-resolution forum
@@ -330,7 +331,10 @@ export const addAnswer = async (req, res) => {
     if (body.length > BODY_MAX) return fail(res, 400, `Answer is too long (max ${BODY_MAX} characters).`, 'ValidationError');
 
     try {
-        const doubt = await prisma.doubt.findUnique({ where: { id: doubtId } });
+        const doubt = await prisma.doubt.findUnique({
+            where: { id: doubtId },
+            include: { author: { select: { email: true, displayName: true } } },
+        });
         const admin = isDoubtAdmin(req.user);
         if (!doubt || (doubt.isHidden && !admin)) return fail(res, 404, 'Doubt not found.', 'NotFound');
         if (doubt.isLocked && !admin) return fail(res, 403, 'This discussion is locked by a moderator.');
@@ -338,10 +342,33 @@ export const addAnswer = async (req, res) => {
         const answer = await prisma.doubtAnswer.create({
             data: { body, doubtId, authorId: req.user.id },
         });
+
+        // Email the person who asked. Skipped when they answer their own doubt.
+        // Sent in the background so a slow or failing mail server never blocks the answer.
+        if (doubt.authorId !== req.user.id && doubt.author?.email) {
+            notifyAsker({ doubt, answerer: req.user, body });
+        }
+
         return res.status(201).json({ success: true, message: 'Answer posted.', data: answer });
     } catch (err) {
         return serverError(res, err);
     }
+};
+
+const threadLink = (doubtId) => {
+    const base = (process.env.PUBLIC_DOMAIN || process.env.CLIENT_URL || '').replace(/\/+$/, '');
+    return base ? `${base}/dashboard/doubts/${doubtId}` : null;
+};
+
+const notifyAsker = ({ doubt, answerer, body }) => {
+    sendDoubtAnswerNotification({
+        to: doubt.author.email,
+        askerName: doubt.author.displayName,
+        answererName: answerer.displayName,
+        doubtTitle: doubt.title,
+        answerPreview: makeExcerpt(body, 300),
+        threadUrl: threadLink(doubt.id),
+    }).catch((err) => console.error('Failed to send doubt answer notification:', err?.message || err));
 };
 
 export const updateAnswer = async (req, res) => {
