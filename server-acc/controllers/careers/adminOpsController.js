@@ -9,6 +9,7 @@ import { needsPersonCounts } from '../../services/careers/links/waiting.js';
 import { sourceQuality, QUALITY_DAYS } from '../../services/careers/sources/quality.js';
 import { usageQuery, usageSummary } from '../../services/careers/usage/usage.js';
 import { ALERT_AFTER_HOURS } from '../../services/careers/ops/reviewReminder.js';
+import { activityQuery, activityLog } from '../../services/careers/ops/activityLog.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -73,5 +74,15 @@ export const getUsage = async (req, res) => {
         return res.json({ success: true, data });
     } catch (err) {
         return sendError(res, err, 'getUsage');
+    }
+};
+
+// GET /careers/admin/activity (P7-T12, F-15): read-only log of posting reviews and company merges.
+export const getActivity = async (req, res) => {
+    try {
+        const result = await activityLog(prisma, activityQuery.parse(req.query));
+        return res.json({ success: true, ...result });
+    } catch (err) {
+        return sendError(res, err, 'getActivity');
     }
 };

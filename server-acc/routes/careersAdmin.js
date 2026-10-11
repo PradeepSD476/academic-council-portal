@@ -13,7 +13,7 @@ import {
 import {
     listSources, createSource, bulkCreateSources, updateSource, archiveSource, restoreSource, runSourceNow, runAllNow, listRuns,
 } from '../controllers/careers/adminSourcesController.js';
-import { getOps, getUsage } from '../controllers/careers/adminOpsController.js';
+import { getOps, getUsage, getActivity } from '../controllers/careers/adminOpsController.js';
 import { listBackfill, applyBackfill, unlinkBackfill } from '../controllers/careers/adminBackfillController.js';
 
 const router = express.Router();
@@ -73,6 +73,7 @@ router.post('/careers/admin/sources/:id/run', ...admin, runSourceNow);
 router.get('/careers/admin/sources/:id/runs', ...admin, listRuns);
 router.get('/careers/admin/ops', ...admin, getOps);
 router.get('/careers/admin/usage', ...admin, getUsage);
+router.get('/careers/admin/activity', ...admin, getActivity);
 
 // Experience backfill (link old Career Vault experiences to companies).
 router.get('/careers/admin/backfill/suggestions', ...admin, listBackfill);

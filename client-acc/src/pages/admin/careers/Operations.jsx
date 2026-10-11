@@ -1,7 +1,7 @@
 // Operations: is the fetcher healthy? Alerts first (red, then amber), then the numbers, then flags.
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Activity, AlertTriangle, Briefcase, Cpu, Link2, ListChecks, RefreshCw, Server } from "lucide-react";
+import { Activity, AlertTriangle, Briefcase, Cpu, History, Link2, ListChecks, RefreshCw, Server } from "lucide-react";
 import toast from "react-hot-toast";
 import { careersAdminApi, errorMessage } from "../../../api/careersApi";
 import FlagsCard from "./FlagsCard";
@@ -50,6 +50,7 @@ export default function Operations() {
     <div className="space-y-6">
       <PageHeader icon={Activity} title="Operations" subtitle="Health of the job fetcher. Problems show here instead of failing silently.">
         <Link to="/admin/careers/sources" className={outlineButton}><Link2 size={14} /> Sources</Link>
+        <Link to="/admin/careers/activity" className={outlineButton}><History size={14} /> Activity log</Link>
         <button type="button" className={outlineButton} onClick={load} aria-label="Refresh"><RefreshCw size={14} /></button>
       </PageHeader>
 

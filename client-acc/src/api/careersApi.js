@@ -110,6 +110,7 @@ export const careersAdminApi = {
   listRuns: (id, limit = 20) => api.get(`/careers/admin/sources/${id}/runs`, { params: { limit } }).then((r) => r.data.data),
   getOps: () => api.get('/careers/admin/ops').then((r) => r.data.data),
   getUsage: (weeks) => api.get('/careers/admin/usage', { params: { weeks } }).then((r) => r.data.data),
+  getActivity: (params) => api.get('/careers/admin/activity', { params }).then((r) => r.data),
 
   // Settings
   getSettings: () => api.get('/careers/admin/settings').then((r) => r.data.data),
