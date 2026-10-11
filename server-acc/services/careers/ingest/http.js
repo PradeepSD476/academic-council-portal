@@ -29,9 +29,12 @@ async function readCapped(res, url, maxBytes) {
     return Buffer.concat(chunks).toString('utf8');
 }
 
-async function once(url, maxBytes) {
+// body: a JSON body sent with POST (Workable's job search is a POST; P7-T7). Without it, a GET.
+async function once(url, maxBytes, body) {
     const res = await fetch(url, {
-        headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' },
+        method: body === undefined ? 'GET' : 'POST',
+        headers: { 'User-Agent': USER_AGENT, Accept: 'application/json', ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
+        body: body === undefined ? undefined : JSON.stringify(body),
         signal: AbortSignal.timeout(TIMEOUT_MS),
         redirect: 'follow',
     });
@@ -44,13 +47,13 @@ async function once(url, maxBytes) {
     }
 }
 
-export async function fetchJson(url, { maxBytes = MAX_JSON_BYTES } = {}) {
+export async function fetchJson(url, { maxBytes = MAX_JSON_BYTES, body } = {}) {
     try {
-        return await once(url, maxBytes);
+        return await once(url, maxBytes, body);
     } catch (err) {
         const retryable = !(err instanceof HttpError) || err.status >= 500;
         if (!retryable) throw err;
         await new Promise((r) => setTimeout(r, 1500));
-        return once(url, maxBytes);
+        return once(url, maxBytes, body);
     }
 }

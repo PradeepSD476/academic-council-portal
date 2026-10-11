@@ -26,7 +26,7 @@ describe('parseBulkLines (Add boards in bulk, F-23)', () => {
         const { entries, errors } = parseBulkLines('workday acme Acme\ngreenhouse bad/token Acme\nlever onlytoken\ngreenhouse stripe Stripe');
         expect(entries).toHaveLength(1);
         expect(errors.map((e) => e.lineNo)).toEqual([1, 2, 3]);
-        expect(errors[0].reason).toMatch(/greenhouse, lever or ashby/i);
+        expect(errors[0].reason).toMatch(/greenhouse, lever, ashby, smartrecruiters or workable/i);
         expect(errors[1].reason).toMatch(/token/i);
         expect(errors[2].reason).toMatch(/company/i);
     });

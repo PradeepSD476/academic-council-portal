@@ -390,6 +390,8 @@ enum SourceKind {
   ASHBY
   MANUAL
   STUDENT_LINK
+  SMARTRECRUITERS // careers P7-T7 (user OK 11 Oct: enum values added, D-14)
+  WORKABLE // careers P7-T7
 }
 
 enum SourceHealth {

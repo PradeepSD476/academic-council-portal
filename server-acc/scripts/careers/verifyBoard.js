@@ -1,19 +1,19 @@
 // Checks that an ATS board token is real before it becomes a Source, and prints the response
 // shape so adapters are written against real data, not memory.
-// Usage: node scripts/careers/verifyBoard.js <greenhouse|lever|ashby> <token> [--save] [--raw]
+// Usage: node scripts/careers/verifyBoard.js <greenhouse|lever|ashby|smartrecruiters|workable> <token> [--save] [--raw]
 //   --save  writes a trimmed 3-job fixture to tests/careers/fixtures/<kind>.json (for adapter tests)
 //   --raw   prints the first raw job object
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { fetchJson } from '../../services/careers/ingest/http.js';
-import { ADAPTERS } from '../../services/careers/ingest/adapters/index.js';
+import { ADAPTERS, fetchPostings } from '../../services/careers/ingest/adapters/index.js';
 
 const [kindArg, token, ...flags] = process.argv.slice(2);
 const kind = kindArg?.toUpperCase();
 const adapter = ADAPTERS[kind];
 if (!adapter || !token) {
-    console.error('Usage: node scripts/careers/verifyBoard.js <greenhouse|lever|ashby> <token> [--save] [--raw]');
+    console.error('Usage: node scripts/careers/verifyBoard.js <greenhouse|lever|ashby|smartrecruiters|workable> <token> [--save] [--raw]');
     process.exit(2);
 }
 
@@ -25,6 +25,20 @@ function trimJob(job) {
         if (typeof copy[key] === 'string' && copy[key].length > MAX_DESCRIPTION) copy[key] = `${copy[key].slice(0, MAX_DESCRIPTION)}…`;
     }
     return copy;
+}
+
+// SmartRecruiters / Workable (P7-T7): the list has no descriptions, so read the board the way the
+// ingest does (fixtures for these were written by hand from real responses).
+if (adapter.fetchAll) {
+    try {
+        const r = await fetchPostings({ kind, boardToken: token });
+        console.log(`${kind} ${token}: ${r.fetchedCount} jobs, ${r.postings.filter((p) => p.descriptionText).length} opened`);
+        if (r.postings[0]) console.log('mapped:', JSON.stringify({ ...r.postings[0], descriptionText: `${(r.postings[0].descriptionText ?? '').slice(0, 120)}…` }, null, 2));
+    } catch (err) {
+        console.error(`${kind} ${token}: FAILED - ${err.message}`);
+        process.exitCode = 1;
+    }
+    process.exit();
 }
 
 try {

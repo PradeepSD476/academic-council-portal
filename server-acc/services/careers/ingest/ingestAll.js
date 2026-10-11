@@ -4,7 +4,7 @@ import prisma from '../../../config/db.js';
 import { getSetting } from '../settings.js';
 import { runSource } from './runSource.js';
 
-export const ATS_KINDS = ['GREENHOUSE', 'LEVER', 'ASHBY'];
+export const ATS_KINDS = ['GREENHOUSE', 'LEVER', 'ASHBY', 'SMARTRECRUITERS', 'WORKABLE']; // the last two: P7-T7
 
 // options.sourceId: run only that source (admin "Run now").
 // Returns { skipped: null | reason, results: runSource results }.

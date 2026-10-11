@@ -10,6 +10,8 @@ const KINDS = [
   { value: "GREENHOUSE", label: "Greenhouse", example: "boards.greenhouse.io/<token>" },
   { value: "LEVER", label: "Lever", example: "jobs.lever.co/<token>" },
   { value: "ASHBY", label: "Ashby", example: "jobs.ashbyhq.com/<token>" },
+  { value: "SMARTRECRUITERS", label: "SmartRecruiters", example: "jobs.smartrecruiters.com/<token>" },
+  { value: "WORKABLE", label: "Workable", example: "apply.workable.com/<token>" },
 ];
 
 export default function AddSourceDialog({ onClose, onDone }) {

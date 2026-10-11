@@ -5,6 +5,8 @@ const KIND_LABELS = {
   GREENHOUSE: "Company job board",
   LEVER: "Company job board",
   ASHBY: "Company job board",
+  SMARTRECRUITERS: "Company job board",
+  WORKABLE: "Company job board",
   MANUAL: "Added by ACC",
   STUDENT_LINK: "Shared by a student",
 };
