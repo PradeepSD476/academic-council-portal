@@ -86,7 +86,7 @@ export const getCompanyPage = async (req, res) => {
                 },
             }),
             companyReports(prisma, company.id), // P8-T1: aggregates only, from 3 reports
-            companyAppliedCount(prisma, company.id), // F-35: anonymous, null below 3
+            companyAppliedCount(prisma, company.id, req.user.id), // F-35: anonymous, null below 3
         ]);
 
         const { _count, status, mergedIntoId, ...info } = company; // eslint-disable-line no-unused-vars

@@ -90,8 +90,8 @@ export default function CompanyPage() {
         <span className={countChip}><Briefcase size={14} aria-hidden="true" /> {plural(openRoles, "open role")}</span>
         <span className={countChip}><MessageSquareText size={14} aria-hidden="true" /> {plural(experiences, "experience")} from seniors</span>
         {appliedStudents && (
-          <span className={countChip} title="Students who marked one of this company's roles as applied on the portal, counted anonymously. The real number may be higher.">
-            <Users size={14} aria-hidden="true" /> {appliedStudents} students applied here
+          <span className={countChip} title="Other students who marked one of this company's roles as applied on the portal, counted anonymously. The real number may be higher.">
+            <Users size={14} aria-hidden="true" /> {appliedStudents} other students applied here
           </span>
         )}
       </div>

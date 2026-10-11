@@ -144,7 +144,7 @@ export const getPosting = async (req, res) => {
             // The most recent few, for the "past experiences at X" panel (P3-T3).
             prisma.experience.findMany({ where: published, orderBy: { createdAt: 'desc' }, take: 3, select: { id: true, title: true, experienceType: true, createdAt: true } }),
             prisma.postingReport.findUnique({ where: { userId_postingId: { userId: req.user.id, postingId: id } }, select: { id: true } }),
-            postingAppliedCount(prisma, id), // F-35: anonymous, null below 3
+            postingAppliedCount(prisma, id, req.user.id), // F-35: anonymous, null below 3
         ]);
         const { observations, ...rest } = posting;
         // Career admins also get status and who approved it, for the bar on the job page (P5-T3).

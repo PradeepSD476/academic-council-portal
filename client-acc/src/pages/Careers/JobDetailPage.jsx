@@ -58,7 +58,7 @@ function Rail({ posting, onChange }) {
         {posting.appliedCount && (
           <p className="mt-3 pt-3 border-t border-slate-100 flex items-start gap-1.5 text-xs text-slate-600">
             <Users size={14} className="mt-0.5 shrink-0 text-[var(--color-secondary)]" aria-hidden="true" />
-            <span><span className="font-semibold text-slate-800">{posting.appliedCount} students</span> from campus marked this as applied. Counted anonymously from tracking on the portal; the real number may be higher.</span>
+            <span><span className="font-semibold text-slate-800">{posting.appliedCount} other students</span> from campus marked this as applied. Counted anonymously from tracking on the portal; the real number may be higher.</span>
           </p>
         )}
       </section>
