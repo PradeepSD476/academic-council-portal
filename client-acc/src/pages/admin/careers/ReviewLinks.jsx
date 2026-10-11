@@ -9,7 +9,7 @@ import { Modal, Skeleton, cardClass, dangerButton, inputClass, outlineButton } f
 import { safeHref } from "../../Careers/lib/format";
 
 const STATUSES = ["NEEDS_ATTENTION", "ALL", "NEEDS_PERSON", "RECEIVED", "PROCESSING", "EXTRACTING", "PENDING_REVIEW", "STORED_ONLY", "DUPLICATE", "FAILED"];
-const STATUS_LABEL = { NEEDS_ATTENTION: "needs attention", ALL: "all links", NEEDS_PERSON: "needs a person" };
+const STATUS_LABEL = { NEEDS_ATTENTION: "Needs attention", ALL: "All links", NEEDS_PERSON: "Needs a person" };
 const DISMISS_REASONS = ["Not a job page", "Not for students", "Already listed on the portal", "Closed", "Other"];
 const STYLE = {
   FAILED: "text-rose-700 bg-rose-50 border-rose-100",
@@ -17,6 +17,10 @@ const STYLE = {
   DUPLICATE: "text-slate-600 bg-slate-100 border-slate-200",
   PENDING_REVIEW: "text-emerald-700 bg-emerald-50 border-emerald-100",
 };
+const CHIP_DEFAULT = "text-blue-700 bg-blue-50 border-blue-100"; // received / processing / extracting, as in the list
+// The status filter as chips in the same style as the status next to each link (B-29).
+const FILTER_STYLE = { ...STYLE, NEEDS_ATTENTION: "text-amber-800 bg-amber-50 border-amber-200", NEEDS_PERSON: "text-amber-800 bg-amber-50 border-amber-200", ALL: "text-slate-700 bg-white border-slate-300" };
+const statusText = (s) => STATUS_LABEL[s] ?? s.replace("_", " ");
 
 const smallButton = "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-colors disabled:opacity-50 cursor-pointer";
 
@@ -57,11 +61,14 @@ export default function ReviewLinks({ refreshKey, onOpenPosting, total, onCount 
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <label htmlFor="links-status" className="text-xs font-semibold text-slate-600">Status</label>
-        <select id="links-status" className={`${inputClass} w-48`} value={status} onChange={(e) => { setStatus(e.target.value); setItems(null); }}>
-          {STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABEL[s] ?? s.replace("_", " ").toLowerCase()}</option>)}
-        </select>
+      <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter student links by status">
+        <span className="mr-1 text-xs font-semibold text-slate-600">Status</span>
+        {STATUSES.map((s) => (
+          <button key={s} type="button" aria-pressed={status === s} onClick={() => { if (s !== status) { setStatus(s); setItems(null); } }}
+            className={`px-2.5 py-1 rounded-md border text-[10px] font-bold uppercase tracking-wider cursor-pointer transition ${FILTER_STYLE[s] ?? CHIP_DEFAULT} ${status === s ? "ring-2 ring-[var(--color-secondary)] ring-offset-1" : "opacity-75 hover:opacity-100"}`}>
+            {statusText(s)}
+          </button>
+        ))}
       </div>
       {status === "NEEDS_ATTENTION" && (
         <p className="text-xs text-slate-500">Links you need to act on: ones that failed (retry or dismiss) and ones nothing will read automatically. This is the number on the tab.</p>
@@ -73,7 +80,7 @@ export default function ReviewLinks({ refreshKey, onOpenPosting, total, onCount 
       )}
       {!items ? <Skeleton rows={4} /> : !items.length ? (
         <div className={`${cardClass} p-8 text-center text-sm text-slate-500`}>
-          {status === "NEEDS_ATTENTION" ? "No student link needs you right now." : `No student links${status !== "ALL" ? ` with status ${status.toLowerCase().replace("_", " ")}` : " yet"}.`}
+          {status === "NEEDS_ATTENTION" ? "No student link needs you right now." : `No student links${status !== "ALL" ? ` with status “${statusText(status).toLowerCase()}”` : " yet"}.`}
           {status !== "ALL" && total > 0 && (
             <button type="button" className="ml-2 font-semibold text-[var(--color-secondary)] hover:underline cursor-pointer" onClick={() => { setStatus("ALL"); setItems(null); }}>Show all {total} links</button>
           )}
@@ -85,9 +92,9 @@ export default function ReviewLinks({ refreshKey, onOpenPosting, total, onCount 
               <li key={s.id} className="px-4 py-3 space-y-1">
                 <div className="flex items-center gap-2">
                   {s.dismissedAt ? (
-                    <span className="px-2 py-0.5 rounded-md border text-[10px] font-bold uppercase tracking-wider text-slate-600 bg-slate-100 border-slate-200">{s.dismissedById === s.submittedById ? "Withdrawn" : "Dismissed"}</span>
+                    <span className="shrink-0 whitespace-nowrap px-2 py-0.5 rounded-md border text-[10px] font-bold uppercase tracking-wider text-slate-600 bg-slate-100 border-slate-200">{s.dismissedById === s.submittedById ? "Withdrawn" : "Dismissed"}</span>
                   ) : (
-                    <span className={`px-2 py-0.5 rounded-md border text-[10px] font-bold uppercase tracking-wider ${STYLE[s.status] || "text-blue-700 bg-blue-50 border-blue-100"}`}>{s.status.replace("_", " ")}</span>
+                    <span className={`shrink-0 whitespace-nowrap px-2 py-0.5 rounded-md border text-[10px] font-bold uppercase tracking-wider ${STYLE[s.status] || CHIP_DEFAULT}`}>{s.status.replace("_", " ")}</span>
                   )}
                   <a href={safeHref(s.url) ?? undefined} target="_blank" rel="noopener noreferrer" className="text-sm text-[var(--color-secondary)] hover:underline truncate inline-flex items-center gap-1 min-w-0">
                     <span className="truncate">{s.url}</span> <ExternalLink size={12} className="shrink-0" />
