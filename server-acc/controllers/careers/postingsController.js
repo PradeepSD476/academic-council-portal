@@ -11,6 +11,7 @@ import { newCountQuery, newSinceWhere } from '../../services/careers/postings/ne
 import { reportBody, fileReport } from '../../services/careers/postings/reports.js';
 import { hiddenWhere } from '../../services/careers/postings/hidden.js';
 import { recordVisit, recordApplyClick, firstClickToday } from '../../services/careers/usage/usage.js';
+import { postingAppliedCount } from '../../services/careers/postings/appliedCounts.js';
 import {
     postingsQuery, baseWhere, eligibilityWhere, withEligibility, orderByFor, hasPayFilter, myStatusWhere,
 } from '../../services/careers/postings/query.js';
@@ -137,12 +138,13 @@ export const getPosting = async (req, res) => {
             throw new CareersError(404, 'NOT_FOUND', 'This posting is not available. It may have closed.');
         }
         const published = { companyId: posting.company.id, status: 'PUBLISHED' };
-        const [profile, companyExperienceCount, companyExperiences, myReport] = await Promise.all([
+        const [profile, companyExperienceCount, companyExperiences, myReport, appliedCount] = await Promise.all([
             loadProfile(req.user.id),
             prisma.experience.count({ where: published }),
             // The most recent few, for the "past experiences at X" panel (P3-T3).
             prisma.experience.findMany({ where: published, orderBy: { createdAt: 'desc' }, take: 3, select: { id: true, title: true, experienceType: true, createdAt: true } }),
             prisma.postingReport.findUnique({ where: { userId_postingId: { userId: req.user.id, postingId: id } }, select: { id: true } }),
+            postingAppliedCount(prisma, id), // F-35: anonymous, null below 3
         ]);
         const { observations, ...rest } = posting;
         // Career admins also get status and who approved it, for the bar on the job page (P5-T3).
@@ -159,6 +161,7 @@ export const getPosting = async (req, res) => {
                 companyExperienceCount,
                 companyExperiences,
                 reportedByMe: Boolean(myReport), // only the caller's own report, never anyone else's
+                appliedCount,
                 ...(admin ? { adminInfo: admin } : {}),
             },
         });

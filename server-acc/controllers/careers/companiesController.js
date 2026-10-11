@@ -8,6 +8,7 @@ import { withTracking } from '../../services/careers/postings/tracking.js';
 import { directoryQuery, directoryWhere, countSelect, rankCompanies } from '../../services/careers/companies/directory.js';
 import { likeSafe } from '../../services/careers/text/likeSafe.js';
 import { companyReports } from '../../services/careers/companies/seniorReports.js';
+import { companyAppliedCount } from '../../services/careers/postings/appliedCounts.js';
 
 const searchQuery = z.object({ q: z.string().trim().max(100).optional().default('') });
 const PAGE_ITEMS = 50; // postings / experiences shown on one company page (counts cover all)
@@ -67,7 +68,7 @@ export const getCompanyPage = async (req, res) => {
             throw new CareersError(404, 'NOT_FOUND', 'This company page does not exist.', details);
         }
 
-        const [profile, postings, experiences, seniorReports] = await Promise.all([
+        const [profile, postings, experiences, seniorReports, appliedStudents] = await Promise.all([
             loadProfile(req.user.id),
             prisma.posting.findMany({
                 where: { companyId: company.id, status: 'LIVE' },
@@ -85,6 +86,7 @@ export const getCompanyPage = async (req, res) => {
                 },
             }),
             companyReports(prisma, company.id), // P8-T1: aggregates only, from 3 reports
+            companyAppliedCount(prisma, company.id), // F-35: anonymous, null below 3
         ]);
 
         const { _count, status, mergedIntoId, ...info } = company; // eslint-disable-line no-unused-vars
@@ -92,7 +94,7 @@ export const getCompanyPage = async (req, res) => {
             success: true,
             data: {
                 ...info,
-                counts: { openRoles: _count.postings, experiences: _count.experiences },
+                counts: { openRoles: _count.postings, experiences: _count.experiences, appliedStudents },
                 postings: await withTracking(postings.map((p) => toCard(p, profile)), req.user.id),
                 experiences: experiences.map(({ uploadedBy, ...e }) => ({ ...e, authorName: uploadedBy?.displayName || 'Unknown' })),
                 seniorReports,

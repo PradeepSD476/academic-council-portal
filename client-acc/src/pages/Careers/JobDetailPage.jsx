@@ -1,6 +1,6 @@
 import { useCallback, useContext, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, CalendarDays, CalendarRange, ClipboardCheck, ExternalLink, Flag, GraduationCap, MapPin, SearchX, Share2, Wallet } from "lucide-react";
+import { ArrowLeft, CalendarDays, CalendarRange, ClipboardCheck, ExternalLink, Flag, GraduationCap, MapPin, SearchX, Share2, Users, Wallet } from "lucide-react";
 import AuthContext from "../../context/auth/authContext";
 import { careersApi, errorMessage } from "../../api/careersApi";
 import { useCareersStatus } from "../../hooks/useCareersStatus";
@@ -55,6 +55,12 @@ function Rail({ posting, onChange }) {
         <ApplicationStatusButton key={posting.applicationStatus ?? "none"} posting={posting} onChange={onChange} />
         <div className="mt-2"><ApplicationNote key={`${posting.applicationStatus}-${posting.applicationNote}`} posting={posting} onChange={onChange} /></div>
         <p className="mt-2 text-xs text-slate-500">Only you can see this. Tracked postings are listed under Saved.</p>
+        {posting.appliedCount && (
+          <p className="mt-3 pt-3 border-t border-slate-100 flex items-start gap-1.5 text-xs text-slate-600">
+            <Users size={14} className="mt-0.5 shrink-0 text-[var(--color-secondary)]" aria-hidden="true" />
+            <span><span className="font-semibold text-slate-800">{posting.appliedCount} students</span> from campus marked this as applied. Counted anonymously from tracking on the portal; the real number may be higher.</span>
+          </p>
+        )}
       </section>
 
       <section aria-labelledby="pay-title" className={card}>

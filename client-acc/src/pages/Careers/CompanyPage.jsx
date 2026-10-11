@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Briefcase, Building2, ExternalLink, MessageSquareText, SearchX } from "lucide-react";
+import { ArrowLeft, Briefcase, Building2, ExternalLink, MessageSquareText, SearchX, Users } from "lucide-react";
 import AuthContext from "../../context/auth/authContext";
 import { careersApi, errorMessage } from "../../api/careersApi";
 import { useCareersStatus } from "../../hooks/useCareersStatus";
@@ -73,7 +73,7 @@ export default function CompanyPage() {
   }
 
   const website = safeHref(company.website);
-  const { openRoles, experiences } = company.counts;
+  const { openRoles, experiences, appliedStudents } = company.counts;
   return (
     <div className="space-y-6">
       <BackLink />
@@ -89,6 +89,11 @@ export default function CompanyPage() {
       <div className="flex flex-wrap gap-2">
         <span className={countChip}><Briefcase size={14} aria-hidden="true" /> {plural(openRoles, "open role")}</span>
         <span className={countChip}><MessageSquareText size={14} aria-hidden="true" /> {plural(experiences, "experience")} from seniors</span>
+        {appliedStudents && (
+          <span className={countChip} title="Students who marked one of this company's roles as applied on the portal, counted anonymously. The real number may be higher.">
+            <Users size={14} aria-hidden="true" /> {appliedStudents} students applied here
+          </span>
+        )}
       </div>
 
       <section aria-labelledby="roles-title" className="space-y-3">
