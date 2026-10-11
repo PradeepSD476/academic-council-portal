@@ -5,6 +5,7 @@ import prisma from '../../../config/db.js';
 import { getSetting } from '../settings.js';
 import { fetchPostings } from './adapters/index.js';
 import { evaluateRelevance } from '../text/relevance.js';
+import { sourceRuleDrop, hasRules } from '../sources/keywordRules.js';
 import { loadCompanyIndex } from '../companies/companyIndex.js';
 import { resolveCompany } from '../companies/resolveCompany.js';
 import { buildPostingData } from './buildPosting.js';
@@ -26,13 +27,13 @@ async function companyForSource(source) {
 }
 
 // Returns { sourceId, runId, status, fetchedCount, keptCount, newCount, duplicateCount, seenCount,
-//           dropped: { reason: n }, failedPostings, liveness, error }
+//           dropped: { reason: n }, droppedBySourceRules, failedPostings, liveness, error }
 export async function runSource(source, { now = new Date() } = {}) {
     const run = await prisma.sourceRun.create({ data: { sourceId: source.id, startedAt: now } });
     const result = {
         sourceId: source.id, runId: run.id, status: 'SUCCESS',
         fetchedCount: 0, keptCount: 0, newCount: 0, duplicateCount: 0, seenCount: 0,
-        dropped: {}, failedPostings: 0, liveness: null, error: null,
+        dropped: {}, droppedBySourceRules: 0, failedPostings: 0, liveness: null, error: null,
     };
     let firstPostingError = null;
 
@@ -46,6 +47,11 @@ export async function runSource(source, { now = new Date() } = {}) {
             const relevance = evaluateRelevance(raw);
             if (!relevance.keep) {
                 result.dropped[relevance.reason] = (result.dropped[relevance.reason] ?? 0) + 1;
+                continue;
+            }
+            // P7-T9: the board's own keyword rules, after the global ones (liveness still sees the job).
+            if (hasRules(source) && sourceRuleDrop(raw.title, source)) {
+                result.droppedBySourceRules++;
                 continue;
             }
             result.keptCount++;
@@ -86,6 +92,7 @@ export async function runSource(source, { now = new Date() } = {}) {
             keptCount: result.keptCount,
             newCount: result.newCount,
             duplicateCount: result.duplicateCount,
+            droppedBySourceRules: result.droppedBySourceRules,
             error: result.error,
         },
     });
@@ -93,7 +100,7 @@ export async function runSource(source, { now = new Date() } = {}) {
     const health = nextHealth(source, { ...result, error: result.status === 'FAILED' ? result.error : null }, now);
     await prisma.source.update({ where: { id: source.id }, data: health });
 
-    const summary = `fetched=${result.fetchedCount} kept=${result.keptCount} new=${result.newCount} dup=${result.duplicateCount} seen=${result.seenCount}`;
+    const summary = `fetched=${result.fetchedCount} kept=${result.keptCount} new=${result.newCount} dup=${result.duplicateCount} seen=${result.seenCount}${result.droppedBySourceRules ? ` sourceRules=${result.droppedBySourceRules}` : ''}`;
     if (result.status === 'FAILED') console.error(`[careers] source #${source.id} ${source.kind}/${source.boardToken} FAILED: ${result.error}`);
     else console.info(`[careers] source #${source.id} ${source.kind}/${source.boardToken} ${health.health} ${summary}`);
     return { ...result, health: health.health };

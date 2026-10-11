@@ -29,7 +29,7 @@ function Runs({ sourceId }) {
       {runs.map((r) => (
         <li key={r.id} className="text-xs text-slate-600">
           <span className={r.status === "FAILED" ? "font-semibold text-rose-700" : "font-semibold"}>{r.status}</span> · {when(r.startedAt)} ·
-          {" "}{r.fetchedCount} fetched, {r.keptCount} relevant, {r.newCount} new, {r.duplicateCount} merged
+          {" "}{r.fetchedCount} fetched, {r.keptCount} relevant, {r.newCount} new, {r.duplicateCount} merged{r.droppedBySourceRules ? `, ${r.droppedBySourceRules} dropped by this board's rules` : ""}
           {r.error && <span className="block text-rose-700 break-words">{r.error}</span>}
         </li>
       ))}

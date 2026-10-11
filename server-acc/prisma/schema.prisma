@@ -487,6 +487,8 @@ model Source {
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt
   archivedAt          DateTime? // P6-T11: archived = disabled and hidden on Sources; its postings keep their history
+  excludeTitleKeywords String[] // P7-T9: this board's titles containing any of these are dropped (after the global rules); [] / NULL = none
+  includeTitleKeywords String[] // P7-T9: when set, only this board's titles containing one of these are kept
   runs                SourceRun[]
   observations        PostingSource[]
 
@@ -505,6 +507,7 @@ model SourceRun {
   keptCount      Int       @default(0) // after the relevance filter
   newCount       Int       @default(0) // new Posting rows
   duplicateCount Int       @default(0) // merged into existing postings
+  droppedBySourceRules Int? // P7-T9: kept by the global rules but dropped by the board's own keyword rules; NULL before P7-T9
   error          String?   @db.Text
 
   @@index([sourceId, startedAt])

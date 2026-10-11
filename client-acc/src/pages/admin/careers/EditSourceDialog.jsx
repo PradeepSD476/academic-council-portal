@@ -11,6 +11,8 @@ export default function EditSourceDialog({ source, onClose, onDone }) {
   const [company, setCompany] = useState(source.company ? { companyId: source.company.id, name: source.company.name, status: source.company.status } : null);
   const [saving, setSaving] = useState(false);
   const [confirmArchive, setConfirmArchive] = useState(false);
+  const [exclude, setExclude] = useState((source.excludeTitleKeywords ?? []).join(", "));
+  const [include, setInclude] = useState((source.includeTitleKeywords ?? []).join(", "));
 
   const run = async (fn) => {
     setSaving(true);
@@ -31,6 +33,10 @@ export default function EditSourceDialog({ source, onClose, onDone }) {
     const body = {};
     if (name.trim() !== source.name) body.name = name.trim();
     if (company.companyId !== source.company?.id) body.companyId = company.companyId;
+    // P7-T9: comma-separated keyword rules for this board's titles.
+    const list = (v) => v.split(",").map((k) => k.trim()).filter(Boolean);
+    if (list(exclude).join(",") !== (source.excludeTitleKeywords ?? []).join(",")) body.excludeTitleKeywords = list(exclude);
+    if (list(include).join(",") !== (source.includeTitleKeywords ?? []).join(",")) body.includeTitleKeywords = list(include);
     if (!Object.keys(body).length) return onClose();
     return run(() => careersAdminApi.updateSource(source.id, body));
   };
@@ -65,6 +71,15 @@ export default function EditSourceDialog({ source, onClose, onDone }) {
             <label htmlFor="edit-src-company" className="text-xs font-semibold text-slate-600">Company</label>
             <div className="mt-1"><CompanyPicker id="edit-src-company" value={company} onChange={setCompany} /></div>
             <p className="mt-1 text-[11px] text-slate-500">New postings from this board go to this company; existing postings keep theirs.</p>
+          </div>
+          <div>
+            <label htmlFor="edit-src-exclude" className="text-xs font-semibold text-slate-600">Drop titles containing</label>
+            <input id="edit-src-exclude" className={`${inputClass} mt-1`} value={exclude} onChange={(e) => setExclude(e.target.value)} placeholder="e.g. tele, sales, field executive" />
+          </div>
+          <div>
+            <label htmlFor="edit-src-include" className="text-xs font-semibold text-slate-600">Only keep titles containing</label>
+            <input id="edit-src-include" className={`${inputClass} mt-1`} value={include} onChange={(e) => setInclude(e.target.value)} placeholder="Empty = keep everything the global rules keep" />
+            <p className="mt-1 text-[11px] text-slate-500">Comma-separated whole words, applied after the global rules from the next fetch on. Postings already listed stay until you take them down.</p>
           </div>
         </form>
       )}

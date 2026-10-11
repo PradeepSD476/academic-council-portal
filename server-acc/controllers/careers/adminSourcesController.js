@@ -11,6 +11,7 @@ import { parseBulkLines, MAX_BULK_LINES, BOARD_TOKEN } from '../../services/care
 import { sourceQuality } from '../../services/careers/sources/quality.js';
 import { loadCompanyIndex } from '../../services/careers/companies/companyIndex.js';
 import { archiveProblem, archiveData, restoreData, enableProblem } from '../../services/careers/sources/archive.js';
+import { keywordFields } from '../../services/careers/sources/keywordRules.js';
 
 const createBody = z.object({
     kind: z.enum(ATS_KINDS),
@@ -26,6 +27,7 @@ const updateBody = z.object({
     isEnabled: z.boolean().optional(),
     name: z.string().trim().min(1).max(120).optional(),
     companyId: z.number().int().positive().optional(),
+    ...keywordFields, // P7-T9
 }).refine((b) => Object.keys(b).length > 0, { message: 'Nothing to update.' });
 
 const runsQuery = z.object({ limit: z.coerce.number().int().min(1).max(100).default(20) });
@@ -33,6 +35,7 @@ const runsQuery = z.object({ limit: z.coerce.number().int().min(1).max(100).defa
 const sourceSelect = {
     id: true, name: true, kind: true, boardToken: true, isEnabled: true, health: true, lastRunAt: true, lastSuccessAt: true,
     lastFetchedCount: true, lastKeptCount: true, consecutiveFailures: true, lastError: true, createdAt: true, archivedAt: true,
+    excludeTitleKeywords: true, includeTitleKeywords: true,
     company: { select: { id: true, name: true, slug: true, status: true } },
     _count: { select: { observations: true } },
 };
