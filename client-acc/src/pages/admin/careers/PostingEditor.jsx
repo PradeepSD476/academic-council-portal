@@ -15,6 +15,7 @@ import { Skeleton, StatusChip, dangerButton, inputClass, outlineButton, primaryB
 import { safeHref } from "../../Careers/lib/format";
 import PostingStatus from "./components/PostingStatusChip";
 import TakeDownDialog from "./components/TakeDownDialog";
+import DeletePostingDialog from "./components/DeletePostingDialog";
 import ReportsPanel from "./components/ReportsPanel";
 
 export default function PostingEditor({ postingId, onClose, onChanged }) {
@@ -26,6 +27,7 @@ export default function PostingEditor({ postingId, onClose, onChanged }) {
   const [reason, setReason] = useState(REJECT_REASONS[0]);
   const [otherReason, setOtherReason] = useState("");
   const [takingDown, setTakingDown] = useState(false);
+  const [deleting, setDeleting] = useState(false); // P8-T2
 
   const load = useCallback(async () => {
     try {
@@ -178,6 +180,7 @@ export default function PostingEditor({ postingId, onClose, onChanged }) {
                 {posting.status === "LIVE" && <button type="button" className={dangerButton} onClick={() => setTakingDown(true)} disabled={busy}>Take down</button>}
                 {["PENDING_REVIEW", "EXPIRED"].includes(posting.status) && <button type="button" className={dangerButton} onClick={() => setRejecting(true)} disabled={busy}>Reject</button>}
                 {["EXPIRED", "REJECTED"].includes(posting.status) && <button type="button" className={outlineButton} onClick={() => run(() => careersAdminApi.reopenPosting(postingId))} disabled={busy}>Reopen</button>}
+                {posting.status !== "LIVE" && <button type="button" className="text-xs font-semibold text-rose-700 hover:underline cursor-pointer px-1" onClick={() => setDeleting(true)} disabled={busy}>Delete permanently…</button>}
                 <div className="flex gap-2 ml-auto">
                   {posting.status !== "REJECTED" && <button type="button" className={outlineButton} onClick={save} disabled={busy}>Save</button>}
                   {pending && <button type="button" className={primaryButton} onClick={approve} disabled={busy}>Approve &amp; publish</button>}
@@ -187,6 +190,10 @@ export default function PostingEditor({ postingId, onClose, onChanged }) {
           </div>
         )}
       </div>
+      {deleting && (
+        <DeletePostingDialog postingId={postingId} onClose={() => setDeleting(false)}
+          onDone={() => { setDeleting(false); onChanged(); onClose(); }} />
+      )}
       {takingDown && posting && (
         <TakeDownDialog posting={posting} onClose={() => setTakingDown(false)}
           onDone={() => { setTakingDown(false); onChanged(); load(); }} />

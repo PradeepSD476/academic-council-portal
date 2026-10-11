@@ -804,3 +804,20 @@ model CareersWeeklyVisitor {
 
   @@id([weekStart, visitorKey])
 }
+
+// careers P8-T2 (F-02 level 2): one line per permanently deleted posting. The posting and its history
+// go; this row keeps what it was, who deleted it, when and why. No foreign key (the posting is gone).
+model PostingDeletion {
+  id          Int      @id @default(autoincrement())
+  postingId   Int
+  roleTitle   String
+  companyName String
+  status      String // the posting's status when it was deleted
+  reason      String
+  removed     Json // counts: { saves, applications, reports, hidden, observations, reviews, applyClicks }
+  byUserId    Int
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([byUserId])
+}

@@ -8,7 +8,7 @@ import {
 import { merge, split, listMergeLog, undo } from '../controllers/careers/adminMergeController.js';
 import {
     listReview, getReviewCounts, listAllPostings, getPosting, patchPosting, approve, reject, expire, reopen, takeDown, handlePostingReports, bulk, bulkUndo, bulkRejectPostings, bulkExpirePostings, createManual, listSubmissions, retryLink, dismissLink,
-    mergePreviewPostings, mergeTwoPostings,
+    mergePreviewPostings, mergeTwoPostings, deletePreviewPosting, deletePostingPermanently,
 } from '../controllers/careers/adminReviewController.js';
 import {
     listSources, createSource, bulkCreateSources, updateSource, archiveSource, restoreSource, runSourceNow, runAllNow, listRuns,
@@ -51,6 +51,8 @@ router.post('/careers/admin/postings', ...admin, createManual);
 router.get('/careers/admin/postings', ...admin, listAllPostings); // before /postings/:id
 router.get('/careers/admin/postings/:id', ...admin, getPosting);
 router.patch('/careers/admin/postings/:id', ...admin, patchPosting);
+router.delete('/careers/admin/postings/:id', ...admin, deletePostingPermanently); // P8-T2: body { reason, confirmId }
+router.get('/careers/admin/postings/:id/delete-preview', ...admin, deletePreviewPosting);
 router.post('/careers/admin/postings/:id/approve', ...admin, approve);
 router.post('/careers/admin/postings/:id/reject', ...admin, reject);
 router.post('/careers/admin/postings/:id/expire', ...admin, expire);

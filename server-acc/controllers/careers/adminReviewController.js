@@ -19,6 +19,7 @@ import { reportsForAdmin, handleReports } from '../../services/careers/postings/
 import { bulkBodies, undoBulkApprove, bulkReject, bulkExpire } from '../../services/careers/postings/bulkActions.js';
 import { applyClicksFor } from '../../services/careers/usage/usage.js';
 import { mergeBody, mergeQuery, mergePreview, mergePostings } from '../../services/careers/postings/mergePostings.js';
+import { deleteBody, deletePreview, deletePosting } from '../../services/careers/postings/deletePosting.js';
 
 const reviewQuery = z.object({
     tab: z.enum(['pending', 'flagged']).default('pending'),
@@ -207,6 +208,13 @@ export const listSubmissions = async (req, res) => {
 };
 
 // P7-T8 (F-06): merge two postings by hand. GET .../merge-preview?keepId&dropId says what would move.
+// P8-T2 (F-02 level 2): permanent delete, career admin only; a LIVE posting must be taken down first.
+export const deletePreviewPosting = action((req) => deletePreview(prisma, parseId(req.params.id)));
+export const deletePostingPermanently = action(
+    (req) => deletePosting(prisma, parseId(req.params.id), deleteBody.parse(req.body ?? {}), req.user.id),
+    (r) => `Deleted #${r.posting.id} ${r.posting.roleTitle} permanently.${r.comesBack ? ' Its job board still lists it, so the next fetch will add it back to the review queue.' : ''}`,
+);
+
 export const mergePreviewPostings = async (req, res) => {
     try {
         const data = await mergePreview(prisma, mergeQuery.parse(req.query));

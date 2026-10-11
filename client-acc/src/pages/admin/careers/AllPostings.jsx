@@ -11,6 +11,7 @@ import ReportCount from "./components/ReportCount";
 import PostingStatusChip from "./components/PostingStatusChip";
 import TakeDownDialog from "./components/TakeDownDialog";
 import MergePostingsDialog from "./components/MergePostingsDialog";
+import DeletePostingDialog from "./components/DeletePostingDialog";
 import { PageHeader, Skeleton, StatusChip, cardClass, inputClass, outlineButton } from "./components/ui";
 import { plural } from "./components/format";
 
@@ -50,6 +51,7 @@ export default function AllPostings() {
   const [openId, setOpenId] = useState(null);
   const [takingDown, setTakingDown] = useState(null); // a LIVE row
   const [merging, setMerging] = useState(null); // the row that merges away (P7-T8)
+  const [deletingId, setDeletingId] = useState(null); // P8-T2: a row that is not LIVE
   const [refreshKey, setRefreshKey] = useState(0);
   const [qDraft, setQDraft] = useState(params.get("q") ?? "");
   const q = useDebounced(qDraft.trim(), 300);
@@ -196,6 +198,9 @@ export default function AllPostings() {
                     {p.status !== "REJECTED" && (
                       <button type="button" onClick={() => setMerging(p)} className="text-xs font-semibold text-slate-600 hover:text-[var(--color-secondary)] hover:underline cursor-pointer">Merge into…</button>
                     )}
+                    {p.status !== "LIVE" && (
+                      <button type="button" onClick={() => setDeletingId(p.id)} className="text-xs font-semibold text-rose-700 hover:underline cursor-pointer">Delete…</button>
+                    )}
                   </span>
                 </li>
               ))}
@@ -216,6 +221,7 @@ export default function AllPostings() {
 
       {openId && <PostingEditor postingId={openId} onClose={closeEditor} onChanged={refresh} />}
       {merging && <MergePostingsDialog drop={merging} onClose={() => setMerging(null)} onDone={() => { setMerging(null); refresh(); }} />}
+      {deletingId && <DeletePostingDialog postingId={deletingId} onClose={() => setDeletingId(null)} onDone={() => { setDeletingId(null); refresh(); }} />}
       {takingDown && <TakeDownDialog posting={takingDown} onClose={() => setTakingDown(null)} onDone={() => { setTakingDown(null); refresh(); }} />}
     </div>
   );

@@ -1,5 +1,5 @@
 // Admin activity log (P7-T12, F-15): who approved, rejected, edited, expired, reopened or created a
-// posting, and who merged or split companies. Read-only.
+// posting, who deleted one permanently (P8-T2), and who merged or split companies. Read-only.
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ChevronLeft, ChevronRight, History } from "lucide-react";
@@ -10,10 +10,10 @@ import { plural } from "./components/format";
 
 const ACTIONS = [
   ["APPROVE", "Approved"], ["REJECT", "Rejected"], ["EDIT", "Edited"], ["EXPIRE", "Expired"], ["REOPEN", "Reopened"],
-  ["CREATE_MANUAL", "Created"], ["MERGE", "Merged companies"], ["SPLIT", "Split a company"], ["UNDO", "Undid"],
+  ["CREATE_MANUAL", "Created"], ["DELETE", "Deleted"], ["MERGE", "Merged companies"], ["SPLIT", "Split a company"], ["UNDO", "Undid"],
 ];
 const LABEL = Object.fromEntries(ACTIONS);
-const TONE = { APPROVE: "text-emerald-700 bg-emerald-50 border-emerald-100", REJECT: "text-rose-700 bg-rose-50 border-rose-100", EXPIRE: "text-amber-700 bg-amber-50 border-amber-100" };
+const TONE = { APPROVE: "text-emerald-700 bg-emerald-50 border-emerald-100", REJECT: "text-rose-700 bg-rose-50 border-rose-100", DELETE: "text-rose-800 bg-rose-100 border-rose-200", EXPIRE: "text-amber-700 bg-amber-50 border-amber-100" };
 const selectClass = "border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white text-slate-700 cursor-pointer";
 const when = (iso) => new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" });
 
@@ -27,7 +27,9 @@ function What({ e }) {
   const p = e.posting;
   return (
     <span className="min-w-0">
-      <Link to={`/admin/careers/postings?status=ALL&q=${encodeURIComponent(p.roleTitle ?? "")}`} className="font-semibold text-slate-800 hover:underline break-words">{p.roleTitle ?? `Posting #${p.id}`}</Link>
+      {p.deleted
+        ? <span className="font-semibold text-slate-800 break-words">{p.roleTitle}</span>
+        : <Link to={`/admin/careers/postings?status=ALL&q=${encodeURIComponent(p.roleTitle ?? "")}`} className="font-semibold text-slate-800 hover:underline break-words">{p.roleTitle ?? `Posting #${p.id}`}</Link>}
       {p.company && <span className="text-slate-500"> · {p.company}</span>}
       <span className="text-slate-400"> · #{p.id}</span>
       {e.changedFields?.length > 0 && <span className="block text-[11px] text-slate-500">Changed: {e.changedFields.join(", ")}</span>}
