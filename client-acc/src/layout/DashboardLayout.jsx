@@ -69,7 +69,7 @@ export default function DashboardLayout() {
       <button
         onClick={() => setOpen(!open)}
         className={`
-            fixed top-20 z-[60] md:hidden
+            fixed top-32 z-[60] md:hidden
             flex items-center justify-center
             w-9 h-9 bg-white border border-slate-200 text-slate-800 rounded-r-lg shadow-md
             hover:bg-slate-50 transition-all cursor-pointer
