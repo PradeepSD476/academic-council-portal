@@ -13,6 +13,7 @@ import { detectWorkMode } from '../text/workMode.js';
 import { extractSkills, canonicalSkillName } from '../text/skills.js';
 import { branchCodes } from '../postings/branchCodes.js';
 import { parseEligibility } from '../text/eligibility.js';
+import { descriptionSpan } from './descriptionSpan.js';
 
 export const DROPPED_FIELD_PENALTY = 0.15;
 export const TYPE_OVERRIDE_PENALTY = 0.1;
@@ -175,6 +176,8 @@ export function verifyExtraction(output, input, { provider = 'ollama', now = new
             ppoMentioned, eligibleBranches, eligibleYears, minCpi,
             // P7-T2: batches read from the page itself (deterministic, so grounded by construction).
             eligibleGradYears: parseEligibility(haystack, now).gradYears,
+            // B-22: the description cut out of the page between the model's anchors (verbatim), or null.
+            descriptionText: descriptionSpan(input, output.description_first_words, output.description_last_words),
         },
         uncertainFields: [...uncertain],
         confidence,

@@ -12,6 +12,7 @@ export const EXTRACTION_SCHEMA = {
     required: [
         'is_job_posting', 'company_name', 'role_title', 'type', 'ppo_mentioned', 'location', 'work_mode', 'skills',
         'compensation_text', 'eligibility', 'deadline_stated', 'apply_url', 'overall_confidence',
+        'description_first_words', 'description_last_words',
     ],
     properties: {
         is_job_posting: { type: 'boolean' },
@@ -36,6 +37,9 @@ export const EXTRACTION_SCHEMA = {
         deadline_stated: nullable('string'),
         apply_url: nullable('string'),
         overall_confidence: { type: 'number' },
+        // B-22: where the job description starts and ends in the page (verbatim words); see descriptionSpan.js.
+        description_first_words: nullable('string'),
+        description_last_words: nullable('string'),
     },
 };
 
@@ -61,6 +65,9 @@ export const extractionOutput = z.object({
     deadline_stated: str,
     apply_url: str,
     overall_confidence: z.number(),
+    // Optional here so an older reply (or a provider that drops them) still parses; then the whole page is kept.
+    description_first_words: str.optional(),
+    description_last_words: str.optional(),
 }).strict();
 
 // JSON text -> validated object, or throws an Error with a short summary (stored on the Extraction).

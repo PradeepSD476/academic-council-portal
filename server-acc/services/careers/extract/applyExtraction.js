@@ -17,7 +17,8 @@ export function extractionPostingData({ verified, extraction, company, provider 
         companyName: f.companyName,
         locationText: f.location,
         url: trust.applyUrl,
-        descriptionText: extraction.inputText,
+        // B-22: the description the model located in the page; the whole page text only as a fallback.
+        descriptionText: f.descriptionText ?? extraction.inputText,
         workplaceText: null,
         employmentTypeText: null,
         compensationText: f.compensationText,
