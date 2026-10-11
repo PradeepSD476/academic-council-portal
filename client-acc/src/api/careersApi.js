@@ -84,6 +84,8 @@ export const careersAdminApi = {
   expirePosting: (id) => api.post(`/careers/admin/postings/${id}/expire`, {}).then((r) => r.data),
   reopenPosting: (id) => api.post(`/careers/admin/postings/${id}/reopen`, {}).then((r) => r.data),
   takeDownPosting: (id, body) => api.post(`/careers/admin/postings/${id}/take-down`, body).then((r) => r.data),
+  mergePreview: (keepId, dropId) => api.get('/careers/admin/postings/merge-preview', { params: { keepId, dropId } }).then((r) => r.data.data),
+  mergePostings: (keepId, dropId) => api.post('/careers/admin/postings/merge', { keepId, dropId }).then((r) => r.data),
   handlePostingReports: (id) => api.post(`/careers/admin/postings/${id}/reports/handled`).then((r) => r.data),
   bulkApprove: (ids) => api.post('/careers/admin/postings/bulk-approve', { ids }).then((r) => r.data),
   undoBulkApprove: (ids) => api.post('/careers/admin/postings/bulk-approve/undo', { ids }).then((r) => r.data),

@@ -10,6 +10,7 @@ import CompanyPicker from "./components/CompanyPicker";
 import ReportCount from "./components/ReportCount";
 import PostingStatusChip from "./components/PostingStatusChip";
 import TakeDownDialog from "./components/TakeDownDialog";
+import MergePostingsDialog from "./components/MergePostingsDialog";
 import { PageHeader, Skeleton, StatusChip, cardClass, inputClass, outlineButton } from "./components/ui";
 import { plural } from "./components/format";
 
@@ -48,6 +49,7 @@ export default function AllPostings() {
   const [sources, setSources] = useState([]);
   const [openId, setOpenId] = useState(null);
   const [takingDown, setTakingDown] = useState(null); // a LIVE row
+  const [merging, setMerging] = useState(null); // the row that merges away (P7-T8)
   const [refreshKey, setRefreshKey] = useState(0);
   const [qDraft, setQDraft] = useState(params.get("q") ?? "");
   const q = useDebounced(qDraft.trim(), 300);
@@ -191,6 +193,9 @@ export default function AllPostings() {
                     {p.status === "LIVE" && (
                       <button type="button" onClick={() => setTakingDown(p)} className="text-xs font-semibold text-rose-700 hover:underline cursor-pointer">Take down</button>
                     )}
+                    {p.status !== "REJECTED" && (
+                      <button type="button" onClick={() => setMerging(p)} className="text-xs font-semibold text-slate-600 hover:text-[var(--color-secondary)] hover:underline cursor-pointer">Merge into…</button>
+                    )}
                   </span>
                 </li>
               ))}
@@ -210,6 +215,7 @@ export default function AllPostings() {
       )}
 
       {openId && <PostingEditor postingId={openId} onClose={closeEditor} onChanged={refresh} />}
+      {merging && <MergePostingsDialog drop={merging} onClose={() => setMerging(null)} onDone={() => { setMerging(null); refresh(); }} />}
       {takingDown && <TakeDownDialog posting={takingDown} onClose={() => setTakingDown(null)} onDone={() => { setTakingDown(null); refresh(); }} />}
     </div>
   );

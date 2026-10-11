@@ -18,6 +18,7 @@ import { reviewCounts } from '../../services/careers/postings/reviewCounts.js';
 import { reportsForAdmin, handleReports } from '../../services/careers/postings/reports.js';
 import { bulkBodies, undoBulkApprove, bulkReject, bulkExpire } from '../../services/careers/postings/bulkActions.js';
 import { applyClicksFor } from '../../services/careers/usage/usage.js';
+import { mergeBody, mergeQuery, mergePreview, mergePostings } from '../../services/careers/postings/mergePostings.js';
 
 const reviewQuery = z.object({
     tab: z.enum(['pending', 'flagged']).default('pending'),
@@ -202,5 +203,30 @@ export const listSubmissions = async (req, res) => {
         });
     } catch (err) {
         return sendError(res, err, 'listSubmissions');
+    }
+};
+
+// P7-T8 (F-06): merge two postings by hand. GET .../merge-preview?keepId&dropId says what would move.
+export const mergePreviewPostings = async (req, res) => {
+    try {
+        const data = await mergePreview(prisma, mergeQuery.parse(req.query));
+        return res.json({ success: true, data });
+    } catch (err) {
+        return sendError(res, err, 'mergePreviewPostings');
+    }
+};
+
+export const mergeTwoPostings = async (req, res) => {
+    try {
+        const { keepId, dropId } = mergeBody.parse(req.body ?? {});
+        const r = await mergePostings(prisma, { keepId, dropId, adminId: req.user.id });
+        const students = r.saves.moved + r.saves.merged + r.applications.moved + r.applications.merged;
+        return res.json({
+            success: true,
+            message: `#${dropId} merged into #${keepId}: ${r.observations} observation(s) and ${students} student save(s) / status(es) moved. #${dropId} is now rejected as a duplicate.`,
+            data: r,
+        });
+    } catch (err) {
+        return sendError(res, err, 'mergeTwoPostings');
     }
 };

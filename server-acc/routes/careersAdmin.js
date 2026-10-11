@@ -8,6 +8,7 @@ import {
 import { merge, split, listMergeLog, undo } from '../controllers/careers/adminMergeController.js';
 import {
     listReview, getReviewCounts, listAllPostings, getPosting, patchPosting, approve, reject, expire, reopen, takeDown, handlePostingReports, bulk, bulkUndo, bulkRejectPostings, bulkExpirePostings, createManual, listSubmissions, retryLink, dismissLink,
+    mergePreviewPostings, mergeTwoPostings,
 } from '../controllers/careers/adminReviewController.js';
 import {
     listSources, createSource, bulkCreateSources, updateSource, archiveSource, restoreSource, runSourceNow, runAllNow, listRuns,
@@ -42,6 +43,8 @@ router.post('/careers/admin/postings/bulk-approve', ...admin, bulk);
 router.post('/careers/admin/postings/bulk-approve/undo', ...admin, bulkUndo);
 router.post('/careers/admin/postings/bulk-reject', ...admin, bulkRejectPostings);
 router.post('/careers/admin/postings/bulk-expire', ...admin, bulkExpirePostings);
+router.get('/careers/admin/postings/merge-preview', ...admin, mergePreviewPostings); // before /postings/:id (P7-T8)
+router.post('/careers/admin/postings/merge', ...admin, mergeTwoPostings);
 router.post('/careers/admin/postings', ...admin, createManual);
 router.get('/careers/admin/postings', ...admin, listAllPostings); // before /postings/:id
 router.get('/careers/admin/postings/:id', ...admin, getPosting);
