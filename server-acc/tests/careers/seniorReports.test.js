@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { reportData, aggregateReports, MIN_REPORTS } from '../../services/careers/companies/seniorReports.js';
+import { reportData, aggregateReports, MIN_REPORTS, RANGE_REPORTS } from '../../services/careers/companies/seniorReports.js';
 
 const NOW = new Date('2026-10-11T00:00:00Z');
 
@@ -28,15 +28,17 @@ describe("seniors' reported numbers (P8-T1, F-29)", () => {
         const two = [row({ reportedStipend: 40000 }), row({ reportedStipend: 60000 })];
         expect(aggregateReports(two)).toEqual({ stipend: null, ctc: null, rounds: null });
     });
-    it('stipend: count, a range widened to ₹5k steps, and the years', () => {
-        const rows = [row({ reportedStipend: 42000, reportedYear: 2024 }), row({ reportedStipend: 58000, reportedYear: 2026 }), row({ reportedStipend: 50000 })];
-        expect(aggregateReports(rows).stipend).toEqual({ count: 3, min: 40000, max: 60000, fromYear: 2024, toYear: 2026 });
+    it('3 – 4 reports: only a rounded typical value (median), never the extremes', () => {
+        const rows = [row({ reportedStipend: 42000, reportedYear: 2024 }), row({ reportedStipend: 58000, reportedYear: 2026 }), row({ reportedStipend: 51000 })];
+        expect(aggregateReports(rows).stipend).toEqual({ count: 3, typical: 50000, low: null, high: null, fromYear: 2024, toYear: 2026 });
+        const r4 = aggregateReports([row({ reportedRounds: 2 }), row({ reportedRounds: 3 }), row({ reportedRounds: 4 }), row({ reportedRounds: 9 })]).rounds;
+        expect(r4).toMatchObject({ count: 4, typical: 4, low: null, high: null }); // median of 3, 4 → 3.5 → 4
     });
-    it('CTC: range widened to whole lakhs; rounds: typical (median) and range', () => {
-        const rows = [row({ reportedCtcLpa: '18.50', reportedRounds: 3 }), row({ reportedCtcLpa: 22.2, reportedRounds: 4 }), row({ reportedCtcLpa: 20, reportedRounds: 2 }), row({ reportedRounds: 3 })];
-        const a = aggregateReports(rows);
-        expect(a.ctc).toMatchObject({ count: 3, min: 18, max: 23 });
-        expect(a.rounds).toEqual({ count: 4, typical: 3, min: 2, max: 4, fromYear: 2025, toYear: 2025 });
+    it(`from ${RANGE_REPORTS} reports: the middle half (25th – 75th percentile), widened to steps; min and max never shown`, () => {
+        const s = aggregateReports([20000, 41000, 50000, 59000, 150000].map((v) => row({ reportedStipend: v }))).stipend;
+        expect(s).toMatchObject({ count: 5, typical: 50000, low: 40000, high: 60000 });
+        const c = aggregateReports(['12.0', 18.5, 20, 22.2, 45].map((v) => row({ reportedCtcLpa: v }))).ctc;
+        expect(c).toMatchObject({ count: 5, typical: 20, low: 18, high: 23 });
     });
     it('the year falls back to when the experience was posted', () => {
         const rows = [row({ reportedRounds: 2, createdAt: '2023-03-01T00:00:00Z' }), row({ reportedRounds: 2 }), row({ reportedRounds: 3, reportedYear: 2026 })];

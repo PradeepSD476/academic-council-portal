@@ -1,11 +1,13 @@
-// Company page summary of seniors' reported numbers (P8-T1, F-29). The API sends a figure only when
-// 3 or more published experiences report it, with ranges widened to ₹5k / 1 lakh steps. Labelled as
-// reported by seniors; never shown as any posting's pay.
+// Company page summary of seniors' reported numbers (P8-T1, F-29). The API sends a figure only from 3
+// published reports: a rounded typical value, plus the middle half (never min / max) from 5 reports.
+// Labelled as reported by seniors; never shown as any posting's pay.
 import { IndianRupee } from "lucide-react";
 import { money, plural } from "../lib/format";
 
 const years = (r) => (r.fromYear === r.toYear ? `${r.fromYear}` : `${r.fromYear} – ${r.toYear}`);
 const seniors = (n) => plural(n, "senior");
+// The middle half of the reports (sent only from 5 reports), when it is a real range.
+const middle = (r, fmt) => (r.low != null && r.high != null && r.low !== r.high ? `; middle half ${fmt(r.low)} – ${fmt(r.high)}` : "");
 
 export default function SeniorReportsCard({ reports }) {
   if (!reports || (!reports.stipend && !reports.ctc && !reports.rounds)) return null;
@@ -16,11 +18,11 @@ export default function SeniorReportsCard({ reports }) {
         <IndianRupee size={16} className="text-[var(--color-secondary)]" aria-hidden="true" /> Reported by seniors
       </h2>
       <ul className="space-y-1 text-sm text-slate-700">
-        {stipend && <li><b>Stipend:</b> {seniors(stipend.count)} reported {money(stipend.min)} – {money(stipend.max).replace("₹", "")} a month ({years(stipend)}).</li>}
-        {ctc && <li><b>CTC:</b> {seniors(ctc.count)} reported {ctc.min === ctc.max ? `about ${ctc.min}` : `${ctc.min} – ${ctc.max}`} lakh a year ({years(ctc)}).</li>}
-        {rounds && <li><b>Interview rounds:</b> usually {rounds.typical}{rounds.min !== rounds.max && ` (${rounds.min} – ${rounds.max})`}, from {seniors(rounds.count)} ({years(rounds)}).</li>}
+        {stipend && <li><b>Stipend:</b> typically about {money(stipend.typical)} a month{middle(stipend, (v) => money(v))}, from {seniors(stipend.count)} ({years(stipend)}).</li>}
+        {ctc && <li><b>CTC:</b> typically about {ctc.typical} lakh a year{middle(ctc, (v) => `${v} lakh`)}, from {seniors(ctc.count)} ({years(ctc)}).</li>}
+        {rounds && <li><b>Interview rounds:</b> usually {rounds.typical}{middle(rounds, String)}, from {seniors(rounds.count)} ({years(rounds)}).</li>}
       </ul>
-      <p className="text-[11px] text-slate-500">What seniors shared in their experiences, as ranges. Not the pay of any opening listed here.</p>
+      <p className="text-[11px] text-slate-500">Rounded from what seniors shared in their experiences. Not the pay of any opening listed here.</p>
     </section>
   );
 }

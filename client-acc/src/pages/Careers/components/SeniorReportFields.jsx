@@ -23,7 +23,7 @@ export default function SeniorReportFields({ experienceType, value, onChange }) 
       <div>
         <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Numbers for juniors (optional)</h3>
         <p className="mt-1 text-xs text-slate-500">
-          Not shown on your post. The company page shows only a summary, such as “3 seniors reported ₹40,000 – 60,000 a month”, once at least 3 seniors have shared the same number.
+          Not shown on your post. The company page shows only a rounded summary, such as “typically about ₹50,000 a month, from 3 seniors”, once at least 3 seniors have shared the same number.
         </p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

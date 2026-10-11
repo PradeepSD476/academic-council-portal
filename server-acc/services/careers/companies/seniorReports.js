@@ -1,10 +1,11 @@
 // Seniors' reported stipend, CTC and rounds (P8-T1, F-29; user OK 11 Oct, D-15). Optional numbers on
 // an experience. They are private per experience (omitted from every query in config/db.js) and
-// appear only as company aggregates, once at least MIN_REPORTS published experiences report the same
-// number. Ranges are widened to ₹5k / 1 lakh steps so a single senior's figure is not shown exactly.
+// appear only as company aggregates: a rounded typical value (median) from MIN_REPORTS published
+// experiences, and a middle-half range only from RANGE_REPORTS. No min / max is ever shown.
 import { z } from 'zod';
 
 export const MIN_REPORTS = 3;
+export const RANGE_REPORTS = 5; // a range only from this many reports
 const STIPEND_STEP = 5000;
 
 const blankToNull = (v) => (v === '' || v === undefined ? null : v);
@@ -39,27 +40,31 @@ function median(sorted) {
     return sorted.length % 2 ? sorted[mid] : Math.round((sorted[mid - 1] + sorted[mid]) / 2);
 }
 
+// Pure. One figure: nothing below MIN_REPORTS; a typical value (median, rounded to `step`) from
+// MIN_REPORTS; the middle half (25th – 75th percentile, widened to `step`) only from RANGE_REPORTS.
+// Never min / max: with few reports those are single seniors' figures (security review, 11 Oct).
+function summary(values, step) {
+    if (values.length < MIN_REPORTS) return null;
+    const v = [...values].sort((a, b) => a - b);
+    const out = { count: v.length, typical: Math.max(step, Math.round(median(v) / step) * step), low: null, high: null };
+    if (v.length >= RANGE_REPORTS) {
+        out.low = Math.floor(v[Math.floor(0.25 * (v.length - 1))] / step) * step;
+        out.high = Math.ceil(v[Math.ceil(0.75 * (v.length - 1))] / step) * step;
+    }
+    return out;
+}
+
 // Pure. rows: published experiences of one company with the reported* columns and createdAt.
 export function aggregateReports(rows) {
-    const withStipend = rows.filter((r) => r.reportedStipend != null);
-    const withCtc = rows.filter((r) => r.reportedCtcLpa != null);
-    const withRounds = rows.filter((r) => r.reportedRounds != null);
-    const stipends = withStipend.map((r) => r.reportedStipend);
-    const ctcs = withCtc.map((r) => Number(r.reportedCtcLpa));
-    const rounds = withRounds.map((r) => r.reportedRounds).sort((a, b) => a - b);
+    const figure = (key, step, toNumber = Number) => {
+        const withIt = rows.filter((r) => r[key] != null);
+        const s = summary(withIt.map((r) => toNumber(r[key])), step);
+        return s && { ...s, ...years(withIt) };
+    };
     return {
-        stipend: withStipend.length >= MIN_REPORTS ? {
-            count: withStipend.length,
-            min: Math.floor(Math.min(...stipends) / STIPEND_STEP) * STIPEND_STEP,
-            max: Math.ceil(Math.max(...stipends) / STIPEND_STEP) * STIPEND_STEP,
-            ...years(withStipend),
-        } : null,
-        ctc: withCtc.length >= MIN_REPORTS ? {
-            count: withCtc.length, min: Math.floor(Math.min(...ctcs)), max: Math.ceil(Math.max(...ctcs)), ...years(withCtc),
-        } : null,
-        rounds: withRounds.length >= MIN_REPORTS ? {
-            count: withRounds.length, typical: median(rounds), min: rounds[0], max: rounds[rounds.length - 1], ...years(withRounds),
-        } : null,
+        stipend: figure('reportedStipend', STIPEND_STEP),
+        ctc: figure('reportedCtcLpa', 1),
+        rounds: figure('reportedRounds', 1),
     };
 }
 
