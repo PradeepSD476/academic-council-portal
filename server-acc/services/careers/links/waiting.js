@@ -34,6 +34,13 @@ export function needsPersonWhere(aiUsable) {
     };
 }
 
+// Pure. Links an admin has to act on (B-26): failed ones (retry or dismiss) and the "Needs a person"
+// ones. Dismissed and withdrawn links never count. The review tab's badge and default filter.
+export function needsAttentionWhere(aiUsable) {
+    const person = needsPersonWhere(aiUsable);
+    return { dismissedAt: null, OR: [{ status: 'FAILED' }, { postingId: null, OR: person.OR }] };
+}
+
 // For the ops summary: how many need a person, and how many of them have waited too long.
 export async function needsPersonCounts(aiUsable, now = new Date(), db = prisma) {
     const where = needsPersonWhere(aiUsable);

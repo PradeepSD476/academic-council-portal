@@ -8,8 +8,8 @@ import { careersAdminApi, errorMessage } from "../../../api/careersApi";
 import { Modal, Skeleton, cardClass, dangerButton, inputClass, outlineButton } from "./components/ui";
 import { safeHref } from "../../Careers/lib/format";
 
-const STATUSES = ["ALL", "NEEDS_PERSON", "RECEIVED", "PROCESSING", "EXTRACTING", "PENDING_REVIEW", "STORED_ONLY", "DUPLICATE", "FAILED"];
-const STATUS_LABEL = { NEEDS_PERSON: "needs a person" };
+const STATUSES = ["NEEDS_ATTENTION", "ALL", "NEEDS_PERSON", "RECEIVED", "PROCESSING", "EXTRACTING", "PENDING_REVIEW", "STORED_ONLY", "DUPLICATE", "FAILED"];
+const STATUS_LABEL = { NEEDS_ATTENTION: "needs attention", ALL: "all links", NEEDS_PERSON: "needs a person" };
 const DISMISS_REASONS = ["Not a job page", "Not for students", "Already listed on the portal", "Closed", "Other"];
 const STYLE = {
   FAILED: "text-rose-700 bg-rose-50 border-rose-100",
@@ -20,9 +20,10 @@ const STYLE = {
 
 const smallButton = "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-colors disabled:opacity-50 cursor-pointer";
 
-export default function ReviewLinks({ refreshKey, onOpenPosting }) {
+// total: every student link (for "Show all"); the tab badge counts the "needs attention" ones (B-26).
+export default function ReviewLinks({ refreshKey, onOpenPosting, total }) {
   const navigate = useNavigate();
-  const [status, setStatus] = useState("ALL");
+  const [status, setStatus] = useState("NEEDS_ATTENTION");
   const [items, setItems] = useState(null);
   const [reload, setReload] = useState(0);
   const [busyId, setBusyId] = useState(null);
@@ -61,13 +62,21 @@ export default function ReviewLinks({ refreshKey, onOpenPosting }) {
           {STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABEL[s] ?? s.replace("_", " ").toLowerCase()}</option>)}
         </select>
       </div>
+      {status === "NEEDS_ATTENTION" && (
+        <p className="text-xs text-slate-500">Links you need to act on: ones that failed (retry or dismiss) and ones nothing will read automatically. This is the number on the tab.</p>
+      )}
       {status === "NEEDS_PERSON" && (
         <p className="text-xs text-amber-800 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
           Links nothing will read automatically: sites that can't be fetched (LinkedIn, Naukri, …){aiUsable === false ? ", and, while the AI step is off, pages without job-board data" : ""}. Create a posting from each, or dismiss it with a reason the student will see.
         </p>
       )}
       {!items ? <Skeleton rows={4} /> : !items.length ? (
-        <div className={`${cardClass} p-8 text-center text-sm text-slate-500`}>No student links{status !== "ALL" ? ` with status ${status.toLowerCase().replace("_", " ")}` : " yet"}.</div>
+        <div className={`${cardClass} p-8 text-center text-sm text-slate-500`}>
+          {status === "NEEDS_ATTENTION" ? "No student link needs you right now." : `No student links${status !== "ALL" ? ` with status ${status.toLowerCase().replace("_", " ")}` : " yet"}.`}
+          {status !== "ALL" && total > 0 && (
+            <button type="button" className="ml-2 font-semibold text-[var(--color-secondary)] hover:underline cursor-pointer" onClick={() => { setStatus("ALL"); setItems(null); }}>Show all {total} links</button>
+          )}
+        </div>
       ) : (
         <div className={`${cardClass} overflow-hidden`}>
           <ul className="divide-y divide-slate-100">

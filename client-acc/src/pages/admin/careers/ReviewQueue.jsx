@@ -159,7 +159,7 @@ export default function ReviewQueue() {
       )}
 
       {tab === "candidates" && <ReviewCandidates onChanged={refresh} refreshKey={refreshKey} />}
-      {tab === "links" && <ReviewLinks refreshKey={refreshKey} onOpenPosting={setOpenId} />}
+      {tab === "links" && <ReviewLinks refreshKey={refreshKey} onOpenPosting={setOpenId} total={counts.submissionsTotal} />}
 
       {postingTab && (!list ? <Skeleton rows={6} /> : items.length === 0 ? <EmptyQueue tab={tab} /> : (
         <>
