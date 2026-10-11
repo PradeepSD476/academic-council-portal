@@ -10,6 +10,8 @@ import { canonicalSkillName } from '../text/skills.js';
 import { likeSafe } from '../text/likeSafe.js';
 
 export const MAX_LIMIT = 50;
+// "My application" filter: one of the tracking statuses, NONE (not tracked) or NOT_APPLIED (not tracked or Interested).
+export const MY_STATUSES = ['NONE', 'NOT_APPLIED', 'INTERESTED', 'APPLIED', 'IN_PROGRESS', 'REJECTED', 'OFFER'];
 export const DEFAULT_LIMIT = 20;
 
 const bool = (fallback) => z.enum(['true', 'false']).optional().transform((v) => (v === undefined ? fallback : v === 'true'));
@@ -34,10 +36,20 @@ export const postingsQuery = z.object({
     // Internship season / length (P7-T3): only postings that state it match.
     season: z.enum(['SUMMER', 'WINTER']).optional(),
     minDurationMonths: z.coerce.number().int().min(1).max(12).optional(),
+    myStatus: z.enum(MY_STATUSES).optional(),
     sort: z.enum(['newest', 'lastSeen', 'deadline']).default('newest'),
     page: z.coerce.number().int().min(1).default(1),
     limit: z.coerce.number().int().min(1).max(MAX_LIMIT).default(DEFAULT_LIMIT),
 });
+
+// Pure. The student's own tracking rows only (PostingApplication is one row per student and posting).
+export function myStatusWhere(userId, myStatus) {
+    if (!myStatus) return {};
+    const none = { applications: { none: { userId } } };
+    if (myStatus === 'NONE') return none;
+    if (myStatus === 'NOT_APPLIED') return { OR: [none, { applications: { some: { userId, status: 'INTERESTED' } } }] };
+    return { applications: { some: { userId, status: myStatus } } };
+}
 
 const DISCLOSED = ['DISCLOSED', 'RANGE'];
 const UNDISCLOSED = ['NOT_DISCLOSED', 'UNCLEAR'];

@@ -12,7 +12,7 @@ import { reportBody, fileReport } from '../../services/careers/postings/reports.
 import { hiddenWhere } from '../../services/careers/postings/hidden.js';
 import { recordVisit, recordApplyClick, firstClickToday } from '../../services/careers/usage/usage.js';
 import {
-    postingsQuery, baseWhere, eligibilityWhere, withEligibility, orderByFor, hasPayFilter,
+    postingsQuery, baseWhere, eligibilityWhere, withEligibility, orderByFor, hasPayFilter, myStatusWhere,
 } from '../../services/careers/postings/query.js';
 
 const detailFields = {
@@ -81,7 +81,9 @@ export const listPostings = async (req, res) => {
             eligibilityMeta = eligibility ? { applied: true } : { applied: false, reason: 'NO_ROLL_NUMBER' };
         }
         // P6-T9: the student's own "Not for me" postings are left out, or listed alone with showHidden.
-        const base = { AND: [...baseWhere(params).AND, hiddenWhere(req.user.id, params.showHidden)] };
+        // "My application" filter: only this student's own tracking status (Interested, Applied, … or none).
+        const mine = myStatusWhere(req.user.id, params.myStatus);
+        const base = { AND: [...baseWhere(params).AND, hiddenWhere(req.user.id, params.showHidden), mine] };
         const where = withEligibility(base, eligibility);
 
         const [total, items] = await Promise.all([
@@ -95,13 +97,13 @@ export const listPostings = async (req, res) => {
         // Results that matched only because their pay is undisclosed (or not in INR).
         let undisclosedIncluded = 0;
         if (params.includeUndisclosed && hasPayFilter(params)) {
-            const disclosedOnly = await prisma.posting.count({ where: withEligibility({ AND: [...baseWhere(params, { includeUndisclosed: false }).AND, hiddenWhere(req.user.id, params.showHidden)] }, eligibility) });
+            const disclosedOnly = await prisma.posting.count({ where: withEligibility({ AND: [...baseWhere(params, { includeUndisclosed: false }).AND, hiddenWhere(req.user.id, params.showHidden), mine] }, eligibility) });
             undisclosedIncluded = total - disclosedOnly;
         }
         const hiddenByEligibility = eligibility ? (await prisma.posting.count({ where: base })) - total : 0;
         // How many of the openings matching these filters the student hid ("Show hidden (n)").
         const hiddenByYou = params.showHidden ? total
-            : await prisma.posting.count({ where: withEligibility({ AND: [...baseWhere(params).AND, hiddenWhere(req.user.id, true)] }, eligibility) });
+            : await prisma.posting.count({ where: withEligibility({ AND: [...baseWhere(params).AND, hiddenWhere(req.user.id, true), mine] }, eligibility) });
 
         return res.status(200).json({
             success: true,

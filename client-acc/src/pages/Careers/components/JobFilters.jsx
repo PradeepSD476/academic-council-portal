@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { SlidersHorizontal } from "lucide-react";
 import DraftInput from "./DraftInput";
 import CompanyPicker from "./CompanyPicker";
-import { TYPES, WORK_MODES, SORTS, SEASONS, DURATIONS, hasAnyFilter } from "../lib/filters";
+import { TYPES, WORK_MODES, SORTS, SEASONS, DURATIONS, MY_STATUSES, hasAnyFilter } from "../lib/filters";
 
 const label = "block text-xs font-semibold text-slate-600 mb-1.5";
 const group = "text-[10px] font-bold uppercase tracking-wider text-slate-500";
@@ -58,6 +58,14 @@ export default function JobFilters({ search, onChange, meta, onClear }) {
         <select id="f-workmode" value={get("workMode")} onChange={(e) => onChange({ workMode: e.target.value })} className={select}>
           {WORK_MODES.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
         </select>
+      </div>
+
+      <div>
+        <label htmlFor="f-mystatus" className={label}>My application</label>
+        <select id="f-mystatus" value={get("myStatus")} onChange={(e) => onChange({ myStatus: e.target.value })} className={select}>
+          {MY_STATUSES.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+        </select>
+        {get("myStatus") && <p className="mt-1 text-[11px] text-slate-500">Uses the status you set on each opening. Only you can see it.</p>}
       </div>
 
       {type !== "FULL_TIME" && (

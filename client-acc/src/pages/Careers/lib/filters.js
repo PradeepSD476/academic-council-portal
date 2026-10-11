@@ -22,6 +22,17 @@ export const DURATIONS = [
   { value: "2", label: "2 months or more" },
   { value: "6", label: "6 months or more" },
 ];
+// "My application": the student's own tracking status (only they see it).
+export const MY_STATUSES = [
+  { value: "", label: "Any" },
+  { value: "NOT_APPLIED", label: "Not applied yet" },
+  { value: "NONE", label: "Not tracked" },
+  { value: "INTERESTED", label: "Interested" },
+  { value: "APPLIED", label: "Applied" },
+  { value: "IN_PROGRESS", label: "In progress" },
+  { value: "OFFER", label: "Offer" },
+  { value: "REJECTED", label: "Rejected" },
+];
 export const SORTS = [
   { value: "newest", label: "Newest first" },
   { value: "lastSeen", label: "Recently confirmed live" },
@@ -30,12 +41,12 @@ export const SORTS = [
 export const PAGE_SIZE = 20;
 
 // Keys that narrow the results (counted on the mobile "Filters (n)" button).
-const FILTER_KEYS = ["type", "workMode", "location", "skills", "minStipend", "minCtc", "eligibleOnly", "postedWithin", "companyId", "season", "minDurationMonths"];
+const FILTER_KEYS = ["type", "workMode", "location", "skills", "minStipend", "minCtc", "eligibleOnly", "postedWithin", "companyId", "season", "minDurationMonths", "myStatus"];
 
 // URLSearchParams -> params for GET /careers/postings.
 export function apiParams(search) {
   const params = { limit: PAGE_SIZE };
-  for (const key of ["q", "type", "workMode", "location", "skills", "sort", "page", "season"]) {
+  for (const key of ["q", "type", "workMode", "location", "skills", "sort", "page", "season", "myStatus"]) {
     const v = search.get(key);
     if (v) params[key] = v;
   }
