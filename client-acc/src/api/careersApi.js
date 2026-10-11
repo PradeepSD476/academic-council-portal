@@ -87,6 +87,7 @@ export const careersAdminApi = {
   reopenPosting: (id) => api.post(`/careers/admin/postings/${id}/reopen`, {}).then((r) => r.data),
   takeDownPosting: (id, body) => api.post(`/careers/admin/postings/${id}/take-down`, body).then((r) => r.data),
   mergePreview: (keepId, dropId) => api.get('/careers/admin/postings/merge-preview', { params: { keepId, dropId } }).then((r) => r.data.data),
+  draftFromUrl: (url) => api.post('/careers/admin/postings/draft-from-url', { url }).then((r) => r.data.data),
   deletePreview: (id) => api.get(`/careers/admin/postings/${id}/delete-preview`).then((r) => r.data.data),
   deletePosting: (id, body) => api.delete(`/careers/admin/postings/${id}`, { data: body }).then((r) => r.data),
   mergePostings: (keepId, dropId) => api.post('/careers/admin/postings/merge', { keepId, dropId }).then((r) => r.data),

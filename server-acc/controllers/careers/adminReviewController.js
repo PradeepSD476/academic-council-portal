@@ -20,6 +20,7 @@ import { bulkBodies, undoBulkApprove, bulkReject, bulkExpire } from '../../servi
 import { applyClicksFor } from '../../services/careers/usage/usage.js';
 import { mergeBody, mergeQuery, mergePreview, mergePostings } from '../../services/careers/postings/mergePostings.js';
 import { deleteBody, deletePreview, deletePosting } from '../../services/careers/postings/deletePosting.js';
+import { draftBody, linkDraft } from '../../services/careers/links/linkDraft.js';
 
 const reviewQuery = z.object({
     tab: z.enum(['pending', 'flagged']).default('pending'),
@@ -209,6 +210,9 @@ export const listSubmissions = async (req, res) => {
 };
 
 // P7-T8 (F-06): merge two postings by hand. GET .../merge-preview?keepId&dropId says what would move.
+// F-34: "Fill from link" on Add posting: a draft of the form from a job link; nothing is saved.
+export const draftFromUrl = action((req) => linkDraft(draftBody.parse(req.body ?? {}).url));
+
 // P8-T2 (F-02 level 2): permanent delete, career admin only; a LIVE posting must be taken down first.
 export const deletePreviewPosting = action((req) => deletePreview(prisma, parseId(req.params.id)));
 export const deletePostingPermanently = action(
