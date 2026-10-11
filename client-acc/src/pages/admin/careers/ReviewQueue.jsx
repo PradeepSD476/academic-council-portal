@@ -40,6 +40,7 @@ function EmptyQueue({ tab }) {
 
 export default function ReviewQueue() {
   const [tab, setTab] = useState("pending");
+  const [linkCount, setLinkCount] = useState(null); // B-28: on the Student links tab, the count for the chosen status
   const [page, setPage] = useState(1);
   const [list, setList] = useState(null);
   const [counts, setCounts] = useState({});
@@ -70,6 +71,7 @@ export default function ReviewQueue() {
 
   const switchTab = (key) => {
     setTab(key);
+    setLinkCount(null);
     setPage(1);
     setSelected([]);
     setList(null);
@@ -147,7 +149,10 @@ export default function ReviewQueue() {
         {TABS.map((t) => (
           <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} onClick={() => switchTab(t.key)}
             className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${tab === t.key ? "bg-white text-slate-950 font-bold border border-slate-200 shadow-xs" : "text-slate-600 hover:bg-white/80"}`}>
-            {t.label}{counts[t.count] !== undefined && <span className="ml-1.5 text-slate-500">{counts[t.count]}</span>}
+            {t.label}{(() => {
+              const n = t.key === "links" && tab === "links" && linkCount !== null ? linkCount : counts[t.count];
+              return n !== undefined && <span className="ml-1.5 text-slate-500">{n}</span>;
+            })()}
           </button>
         ))}
       </div>
@@ -159,7 +164,7 @@ export default function ReviewQueue() {
       )}
 
       {tab === "candidates" && <ReviewCandidates onChanged={refresh} refreshKey={refreshKey} />}
-      {tab === "links" && <ReviewLinks refreshKey={refreshKey} onOpenPosting={setOpenId} total={counts.submissionsTotal} />}
+      {tab === "links" && <ReviewLinks refreshKey={refreshKey} onOpenPosting={setOpenId} total={counts.submissionsTotal} onCount={setLinkCount} />}
 
       {postingTab && (!list ? <Skeleton rows={6} /> : items.length === 0 ? <EmptyQueue tab={tab} /> : (
         <>

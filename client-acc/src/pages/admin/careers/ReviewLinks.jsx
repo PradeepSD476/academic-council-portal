@@ -21,7 +21,8 @@ const STYLE = {
 const smallButton = "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-colors disabled:opacity-50 cursor-pointer";
 
 // total: every student link (for "Show all"); the tab badge counts the "needs attention" ones (B-26).
-export default function ReviewLinks({ refreshKey, onOpenPosting, total }) {
+// onCount(n): how many links match the chosen status (shown on the tab, B-28).
+export default function ReviewLinks({ refreshKey, onOpenPosting, total, onCount }) {
   const navigate = useNavigate();
   const [status, setStatus] = useState("NEEDS_ATTENTION");
   const [items, setItems] = useState(null);
@@ -47,12 +48,12 @@ export default function ReviewLinks({ refreshKey, onOpenPosting, total }) {
   useEffect(() => {
     let alive = true;
     careersAdminApi.listSubmissions({ status, limit: 100 })
-      .then((res) => { if (alive) { setItems(res.data); setAiUsable(res.aiUsable); } })
+      .then((res) => { if (alive) { setItems(res.data); setAiUsable(res.aiUsable); onCount?.(res.pagination?.total ?? res.data.length); } })
       .catch((err) => toast.error(errorMessage(err, "Could not load student links.")));
     return () => {
       alive = false;
     };
-  }, [status, refreshKey, reload]);
+  }, [status, refreshKey, reload, onCount]);
 
   return (
     <div className="space-y-3">
