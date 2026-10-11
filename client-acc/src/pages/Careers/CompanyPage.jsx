@@ -10,6 +10,7 @@ import ExperienceCard from "./components/ExperienceCard";
 import ExperienceAdminActions from "./components/ExperienceAdminActions";
 import JobCard from "./components/JobCard";
 import PageTitle from "./components/PageTitle";
+import SeniorReportsCard from "./components/SeniorReportsCard";
 import { plural, safeHref } from "./lib/format";
 
 const sectionTitle = "flex items-center gap-2 text-base md:text-lg font-bold text-[var(--color-primary)]";
@@ -101,6 +102,8 @@ export default function CompanyPage() {
           </Link>
         )}
       </section>
+
+      <SeniorReportsCard reports={company.seniorReports} />
 
       <section aria-labelledby="exp-title" className="space-y-3">
         <h2 id="exp-title" className={sectionTitle}><MessageSquareText size={18} className="text-[var(--color-secondary)]" aria-hidden="true" /> Experiences from seniors</h2>

@@ -57,6 +57,12 @@ model Experience {
   bookmarks      Bookmark[]
   companyId      Int?
   company        Company?       @relation(fields: [companyId], references: [id])
+  // careers P8-T1 (F-29, user OK 11 Oct, D-15): optional numbers a senior reports. Private per
+  // experience (omitted in config/db.js); shown only as company aggregates when 3+ report them.
+  reportedStipend Int? // ₹ per month (internships)
+  reportedCtcLpa  Decimal? @db.Decimal(5, 2) // ₹ lakh per year (placements)
+  reportedRounds  Int? // number of interview rounds
+  reportedYear    Int? // year of the internship / placement
 
   @@index([companyId])
 }

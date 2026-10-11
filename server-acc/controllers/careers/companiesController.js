@@ -7,6 +7,7 @@ import { cardFields, loadProfile, toCard } from '../../services/careers/postings
 import { withTracking } from '../../services/careers/postings/tracking.js';
 import { directoryQuery, directoryWhere, countSelect, rankCompanies } from '../../services/careers/companies/directory.js';
 import { likeSafe } from '../../services/careers/text/likeSafe.js';
+import { companyReports } from '../../services/careers/companies/seniorReports.js';
 
 const searchQuery = z.object({ q: z.string().trim().max(100).optional().default('') });
 const PAGE_ITEMS = 50; // postings / experiences shown on one company page (counts cover all)
@@ -66,7 +67,7 @@ export const getCompanyPage = async (req, res) => {
             throw new CareersError(404, 'NOT_FOUND', 'This company page does not exist.', details);
         }
 
-        const [profile, postings, experiences] = await Promise.all([
+        const [profile, postings, experiences, seniorReports] = await Promise.all([
             loadProfile(req.user.id),
             prisma.posting.findMany({
                 where: { companyId: company.id, status: 'LIVE' },
@@ -83,6 +84,7 @@ export const getCompanyPage = async (req, res) => {
                     uploadedBy: { select: { displayName: true } },
                 },
             }),
+            companyReports(prisma, company.id), // P8-T1: aggregates only, from 3 reports
         ]);
 
         const { _count, status, mergedIntoId, ...info } = company; // eslint-disable-line no-unused-vars
@@ -93,6 +95,7 @@ export const getCompanyPage = async (req, res) => {
                 counts: { openRoles: _count.postings, experiences: _count.experiences },
                 postings: await withTracking(postings.map((p) => toCard(p, profile)), req.user.id),
                 experiences: experiences.map(({ uploadedBy, ...e }) => ({ ...e, authorName: uploadedBy?.displayName || 'Unknown' })),
+                seniorReports,
             },
         });
     } catch (err) {

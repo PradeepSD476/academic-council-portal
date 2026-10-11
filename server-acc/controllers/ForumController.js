@@ -9,6 +9,7 @@ import { getPublicUrl } from '../utils/signedUrl.js';
 import { storage } from '../config/minio.js';
 import { withOpenRoles } from '../services/careers/companies/openRoles.js';
 import { experienceCompanyId } from '../services/careers/companies/experienceCompany.js';
+import { reportData } from '../services/careers/companies/seniorReports.js';
 import { sendError } from '../services/careers/errors.js';
 
 // Public endpoint: returns posts by status (default: PUBLISHED) with server-side pagination
@@ -159,6 +160,8 @@ export const addpost = async (req, res) => {
     }
     let companyId;
     try { companyId = await experienceCompanyId(req.body.companyId); } catch (err) { return sendError(res, err, 'addpost companyId'); }
+    let report;
+    try { report = reportData(req.body); } catch (err) { return sendError(res, err, 'addpost report'); }
     try {
         const experience = await prisma.experience.create({
             data: {
@@ -169,6 +172,7 @@ export const addpost = async (req, res) => {
                 domain: domain,
                 resumeUrl: resumeUrl || null,
                 companyId,
+                ...report,
                 uploadedById: user.id
             }
         })
@@ -250,6 +254,8 @@ export const editPost = async (req, res) => {
     }
     let companyId;
     try { companyId = await experienceCompanyId(req.body.companyId); } catch (err) { return sendError(res, err, 'editPost companyId'); }
+    let report;
+    try { report = reportData(req.body); } catch (err) { return sendError(res, err, 'editPost report'); }
     try {
         const post = await prisma.experience.findUnique({
             where: {
@@ -274,7 +280,8 @@ export const editPost = async (req, res) => {
             experienceType,
             status,
             domain,
-            companyId
+            companyId,
+            ...report
         };
         if (resumeUrl !== undefined) {
             // Delete old resume from MinIO if it's replaced

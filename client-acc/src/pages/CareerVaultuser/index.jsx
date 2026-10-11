@@ -15,6 +15,8 @@ import { useCareersStatus } from "../../hooks/useCareersStatus";
 import CareerVaultTabs from "../Careers/components/CareerVaultTabs";
 import OpenRolesChip from "../Careers/components/OpenRolesChip";
 import CompanyPicker from "../Careers/components/CompanyPicker";
+import SeniorReportFields from "../Careers/components/SeniorReportFields";
+import { reportPayload } from "../Careers/lib/seniorReports";
 
 void motion;
 
@@ -41,6 +43,7 @@ const DOMAINS = [
 const CreatePostView = ({ onBack, onSubmitted, showCompany }) => {
   const [title, setTitle] = useState("");
   const [company, setCompany] = useState(null); // optional { value: companyId, label: name }
+  const [report, setReport] = useState({}); // careers P8-T1: optional stipend / CTC / rounds / year
   const [experienceType, setExperienceType] = useState("");
   const [domain, setDomain] = useState("");
   const [description, setDescription] = useState("");
@@ -81,7 +84,7 @@ const CreatePostView = ({ onBack, onSubmitted, showCompany }) => {
         }
       }
 
-      await forumApi.submitPost({ title: title.trim(), description, experienceType, domain, status: "DRAFT", resumeUrl, ...(company ? { companyId: company.value } : {}) });
+      await forumApi.submitPost({ title: title.trim(), description, experienceType, domain, status: "DRAFT", resumeUrl, ...(company ? { companyId: company.value } : {}), ...(showCompany ? reportPayload(report, experienceType) : {}) });
       toast.success("Post submitted! It will appear publicly after admin review.");
       onSubmitted();
       onBack();
@@ -189,6 +192,8 @@ const CreatePostView = ({ onBack, onSubmitted, showCompany }) => {
             </div>
           )}
         </div>
+
+        {showCompany && <SeniorReportFields experienceType={experienceType} value={report} onChange={setReport} />}
 
         {/* Section 2: Story Content */}
         <div className="p-5 rounded-2xl border border-slate-200 bg-white/95 backdrop-blur-xl shadow-xs flex flex-col gap-4">
