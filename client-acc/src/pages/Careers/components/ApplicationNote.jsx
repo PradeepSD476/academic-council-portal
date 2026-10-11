@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CalendarCheck, Pencil } from "lucide-react";
+import { CalendarCheck, NotebookPen, Pencil } from "lucide-react";
 import toast from "react-hot-toast";
 import { careersApi, errorMessage } from "../../../api/careersApi";
 import { formatDate } from "../lib/format";
@@ -28,7 +28,7 @@ export default function ApplicationNote({ posting, onChange }) {
   return (
     <div className="space-y-1.5 text-xs text-slate-600">
       {posting.appliedAt && (
-        <p className="inline-flex items-center gap-1.5"><CalendarCheck size={14} className="text-teal-600" aria-hidden="true" /> Applied on {formatDate(posting.appliedAt)}</p>
+        <p className="flex items-center gap-1.5"><CalendarCheck size={14} className="text-teal-600" aria-hidden="true" /> Applied on {formatDate(posting.appliedAt)}</p>
       )}
       {editing ? (
         <div className="space-y-1.5">
@@ -48,7 +48,12 @@ export default function ApplicationNote({ posting, onChange }) {
           <button type="button" onClick={() => { setDraft(posting.applicationNote); setEditing(true); }} aria-label="Edit your note" className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"><Pencil size={13} /></button>
         </div>
       ) : (
-        <button type="button" onClick={() => { setDraft(""); setEditing(true); }} className="font-semibold text-[var(--color-secondary)] hover:underline cursor-pointer">Add a note</button>
+        // Its own line, apart from "Applied on …" above it.
+        <div>
+          <button type="button" onClick={() => { setDraft(""); setEditing(true); }} className="inline-flex items-center gap-1.5 -ml-1.5 px-1.5 py-1 rounded-md font-semibold text-[var(--color-secondary)] hover:bg-blue-50 cursor-pointer">
+            <NotebookPen size={13} aria-hidden="true" /> Add a note
+          </button>
+        </div>
       )}
     </div>
   );
