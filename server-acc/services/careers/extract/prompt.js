@@ -14,7 +14,7 @@ Rules:
 - eligibility.branches: degree branches named in the text; eligibility.years: year of study numbers named in the text; eligibility.min_cpi: a minimum CGPA/CPI written in the text.
 - is_job_posting: false if the page is not a single job or internship posting.
 - overall_confidence: a number between 0 and 1.
-- description_first_words, description_last_words: the first 8 to 12 words and the last 8 to 12 words of the job description itself (role summary, responsibilities, requirements, benefits), copied exactly from the text. Leave out site menus, lists of other or similar jobs, sign-up prompts and footers. null if the page has no clear description.
+- description_first_words, description_last_words: the first 8 to 12 words and the last 8 to 12 words of the job description itself (role summary, responsibilities, requirements, benefits), copied exactly from the text. Start at the description's first sentence or section heading, after the title, location, experience and job-type lines above it. Leave out site menus, lists of other or similar jobs, sign-up prompts and footers. null if the page has no clear description.
 Answer with one JSON object matching this JSON schema:
 ${JSON.stringify(EXTRACTION_SCHEMA)}`;
 

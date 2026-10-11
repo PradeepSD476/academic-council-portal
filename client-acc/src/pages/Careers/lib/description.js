@@ -57,6 +57,9 @@ export function structureDescription(text) {
     const next = lines[end + 1];
     const runLength = end - i + 1;
     if (runLength <= 2 && next && !next.blank) for (let k = i; k <= end; k += 1) heading.add(k);
+    // A longer run that a list follows directly ("… Full-Time / Requirements / - item"): its last
+    // line is the list's heading; the lines before it stay as lines (B-23).
+    else if (next?.bullet) heading.add(end);
     i = end;
   }
 
