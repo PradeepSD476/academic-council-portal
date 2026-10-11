@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { structureDescription } from "../lib/description";
 
-// The source's description, laid out as headings, bullet lists and paragraphs. Plain text only.
+// The source's description, laid out as headings, "Label: value" facts, bullet lists and paragraphs. Plain text only.
 export default function JobDescription({ text }) {
   const blocks = useMemo(() => structureDescription(text), [text]);
   if (!blocks.length) return <p className="text-sm italic text-slate-500">No description was provided.</p>;
@@ -18,6 +18,17 @@ export default function JobDescription({ text }) {
                 {b.subs.map((sub, k) => <span key={k} className="font-semibold text-slate-500"> <span aria-hidden="true">·</span> {sub}</span>)}
               </span>
             </h3>
+          );
+        }
+        if (b.type === "facts") {
+          return (
+            <dl key={i} className="rounded-xl border border-slate-100 bg-slate-50/70 px-3.5 py-2.5 space-y-1">
+              {b.items.map((f, j) => (
+                <div key={j}>
+                  <dt className="inline font-semibold text-slate-700">{f.label}:</dt> <dd className="inline">{f.value}</dd>
+                </div>
+              ))}
+            </dl>
           );
         }
         if (b.type === "list") {

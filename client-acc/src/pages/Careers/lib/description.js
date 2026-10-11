@@ -10,6 +10,17 @@ const SHORT = 60; // longest line that can be a heading
 
 const clean = (s) => s.replace(/\s+/g, " ").trim();
 
+// "Mode: Work from Office" / "Duration: 3 Months": a short label, a colon and a value (B-24). Two or
+// more of these together (blank lines between allowed) become a facts block with bold labels.
+const FIELD = /^([^:]{2,40}):\s+(\S.{0,159})$/;
+function field(text) {
+  const m = text.match(FIELD);
+  if (!m) return null;
+  const label = m[1].trim();
+  if (!/^\p{L}/u.test(label) || /[.!?]/.test(label) || label.split(/\s+/).length > 6 || m[2].startsWith("//")) return null;
+  return { label, value: m[2].trim() };
+}
+
 // A short line with no sentence ending, e.g. "Who we are" or "What we are looking for:". A line of
 // " | "-separated items ("Linkedin | X | Instagram") is a list of links, not a heading (B-16).
 const isHeadingShaped = (line) => line.length <= SHORT && line.split(" ").length <= 9 && !/[.!?,;]$/.test(line) && !/\s\|\s/.test(line);
@@ -42,9 +53,23 @@ export function structureDescription(text) {
     for (const p of parts) lines.push(p);
   }
 
+  // Facts: runs of two or more "Label: value" lines, only blank lines between them.
+  for (let i = 0; i < lines.length; i += 1) {
+    if (lines[i].blank || lines[i].bullet || !field(lines[i].text)) continue;
+    const run = [i];
+    let j = i + 1;
+    while (j < lines.length) {
+      if (lines[j].blank) { j += 1; continue; }
+      if (lines[j].bullet || !field(lines[j].text)) break;
+      run.push(j); j += 1;
+    }
+    if (run.length >= 2) for (const k of run) lines[k] = { ...lines[k], fact: field(lines[k].text) };
+    i = run[run.length - 1];
+  }
+
   // Short plain lines: a run of one or two (or any line ending in ":") is a heading; a longer run
   // is probably a list of items (locations, names), so it stays as lines.
-  const plain = (l) => l && !l.blank && !l.bullet;
+  const plain = (l) => l && !l.blank && !l.bullet && !l.fact;
   const heading = new Set();
   for (let i = 0; i < lines.length; i += 1) {
     const l = lines[i];
@@ -66,9 +91,17 @@ export function structureDescription(text) {
   const blocks = [];
   let paragraph = null;
   let list = null;
+  let facts = null; // stays open across blank lines, closed by any other line
   const flush = () => { paragraph = null; list = null; };
   lines.forEach((l, i) => {
     if (l.blank) { flush(); return; }
+    if (l.fact) {
+      flush();
+      if (!facts) { facts = { type: "facts", items: [] }; blocks.push(facts); }
+      facts.items.push(l.fact);
+      return;
+    }
+    facts = null;
     if (l.bullet) {
       paragraph = null;
       if (!list) { list = { type: "list", items: [] }; blocks.push(list); }
