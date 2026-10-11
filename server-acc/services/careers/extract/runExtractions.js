@@ -14,7 +14,6 @@ import { afterCallError, callResultProblem, nextStep } from './outcome.js';
 import { applyExtraction } from './applyExtraction.js';
 
 const BATCH = { ollama: 5, groq: 5, default: 20 };
-const GEMINI_PAUSE_MS = 4000;
 
 async function fail(extraction, attempts, error, output = undefined) {
     await prisma.extraction.update({ where: { id: extraction.id }, data: { state: 'FAILED', attempts, error, ...(output ? { output } : {}) } });
@@ -138,8 +137,8 @@ export async function runExtractions({ now = new Date() } = {}) {
             summary.failed++;
         }
 
-        // Cloud free tiers limit requests and tokens per minute: pause between calls (Groq sets its own pace).
-        const pause = provider === 'gemini' ? GEMINI_PAUSE_MS : providerModule().PAUSE_MS ?? 0;
+        // Cloud free tiers limit requests and tokens per minute: each provider sets its own pause.
+        const pause = providerModule().PAUSE_MS ?? 0;
         if (pause && i < rows.length - 1) await new Promise((r) => setTimeout(r, pause));
     }
     if (rows.length) console.info(`[careers] extractions: ${JSON.stringify(summary)}`);

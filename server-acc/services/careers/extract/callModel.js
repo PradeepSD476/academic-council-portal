@@ -3,12 +3,13 @@
 // this file names a vendor.
 import * as ollama from './providers/ollama.js';
 import * as groq from './providers/groq.js';
+import * as gemini from './providers/gemini.js';
 import { LlmError } from './llmError.js';
 import { SYSTEM_PROMPT, userMessage } from './prompt.js';
 import { EXTRACTION_SCHEMA } from './schema.js';
 
-// Providers that exist. Groq is the cloud stand-in for testing (11 Oct); Gemini is P1-T10b.
-const PROVIDERS = { ollama, groq };
+// Providers that exist: local Ollama, Groq (cloud, testing stand-in since 11 Oct), Gemini (P1-T10b, final phase).
+const PROVIDERS = { ollama, groq, gemini };
 // Cloud providers: free-tier quotas apply (daily request cap, pacing) and the text leaves the machine.
 const CLOUD = new Set(['gemini', 'groq']);
 export const isCloud = (name) => CLOUD.has(name);
@@ -17,7 +18,7 @@ export const providerName = () => (process.env.LLM_PROVIDER || 'ollama').toLower
 
 export function provider() {
     const p = PROVIDERS[providerName()];
-    if (!p) throw new LlmError('CONFIG', `LLM_PROVIDER=${providerName()} is not available (use ollama or groq; Gemini arrives with P1-T10b)`);
+    if (!p) throw new LlmError('CONFIG', `LLM_PROVIDER=${providerName()} is not available (use ollama, groq or gemini)`);
     return p;
 }
 
