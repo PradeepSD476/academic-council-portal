@@ -85,18 +85,17 @@ export default function ManualPosting() {
           <input id="mp-link" className={inputClass} placeholder="https://… the job's page" value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} />
           <button type="button" className={`${primaryButton} shrink-0`} onClick={fillFromLink} disabled={filling}><Sparkles size={14} /> {filling ? "Reading the page…" : "Fill from link"}</button>
         </div>
-        <p className="text-[11px] text-slate-500">Reads the company's job board or the page's job data when it has it, otherwise the AI step. Nothing is saved until you save below; fields marked “Unsure” need a careful look.</p>
+        <p className="text-[11px] text-slate-500">Reads the company's job board or the page's job data when it has it, otherwise the AI step. Nothing is saved until you save below; fields marked “Check” need a careful look.</p>
         {filled && (
           <p className="text-xs text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2">
             {SOURCE_TEXT[filled.source]} {filled.note}
-            {filled.uncertainFields.length > 0 && <> Check: {filled.uncertainFields.join(", ")}.</>}
           </p>
         )}
       </section>
       <form className={`${cardClass} p-5 space-y-6`} onSubmit={(e) => { e.preventDefault(); submit(false); }}>
         <PostingFields form={form} set={set} uncertain={filled?.uncertainFields ?? []}
           companySlot={(
-            <UncertainField id="mp-company" label="Company" hint="Pick a known company, or type a new name (it becomes a candidate company for review).">
+            <UncertainField id="mp-company" label="Company" uncertain={!!filled?.uncertainFields.includes("company")} hint="Pick a known company, or type a new name (it becomes a candidate company for review).">
               <CompanyPicker id="mp-company" value={company} onChange={setCompany} allowNew />
             </UncertainField>
           )} />
