@@ -7,6 +7,7 @@ import { useCareersStatus } from "../../hooks/useCareersStatus";
 import CareerVaultTabs from "./components/CareerVaultTabs";
 import EmptyState from "./components/EmptyState";
 import ExperienceCard from "./components/ExperienceCard";
+import ExperienceAdminActions from "./components/ExperienceAdminActions";
 import JobCard from "./components/JobCard";
 import PageTitle from "./components/PageTitle";
 import { plural, safeHref } from "./lib/format";
@@ -104,7 +105,19 @@ export default function CompanyPage() {
       <section aria-labelledby="exp-title" className="space-y-3">
         <h2 id="exp-title" className={sectionTitle}><MessageSquareText size={18} className="text-[var(--color-secondary)]" aria-hidden="true" /> Experiences from seniors</h2>
         {company.experiences.length
-          ? <ul className="space-y-3">{company.experiences.map((e) => <li key={e.id}><ExperienceCard experience={e} /></li>)}</ul>
+          ? (
+            <ul className="space-y-3">
+              {company.experiences.map((e) => (
+                <li key={e.id}>
+                  <ExperienceCard experience={e} />
+                  {status.isCareerAdmin && (
+                    <ExperienceAdminActions experience={e} companyName={company.name}
+                      onRemoved={(id) => setCompany((c) => ({ ...c, experiences: c.experiences.filter((x) => x.id !== id) }))} />
+                  )}
+                </li>
+              ))}
+            </ul>
+          )
           : <EmptyState title={`No experiences shared about ${company.name} yet.`} detail="Interviewed or interned here? Share your experience in Career Vault." />}
       </section>
     </div>
