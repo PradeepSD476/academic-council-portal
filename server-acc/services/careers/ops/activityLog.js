@@ -2,13 +2,14 @@
 // expire, reopen, manual create), permanent deletes (P8-T2) and company merges / splits, plus their undos, so a team of admins
 // can see who did what. Nothing here writes. The merge of the two tables is pure.
 import { z } from 'zod';
+import { CLEANUP_USER_ID } from './cleanup.js';
 
 export const POSTING_ACTIONS = ['APPROVE', 'REJECT', 'EDIT', 'EXPIRE', 'REOPEN', 'CREATE_MANUAL'];
 export const COMPANY_ACTIONS = ['MERGE', 'SPLIT', 'UNDO'];
 export const DELETE_ACTION = 'DELETE'; // P8-T2: permanent deletes, from PostingDeletion
 
 export const activityQuery = z.object({
-    adminId: z.coerce.number().int().positive().optional(),
+    adminId: z.coerce.number().int().min(0).optional(), // 0 = the cleanup command (P8-T3)
     action: z.enum([...POSTING_ACTIONS, ...COMPANY_ACTIONS, DELETE_ACTION]).optional(),
     page: z.coerce.number().int().min(1).max(200).default(1),
     limit: z.coerce.number().int().min(1).max(50).default(25),
@@ -34,7 +35,7 @@ export function activityEntries(reviews, merges, { adminId, action } = {}, delet
         });
     }
     return entries
-        .filter((e) => (!adminId || e.byUserId === adminId) && (!action || e.action === action))
+        .filter((e) => (adminId == null || e.byUserId === adminId) && (!action || e.action === action))
         .sort((a, b) => b.at - a.at || (a.key < b.key ? 1 : -1));
 }
 
@@ -47,8 +48,8 @@ export async function activityLog(db, params) {
     const wantPostings = !action || POSTING_ACTIONS.includes(action);
     const wantCompanies = !action || COMPANY_ACTIONS.includes(action);
     const wantDeletes = !action || action === DELETE_ACTION;
-    const reviewWhere = { ...(adminId ? { byUserId: adminId } : {}), ...(action && POSTING_ACTIONS.includes(action) ? { action } : {}) };
-    const mergeWhere = adminId ? { OR: [{ performedById: adminId }, { undoneById: adminId }] } : {};
+    const reviewWhere = { ...(adminId != null ? { byUserId: adminId } : {}), ...(action && POSTING_ACTIONS.includes(action) ? { action } : {}) };
+    const mergeWhere = adminId != null ? { OR: [{ performedById: adminId }, { undoneById: adminId }] } : {};
     const [reviews, reviewTotal, merges, deletions] = await Promise.all([
         wantPostings ? db.postingReview.findMany({
             where: reviewWhere, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], take,
@@ -58,7 +59,7 @@ export async function activityLog(db, params) {
         // Merges are few (an admin action on companies); all of them are read and filtered in memory.
         wantCompanies ? db.companyMergeLog.findMany({ where: mergeWhere, orderBy: { id: 'desc' } }) : [],
         // Deletions are rare (spam and test data); all of them are read, like merges.
-        wantDeletes ? db.postingDeletion.findMany({ where: adminId ? { byUserId: adminId } : {}, orderBy: { id: 'desc' } }) : [],
+        wantDeletes ? db.postingDeletion.findMany({ where: adminId != null ? { byUserId: adminId } : {}, orderBy: { id: 'desc' } }) : [],
     ]);
     const all = activityEntries(reviews, merges, { adminId, action }, deletions);
     const companyTotal = all.filter((e) => e.kind === 'COMPANY' || e.action === DELETE_ACTION).length;
@@ -73,7 +74,7 @@ export async function activityLog(db, params) {
     const adminName = new Map(admins.map((a) => [a.id, a.name]));
     const data = pageRows.map((e) => ({
         key: e.key, kind: e.kind, action: e.action, at: e.at.toISOString(),
-        admin: { id: e.byUserId, name: adminName.get(e.byUserId) ?? `User #${e.byUserId}` },
+        admin: { id: e.byUserId, name: adminName.get(e.byUserId) ?? (e.byUserId === CLEANUP_USER_ID ? 'Cleanup command' : `User #${e.byUserId}`) },
         ...(e.kind === 'POSTING'
             ? { posting: e.posting ? { id: e.posting.id, roleTitle: e.posting.roleTitle, company: e.posting.company?.name ?? null, status: e.posting.status, deleted: Boolean(e.posting.deleted) } : { id: e.postingId }, note: e.note, changedFields: changedFields(e.changes) }
             : { from: companyName.get(e.fromCompanyId) ?? `#${e.fromCompanyId}`, to: companyName.get(e.toCompanyId) ?? `#${e.toCompanyId}`, undoOf: e.action === 'UNDO' ? e.mergeAction : null }),
@@ -92,5 +93,7 @@ async function adminList(db) {
     ]);
     const ids = [...new Set([...r.map((x) => x.byUserId), ...m.map((x) => x.performedById), ...u.map((x) => x.undoneById), ...d.map((x) => x.byUserId)])];
     const users = await db.user.findMany({ where: { id: { in: ids } }, select: { id: true, displayName: true } });
-    return users.map((x) => ({ id: x.id, name: x.displayName || `User #${x.id}` })).sort((a, b) => a.name.localeCompare(b.name));
+    const list = users.map((x) => ({ id: x.id, name: x.displayName || `User #${x.id}` }));
+    if (ids.includes(CLEANUP_USER_ID)) list.push({ id: CLEANUP_USER_ID, name: 'Cleanup command' }); // P8-T3: no user row
+    return list.sort((a, b) => a.name.localeCompare(b.name));
 }
