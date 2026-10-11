@@ -3,7 +3,8 @@
 // enabled, so a machine without a model never shows a red alert for a feature that is off.
 import prisma from '../../../config/db.js';
 import { getSetting } from '../settings.js';
-import { providerStatus, isUsable } from '../extract/providerStatus.js';
+import { providerStatus, isUsable, keyPresentFor } from '../extract/providerStatus.js';
+import { isCloud } from '../extract/callModel.js';
 
 import { istDayStart, istMonthStart } from '../istDate.js';
 
@@ -29,7 +30,7 @@ export async function llmStatus(now = new Date()) {
     const monthSpendUsd = Number(spend._sum.costUsd ?? 0);
     const budgetEnforced = provider === 'gemini' && paidTier;
 
-    let status = { reachable: null, modelPresent: null, keyPresent: provider === 'gemini' ? Boolean(process.env.GEMINI_API_KEY) : null, lastError: lastFailed?.error ?? null };
+    let status = { reachable: null, modelPresent: null, keyPresent: keyPresentFor(provider), lastError: lastFailed?.error ?? null };
     let usable = null;
     if (enabled) {
         const live = await providerStatus();
@@ -40,7 +41,7 @@ export async function llmStatus(now = new Date()) {
     return {
         enabled, provider, ...status, usable, paidTier, budgetEnforced,
         monthSpendUsd, budgetUsd, pctUsed: budgetUsd > 0 ? Math.round((monthSpendUsd / budgetUsd) * 100) : null,
-        todayRequests, dailyLimit: provider === 'gemini' ? dailyLimit : null,
+        todayRequests, dailyLimit: isCloud(provider) ? dailyLimit : null,
         skippedBudget, queued, failedLast24h,
     };
 }

@@ -14,6 +14,7 @@ vi.mock('../../services/careers/extract/budget.js', () => ({ canCall: async () =
 vi.mock('../../services/careers/extract/callModel.js', () => ({
     callModel: vi.fn(),
     providerName: () => 'ollama',
+    provider: () => ({ name: 'ollama' }), // no PAUSE_MS: no pause between rows
     modelFor: (tier) => (tier === 'LLM_FAST' ? 'qwen2.5:7b' : null),
 }));
 vi.mock('../../services/careers/extract/applyExtraction.js', () => ({ applyExtraction: vi.fn() }));

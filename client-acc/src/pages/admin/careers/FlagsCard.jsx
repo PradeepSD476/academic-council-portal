@@ -16,7 +16,7 @@ const NUMBERS = [
   ["careers.confidenceThreshold", "Flag below confidence", 0.05],
   ["careers.fuzzyThreshold", "Company name match threshold", 0.01],
   ["careers.submissionDailyLimit", "Links per student per day", 1],
-  ["careers.llmDailyRequestLimit", "Gemini calls per day", 1],
+  ["careers.llmDailyRequestLimit", "Cloud AI calls per day (Groq / Gemini)", 1],
   ["careers.llmMonthlyBudgetUsd", "Monthly LLM budget (USD)", 1],
 ];
 
