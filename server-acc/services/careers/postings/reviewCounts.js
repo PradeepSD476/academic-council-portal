@@ -9,7 +9,7 @@ export async function reviewCounts(threshold, db = prisma) {
     const [pending, flagged, candidates, links] = await Promise.all([
         db.posting.count({ where: reviewWhere('pending', threshold) }),
         db.posting.count({ where: reviewWhere('flagged', threshold) }),
-        db.company.count({ where: { status: 'CANDIDATE' } }),
+        db.company.count({ where: { status: 'CANDIDATE', rejectedAt: null } }),
         db.linkSubmission.count({ where: { status: { in: OPEN_LINK_STATUSES }, dismissedAt: null } }),
     ]);
     return { pending, flagged, candidates, links, waiting: pending + flagged };

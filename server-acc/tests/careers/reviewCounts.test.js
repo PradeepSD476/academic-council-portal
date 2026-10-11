@@ -13,7 +13,7 @@ describe('reviewCounts (sidebar badge + review tabs)', () => {
         };
         expect(await reviewCounts(0.7, db)).toEqual({ pending: 5, flagged: 2, candidates: 3, links: 4, waiting: 7 });
         expect(where.every((w) => w.status === 'PENDING_REVIEW')).toBe(true);
-        expect(db.company.count).toHaveBeenCalledWith({ where: { status: 'CANDIDATE' } });
+        expect(db.company.count).toHaveBeenCalledWith({ where: { status: 'CANDIDATE', rejectedAt: null } });
         // Withdrawn or dismissed links are not open work (P5-T4/T5).
         expect(db.linkSubmission.count).toHaveBeenCalledWith({ where: { status: { in: ['RECEIVED', 'PROCESSING', 'EXTRACTING', 'FAILED'] }, dismissedAt: null } });
     });

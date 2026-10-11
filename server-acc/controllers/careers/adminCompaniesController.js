@@ -1,5 +1,6 @@
 // Admin: company registry CRUD, aliases and candidate approval.
 import { z } from 'zod';
+import { rejectBody, rejectCandidate, restoreCandidate, statusWhere } from '../../services/careers/companies/rejectCandidate.js';
 import prisma from '../../config/db.js';
 import { CareersError, sendError, parseId } from '../../services/careers/errors.js';
 import { normalizeCompanyName } from '../../services/careers/text/normalize.js';
@@ -9,7 +10,7 @@ import { likeSafe } from '../../services/careers/text/likeSafe.js';
 const PAGE_SIZE_MAX = 100;
 
 const listQuery = z.object({
-    status: z.enum(['ACTIVE', 'CANDIDATE', 'MERGED', 'ALL']).default('ACTIVE'),
+    status: z.enum(['ACTIVE', 'CANDIDATE', 'MERGED', 'ALL', 'REJECTED']).default('ACTIVE'), // REJECTED: P7-T11
     q: z.string().trim().max(100).optional(),
     page: z.coerce.number().int().min(1).default(1),
     limit: z.coerce.number().int().min(1).max(PAGE_SIZE_MAX).default(25),
@@ -33,8 +34,8 @@ const aliasBody = z.object({ alias: nameSchema });
 
 const companySelect = {
     id: true, name: true, slug: true, normalizedName: true, website: true, status: true,
-    mergedIntoId: true, createdAt: true, updatedAt: true,
-    _count: { select: { aliases: true, experiences: true } },
+    mergedIntoId: true, createdAt: true, updatedAt: true, rejectedAt: true, rejectReason: true,
+    _count: { select: { aliases: true, experiences: true, postings: true } },
 };
 
 async function assertAliasFree(tx, normalizedAlias, companyId) {
@@ -52,7 +53,7 @@ export const listCompanies = async (req, res) => {
     try {
         const { status, q, page, limit } = listQuery.parse(req.query);
         const where = {
-            ...(status === 'ALL' ? {} : { status }),
+            ...statusWhere(status), // a rejected candidate shows only under REJECTED (P7-T11)
             ...(q ? {
                 OR: [
                     { name: { contains: likeSafe(q), mode: 'insensitive' } },
@@ -198,9 +199,32 @@ export const approveCandidate = async (req, res) => {
         const company = await prisma.company.findUnique({ where: { id } });
         if (!company) throw new CareersError(404, 'NOT_FOUND', 'Company not found.');
         if (company.status !== 'CANDIDATE') throw new CareersError(409, 'NOT_A_CANDIDATE', `${company.name} is ${company.status.toLowerCase()}, not a candidate.`);
+        if (company.rejectedAt) throw new CareersError(409, 'INVALID_STATE', `${company.name} was rejected. Restore it first if it is a real company.`);
         const updated = await prisma.company.update({ where: { id }, data: { status: 'ACTIVE' }, select: companySelect });
         return res.status(200).json({ success: true, message: 'Company approved.', data: updated });
     } catch (err) {
         return sendError(res, err, 'approveCandidate');
+    }
+};
+
+// P7-T11 (F-11): reject a candidate nothing live uses (hidden, never deleted; D-13), and undo it.
+export const rejectCandidateCompany = async (req, res) => {
+    try {
+        const id = parseId(req.params.id);
+        const { reason } = rejectBody.parse(req.body ?? {});
+        const r = await rejectCandidate(prisma, id, { reason, adminId: req.user.id });
+        const flagged = r.flagged ? ` ${r.flagged} of its posting(s) moved to Flagged to pick the right company.` : '';
+        return res.json({ success: true, message: `${r.company.name} rejected; it no longer appears as a candidate.${flagged}`, data: { id, flagged: r.flagged } });
+    } catch (err) {
+        return sendError(res, err, 'rejectCandidateCompany');
+    }
+};
+
+export const restoreCandidateCompany = async (req, res) => {
+    try {
+        const company = await restoreCandidate(prisma, parseId(req.params.id));
+        return res.json({ success: true, message: `${company.name} is a candidate again.`, data: { id: company.id } });
+    } catch (err) {
+        return sendError(res, err, 'restoreCandidateCompany');
     }
 };

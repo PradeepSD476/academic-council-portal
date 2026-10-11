@@ -59,6 +59,8 @@ export const careersAdminApi = {
   createCompany: (body) => api.post('/careers/admin/companies', body).then((r) => r.data.data),
   updateCompany: (id, body) => api.patch(`/careers/admin/companies/${id}`, body).then((r) => r.data.data),
   approveCompany: (id) => api.post(`/careers/admin/companies/${id}/approve`).then((r) => r.data.data),
+  rejectCompany: (id, reason) => api.post(`/careers/admin/companies/${id}/reject`, { reason }).then((r) => r.data),
+  restoreCompany: (id) => api.post(`/careers/admin/companies/${id}/restore`).then((r) => r.data),
   addAlias: (id, alias) => api.post(`/careers/admin/companies/${id}/aliases`, { alias }).then((r) => r.data.data),
   deleteAlias: (aliasId) => api.delete(`/careers/admin/aliases/${aliasId}`).then((r) => r.data),
 

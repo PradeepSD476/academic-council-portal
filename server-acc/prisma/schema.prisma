@@ -337,6 +337,9 @@ model Company {
   website        String?
   status         CompanyStatus  @default(ACTIVE)
   mergedIntoId   Int?
+  rejectedAt     DateTime? // careers P7-T11: a rejected CANDIDATE (page noise like "keka"); hidden, never deleted (D-13)
+  rejectedById   Int? // careers P7-T11
+  rejectReason   String? // careers P7-T11
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
   aliases        CompanyAlias[]

@@ -37,7 +37,7 @@ export const getOps = async (req, res) => {
         const [pending, flagged, candidates, received, extracting, failed, storedOnly, live, expiredLast7d, newLast24h, llm] = await Promise.all([
             prisma.posting.count({ where: reviewWhere('pending', threshold) }),
             prisma.posting.count({ where: reviewWhere('flagged', threshold) }),
-            prisma.company.count({ where: { status: 'CANDIDATE' } }),
+            prisma.company.count({ where: { status: 'CANDIDATE', rejectedAt: null } }),
             submissionCount('RECEIVED'),
             submissionCount('EXTRACTING'),
             submissionCount('FAILED'),
