@@ -18,7 +18,8 @@ const styles = {
   }),
   placeholder: (base) => ({ ...base, color: "#94a3b8" }),
   singleValue: (base) => ({ ...base, color: "var(--color-primary)" }),
-  menu: (base) => ({ ...base, borderRadius: "0.75rem", overflow: "hidden", zIndex: 30, fontSize: "0.875rem" }),
+  menu: (base) => ({ ...base, borderRadius: "0.75rem", overflow: "hidden", fontSize: "0.875rem" }),
+  menuPortal: (base) => ({ ...base, zIndex: 1000 }),
   option: (base, state) => ({
     ...base,
     cursor: "pointer",
@@ -57,6 +58,14 @@ export default function CompanyPicker({ inputId, value, onChange, noMatchText = 
       noOptionsMessage={({ inputValue }) => (inputValue ? noMatchText : "Type to search")}
       loadingMessage={() => "Searching…"}
       styles={styles}
+      // The list is drawn on <body> so a card with its own stacking context (backdrop blur) can't
+      // cover it; fixed position follows the box, and a page scroll closes it (scrolling the list
+      // itself does not).
+      classNamePrefix="cp"
+      menuPortalTarget={document.body}
+      menuPosition="fixed"
+      menuPlacement="auto"
+      closeMenuOnScroll={(e) => !(e.target instanceof Element && e.target.closest(".cp__menu-list"))}
     />
   );
 }
