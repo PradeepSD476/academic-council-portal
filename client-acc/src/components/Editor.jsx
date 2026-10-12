@@ -24,6 +24,7 @@ import {
 import { getFilePath } from "../lib/getFilePath";
 import { forumApi } from "../api/forumApi";
 import toast from "react-hot-toast";
+import ExperienceCompanyField from "../pages/Careers/components/ExperienceCompanyField";
 
 const DOMAIN_OPTIONS = [
   { value: "CS", label: "CS" },
@@ -82,6 +83,7 @@ const AdminPostEditor = () => {
   const [isLoadingPost, setIsLoadingPost] = useState(Number(id) !== -1);
   const [resumeFile, setResumeFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [companyId, setCompanyId] = useState(undefined); // undefined = not changed, null = unlink
 
   useEffect(() => {
     let isMounted = true;
@@ -241,6 +243,7 @@ const AdminPostEditor = () => {
       content: preservedDescription,
       description: preservedDescription,
       status: status,
+      ...(companyId !== undefined ? { companyId } : {}),
     };
 
     if (resumeFile) {
@@ -397,6 +400,7 @@ const AdminPostEditor = () => {
               ))}
             </select>
           </div>
+          <ExperienceCompanyField key={selectedPost?.id ?? "new"} company={selectedPost?.company} onChange={setCompanyId} />
           <div className="space-y-1.5">
             <label className="flex items-center justify-between gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider">
               <div className="flex items-center gap-2">
