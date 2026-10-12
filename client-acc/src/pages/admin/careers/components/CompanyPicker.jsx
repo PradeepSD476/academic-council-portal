@@ -1,7 +1,8 @@
 // Search-and-pick a company from the registry. With allowNew, a typed name that matches nothing can
 // be used as is (the server resolves it, creating a CANDIDATE company if it is really new).
 // The list closes on a click outside, Escape or tabbing away, and is drawn in a portal at the input's
-// position, so no card, scroll area or dialog around the picker can hide or clip it (B-27).
+// position, so no card, scroll area or dialog around the picker can hide or clip it (B-27); it closes
+// when the box itself is scrolled out of sight or under a sticky bar (B-48).
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
@@ -19,6 +20,12 @@ export default function CompanyPicker({ id, value, onChange, allowNew = false })
   const place = useCallback(() => {
     const r = wrapRef.current?.getBoundingClientRect();
     if (!r) return;
+    // B-48: the box scrolled away or under a sticky bar -> close instead of leaving the list floating.
+    const hit = document.elementFromPoint(r.left + Math.min(20, r.width / 2), r.top + r.height / 2);
+    if (!hit || !(wrapRef.current.contains(hit) || listRef.current?.contains(hit))) {
+      setOpen(false);
+      return;
+    }
     const below = window.innerHeight - r.bottom;
     const up = below < 260 && r.top > below;
     setPos(up ? { left: r.left, width: r.width, bottom: window.innerHeight - r.top + 4 } : { left: r.left, width: r.width, top: r.bottom + 4 });
