@@ -24,14 +24,15 @@ function FacultyProfileView({ person, onBack }) {
 
   if (!person) return null;
 
+  const photo = person.photoUrl || person.photoURL;
   const availableLinks = [
-    { key: 'email', icon: Mail, label: 'Email', href: `mailto:${person.email}` },
-    { key: 'phone', icon: Phone, label: 'Phone', href: `tel:${person.phone}` },
-    { key: 'website', icon: Globe, label: 'Lab / Dept website', href: person.website },
-    { key: 'personalUrl', icon: LinkIcon, label: 'Personal website', href: person.personalUrl },
-    { key: 'scholarUrl', icon: GraduationCap, label: 'Google Scholar', href: person.scholarUrl },
-    { key: 'linkedinUrl', icon: Linkedin, label: 'LinkedIn', href: person.linkedinUrl }
-  ].filter(link => Boolean(person[link.key]));
+    { key: 'email', icon: Mail, label: 'Email', href: `mailto:${person.email}`, val: person.email },
+    { key: 'phone', icon: Phone, label: 'Phone', href: `tel:${person.phone}`, val: person.phone },
+    { key: 'website', icon: Globe, label: 'Lab / Dept website', href: person.websiteUrl || person.website, val: person.websiteUrl || person.website },
+    { key: 'personalUrl', icon: LinkIcon, label: 'Personal website', href: person.personalWebsiteUrl || person.personalUrl, val: person.personalWebsiteUrl || person.personalUrl },
+    { key: 'scholarUrl', icon: GraduationCap, label: 'Google Scholar', href: person.googleScholarUrl || person.scholarUrl, val: person.googleScholarUrl || person.scholarUrl },
+    { key: 'linkedinUrl', icon: Linkedin, label: 'LinkedIn', href: person.linkedinUrl, val: person.linkedinUrl }
+  ].filter(link => Boolean(link.val));
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 space-y-5">
@@ -44,11 +45,11 @@ function FacultyProfileView({ person, onBack }) {
 
       <article className="academic-card rounded-3xl border border-slate-200 bg-white/95 p-6 shadow-sm sm:p-8">
         <div className="flex flex-wrap items-start gap-4">
-          <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full ${person.photoURL ? 'bg-slate-100' : 'bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)]'} text-xl font-bold text-white`}>
-            {person.photoURL ? (
-              <img src={person.photoURL} alt={person.name} className="h-full w-full rounded-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; e.target.parentElement.classList.add('bg-gradient-to-br', 'from-[var(--color-primary)]', 'to-[var(--color-secondary)]'); e.target.parentElement.classList.remove('bg-slate-100'); }} />
+          <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full ${photo ? 'bg-slate-100' : 'bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)]'} text-xl font-bold text-white`}>
+            {photo ? (
+              <img src={photo} alt={person.name} className="h-full w-full rounded-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; e.target.parentElement.classList.add('bg-gradient-to-br', 'from-[var(--color-primary)]', 'to-[var(--color-secondary)]'); e.target.parentElement.classList.remove('bg-slate-100'); }} />
             ) : null}
-            <span style={{ display: person.photoURL ? 'none' : 'flex' }}>
+            <span style={{ display: photo ? 'none' : 'flex' }}>
               {person.name ? person.name.split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('') : 'FA'}
             </span>
           </div>
@@ -58,11 +59,14 @@ function FacultyProfileView({ person, onBack }) {
             {person.officeLocation && (
               <p className="mt-1 inline-flex items-center gap-1 text-xs text-slate-500"><MapPin size={13} /> {person.officeLocation}</p>
             )}
-            {person.researchArea && (
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                <span className="rounded-full border border-[var(--color-secondary-border)] bg-[var(--color-secondary-light)] px-2 py-1 text-[11px] font-semibold text-blue-900">{person.researchArea?.name || person.researchArea}</span>
-              </div>
-            )}
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {(person.researchAreas || (person.researchArea ? [person.researchArea] : [])).map((area, idx) => {
+                const name = typeof area === 'string' ? area : area.researchArea?.name || area.name;
+                return (
+                  <span key={idx} className="rounded-full border border-[var(--color-secondary-border)] bg-[var(--color-secondary-light)] px-2 py-1 text-[11px] font-semibold text-blue-900">{name}</span>
+                );
+              })}
+            </div>
           </div>
         </div>
 

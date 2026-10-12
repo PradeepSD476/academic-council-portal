@@ -718,14 +718,15 @@ export default function ResearchVault() {
 
   const vote = async (discussionId) => {
     try {
-      const { data } = await researchVaultApi.voteDiscussion(discussionId);
+      const { data } = await researchVaultApi.vote(discussionId);
+      const count = data.data.voteCount ?? data.data.upvotes;
       setItems((current) => current.map((item) => item.id === discussionId
-        ? { ...item, voteCount: data.data.voteCount, hasVoted: data.data.hasVoted }
+        ? { ...item, voteCount: count, upvotes: count, hasVoted: data.data.hasVoted }
         : item));
     } catch (error) {
       toast.error(errorMessage(error));
     }
-};
+  };
 
   // ── Submit Resource ────────────────────────────────────────────────────────
   const submitResource = async (e) => {
@@ -2374,7 +2375,7 @@ function DiscussionItem({ discussion, currentUserId, onReply, onVote, onAcceptAn
 
   const toggleReplyVote = async (replyId) => {
     try {
-      await researchVaultApi.voteReply(discussion.id, replyId);
+      await researchVaultApi.vote(replyId);
       setRefreshVersion((version) => version + 1);
     } catch (error) {
       toast.error(errorMessage(error));

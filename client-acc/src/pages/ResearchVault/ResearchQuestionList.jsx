@@ -270,22 +270,25 @@ export default function ResearchQuestionList() {
               <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
                 <h2 className={`min-w-0 flex-1 text-base font-bold leading-snug ${isOwnQuestion ? 'text-blue-900' : 'text-slate-950'}`}>{question.title}</h2>
                 <div className="flex shrink-0 items-center gap-3 text-xs text-slate-500">
-                  <span className="inline-flex items-center gap-1"><MessageCircle size={14} /> {question.replyCount}</span>
-                  <span className="inline-flex items-center gap-1"><ThumbsUp size={14} /> {question.voteCount}</span>
+                  <span className="inline-flex items-center gap-1"><MessageCircle size={14} /> {question.replyCount || 0}</span>
+                  <span className="inline-flex items-center gap-1"><ThumbsUp size={14} /> {question.voteCount ?? question.upvotes ?? 0}</span>
                 </div>
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
                 <span className={`text-xs font-medium ${isOwnQuestion ? 'text-blue-700' : 'text-blue-700'}`}>
-                  {question.uploadedBy?.displayName || 'ACC student'}{question.uploadedBy?.rollNo ? ` · ${question.uploadedBy.rollNo}` : ''} · {relativeTime(question.createdAt)}
+                  {(question.uploadedBy || question.author)?.displayName || 'ACC student'}{(question.uploadedBy || question.author)?.rollNo ? ` · ${(question.uploadedBy || question.author).rollNo}` : ''} · {relativeTime(question.createdAt)}
                 </span>
                 {question.isResolved && <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700">Resolved</span>}
               </div>
               <div className="mt-2 flex flex-wrap gap-1.5">
-                {question.researchAreas?.map(({ researchArea }) => (
-                  <span key={researchArea.id} className="rounded-md border border-blue-100 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-800">
-                    {researchArea.name}
-                  </span>
-                ))}
+                {(question.researchAreas || []).map((area, idx) => {
+                  const areaName = typeof area === 'string' ? area : area.researchArea?.name || area.name;
+                  return (
+                    <span key={idx} className="rounded-md border border-blue-100 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-800">
+                      {areaName}
+                    </span>
+                  );
+                })}
               </div>
             </Link>
           );

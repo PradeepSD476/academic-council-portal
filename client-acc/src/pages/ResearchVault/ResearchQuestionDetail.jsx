@@ -118,8 +118,9 @@ export default function ResearchQuestionDetail() {
 
   const toggleQuestionVote = async () => {
     try {
-      const data = payload(await researchVaultApi.voteDiscussion(question.id));
-      setQuestion((current) => ({ ...current, voteCount: data.voteCount, hasVoted: data.hasVoted }));
+      const data = payload(await researchVaultApi.vote(question.id));
+      const upvotes = data.voteCount ?? data.upvotes;
+      setQuestion((current) => ({ ...current, voteCount: upvotes, hasVoted: data.hasVoted }));
     } catch (error) {
       toast.error(errorMessage(error));
     }
@@ -127,8 +128,9 @@ export default function ResearchQuestionDetail() {
 
   const toggleReplyVote = async (replyId) => {
     try {
-      const data = payload(await researchVaultApi.voteReply(question.id, replyId));
-      setReplies((current) => current.map((reply) => reply.id === replyId ? { ...reply, voteCount: data.voteCount, hasVoted: data.hasVoted } : reply));
+      const data = payload(await researchVaultApi.vote(replyId));
+      const upvotes = data.voteCount ?? data.upvotes;
+      setReplies((current) => current.map((reply) => reply.id === replyId ? { ...reply, voteCount: upvotes, hasVoted: data.hasVoted } : reply));
     } catch (error) {
       toast.error(errorMessage(error));
     }
@@ -166,20 +168,23 @@ export default function ResearchQuestionDetail() {
 
       <article className="academic-card rounded-2xl p-5 sm:p-7">
         <div className="flex flex-wrap items-start gap-2">
-          {question.researchAreas?.map(({ researchArea }) => <span key={researchArea.id} className="rounded-md border border-blue-100 bg-blue-50 px-2 py-1 text-[11px] font-semibold text-blue-800">{researchArea.name}</span>)}
+          {(question.researchAreas || []).map((area, idx) => {
+            const name = typeof area === 'string' ? area : area.researchArea?.name || area.name;
+            return <span key={idx} className="rounded-md border border-blue-100 bg-blue-50 px-2 py-1 text-[11px] font-semibold text-blue-800">{name}</span>;
+          })}
           {question.isResolved && <span className="inline-flex items-center gap-1 rounded-md bg-blue-100 px-2 py-1 text-[11px] font-bold text-blue-700"><Check size={12} /> Resolved</span>}
         </div>
         <h1 className="mt-3 text-2xl font-bold leading-snug text-slate-950">{question.title}</h1>
         <p className="mt-3 whitespace-pre-wrap text-base leading-7 text-slate-700">{question.content}</p>
         <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-slate-100 pt-3">
-          <span className="text-xs font-medium text-slate-600">{authorLabel(question.uploadedBy)}</span>
-          <button onClick={toggleQuestionVote} aria-pressed={question.hasVoted || false} className={`inline-flex items-center gap-1.5 text-xs font-semibold ${question.hasVoted ? 'text-blue-700' : 'text-slate-600 hover:text-blue-700'}`}><ThumbsUp size={14} fill={question.hasVoted ? 'currentColor' : 'none'} /> {question.voteCount || 0}</button>
+          <span className="text-xs font-medium text-slate-600">{authorLabel(question.uploadedBy || question.author)}</span>
+          <button onClick={toggleQuestionVote} aria-pressed={question.hasVoted || false} className={`inline-flex items-center gap-1.5 text-xs font-semibold ${question.hasVoted ? 'text-blue-700' : 'text-slate-600 hover:text-blue-700'}`}><ThumbsUp size={14} fill={question.hasVoted ? 'currentColor' : 'none'} /> {question.voteCount || question.upvotes || 0}</button>
         </div>
       </article>
 
       <section aria-labelledby="reply-list-heading">
         <div className="sticky top-[57px] z-10 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-[var(--color-canvas)]/95 py-3 backdrop-blur">
-          <h2 id="reply-list-heading" className="text-lg font-bold">{question.replyCount} replies</h2>
+          <h2 id="reply-list-heading" className="text-lg font-bold">{question.replyCount || replies.length} replies</h2>
           <label className="flex items-center gap-2 text-xs font-semibold text-slate-600">Sort replies
             <select value={replySort} onChange={(event) => changeReplySort(event.target.value)} className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800">
               <option value="top">Top</option><option value="newest">New</option><option value="oldest">Oldest</option>
@@ -189,17 +194,18 @@ export default function ResearchQuestionDetail() {
 
         <div className="space-y-3 py-4">
           {replies.map((reply) => {
-            const isOwnReply = reply.uploadedBy?.id === user?.id;
+            const author = reply.uploadedBy || reply.author;
+            const isOwnReply = author?.id === user?.id;
             return <article key={reply.id} className={`w-full max-w-[92%] rounded-xl border p-4 ${isOwnReply ? 'ml-auto border-blue-200 bg-blue-50/80 text-right' : 'mr-auto border-blue-200 bg-blue-50/40 text-left'}`}>
               {reply.isAccepted && <p className="mb-2 inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-1 text-[10px] font-bold uppercase text-blue-700"><CheckCircle2 size={12} /> Accepted answer</p>}
               <header className="flex flex-wrap items-center gap-2 mb-2 justify-end">
-                <span className={`font-semibold text-sm ${isOwnReply ? 'text-blue-900' : 'text-slate-900'}`}>{authorLabel(reply.uploadedBy)}</span>
+                <span className={`font-semibold text-sm ${isOwnReply ? 'text-blue-900' : 'text-slate-900'}`}>{authorLabel(author)}</span>
                 <time className="text-xs text-slate-400" dateTime={reply.createdAt}>{relativeTime(reply.createdAt)}</time>
               </header>
               <p className="text-sm leading-6 text-slate-700">{reply.content}</p>
               <footer className="mt-3 flex items-center gap-4 pt-2 border-t border-slate-100 justify-end">
                 {canAcceptAnswer && !acceptedReply && <button onClick={() => markAccepted(reply.id)} className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--color-primary-accent)] hover:text-[var(--color-secondary)]"><CheckCircle2 size={14} /> Mark as answer</button>}
-                <button onClick={() => toggleReplyVote(reply.id)} aria-pressed={reply.hasVoted || false} className={`inline-flex items-center gap-1 text-xs font-semibold ${reply.hasVoted ? 'text-blue-700' : 'text-slate-500 hover:text-blue-700'}`}><ThumbsUp size={14} fill={reply.hasVoted ? 'currentColor' : 'none'} /> {reply.voteCount || 0}</button>
+                <button onClick={() => toggleReplyVote(reply.id)} aria-pressed={reply.hasVoted || false} className={`inline-flex items-center gap-1 text-xs font-semibold ${reply.hasVoted ? 'text-blue-700' : 'text-slate-500 hover:text-blue-700'}`}><ThumbsUp size={14} fill={reply.hasVoted ? 'currentColor' : 'none'} /> {reply.voteCount || reply.upvotes || 0}</button>
                 <button className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-[var(--color-primary-accent)]"><MessageCircle size={14} /> Reply</button>
               </footer>
               {reply.childReplyCount > 0 && <p className="mt-2 text-xs text-slate-500">{reply.childReplyCount} nested repl{reply.childReplyCount === 1 ? 'y' : 'ies'}</p>}
