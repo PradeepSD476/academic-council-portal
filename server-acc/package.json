@@ -6,9 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon server.js",
-    "start": "node server.js",
-    "seed:research-vault": "node prisma/seedResearchVault.js",
-    "test": "node --test tests/openingStatus.test.mjs"
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
