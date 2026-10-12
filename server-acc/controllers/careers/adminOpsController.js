@@ -34,7 +34,8 @@ export const getOps = async (req, res) => {
             list: ats.map((s) => ({ ...s, quality: quality[s.id] ?? null })), qualityDays: QUALITY_DAYS,
         };
 
-        const submissionCount = (status) => prisma.linkSubmission.count({ where: { status } });
+        // B-44: dismissed / withdrawn links are dealt with, so they never keep an alert on.
+        const submissionCount = (status) => prisma.linkSubmission.count({ where: { status, dismissedAt: null } });
         const [pending, flagged, candidates, received, extracting, failed, storedOnly, live, expiredLast7d, newLast24h, llm] = await Promise.all([
             prisma.posting.count({ where: reviewWhere('pending', threshold) }),
             prisma.posting.count({ where: reviewWhere('flagged', threshold) }),
