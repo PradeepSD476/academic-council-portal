@@ -1,47 +1,63 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Check, ChevronDown, ClipboardCheck, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { careersApi, errorMessage } from "../../../api/careersApi";
 import { APPLICATION_STATUSES, nextStatus, statusMeta } from "../lib/tracking";
-
-const MENU_HEIGHT = 350; // px, with the "Clear status" row
+import { menuPosition } from "../lib/menuPosition";
 
 // Your own application status for a posting. The main button moves one step (Interested → Applied →
 // In progress); the arrow opens a menu with every status and "Clear". Only the student sees it.
+// The menu is drawn on <body> at the button's position (B-39), so the next card can't cover it and
+// it never pushes the page sideways on a phone; it follows the button while the page scrolls and
+// closes when the button is hidden, on a click outside, Escape or tabbing away.
 export default function ApplicationStatusButton({ posting, onChange }) {
   const [status, setStatus] = useState(posting.applicationStatus ?? null);
   const [open, setOpen] = useState(false);
-  const [up, setUp] = useState(false); // open upward when the menu wouldn't fit below the button
+  const [pos, setPos] = useState(null); // { left, top | bottom, maxHeight }
   const [busy, setBusy] = useState(false);
   const wrapRef = useRef(null);
   const menuRef = useRef(null);
   const menuId = useId();
 
+  const place = useCallback(() => {
+    const r = wrapRef.current?.getBoundingClientRect();
+    if (!r) return;
+    // Hidden button (scrolled away, or under a sticky bar): close rather than float a detached menu.
+    const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    if (!hit || !(wrapRef.current.contains(hit) || menuRef.current?.contains(hit))) {
+      setOpen(false);
+      return;
+    }
+    setPos(menuPosition(r, menuRef.current?.offsetHeight ?? 0, { width: window.innerWidth, height: window.innerHeight }));
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!open) return undefined;
+    place();
+    window.addEventListener("resize", place);
+    window.addEventListener("scroll", place, true); // any scrolling container
+    return () => { window.removeEventListener("resize", place); window.removeEventListener("scroll", place, true); };
+  }, [open, place]);
+
   useEffect(() => {
     if (!open) return undefined;
+    const inside = (el) => wrapRef.current?.contains(el) || menuRef.current?.contains(el);
     const onKey = (e) => { if (e.key === "Escape") setOpen(false); };
-    const onClick = (e) => { if (!wrapRef.current?.contains(e.target)) setOpen(false); };
-    menuRef.current?.scrollIntoView({ block: "nearest" }); // a menu that opens downward in a short window scrolls into view
+    const onDown = (e) => { if (!inside(e.target)) setOpen(false); };
+    const onFocus = (e) => { if (!inside(e.target)) setOpen(false); };
     document.addEventListener("keydown", onKey);
-    document.addEventListener("mousedown", onClick);
+    document.addEventListener("pointerdown", onDown);
+    document.addEventListener("focusin", onFocus);
     return () => {
       document.removeEventListener("keydown", onKey);
-      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("focusin", onFocus);
     };
   }, [open]);
 
   const toggleMenu = () => {
-    if (!open) {
-      const wrap = wrapRef.current;
-      const rect = wrap?.getBoundingClientRect();
-      if (rect) {
-        // Room inside whatever scrolls around the button (the page rail) and the window.
-        const clip = wrap.closest("aside")?.getBoundingClientRect();
-        const bottomEdge = Math.min(window.innerHeight, clip?.bottom ?? Infinity);
-        const topEdge = Math.max(0, clip?.top ?? 0);
-        setUp(rect.bottom + MENU_HEIGHT > bottomEdge && rect.top - MENU_HEIGHT >= topEdge);
-      }
-    }
+    setPos(null);
     setOpen((o) => !o);
   };
 
@@ -91,8 +107,10 @@ export default function ApplicationStatusButton({ posting, onChange }) {
       >
         <ChevronDown size={14} aria-hidden="true" />
       </button>
-      {open && (
-        <ul ref={menuRef} id={menuId} role="menu" aria-label="Application status" className={`absolute left-0 ${up ? "bottom-full mb-1.5" : "top-full mt-1.5"} z-30 w-60 p-1.5 rounded-2xl border border-slate-200 bg-white shadow-xl ring-1 ring-black/5`}>
+      {open && createPortal(
+        <ul ref={menuRef} id={menuId} role="menu" aria-label="Application status"
+          style={{ position: "fixed", ...(pos ?? { left: 0, top: 0 }), visibility: pos ? "visible" : "hidden" }}
+          className="z-[1000] w-60 overflow-y-auto p-1.5 rounded-2xl border border-slate-200 bg-white shadow-xl ring-1 ring-black/5">
           <li role="presentation" className="px-2.5 pt-1.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">Where are you with this?</li>
           {APPLICATION_STATUSES.map((s) => {
             const selected = status === s.value;
@@ -118,7 +136,8 @@ export default function ApplicationStatusButton({ posting, onChange }) {
               </button>
             </li>
           )}
-        </ul>
+        </ul>,
+        document.body,
       )}
     </div>
   );
