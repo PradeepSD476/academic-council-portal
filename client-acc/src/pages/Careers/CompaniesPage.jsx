@@ -11,6 +11,7 @@ import PageTitle from "./components/PageTitle";
 import { plural } from "./lib/format";
 
 const SUBTITLE = "Companies with open roles or experiences shared by seniors.";
+const SUBTITLE_ALL = "Every company approved by ACC, including those with no open roles or experiences yet."; // B-35
 const pagerButton = "flex items-center gap-1 px-3 py-1.5 rounded-xl bg-sky-50 border border-sky-100 text-slate-600 hover:text-[var(--color-primary)] hover:bg-sky-100 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer font-semibold";
 
 function CompanyCard({ company }) {
@@ -46,14 +47,15 @@ export default function CompaniesPage() {
 
   const q = search.get("q") ?? "";
   const page = Number(search.get("page")) || 1;
+  const all = search.get("all") === "1";
   useEffect(() => {
     if (!status.enabled) return undefined;
     let alive = true;
-    careersApi.listCompanies({ q: q || undefined, page })
+    careersApi.listCompanies({ q: q || undefined, page, all: all ? "true" : undefined })
       .then((res) => { if (alive) { setResult(res); setError(null); } })
       .catch((err) => { if (alive) setError(err?.response?.data?.error === "CAREERS_DISABLED" ? "DISABLED" : errorMessage(err, "Could not load companies.")); });
     return () => { alive = false; };
-  }, [q, page, status.enabled]);
+  }, [q, page, all, status.enabled]);
 
   const go = (changes) => setSearch((prev) => {
     const next = new URLSearchParams(prev);
@@ -78,8 +80,8 @@ export default function CompaniesPage() {
   else if (!result) body = <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3" aria-hidden="true">{[0, 1, 2, 3, 4, 5].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 animate-pulse" />)}</div>;
   else if (total === 0) {
     body = q
-      ? <EmptyState icon={SearchX} title={`No company matches "${q}".`} detail="Only companies with open roles or shared experiences are listed." action="Clear search" onAction={() => go({ q: "", page: "" })} />
-      : <EmptyState icon={Building2} title="No companies to show yet." detail="Companies appear here once they have open roles or shared experiences." />;
+      ? <EmptyState icon={SearchX} title={`No company matches "${q}".`} detail={all ? "No approved company has that name." : "Only companies with open roles or shared experiences are listed. Try \"Show all companies\"."} action="Clear search" onAction={() => go({ q: "", page: "" })} />
+      : <EmptyState icon={Building2} title="No companies to show yet." detail={all ? "No company has been approved yet." : "Companies appear here once they have open roles or shared experiences."} />;
   } else {
     body = (
       <ul className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
@@ -90,7 +92,7 @@ export default function CompaniesPage() {
 
   return (
     <div className="space-y-6">
-      <PageTitle title="Companies" subtitle={SUBTITLE} />
+      <PageTitle title="Companies" subtitle={all ? SUBTITLE_ALL : SUBTITLE} />
       <CareerVaultTabs />
       <div className="relative">
         <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" aria-hidden="true" />
@@ -105,7 +107,13 @@ export default function CompaniesPage() {
           className="w-full rounded-2xl border border-slate-200 bg-white/95 shadow-xs py-3 pl-11 pr-4 text-sm text-[var(--color-primary)] placeholder-slate-400 outline-none transition focus:border-[var(--color-secondary)] focus:ring-1 focus:ring-[var(--color-secondary)]"
         />
       </div>
-      {result && total > 0 && <p className="text-xs text-slate-500" aria-live="polite">{plural(total, "company", "companies")}</p>}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs text-slate-500" aria-live="polite">{result && total > 0 ? plural(total, "company", "companies") : ""}</p>
+        <label className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 cursor-pointer">
+          <input type="checkbox" checked={all} onChange={(e) => go({ all: e.target.checked ? "1" : "", page: "" })} className="accent-[var(--color-secondary)] cursor-pointer" />
+          Show all companies
+        </label>
+      </div>
       {body}
       {totalPages > 1 && (
         <nav aria-label="Pages" className="flex items-center justify-between bg-white/95 shadow-xs border border-slate-200 rounded-2xl p-4 text-xs text-slate-500">

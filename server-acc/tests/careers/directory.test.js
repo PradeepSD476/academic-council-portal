@@ -3,8 +3,10 @@ import { directoryQuery, directoryWhere, rankCompanies } from '../../services/ca
 
 describe('directoryQuery', () => {
     it('defaults and coercion', () => {
-        expect(directoryQuery.parse({})).toEqual({ q: undefined, page: 1, limit: 24 });
-        expect(directoryQuery.parse({ q: ' goo ', page: '2', limit: '10' })).toEqual({ q: 'goo', page: 2, limit: 10 });
+        expect(directoryQuery.parse({})).toEqual({ q: undefined, page: 1, limit: 24, all: false });
+        expect(directoryQuery.parse({ q: ' goo ', page: '2', limit: '10' })).toEqual({ q: 'goo', page: 2, limit: 10, all: false });
+        expect(directoryQuery.parse({ all: 'true' }).all).toBe(true);
+        expect(directoryQuery.safeParse({ all: 'yes' }).success).toBe(false);
     });
     it('rejects bad paging', () => {
         expect(directoryQuery.safeParse({ limit: '51' }).success).toBe(false);
@@ -18,6 +20,13 @@ describe('directoryWhere', () => {
             status: 'ACTIVE',
             OR: [{ postings: { some: { status: 'LIVE' } } }, { experiences: { some: { status: 'PUBLISHED' } } }],
         });
+    });
+    it('with all: every ACTIVE company, nothing required (B-35)', () => {
+        expect(directoryWhere(undefined, { all: true })).toEqual({ status: 'ACTIVE' });
+        const where = directoryWhere('goo', { all: true });
+        expect(where.status).toBe('ACTIVE');
+        expect(where.OR).toBeUndefined();
+        expect(where.AND).toHaveLength(1);
     });
     it('searches name and aliases on top of that', () => {
         const where = directoryWhere('goo');

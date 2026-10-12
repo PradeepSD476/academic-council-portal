@@ -7,14 +7,14 @@ export const directoryQuery = z.object({
     q: z.string().trim().max(100).optional().transform((v) => v || undefined),
     page: z.coerce.number().int().min(1).default(1),
     limit: z.coerce.number().int().min(1).max(50).default(24),
+    all: z.enum(['true', 'false']).optional().transform((v) => v === 'true'), // B-35: "Show all companies"
 });
 
 // Listed: ACTIVE and something to show (a LIVE posting or a PUBLISHED linked experience).
-export function directoryWhere(q) {
-    const where = {
-        status: 'ACTIVE',
-        OR: [{ postings: { some: { status: 'LIVE' } } }, { experiences: { some: { status: 'PUBLISHED' } } }],
-    };
+// With all (B-35): every ACTIVE company; empty ones rank last.
+export function directoryWhere(q, { all = false } = {}) {
+    const where = { status: 'ACTIVE' };
+    if (!all) where.OR = [{ postings: { some: { status: 'LIVE' } } }, { experiences: { some: { status: 'PUBLISHED' } } }];
     if (q) {
         where.AND = [{
             OR: [

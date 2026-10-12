@@ -35,9 +35,9 @@ export const searchCompanies = async (req, res) => {
 // so the matching rows are ranked in memory; the directory is small (a few hundred at most).
 export const listCompanies = async (req, res) => {
     try {
-        const { q, page, limit } = directoryQuery.parse(req.query);
+        const { q, page, limit, all } = directoryQuery.parse(req.query);
         const rows = await prisma.company.findMany({
-            where: directoryWhere(q),
+            where: directoryWhere(q, { all }),
             select: { id: true, name: true, slug: true, ...countSelect },
         });
         const ranked = rankCompanies(rows);
