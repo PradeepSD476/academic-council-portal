@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { CheckCircle2, GitMerge, Pencil, Plus, Split, Trash2 } from "lucide-react";
+import { CheckCircle2, GitMerge, Pencil, Plus, Split, Trash2, Undo2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { careersAdminApi, errorMessage } from "../../../api/careersApi";
 import { Modal, Skeleton, StatusChip, inputClass, outlineButton, primaryButton } from "./components/ui";
@@ -16,6 +16,7 @@ export default function CompanyDetail({ companyId, onClose, onChanged, onOpenCom
   const [form, setForm] = useState({ name: "", website: "" });
   const [dialog, setDialog] = useState(null); // "merge" | "split" | null
   const [busy, setBusy] = useState(false);
+  const [confirmUnapprove, setConfirmUnapprove] = useState(false); // B-34
 
   const load = useCallback(async () => {
     try {
@@ -95,6 +96,29 @@ export default function CompanyDetail({ companyId, onClose, onChanged, onOpenCom
                 <Split size={14} /> Split…
               </button>
               <button type="button" className={outlineButton} onClick={() => setEditing((v) => !v)}><Pencil size={14} /> Edit</button>
+              {company.status === "ACTIVE" && (
+                <button type="button" className={outlineButton} disabled={busy} onClick={() => setConfirmUnapprove(true)}>
+                  <Undo2 size={14} /> Move back to candidates…
+                </button>
+              )}
+            </div>
+          )}
+
+          {confirmUnapprove && company.status === "ACTIVE" && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 space-y-2">
+              <p>
+                Take <strong>{company.name}</strong> out of the approved companies? Students stop seeing it (company list,
+                company page, pickers) and it goes back to Candidates, where it can be approved again or rejected.
+                Postings that name it later are flagged for review.
+              </p>
+              <p className="text-xs">Not possible while live postings, job boards or linked experiences use it: merge it into the right company instead.</p>
+              <div className="flex flex-wrap gap-2">
+                <button type="button" className={outlineButton} disabled={busy} onClick={() => setConfirmUnapprove(false)}>Keep it approved</button>
+                <button type="button" className={primaryButton} disabled={busy}
+                  onClick={() => run(async () => toast.success((await careersAdminApi.unapproveCompany(companyId)).message)).then(() => setConfirmUnapprove(false))}>
+                  Move back to candidates
+                </button>
+              </div>
             </div>
           )}
 

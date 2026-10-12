@@ -1,6 +1,7 @@
 // Admin: company registry CRUD, aliases and candidate approval.
 import { z } from 'zod';
 import { rejectBody, rejectCandidate, restoreCandidate, statusWhere } from '../../services/careers/companies/rejectCandidate.js';
+import { unapproveCompany } from '../../services/careers/companies/unapproveCompany.js';
 import prisma from '../../config/db.js';
 import { CareersError, sendError, parseId } from '../../services/careers/errors.js';
 import { normalizeCompanyName } from '../../services/careers/text/normalize.js';
@@ -204,6 +205,17 @@ export const approveCandidate = async (req, res) => {
         return res.status(200).json({ success: true, message: 'Company approved.', data: updated });
     } catch (err) {
         return sendError(res, err, 'approveCandidate');
+    }
+};
+
+// B-34 (D-16): take a company out of the approved pool by moving it back to the candidates.
+export const unapproveCompanyHandler = async (req, res) => {
+    try {
+        const r = await unapproveCompany(prisma, parseId(req.params.id));
+        const flagged = r.flagged ? ` ${r.flagged} of its posting(s) moved to Flagged to check the company.` : '';
+        return res.json({ success: true, message: `${r.company.name} moved back to the candidates; students no longer see it.${flagged}`, data: { id: r.company.id, flagged: r.flagged } });
+    } catch (err) {
+        return sendError(res, err, 'unapproveCompany');
     }
 };
 

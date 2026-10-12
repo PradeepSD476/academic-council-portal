@@ -28,24 +28,35 @@ export function statusWhere(status) {
     return { status, rejectedAt: null };
 }
 
+// What still uses a company: { live, sources, experiences } counts (also used by B-34 un-approve).
+export async function companyUsage(tx, id) {
+    const [live, sources, experiences] = await Promise.all([
+        tx.posting.count({ where: { companyId: id, status: 'LIVE' } }),
+        tx.source.count({ where: { companyId: id } }),
+        tx.experience.count({ where: { companyId: id } }),
+    ]);
+    return { live, sources, experiences };
+}
+
+// Its postings (waiting, expired) need a reviewer to pick the real company. Returns how many.
+export async function flagCompanyPostings(tx, id) {
+    const postings = await tx.posting.findMany({ where: { companyId: id, status: { not: 'REJECTED' } }, select: { id: true, uncertainFields: true } });
+    for (const p of postings) {
+        await tx.posting.update({ where: { id: p.id }, data: { uncertainFields: withCompanyUncertain(p.uncertainFields ?? []) } });
+    }
+    return postings.length;
+}
+
 export async function rejectCandidate(db, id, { reason, adminId, now = new Date() }) {
     return db.$transaction(async (tx) => {
         const company = await tx.company.findUnique({ where: { id } });
-        const [live, sources, experiences] = company ? await Promise.all([
-            tx.posting.count({ where: { companyId: id, status: 'LIVE' } }),
-            tx.source.count({ where: { companyId: id } }),
-            tx.experience.count({ where: { companyId: id } }),
-        ]) : [0, 0, 0];
-        const problem = rejectProblem(company, { live, sources, experiences });
+        const usage = company ? await companyUsage(tx, id) : { live: 0, sources: 0, experiences: 0 };
+        const problem = rejectProblem(company, usage);
         if (problem) throw new CareersError(company ? 409 : 404, company ? 'INVALID_STATE' : 'NOT_FOUND', problem);
 
-        // Its postings (waiting, expired) need a reviewer to pick the real company.
-        const postings = await tx.posting.findMany({ where: { companyId: id, status: { not: 'REJECTED' } }, select: { id: true, uncertainFields: true } });
-        for (const p of postings) {
-            await tx.posting.update({ where: { id: p.id }, data: { uncertainFields: withCompanyUncertain(p.uncertainFields ?? []) } });
-        }
+        const flagged = await flagCompanyPostings(tx, id);
         const updated = await tx.company.update({ where: { id }, data: { rejectedAt: now, rejectedById: adminId, rejectReason: reason || null } });
-        return { company: updated, flagged: postings.length };
+        return { company: updated, flagged };
     });
 }
 
