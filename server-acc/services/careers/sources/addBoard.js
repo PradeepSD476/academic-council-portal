@@ -50,7 +50,8 @@ async function mapLimited(items, limit, fn) {
 export async function bulkAddBoards(prisma, entries, { index, fetchBoard = fetchPostings, select } = {}) {
     const checked = await mapLimited(entries, BOARD_CHECKS_AT_ONCE, async (entry) => {
         const exists = await existingBoard(prisma, entry.kind, entry.boardToken);
-        if (exists) return { entry, skip: `Already source #${exists.id} (${exists.name}).` };
+        // B-38: an archived board is hidden on Sources, so say where it is.
+        if (exists) return { entry, skip: `Already source #${exists.id} (${exists.name})${exists.archivedAt ? ', archived: restore it under Sources → Show archived' : ''}.` };
         try {
             return { entry, check: await checkBoard(entry.kind, entry.boardToken, fetchBoard) };
         } catch (err) {
@@ -72,7 +73,12 @@ export async function bulkAddBoards(prisma, entries, { index, fetchBoard = fetch
         try {
             const resolved = await resolveCompany(prisma, entry.companyName, index, { fuzzyThreshold: NO_FUZZY });
             if (!resolved) throw new CareersError(400, 'VALIDATION_ERROR', 'The company name is empty after cleaning.');
-            const company = await prisma.company.findUnique({ where: { id: resolved.companyId }, select: { id: true, name: true } });
+            const company = await prisma.company.findUnique({ where: { id: resolved.companyId }, select: { id: true, name: true, rejectedAt: true } });
+            // B-38: never attach a new board to a company an admin rejected.
+            if (company.rejectedAt) {
+                results.push({ ...base, result: 'failed', message: `${company.name} was rejected as a company. Restore it under Jobs review → Candidate companies → Show rejected, or use the employer's real name.` });
+                continue;
+            }
             const source = await prisma.source.create({
                 data: { kind: entry.kind, boardToken: entry.boardToken, companyId: company.id, name: defaultSourceName(company.name, entry.kind) },
                 ...(select ? { select } : {}),
@@ -81,7 +87,7 @@ export async function bulkAddBoards(prisma, entries, { index, fetchBoard = fetch
                 ...base,
                 companyName: company.name,
                 result: 'added',
-                message: `${check.fetchedCount} jobs now, ${check.relevantNow} look relevant.${resolved.created ? ' New company: confirm it under Jobs review → Candidates.' : ''}`,
+                message: `${check.fetchedCount} jobs now, ${check.relevantNow} ${check.relevantNow === 1 ? 'looks' : 'look'} relevant.${resolved.created ? ' New company: confirm it under Jobs review → Candidates.' : ''}`,
                 sourceId: source.id,
                 companyCreated: resolved.created,
                 ...check,

@@ -37,6 +37,11 @@ describe('parseBulkLines (Add boards in bulk, F-23)', () => {
         expect(errors).toEqual([{ lineNo: 2, line: 'Greenhouse STRIPE Stripe again', reason: 'Same board as line 1.' }]);
     });
 
+    it('drops a # comment at the end of a line, but keeps a # inside a name (B-38)', () => {
+        const { entries, errors } = parseBulkLines('lever paytm Paytm # main board\ngreenhouse csharp C# Labs');
+        expect(errors).toEqual([]);
+        expect(entries.map((e) => e.companyName)).toEqual(['Paytm', 'C# Labs']);
+    });
     it('marks a paste with too many boards', () => {
         const text = Array.from({ length: MAX_BULK_LINES + 1 }, (_, i) => `lever t${i} Co ${i}`).join('\n');
         expect(parseBulkLines(text).tooMany).toBe(true);
@@ -95,6 +100,23 @@ describe('bulkAddBoards', () => {
         expect(prisma.db.companies).toHaveLength(1);
         expect(prisma.db.sources.map((s) => s.boardToken)).toEqual(['old', 'stripe']);
         expect(prisma.db.sources[1]).toMatchObject({ kind: 'GREENHOUSE', companyId: 1, name: 'Stripe (greenhouse)' });
+    });
+
+    it('says when the existing board is archived (B-38)', async () => {
+        const prisma = fakePrisma({ companies, sources: [{ id: 3, kind: 'LEVER', boardToken: 'old', name: 'Old (lever)', archivedAt: new Date() }] });
+        const [r] = await bulkAddBoards(prisma, [{ lineNo: 1, kind: 'LEVER', boardToken: 'old', companyName: 'Old' }], { fetchBoard, index: index() });
+        expect(r.result).toBe('skipped');
+        expect(r.message).toMatch(/archived: restore it under Sources/);
+    });
+
+    it('never attaches a board to a rejected company (B-38)', async () => {
+        const keka = { id: 2, name: 'keka', slug: 'keka', status: 'CANDIDATE', rejectedAt: new Date() };
+        const prisma = fakePrisma({ companies: [...companies, keka] });
+        const idx = buildIndex([{ companyId: 1, alias: 'Stripe', normalizedAlias: 'stripe' }, { companyId: 2, alias: 'keka', normalizedAlias: 'keka' }]);
+        const [r] = await bulkAddBoards(prisma, [{ lineNo: 1, kind: 'LEVER', boardToken: 'keka', companyName: 'Keka' }], { fetchBoard, index: idx });
+        expect(r.result).toBe('failed');
+        expect(r.message).toMatch(/was rejected as a company/);
+        expect(prisma.db.sources).toHaveLength(0);
     });
 
     it('creates a candidate company when the name matches nothing (never a fuzzy guess)', async () => {

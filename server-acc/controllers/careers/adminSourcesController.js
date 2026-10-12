@@ -100,7 +100,7 @@ export const createSource = async (req, res) => {
         const request = await queueRun(source.id, req.user.id, 'createSource');
         return res.status(201).json({
             success: true,
-            message: `Board added: ${check.fetchedCount} jobs now, ${check.relevantNow} look relevant (India, early career). ${request ? 'Queued for fetching; the worker starts it within seconds.' : 'It runs with the next scheduled ingest.'}`,
+            message: `Board added: ${check.fetchedCount} jobs now, ${check.relevantNow} ${check.relevantNow === 1 ? 'looks' : 'look'} relevant (India, early career). ${request ? 'Queued for fetching; the worker starts it within seconds.' : 'It runs with the next scheduled ingest.'}`,
             data: { source, check, runRequest: request },
         });
     } catch (err) {

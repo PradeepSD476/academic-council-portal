@@ -1,6 +1,7 @@
 // Pure. Reads the "Add boards in bulk" paste (P6-T1, F-23): one board per line,
 // `kind token company name`, separated by spaces, tabs or commas. Blank lines and # comments are
-// ignored; bad lines are reported with their line number and the good ones are kept.
+// ignored (also at the end of a line, after a space: B-38); bad lines are reported with their line
+// number and the good ones are kept.
 export const MAX_BULK_LINES = 30;
 export const BULK_KINDS = ['GREENHOUSE', 'LEVER', 'ASHBY', 'SMARTRECRUITERS', 'WORKABLE'];
 // Same rule as Add board: board tokens are path segments on the ATS APIs.
@@ -13,7 +14,7 @@ export function parseBulkLines(text) {
     const lines = String(text ?? '').split(/\r?\n/);
     lines.forEach((raw, i) => {
         const lineNo = i + 1;
-        const line = raw.trim();
+        const line = raw.replace(/\s#.*$/, '').trim(); // "lever paytm Paytm # main board" ("C#" stays)
         if (!line || line.startsWith('#')) return;
         const fail = (reason) => errors.push({ lineNo, line, reason });
         const [kindPart, tokenPart, ...rest] = line.split(/[\s,]+/);
