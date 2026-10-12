@@ -42,8 +42,12 @@ export default function BulkAddSourcesDialog({ onClose, onDone }) {
     try {
       const res = await careersAdminApi.bulkCreateSources(lines);
       setDone(res.data);
-      toast.success(res.message, { duration: 6000 });
-      if (res.data.summary.added) onDone();
+      // B-45: a green tick only when something was added; nothing added + failures = error style.
+      const { added, failed } = res.data.summary;
+      if (added) toast.success(res.message, { duration: 6000 });
+      else if (failed) toast.error(res.message, { duration: 8000 });
+      else toast(res.message, { duration: 6000 });
+      if (added) onDone();
     } catch (err) {
       toast.error(errorMessage(err), { duration: 8000 });
     } finally {
