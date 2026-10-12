@@ -6,6 +6,7 @@ import { Modal, Skeleton, StatusChip, inputClass, outlineButton, primaryButton }
 import MergeDialog from "./MergeDialog";
 import SplitDialog from "./SplitDialog";
 import { safeHref } from "../../Careers/lib/format";
+import { plural } from "./components/format";
 
 const ORIGIN_LABEL = { SEED: "seed", MANUAL: "admin", AUTO: "auto", MERGE: "merge" };
 
@@ -61,6 +62,13 @@ export default function CompanyDetail({ companyId, onClose, onChanged, onOpenCom
   };
 
   const merged = company?.status === "MERGED";
+  // B-46: what stops "Move back to candidates", shown before the admin confirms.
+  const blockers = [
+    company?.usage?.live && plural(company.usage.live, "live posting"),
+    company?.usage?.sources && plural(company.usage.sources, "job board"),
+    company?.usage?.experiences && plural(company.usage.experiences, "linked experience"),
+  ].filter(Boolean);
+  const usedBy = (company?.usage?.live ?? 0) + (company?.usage?.sources ?? 0) + (company?.usage?.experiences ?? 0);
 
   return (
     <Modal wide title={company ? company.name : "Loading…"} onClose={onClose}>
@@ -111,10 +119,14 @@ export default function CompanyDetail({ companyId, onClose, onChanged, onOpenCom
                 company page, pickers) and it goes back to Candidates, where it can be approved again or rejected.
                 Postings that name it later are flagged for review.
               </p>
-              <p className="text-xs">Not possible while live postings, job boards or linked experiences use it: merge it into the right company instead.</p>
+              {blockers.length ? (
+                <p className="text-xs font-semibold">Not possible yet: {blockers.join(", ")} {usedBy === 1 ? "uses" : "use"} it. Merge it into the right company instead, or move those first.</p>
+              ) : (
+                <p className="text-xs">Nothing live uses it, so it can be moved back.</p>
+              )}
               <div className="flex flex-wrap gap-2">
                 <button type="button" className={outlineButton} disabled={busy} onClick={() => setConfirmUnapprove(false)}>Keep it approved</button>
-                <button type="button" className={primaryButton} disabled={busy}
+                <button type="button" className={primaryButton} disabled={busy || blockers.length > 0}
                   onClick={() => run(async () => toast.success((await careersAdminApi.unapproveCompany(companyId)).message)).then(() => setConfirmUnapprove(false))}>
                   Move back to candidates
                 </button>

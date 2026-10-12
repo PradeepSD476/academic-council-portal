@@ -1,6 +1,6 @@
 // Admin: company registry CRUD, aliases and candidate approval.
 import { z } from 'zod';
-import { rejectBody, rejectCandidate, restoreCandidate, statusWhere } from '../../services/careers/companies/rejectCandidate.js';
+import { rejectBody, rejectCandidate, restoreCandidate, statusWhere, companyUsage } from '../../services/careers/companies/rejectCandidate.js';
 import { unapproveCompany } from '../../services/careers/companies/unapproveCompany.js';
 import prisma from '../../config/db.js';
 import { CareersError, sendError, parseId } from '../../services/careers/errors.js';
@@ -93,7 +93,9 @@ export const getCompany = async (req, res) => {
         const mergedInto = company.mergedIntoId
             ? await prisma.company.findUnique({ where: { id: company.mergedIntoId }, select: { id: true, name: true, slug: true } })
             : null;
-        return res.status(200).json({ success: true, message: 'Company fetched.', data: { ...company, mergedInto } });
+        // B-46: what uses it (live postings, boards, experiences), so "Move back to candidates" can say up front why not.
+        const usage = await companyUsage(prisma, id);
+        return res.status(200).json({ success: true, message: 'Company fetched.', data: { ...company, mergedInto, usage } });
     } catch (err) {
         return sendError(res, err, 'getCompany');
     }
