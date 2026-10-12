@@ -7,7 +7,16 @@ firebase-service-account-key.json
 
 *Zone.Identifier
 
-# Seed file — local dev only, never commit
+# Seed files & local dev scripts — local dev only, never commit
 prisma/seed.js
+prisma/seedResearchVault.js
+prisma/seedResources.js
+prisma/seedFakeData.cjs
+prisma/seed-resources.make-files.py
+seedExperiences.js
+createAdmin.cjs
+create_admin.cjs
+makeAdmin.cjs
+tests/
 
 .env*
