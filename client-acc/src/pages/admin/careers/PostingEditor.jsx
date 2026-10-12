@@ -17,8 +17,10 @@ import PostingStatus from "./components/PostingStatusChip";
 import TakeDownDialog from "./components/TakeDownDialog";
 import DeletePostingDialog from "./components/DeletePostingDialog";
 import ReportsPanel from "./components/ReportsPanel";
+import { useEscapeLayer } from "./components/escapeLayers";
 
 export default function PostingEditor({ postingId, onClose, onChanged }) {
+  useEscapeLayer(onClose); // B-40: Escape closes the editor (a dialog opened from it closes first)
   const [posting, setPosting] = useState(null);
   const [form, setForm] = useState(null);
   const [company, setCompany] = useState(null);
