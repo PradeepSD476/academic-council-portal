@@ -26,7 +26,7 @@ const ManageResources = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [currentId, setCurrentId] = useState(null);
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
 
   const initialFormState = {
@@ -94,26 +94,26 @@ const ManageResources = () => {
     setIsUploading(true);
 
     try {
-      let finalFilePath = formData.filePath;
-
-      if (selectedFile) {
-        const uploadResult = await getFilePath({
-          file: selectedFile,
-          folder: "resources",
-        });
-        if (uploadResult?.filePath) {
-          finalFilePath = uploadResult.filePath;
-        } else {
-          toast.error("Failed to upload file");
-          throw new Error("File upload to GCS failed.");
-        }
-      }
-
       const selectedCourse = courses.find(
         (c) => c.id === parseInt(formData.courseId)
       );
+      const courseCode = selectedCourse ? selectedCourse.courseCode : "";
 
       if (editMode) {
+        let finalFilePath = formData.filePath;
+        if (selectedFiles.length > 0) {
+          const uploadResult = await getFilePath({
+            file: selectedFiles[0],
+            folder: "resources",
+          });
+          if (uploadResult?.filePath) {
+            finalFilePath = uploadResult.filePath;
+          } else {
+            toast.error("Failed to upload file");
+            throw new Error("File upload failed.");
+          }
+        }
+
         const editPayload = {
           ...formData,
           filePath: finalFilePath,
@@ -128,20 +128,53 @@ const ManageResources = () => {
         );
         toast.success("Resource Updated Successfully!");
       } else {
-        const addPayload = {
-          ...formData,
-          filePath: finalFilePath,
-          courseCode: selectedCourse ? selectedCourse.courseCode : "",
-          notifyUsers: notifyUsers,
-        };
-        delete addPayload.courseId;
+        if (selectedFiles.length === 0 && !formData.filePath) {
+          toast.error("Please select a file to upload");
+          throw new Error("No file selected");
+        }
 
-        await axios.post(
-          `${import.meta.env.VITE_API_URL}/v1/resources`,
-          addPayload,
-          { withCredentials: true }
-        );
-        toast.success("Resource Created Successfully!");
+        const filesToUpload = selectedFiles.length > 0 ? selectedFiles : [null];
+        let successCount = 0;
+
+        for (const file of filesToUpload) {
+          let finalFilePath = formData.filePath;
+          if (file) {
+            const uploadResult = await getFilePath({
+              file: file,
+              folder: "resources",
+            });
+            if (uploadResult?.filePath) {
+              finalFilePath = uploadResult.filePath;
+            } else {
+              toast.error(`Failed to upload ${file.name}`);
+              continue;
+            }
+          }
+
+          // Use the file name as the title if multiple files are selected or title is empty
+          const generatedTitle = file ? file.name.replace(/\.[^/.]+$/, "") : "Resource";
+          const finalTitle = selectedFiles.length > 1 || !formData.title ? generatedTitle : formData.title;
+
+          const addPayload = {
+            ...formData,
+            title: finalTitle,
+            filePath: finalFilePath,
+            courseCode: courseCode,
+            notifyUsers: notifyUsers,
+          };
+          delete addPayload.courseId;
+
+          await axios.post(
+            `${import.meta.env.VITE_API_URL}/v1/resources`,
+            addPayload,
+            { withCredentials: true }
+          );
+          successCount++;
+        }
+
+        if (successCount > 0) {
+          toast.success(`${successCount} Resource(s) Created Successfully!`);
+        }
       }
 
       closeModal();
@@ -184,7 +217,7 @@ const ManageResources = () => {
     setIsModalOpen(false);
     setEditMode(false);
     setFormData(initialFormState);
-    setSelectedFile(null);
+    setSelectedFiles([]);
   };
 
   const handleChange = (e) => {
@@ -371,11 +404,12 @@ const ManageResources = () => {
                   <input
                     type="text"
                     name="title"
-                    required
+                    required={editMode || selectedFiles.length <= 1}
+                    disabled={!editMode && selectedFiles.length > 1}
                     value={formData.title}
                     onChange={handleChange}
-                    placeholder="e.g. Endsem 2024 PYQ with Solutions"
-                    className="w-full px-3.5 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition"
+                    placeholder={!editMode && selectedFiles.length > 1 ? "Auto-generated from file names" : "e.g. Endsem 2024 PYQ with Solutions"}
+                    className="w-full px-3.5 py-2.5 border border-slate-200 bg-white/90 rounded-xl text-[var(--color-primary)] placeholder-slate-400 focus:border-[var(--color-secondary)] focus:outline-none text-sm transition disabled:opacity-50 disabled:bg-slate-50"
                   />
                 </div>
 
@@ -439,10 +473,20 @@ const ManageResources = () => {
                     </label>
                     <input
                       type="file"
-                      onChange={(e) => setSelectedFile(e.target.files[0])}
+                      multiple={!editMode}
+                      onChange={(e) => setSelectedFiles(Array.from(e.target.files))}
                       className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[var(--color-secondary)]/15 file:text-[var(--color-secondary)] hover:file:bg-[var(--color-secondary)]/25 cursor-pointer"
                     />
-                    {editMode && !selectedFile && formData.filePath && (
+                    {selectedFiles.length > 0 && (
+                      <div className="mt-2 flex flex-col gap-1 max-h-24 overflow-y-auto">
+                        {selectedFiles.map((f, i) => (
+                           <p key={i} className="text-[10px] text-slate-500 truncate">
+                             Selected: {f.name}
+                           </p>
+                        ))}
+                      </div>
+                    )}
+                    {editMode && selectedFiles.length === 0 && formData.filePath && (
                       <p className="text-[10px] text-slate-500 mt-1 truncate">
                         Current: {formData.filePath.split("/").pop()}
                       </p>

@@ -4,6 +4,7 @@ export const getUsers = async (req, res) => {
     const page = parseInt(req.query.page);
     const limit = parseInt(req.query.limit);
     const search = req.query.search?.trim() || "";
+    const onlineOnly = req.query.online === 'true';
     if (!page || !limit) {
         return res.status(400).json({
             success: false,
@@ -19,37 +20,23 @@ export const getUsers = async (req, res) => {
         })
     }
     try {
+    const whereClause = {};
+
+    if (search) {
+        whereClause.OR = [
+            { displayName: { contains: search, mode: 'insensitive' } },
+            { email: { contains: search, mode: 'insensitive' } },
+            { branchName: { contains: search, mode: 'insensitive' } },
+            { rollNo: { contains: search, mode: 'insensitive' } },
+        ];
+    }
+
+    if (onlineOnly) {
+        whereClause.lastseen = { gt: new Date(Date.now() - 60 * 1000) };
+    }
+
     const results = await prisma.user.findMany({
-    where: search
-        ? {
-            OR: [
-                {
-                    displayName: {
-                        contains: search,
-                        mode: 'insensitive'
-                    }
-                },
-                {
-                    email: {
-                        contains: search,
-                        mode: 'insensitive'
-                    }
-                },
-                {
-                    branchName: {
-                        contains: search,
-                        mode: 'insensitive'
-                    }
-                },
-                {
-                   rollNo: {
-                        contains: search,
-                        mode: 'insensitive'
-                    }
-                }
-            ]
-        }
-        : {},
+    where: whereClause,
     skip: (page - 1) * limit,
     take: limit,
     orderBy: [

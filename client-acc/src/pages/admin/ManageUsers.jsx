@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Users, Shield, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { Users, Shield, ChevronLeft, ChevronRight, Loader2, Wifi } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const ManageUsers = () => {
@@ -12,13 +12,14 @@ const ManageUsers = () => {
   const limit = 10;
   const [hasMore, setHasMore] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [onlineOnly, setOnlineOnly] = useState(false);
 
   const roles = ['STUDENT', 'CAREER_ADMIN', 'ANNOUNCEMENT_ADMIN', 'RESOURCE_ADMIN', 'FINANCE_ADMIN', 'SUPER_ADMIN', 'FACULTY'];
 
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/v1/users?page=${page}&limit=${limit}&search=${searchTerm}`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/v1/users?page=${page}&limit=${limit}&search=${searchTerm}${onlineOnly ? '&online=true' : ''}`, {
         withCredentials: true
       });
 
@@ -40,7 +41,7 @@ const ManageUsers = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, [page, searchTerm]);
+  }, [page, searchTerm, onlineOnly]);
 
   const handleRoleChange = async (userId, newRole) => {
     setUpdatingId(userId);
@@ -79,18 +80,31 @@ const ManageUsers = () => {
         </div>
       </div>
 
-      {/* Search Input */}
-      <div className="relative w-full max-w-md">
-        <input
-          type="text"
-          placeholder="Search by name, email, branch, roll number..."
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            setPage(1);
-          }}
-          className="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-white/95 backdrop-blur-xl shadow-xs text-[var(--color-primary)] placeholder-slate-400 focus:outline-none focus:border-[var(--color-secondary)] focus:ring-1 focus:ring-[var(--color-secondary)] text-sm shadow-sm transition"
-        />
+      {/* Search & Filter Bar */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        <div className="relative w-full max-w-md">
+          <input
+            type="text"
+            placeholder="Search by name, email, branch, roll number..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
+            className="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-white/95 backdrop-blur-xl shadow-xs text-[var(--color-primary)] placeholder-slate-400 focus:outline-none focus:border-[var(--color-secondary)] focus:ring-1 focus:ring-[var(--color-secondary)] text-sm shadow-sm transition"
+          />
+        </div>
+        <button
+          onClick={() => { setOnlineOnly(prev => !prev); setPage(1); }}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-xs font-bold transition-all duration-200 cursor-pointer shrink-0 ${
+            onlineOnly
+              ? 'bg-emerald-50 border-emerald-300 text-emerald-700 shadow-sm'
+              : 'bg-white/95 border-slate-200 text-slate-500 hover:border-slate-300'
+          }`}
+        >
+          <Wifi size={14} className={onlineOnly ? 'text-emerald-500' : 'text-slate-400'} />
+          {onlineOnly ? 'Online Only' : 'Show Online'}
+        </button>
       </div>
 
       {/* Main Content Area */}

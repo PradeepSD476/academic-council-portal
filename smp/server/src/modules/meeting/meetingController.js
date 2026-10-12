@@ -73,6 +73,10 @@ export const updateMeetingMOM = async (req, res) => {
         const { id } = req.params;
         const { momUrl } = req.body;
 
+        if (!momUrl || typeof momUrl !== 'string' || !momUrl.trim()) {
+            return res.status(400).json({ success: false, message: 'MoM URL or notes content is required' });
+        }
+
         const meetingToUpdate = await prisma.meeting.findUnique({
             where: { id },
             include: { group: true }
@@ -86,10 +90,10 @@ export const updateMeetingMOM = async (req, res) => {
 
         const meeting = await prisma.meeting.update({
             where: { id },
-            data: { momUrl }
+            data: { momUrl: momUrl.trim() }
         });
 
-        res.json({ success: true, meeting });
+        res.json({ success: true, message: 'Meeting MoM updated successfully', meeting });
     } catch (error) {
         console.error('Update MOM error:', error);
         res.status(500).json({ success: false, message: 'Server error' });
@@ -100,6 +104,10 @@ export const updateMeetingAttendance = async (req, res) => {
     try {
         const { id } = req.params;
         const { attendeeIds } = req.body;
+
+        if (!attendeeIds || !Array.isArray(attendeeIds)) {
+            return res.status(400).json({ success: false, message: 'attendeeIds array is required' });
+        }
 
         const meetingToUpdate = await prisma.meeting.findUnique({
             where: { id },
@@ -117,7 +125,7 @@ export const updateMeetingAttendance = async (req, res) => {
             data: { attendeeIds }
         });
 
-        res.json({ success: true, meeting });
+        res.json({ success: true, message: 'Meeting attendance updated successfully', meeting });
     } catch (error) {
         console.error('Update attendance error:', error);
         res.status(500).json({ success: false, message: 'Server error' });

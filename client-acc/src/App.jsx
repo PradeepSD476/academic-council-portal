@@ -49,7 +49,16 @@ import AdminPostEditor from "./components/Editor.jsx";
 import FinanceDashboard from "./pages/FinanceVault/admin/Dashboard.jsx";
 import AddScholarship from "./pages/FinanceVault/admin/AddScholarship.jsx";
 import EditScholarship from "./pages/FinanceVault/admin/EditScholarship.jsx";
+<<<<<<< HEAD
 
+=======
+import LevelUp from "./pages/student/LevelUp.jsx";
+import ManageRoadmap from "./pages/admin/ManageRoadmap.jsx";
+import DoubtForum from "./pages/DoubtForum/index.jsx";
+import AskDoubt from "./pages/DoubtForum/AskDoubt.jsx";
+import DoubtThread from "./pages/DoubtForum/DoubtThread.jsx";
+import ManageDoubts from "./pages/admin/ManageDoubts.jsx";
+>>>>>>> upstream/main
 const AppRoutes = () => {
   return (
     <Routes>
@@ -91,11 +100,33 @@ const AppRoutes = () => {
             <Route path=":key" element={<CourseResources />} />
           </Route>
         </Route>
+<<<<<<< HEAD
         <Route path="announcements" element={<Announcements />} />
         <Route path="career-vault" element={<CareerVault />} />
         <Route path="finance-vault" element={<FinanceVault />} />
         <Route path="finance-vault/:id" element={<ScholarshipDetails />} />
         <Route path="wiki" element={<WikiHome />} />
+=======
+     <Route path="announcements" element={<Announcements />} />
+
+<Route path="career-vault" element={<CareerVault />} />
+
+<Route path="finance-vault" element={<FinanceVault />} />
+
+<Route
+  path="finance-vault/:id"
+  element={<ScholarshipDetails />}
+/>
+
+<Route path="level-up" element={<LevelUp />} />
+<Route path="level-up/:roadmapSlug/:chapterSlug" element={<LevelUp />} />
+
+        {/* ACC Wiki: doubt forum */}
+        <Route path="doubts" element={<DoubtForum />} />
+        <Route path="doubts/ask" element={<AskDoubt />} />
+        <Route path="doubts/:id" element={<DoubtThread />} />
+        <Route path="doubts/:id/edit" element={<AskDoubt />} />
+>>>>>>> upstream/main
       </Route>
 
       {/* Admin Portal */}
@@ -187,6 +218,7 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+<<<<<<< HEAD
         <Route
           path="finance-vault"
           element={
@@ -208,6 +240,53 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute roles={["SUPER_ADMIN", "FINANCE_ADMIN"]}>
               <EditScholarship />
+=======
+         <Route
+  path="finance-vault"
+  element={
+    <ProtectedRoute
+      roles={["SUPER_ADMIN", "FINANCE_ADMIN"]}
+    >
+      <FinanceDashboard />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="finance-vault/add"
+  element={
+    <ProtectedRoute
+      roles={["SUPER_ADMIN", "FINANCE_ADMIN"]}
+    >
+      <AddScholarship />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="finance-vault/edit/:id"
+  element={
+    <ProtectedRoute
+      roles={["SUPER_ADMIN", "FINANCE_ADMIN"]}
+    >
+      <EditScholarship />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="level-up"
+  element={
+    <ProtectedRoute roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "RESOURCE_ADMIN", "FACULTY", "CAREER_ADMIN", "FINANCE_ADMIN"]}>
+      <ManageRoadmap />
+    </ProtectedRoute>
+  }
+/>
+        <Route
+          path="manage-doubts"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY"]}>
+              <ManageDoubts />
+>>>>>>> upstream/main
             </ProtectedRoute>
           }
         />
