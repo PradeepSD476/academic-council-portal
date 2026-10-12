@@ -204,7 +204,6 @@ export default function DashboardLayout() {
                   label="Doubt Forum"
                   onClick={() => setOpen(false)}
                 />
-                {/* Level Up — hidden until feature reveal
                 <SidebarItem
                   to="/dashboard/level-up"
                   icon={<TrendingUp size={16} />}
@@ -212,7 +211,7 @@ export default function DashboardLayout() {
                   label="Level Up"
                   onClick={() => setOpen(false)}
                 />
-                */}
+
               </>
             )}
 
