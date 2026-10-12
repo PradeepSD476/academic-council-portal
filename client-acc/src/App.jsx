@@ -1,49 +1,59 @@
 import React from "react";
-import VerifyRoll from "./pages/Login/VerifyRoll.jsx";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+
+// Context & Higher-Order Providers
+import AuthState from "./context/auth/authState.jsx";
+import SmoothScroll from "./components/layout/SmoothScroll.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
+
+// Layout & UI Components
 import Navbar from "./components/layout/navbar.jsx";
 import Footer from "./components/layout/footer.jsx";
 import AuroraBackground from "./components/layout/AuroraBackground.jsx";
-import SmoothScroll from "./components/layout/SmoothScroll.jsx";
+import DashboardLayout from "./layout/DashboardLayout.jsx";
+
+// Public Pages
 import Home from "./pages/Home/page.jsx";
 import AccTeam from "./pages/Team/page.jsx";
+import DevTeam from "./pages/Developers/page.jsx";
+import AdminTeam from "./pages/adminSection/page.jsx";
 import WingPage from "./pages/Wing/page.jsx";
 import Wings from "./pages/Wings/page.jsx";
-import AuthState from "./context/auth/authState.jsx";
-import DashboardLayout from "./layout/DashboardLayout.jsx";
+import FAQPage from "./pages/FAQ/page.jsx";
+import SignIn from "./pages/Login/page.jsx";
+import SignUp from "./pages/Signup/page.jsx";
+import VerifyRoll from "./pages/Login/VerifyRoll.jsx";
+
+// Student Portal Pages
 import MyCourses from "./pages/student/MyCourses.jsx";
+import ChooseResource from "./pages/student/ChooseResource.jsx";
+import CourseResources from "./pages/student/courseResources.jsx";
 import Announcements from "./pages/student/Announcements.jsx";
+import CareerVault from "./pages/CareerVaultuser/index.jsx";
+import FinanceVault from "./pages/FinanceVault/index.jsx";
+import ScholarshipDetails from "./pages/FinanceVault/ScholarshipDetails.jsx";
+
+// ACC Wiki Module
+import WikiHome from "./pages/Wiki";
+import ManageWiki from "./pages/admin/ManageWiki";
+
+// Admin Portal Pages
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import ManageCourses from "./pages/admin/ManageCourses.jsx";
 import ManageUsers from "./pages/admin/ManageUsers.jsx";
 import ManageResources from "./pages/admin/ManageResources.jsx";
 import ManageAnnouncement from "./pages/admin/ManageAnnouncement.jsx";
-import { Toaster } from "react-hot-toast";
-import ProtectedRoute from "./components/ProtectedRoute.jsx";
-import ChooseResource from "./pages/student/ChooseResource.jsx";
-import CourseResources from "./pages/student/courseResources.jsx";
-import SignIn from "./pages/Login/page.jsx";
-import SignUp from "./pages/Signup/page.jsx";
-import DevTeam from "./pages/Developers/page.jsx";
-import AdminTeam from "./pages/adminSection/page.jsx";
-import CareerVault from "./pages/CareerVaultuser/index.jsx";
 import ManagePost from "./pages/admin/ManagePost.jsx";
 import AdminPostEditor from "./components/Editor.jsx";
-import FAQPage from "./pages/FAQ/page.jsx";
-import FinanceVault from "./pages/FinanceVault/index.jsx";
-import ScholarshipDetails from "./pages/FinanceVault/ScholarshipDetails.jsx";
 import FinanceDashboard from "./pages/FinanceVault/admin/Dashboard.jsx";
 import AddScholarship from "./pages/FinanceVault/admin/AddScholarship.jsx";
 import EditScholarship from "./pages/FinanceVault/admin/EditScholarship.jsx";
 
-// ACC Wiki imports
-import WikiHome from "./pages/Wiki";
-import ManageWiki from "./pages/admin/ManageWiki";
-
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* public routes */}
+      {/* Public Routes */}
       <Route path="/" element={<Home />} />
       <Route path="/team" element={<AccTeam />} />
       <Route path="/devs" element={<DevTeam />} />
@@ -56,7 +66,7 @@ const AppRoutes = () => {
       <Route path="/register" element={<SignUp />} />
       <Route path="/login-with-roll" element={<VerifyRoll />} />
 
-      {/* student portal */}
+      {/* Student Portal */}
       <Route
         path="/dashboard"
         element={
@@ -88,7 +98,7 @@ const AppRoutes = () => {
         <Route path="wiki" element={<WikiHome />} />
       </Route>
 
-      {/* admin portal */}
+      {/* Admin Portal */}
       <Route
         path="/admin"
         element={

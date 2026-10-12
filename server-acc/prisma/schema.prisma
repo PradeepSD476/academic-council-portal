@@ -11,16 +11,14 @@ datasource db {
 model User {
   id                  Int            @id @default(autoincrement())
   email               String         @unique
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
-  admissionYear       Int?
-  branchName          String?
-  displayName         String?
-  photoURL            String?
-  program             Program?
+  password            String         @default("xyz")
   role                Role           @default(STUDENT)
   rollNo              String?
-  password            String         @default("xyz")
+  displayName         String?
+  photoURL            String?
+  admissionYear       Int?
+  branchName          String?
+  program             Program?
   lastseen            DateTime?
   postedAnnouncements Announcement[]
   comments            Comment[]      @relation("CommentBy")
@@ -28,7 +26,9 @@ model User {
   likes               Like[]
   uploadedResources   Resource[]
   bookmarks           Bookmark[]
-  wikiArticles        WikiArticle[]  // Relation to created Wiki Articles
+  wikiArticles        WikiArticle[]
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
 }
 
 model Experience {
@@ -37,25 +37,25 @@ model Experience {
   description    String         @db.Text
   experienceType ExperienceType
   status         ContentStatus
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  uploadedById   Int
   domain         String?
   resumeUrl      String?
-  comments       Comment[]
+  uploadedById   Int
   uploadedBy     User           @relation(fields: [uploadedById], references: [id])
+  comments       Comment[]
   likes          Like[]
   bookmarks      Bookmark[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 }
 
 model Bookmark {
   id        Int        @id @default(autoincrement())
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
   postId    Int
   post      Experience @relation(fields: [postId], references: [id], onDelete: Cascade)
   userId    Int
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
   @@unique([userId, postId])
   @@index([postId])
@@ -65,8 +65,6 @@ model Bookmark {
 model Comment {
   id        Int         @id @default(autoincrement())
   content   String?
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
   postId    Int?
   userId    Int
   parentId  Int?
@@ -75,6 +73,8 @@ model Comment {
   replies   Comment[]   @relation("ParentComment")
   post      Experience? @relation(fields: [postId], references: [id])
   user      User        @relation("CommentBy", fields: [userId], references: [id])
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 
   @@index([postId])
   @@index([rootId])
@@ -84,12 +84,12 @@ model Comment {
 
 model Like {
   id        Int         @id @default(autoincrement())
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
   postId    Int?
   userId    Int
   post      Experience? @relation(fields: [postId], references: [id])
   user      User        @relation(fields: [userId], references: [id])
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 
   @@unique([userId, postId])
   @@index([postId])
@@ -100,9 +100,9 @@ model Verification {
   email      String
   otpHash    String
   type       VerificationType
+  expiringAt DateTime
   createdAt  DateTime         @default(now())
   updatedAt  DateTime         @updatedAt
-  expiringAt DateTime
 
   @@index([email])
   @@index([expiringAt])
@@ -113,14 +113,14 @@ model Course {
   courseCode    String     @unique
   name          String
   description   String?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
   academicYear  Int
   allowedBranch String[]
   program       Program
   credits       Decimal    @db.Decimal
   instructor    String
   resources     Resource[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 }
 
 model Resource {
@@ -131,24 +131,24 @@ model Resource {
   resourceType ResourceType
   uploadedById Int?
   courseId     Int?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
   course       Course?      @relation(fields: [courseId], references: [id])
   uploadedBy   User?        @relation(fields: [uploadedById], references: [id])
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 }
 
 model Announcement {
   id             Int      @id @default(autoincrement())
   title          String
   description    String?
+  type           String   @default("GENERAL")
   isPinned       Boolean  @default(false)
   isFileAttached Boolean  @default(false)
   filePath       String?
   uploadedById   Int?
+  uploadedBy     User?    @relation(fields: [uploadedById], references: [id])
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-  type           String   @default("GENERAL")
-  uploadedBy     User?    @relation(fields: [uploadedById], references: [id])
 }
 
 model FinanceVault {
