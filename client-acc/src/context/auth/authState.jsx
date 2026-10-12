@@ -114,10 +114,11 @@ const AuthState = ({ children }) => {
         try {
             await fetch(
                 `${import.meta.env.VITE_API_URL}/v1/auth/logout`,
-                { withCredentials: true }
+                { credentials: "include" }
             );
             setUser(null);
-            toast.success("user logged out.")
+            toast.success("user logged out.");
+            navigate('/login');
         } catch (err) {
             toast.error("Unable to logout, Please try again later.")
             console.error(err);
