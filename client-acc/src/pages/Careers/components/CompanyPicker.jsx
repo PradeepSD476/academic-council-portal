@@ -28,7 +28,21 @@ const styles = {
   }),
 };
 
-export default function CompanyPicker({ inputId, value, onChange, noMatchText = "No company matches. Leave it empty." }) {
+// plain (B-47): white box with the admin experience editor's corners and blue focus ring.
+const plainStyles = {
+  ...styles,
+  control: (base, state) => ({
+    ...styles.control(base, state),
+    borderRadius: "0.5rem",
+    backgroundColor: "white",
+    borderColor: state.isFocused ? "#2563eb" : "#e2e8f0",
+    boxShadow: state.isFocused ? "0 0 0 2px rgb(37 99 235 / 0.1)" : "none",
+    "&:hover": { borderColor: state.isFocused ? "#2563eb" : "#cbd5e1" },
+  }),
+  singleValue: (base) => ({ ...base, color: "#0f172a" }),
+};
+
+export default function CompanyPicker({ inputId, value, onChange, noMatchText = "No company matches. Leave it empty.", plain = false }) {
   const timer = useRef(null);
   const wrapRef = useRef(null);
 
@@ -69,7 +83,7 @@ export default function CompanyPicker({ inputId, value, onChange, noMatchText = 
         placeholder="Search company…"
         noOptionsMessage={({ inputValue }) => (inputValue ? noMatchText : "Type to search")}
         loadingMessage={() => "Searching…"}
-        styles={styles}
+        styles={plain ? plainStyles : styles}
         // The list is drawn on <body> so a card with its own stacking context (backdrop blur) can't
         // cover it; fixed position follows the box.
         classNamePrefix="cp"

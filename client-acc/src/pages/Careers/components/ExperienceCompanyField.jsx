@@ -15,7 +15,7 @@ export default function ExperienceCompanyField({ company, onChange }) {
   if (!careers.enabled) return null;
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1.5 md:col-span-2">
       <label htmlFor="editor-company" className="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider">
         <Building2 size={14} className="text-blue-600" />
         <span>Company</span>
@@ -28,6 +28,7 @@ export default function ExperienceCompanyField({ company, onChange }) {
           onChange(next ? next.value : null);
         }}
         noMatchText="No approved company matches. Add it on the Companies page first."
+        plain
       />
       <p className="text-xs text-slate-500">The experience shows on this company's page once published. Clear it to unlink.</p>
     </div>
