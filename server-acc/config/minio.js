@@ -10,6 +10,7 @@ const storage = new Minio.Client({
   secretKey: process.env.MINIO_SECRET_KEY || 'minioadmin',
 });
 
+<<<<<<< HEAD
 console.log("\x1b[34m%s\x1b[0m", "CheckPoint0/minio.js");
 
 const bucketName = process.env.MINIO_BUCKET_NAME || 'acc-portal';
@@ -27,6 +28,20 @@ async function ensureBucket() {
     }
   } catch (err) {
     console.warn(`MinIO connection warning (skipping bucket check): ${err.message}`);
+=======
+const bucketName = process.env.MINIO_BUCKET_NAME;
+if (!bucketName) {
+  throw new Error("MINIO_BUCKET_NAME is undefined");
+}
+
+async function ensureBucket() {
+  const exists = await storage.bucketExists(bucketName);
+  if (exists) {
+    console.log(`Bucket "${bucketName}" already exists`);
+  } else {
+    await storage.makeBucket(bucketName, "us-east-1");
+    console.log(`Bucket "${bucketName}" created`);
+>>>>>>> upstream/main
   }
 }
 

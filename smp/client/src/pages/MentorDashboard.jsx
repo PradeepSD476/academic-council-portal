@@ -4,8 +4,10 @@ import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LogOut, Users, CalendarPlus, FileText, Clock, Plus, Trash2,
-  CheckCircle2, Link2, Star, User, Menu, X, ChevronRight, Mail
+  CheckCircle2, Link2, Star, User, Menu, X, ChevronRight, Mail,
+  Pencil
 } from 'lucide-react';
+import { useToast } from '../components/ui/toast';
 import { fmt } from '../lib/mockData';
 import api from '../lib/api';
 import ProfileTab from '../components/ProfileTab';
@@ -313,47 +315,85 @@ function MeetingRow({ meeting: m, onDelete, past }) {
   );
 }
 
-// ── Tab 3: Submit MOM ─────────────────────────────────────────────────────────
-function MOMTab({ group, meetings, onUpdated }) {
-  const [selectedMeeting, setSelectedMeeting] = useState('');
+// ── Tab 3: Submit / Edit MOM ──────────────────────────────────────────────────
+function MOMTab({ group, meetings, onUpdated, preselectedMeetingId, onMeetingSelected }) {
+  const toast = useToast();
+  const [selectedMeeting, setSelectedMeeting] = useState(preselectedMeetingId || '');
   const [momUrl, setMomUrl] = useState('');
   const [saving, setSaving] = useState(false);
   const [attendance, setAttendance] = useState({});
 
-  const pastMeetings = meetings.filter(m => new Date(m.date) < new Date() && !m.momUrl);
+  const pastMeetings = meetings.filter(m => new Date(m.date) < new Date());
 
   const allMembers = [
     ...(group.coMentors || []).map(m => ({ ...m, role: 'co-mentor' })),
     ...(group.mentees || []).map(m => ({ ...m, role: 'mentee' })),
   ];
 
+  // Sync if preselectedMeetingId changes from outside (e.g. from History tab)
+  useEffect(() => {
+    if (preselectedMeetingId) {
+      setSelectedMeeting(preselectedMeetingId);
+    }
+  }, [preselectedMeetingId]);
+
   useEffect(() => {
     if (selectedMeeting) {
       const mtg = pastMeetings.find(m => m.id === selectedMeeting);
-      const initialAttendance = {};
-      allMembers.forEach(m => {
-        initialAttendance[m.id] = mtg?.attendeeIds?.includes(m.id) ?? false;
-      });
-      setAttendance(initialAttendance);
+      if (mtg) {
+        setMomUrl(mtg.momUrl || '');
+        const initialAttendance = {};
+        allMembers.forEach(m => {
+          if (mtg.attendeeIds && mtg.attendeeIds.length > 0) {
+            initialAttendance[m.id] = mtg.attendeeIds.includes(m.id);
+          } else {
+            initialAttendance[m.id] = false;
+          }
+        });
+        setAttendance(initialAttendance);
+      }
+    } else {
+      setMomUrl('');
+      setAttendance({});
     }
-  }, [selectedMeeting]);
+  }, [selectedMeeting, meetings]);
+
+  const handleSelectMeeting = (id) => {
+    setSelectedMeeting(id);
+    onMeetingSelected?.(id);
+  };
+
+  const selectedMtg = pastMeetings.find(m => m.id === selectedMeeting);
+  const isEditing = Boolean(selectedMtg?.momUrl);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedMeeting || !momUrl) return;
+    if (!selectedMeeting || !momUrl.trim()) return;
     setSaving(true);
     try {
-      await api.put(`/meeting/${selectedMeeting}/mom`, { momUrl });
+      await api.put(`/meeting/${selectedMeeting}/mom`, { momUrl: momUrl.trim() });
 
       const presentIds = Object.keys(attendance).filter(id => attendance[id]);
       await api.put(`/meeting/${selectedMeeting}/attendance`, { attendeeIds: presentIds });
 
+      toast({
+        title: isEditing ? 'MoM Updated Successfully' : 'MoM Submitted Successfully',
+        description: `Meeting minutes and attendance for "${selectedMtg?.title || 'Meeting'}" have been saved.`,
+        variant: 'success'
+      });
+
       setSelectedMeeting('');
       setMomUrl('');
       setAttendance({});
+      onMeetingSelected?.(null);
       onUpdated?.();
     } catch (err) {
       console.error(err);
+      toast({
+        title: 'Error Saving MoM',
+        description: err.response?.data?.message || 'Failed to save meeting minutes. Please try again.',
+        variant: 'error'
+      });
     } finally {
       setSaving(false);
     }
@@ -364,40 +404,116 @@ function MOMTab({ group, meetings, onUpdated }) {
   return (
     <div className="space-y-6 max-w-3xl">
       <SectionCard className="p-8">
-        <h3 className="font-bold text-on-surface text-lg mb-6 flex items-center gap-2">
-          <FileText className="w-5 h-5 text-primary" /> Submit Minutes of Meeting
-        </h3>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+          <h3 className="font-bold text-on-surface text-lg flex items-center gap-2">
+            <FileText className="w-5 h-5 text-primary" />
+            {isEditing ? 'Edit / Update Minutes of Meeting' : 'Submit Minutes of Meeting'}
+          </h3>
+          {selectedMtg && (
+            <span className={`self-start sm:self-auto text-xs font-bold px-3 py-1 rounded-full border ${
+              isEditing 
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                : 'bg-amber-50 text-amber-700 border-amber-200'
+            }`}>
+              {isEditing ? '✓ MoM Already Submitted (Editing Mode)' : '⏳ MoM Pending'}
+            </span>
+          )}
+        </div>
+
         {pastMeetings.length === 0 ? (
           <div className="p-12 text-center border-dashed rounded-2xl border border-outline-variant/30">
-            <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-4" />
-            <p className="text-on-surface font-semibold">All caught up!</p>
-            <p className="text-on-surface-variant text-sm mt-1">No pending past meetings need a MOM.</p>
+            <Clock className="w-10 h-10 text-outline-variant mx-auto mb-4" />
+            <p className="text-on-surface font-semibold">No past meetings found.</p>
+            <p className="text-on-surface-variant text-sm mt-1">Schedule and conduct a meeting first to submit minutes.</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-8">
             <div className="space-y-6">
               <FormField label="Select Past Meeting *">
-                <select required value={selectedMeeting} onChange={e => setSelectedMeeting(e.target.value)} className={inputClass}>
-                  <option value="" disabled>Select a meeting...</option>
+                <select 
+                  required 
+                  value={selectedMeeting} 
+                  onChange={e => handleSelectMeeting(e.target.value)} 
+                  className={inputClass}
+                >
+                  <option value="" disabled>Select a meeting to submit or edit MoM...</option>
                   {pastMeetings.map(m => (
-                    <option key={m.id} value={m.id}>{m.title} - {fmt.date(m.date)}</option>
+                    <option key={m.id} value={m.id}>
+                      {m.title} — {fmt.date(m.date)} {m.momUrl ? '• (Submitted - Edit)' : '• (Pending)'}
+                    </option>
                   ))}
                 </select>
               </FormField>
+
+              {selectedMtg?.momUrl && (
+                <div className="p-3.5 bg-surface-container-low rounded-xl border border-outline-variant/30 flex items-center justify-between gap-3 text-xs">
+                  <span className="text-on-surface-variant truncate">
+                    <strong>Current Link/Notes:</strong> {selectedMtg.momUrl}
+                  </span>
+                  {selectedMtg.momUrl.startsWith('http') && (
+                    <a
+                      href={selectedMtg.momUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-primary hover:underline font-semibold flex items-center gap-1 shrink-0"
+                    >
+                      <Link2 className="w-3.5 h-3.5" /> Open Link
+                    </a>
+                  )}
+                </div>
+              )}
+
               <FormField label="MOM Document URL / Summary *">
-                <input required value={momUrl} onChange={e => setMomUrl(e.target.value)}
-                  placeholder="Google Docs link or brief summary..." className={inputClass} />
+                <input 
+                  required 
+                  value={momUrl} 
+                  onChange={e => setMomUrl(e.target.value)}
+                  placeholder="Google Docs link or brief summary..." 
+                  className={inputClass} 
+                />
               </FormField>
             </div>
 
             {selectedMeeting && (
               <div className="border-t border-outline-variant/20 pt-6">
-                <h4 className="text-sm font-semibold text-on-surface mb-4">Attendance Checklist</h4>
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-sm font-semibold text-on-surface">Attendance Checklist</h4>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const allTrue = {};
+                        allMembers.forEach(m => { allTrue[m.id] = true; });
+                        setAttendance(allTrue);
+                      }}
+                      className="text-xs text-primary hover:underline font-semibold"
+                    >
+                      Mark All Present
+                    </button>
+                    <span className="text-outline-variant">•</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const allFalse = {};
+                        allMembers.forEach(m => { allFalse[m.id] = false; });
+                        setAttendance(allFalse);
+                      }}
+                      className="text-xs text-on-surface-variant hover:underline font-semibold"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+
                 <div className="space-y-3">
                   {allMembers.map(m => (
                     <label key={m.id} className="flex items-center gap-4 p-4 rounded-xl bg-surface border border-outline-variant/30 cursor-pointer hover:border-primary/50 transition-colors">
-                      <input type="checkbox" checked={attendance[m.id] || false} onChange={() => setAttendance(p => ({ ...p, [m.id]: !p[m.id] }))}
-                        className="w-5 h-5 rounded border-outline-variant/50 text-primary focus:ring-primary accent-primary" />
+                      <input 
+                        type="checkbox" 
+                        checked={attendance[m.id] || false} 
+                        onChange={() => setAttendance(p => ({ ...p, [m.id]: !p[m.id] }))}
+                        className="w-5 h-5 rounded border-outline-variant/50 text-primary focus:ring-primary accent-primary" 
+                      />
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-semibold text-on-surface truncate">{m.name}</div>
                         <div className="text-xs text-on-surface-variant mt-0.5 font-mono">{m.rollNumber} • {m.role}</div>
@@ -411,10 +527,17 @@ function MOMTab({ group, meetings, onUpdated }) {
               </div>
             )}
 
-            <button type="submit" disabled={saving}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-primary hover:bg-on-primary-fixed-variant text-on-primary font-semibold text-sm px-8 py-3.5 rounded-xl shadow-sm hover:shadow disabled:opacity-50 active:scale-[0.98] transition-all duration-200">
-              {saving ? 'Submitting...' : 'Submit MOM & Attendance'}
-            </button>
+            <div className="flex items-center gap-3">
+              <button 
+                type="submit" 
+                disabled={saving || !selectedMeeting}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-primary hover:bg-on-primary-fixed-variant text-on-primary font-semibold text-sm px-8 py-3.5 rounded-xl shadow-sm hover:shadow disabled:opacity-50 active:scale-[0.98] transition-all duration-200"
+              >
+                {saving 
+                  ? (isEditing ? 'Updating...' : 'Submitting...') 
+                  : (isEditing ? 'Update MOM & Attendance' : 'Submit MOM & Attendance')}
+              </button>
+            </div>
           </form>
         )}
       </SectionCard>
@@ -423,7 +546,7 @@ function MOMTab({ group, meetings, onUpdated }) {
 }
 
 // ── Tab 4: History ────────────────────────────────────────────────────────────
-function HistoryTab({ meetings }) {
+function HistoryTab({ meetings, onEditMom }) {
   const pastMeetings = meetings.filter(m => new Date(m.date) < new Date());
 
   return (
@@ -439,23 +562,39 @@ function HistoryTab({ meetings }) {
           <div className="space-y-4">
             {pastMeetings.map(mtg => (
               <SectionCard key={mtg.id} className="p-5">
-                <div className="flex items-start gap-5">
-                  <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center flex-shrink-0">
-                    <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center flex-shrink-0">
+                      <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-on-surface text-base mb-1">{mtg.title}</div>
+                      <div className="text-sm text-on-surface-variant mb-2">{fmt.date(mtg.date)}</div>
+                      {mtg.momUrl ? (
+                        <a href={mtg.momUrl.startsWith('http') ? mtg.momUrl : `//${mtg.momUrl}`} target="_blank" rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-on-primary-fixed-variant transition-colors">
+                          <Link2 className="w-3.5 h-3.5" /> View MoM Document
+                        </a>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-600">
+                          <Clock className="w-3.5 h-3.5" /> Pending MoM Submission
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-on-surface text-base mb-1">{mtg.title}</div>
-                    <div className="text-sm text-on-surface-variant mb-3">{fmt.date(mtg.date)}</div>
-                    {mtg.momUrl ? (
-                      <a href={mtg.momUrl.startsWith('http') ? mtg.momUrl : `//${mtg.momUrl}`} target="_blank" rel="noreferrer"
-                        className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-on-primary-fixed-variant transition-colors">
-                        <Link2 className="w-4 h-4" /> View MOM
-                      </a>
-                    ) : (
-                      <span className="inline-flex items-center gap-2 text-sm font-semibold text-amber-600">
-                        <Clock className="w-4 h-4" /> Pending MOM
-                      </span>
-                    )}
+
+                  <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                    <button
+                      onClick={() => onEditMom?.(mtg.id)}
+                      className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-xl border transition-all duration-150 ${
+                        mtg.momUrl
+                          ? 'border-outline-variant/40 bg-surface text-on-surface hover:border-primary hover:text-primary'
+                          : 'bg-primary text-on-primary shadow-sm hover:shadow'
+                      }`}
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                      {mtg.momUrl ? 'Edit MoM' : 'Submit MoM'}
+                    </button>
                   </div>
                 </div>
               </SectionCard>
@@ -553,6 +692,7 @@ export default function MentorDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState('group');
+  const [preselectedMeetingId, setPreselectedMeetingId] = useState(null);
   const [selectedMember, setSelectedMember] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -774,8 +914,24 @@ export default function MentorDashboard() {
               <motion.div key={tab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
                 {tab === 'group' && <GroupTab group={group} user={user} onMemberClick={setSelectedMember} />}
                 {tab === 'schedule' && <ScheduleTab groupId={group.id} meetings={meetings} setMeetings={setMeetings} onScheduled={fetchData} />}
-                {tab === 'mom' && <MOMTab group={group} meetings={meetings} onUpdated={fetchData} />}
-                {tab === 'history' && <HistoryTab meetings={meetings} />}
+                {tab === 'mom' && (
+                  <MOMTab 
+                    group={group} 
+                    meetings={meetings} 
+                    onUpdated={fetchData} 
+                    preselectedMeetingId={preselectedMeetingId}
+                    onMeetingSelected={setPreselectedMeetingId}
+                  />
+                )}
+                {tab === 'history' && (
+                  <HistoryTab 
+                    meetings={meetings} 
+                    onEditMom={(meetingId) => {
+                      setPreselectedMeetingId(meetingId);
+                      setTab('mom');
+                    }} 
+                  />
+                )}
                 {tab === 'feedback' && <FeedbackTab mentorId={user.id} />}
                 {tab === 'profile' && (
                   <div className="max-w-4xl">
