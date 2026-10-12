@@ -30,6 +30,17 @@ const styles = {
 
 export default function CompanyPicker({ inputId, value, onChange, noMatchText = "No company matches. Leave it empty." }) {
   const timer = useRef(null);
+  const wrapRef = useRef(null);
+
+  // B-43: the list follows the box while a page or drawer scrolls (a phone keyboard opening scrolls
+  // it), and closes only once the box itself is out of sight or under something else.
+  const boxHidden = () => {
+    const box = wrapRef.current?.querySelector(".cp__control");
+    if (!box) return true;
+    const r = box.getBoundingClientRect();
+    const hit = document.elementFromPoint(r.left + Math.min(20, r.width / 2), r.top + r.height / 2);
+    return !hit || !box.contains(hit);
+  };
 
   // Debounced so typing doesn't send a request per key.
   const loadOptions = (q) =>
@@ -46,26 +57,27 @@ export default function CompanyPicker({ inputId, value, onChange, noMatchText = 
     });
 
   return (
-    <AsyncSelect
-      inputId={inputId}
-      cacheOptions
-      defaultOptions
-      isClearable
-      value={value}
-      onChange={onChange}
-      loadOptions={loadOptions}
-      placeholder="Search company…"
-      noOptionsMessage={({ inputValue }) => (inputValue ? noMatchText : "Type to search")}
-      loadingMessage={() => "Searching…"}
-      styles={styles}
-      // The list is drawn on <body> so a card with its own stacking context (backdrop blur) can't
-      // cover it; fixed position follows the box, and a page scroll closes it (scrolling the list
-      // itself does not).
-      classNamePrefix="cp"
-      menuPortalTarget={document.body}
-      menuPosition="fixed"
-      menuPlacement="auto"
-      closeMenuOnScroll={(e) => !(e.target instanceof Element && e.target.closest(".cp__menu-list"))}
-    />
+    <div ref={wrapRef}>
+      <AsyncSelect
+        inputId={inputId}
+        cacheOptions
+        defaultOptions
+        isClearable
+        value={value}
+        onChange={onChange}
+        loadOptions={loadOptions}
+        placeholder="Search company…"
+        noOptionsMessage={({ inputValue }) => (inputValue ? noMatchText : "Type to search")}
+        loadingMessage={() => "Searching…"}
+        styles={styles}
+        // The list is drawn on <body> so a card with its own stacking context (backdrop blur) can't
+        // cover it; fixed position follows the box.
+        classNamePrefix="cp"
+        menuPortalTarget={document.body}
+        menuPosition="fixed"
+        menuPlacement="auto"
+        closeMenuOnScroll={(e) => !(e.target instanceof Element && e.target.closest(".cp__menu-list")) && boxHidden()}
+      />
+    </div>
   );
 }
