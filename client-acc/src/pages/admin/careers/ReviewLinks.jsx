@@ -8,19 +8,31 @@ import { careersAdminApi, errorMessage } from "../../../api/careersApi";
 import { Modal, Skeleton, cardClass, dangerButton, inputClass, outlineButton } from "./components/ui";
 import { safeHref } from "../../Careers/lib/format";
 
-const STATUSES = ["NEEDS_ATTENTION", "ALL", "NEEDS_PERSON", "RECEIVED", "PROCESSING", "EXTRACTING", "PENDING_REVIEW", "STORED_ONLY", "DUPLICATE", "FAILED"];
-const STATUS_LABEL = { NEEDS_ATTENTION: "Needs attention", ALL: "All links", NEEDS_PERSON: "Needs a person" };
+// B-36: four plain filters that split every link (the server keeps them disjoint), styled apart
+// from the one status badge on each row.
+const FILTERS = [
+  { id: "NEEDS_ATTENTION", label: "Needs attention", help: "Links you need to act on: ones that failed (retry or dismiss) and ones nothing will read automatically (create a posting or dismiss). This is the number on the tab." },
+  { id: "IN_PROGRESS", label: "In progress", help: "Links still being read automatically. Nothing to do yet." },
+  { id: "DONE", label: "Done", help: "A posting was made from the link, it was already listed, or it was dismissed or withdrawn." },
+  { id: "ALL", label: "All", help: null },
+];
 const DISMISS_REASONS = ["Not a job page", "Not for students", "Already listed on the portal", "Closed", "Other"];
-const STYLE = {
-  FAILED: "text-rose-700 bg-rose-50 border-rose-100",
-  STORED_ONLY: "text-slate-600 bg-slate-100 border-slate-200",
-  DUPLICATE: "text-slate-600 bg-slate-100 border-slate-200",
-  PENDING_REVIEW: "text-emerald-700 bg-emerald-50 border-emerald-100",
+const BADGE = {
+  failed: ["Failed", "text-rose-700 bg-rose-50 border-rose-100"],
+  person: ["Needs a person", "text-amber-800 bg-amber-50 border-amber-200"],
+  reading: ["Processing", "text-blue-700 bg-blue-50 border-blue-100"],
+  made: ["Posting made", "text-emerald-700 bg-emerald-50 border-emerald-100"],
+  duplicate: ["Already listed", "text-slate-600 bg-slate-100 border-slate-200"],
 };
-const CHIP_DEFAULT = "text-blue-700 bg-blue-50 border-blue-100"; // received / processing / extracting, as in the list
-// The status filter as chips in the same style as the status next to each link (B-29).
-const FILTER_STYLE = { ...STYLE, NEEDS_ATTENTION: "text-amber-800 bg-amber-50 border-amber-200", NEEDS_PERSON: "text-amber-800 bg-amber-50 border-amber-200", ALL: "text-slate-700 bg-white border-slate-300" };
-const statusText = (s) => STATUS_LABEL[s] ?? s.replace("_", " ");
+// The one badge on a row; dismissed / withdrawn rows have none (their line below says it).
+function badgeFor(s, aiUsable) {
+  if (s.dismissedAt) return null;
+  if (s.status === "FAILED") return BADGE.failed;
+  if (s.status === "DUPLICATE") return BADGE.duplicate;
+  if (s.postingId || s.status === "PENDING_REVIEW") return BADGE.made;
+  if (s.status === "STORED_ONLY" || (s.status === "EXTRACTING" && aiUsable === false)) return BADGE.person;
+  return BADGE.reading;
+}
 
 const smallButton = "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-colors disabled:opacity-50 cursor-pointer";
 
@@ -47,6 +59,7 @@ export default function ReviewLinks({ refreshKey, onOpenPosting, total, onCount 
       setBusyId(null);
     }
   };
+  const current = FILTERS.find((f) => f.id === status) ?? FILTERS[0];
   const createPosting = (s) => navigate(`/admin/careers/new?fromLink=${s.id}&url=${encodeURIComponent(s.url)}`);
 
   useEffect(() => {
@@ -61,26 +74,23 @@ export default function ReviewLinks({ refreshKey, onOpenPosting, total, onCount 
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter student links by status">
-        <span className="mr-1 text-xs font-semibold text-slate-600">Status</span>
-        {STATUSES.map((s) => (
-          <button key={s} type="button" aria-pressed={status === s} onClick={() => { if (s !== status) { setStatus(s); setItems(null); } }}
-            className={`px-2.5 py-1 rounded-md border text-[10px] font-bold uppercase tracking-wider cursor-pointer transition ${FILTER_STYLE[s] ?? CHIP_DEFAULT} ${status === s ? "ring-2 ring-[var(--color-secondary)] ring-offset-1" : "opacity-75 hover:opacity-100"}`}>
-            {statusText(s)}
+      <div className="inline-flex flex-wrap rounded-xl border border-slate-200 bg-white p-1 gap-1" role="group" aria-label="Filter student links">
+        {FILTERS.map((f) => (
+          <button key={f.id} type="button" aria-pressed={status === f.id} onClick={() => { if (f.id !== status) { setStatus(f.id); setItems(null); } }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition ${status === f.id ? "bg-[var(--color-primary)] text-white" : "text-slate-600 hover:bg-slate-100"}`}>
+            {f.label}
           </button>
         ))}
       </div>
-      {status === "NEEDS_ATTENTION" && (
-        <p className="text-xs text-slate-500">Links you need to act on: ones that failed (retry or dismiss) and ones nothing will read automatically. This is the number on the tab.</p>
-      )}
-      {status === "NEEDS_PERSON" && (
-        <p className="text-xs text-amber-800 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
-          Links nothing will read automatically: sites that can't be fetched (LinkedIn, Naukri, …){aiUsable === false ? ", and, while the AI step is off, pages without job-board data" : ""}. Create a posting from each, or dismiss it with a reason the student will see.
+      {current.help && (
+        <p className="text-xs text-slate-500">
+          {current.help}
+          {status === "NEEDS_ATTENTION" && aiUsable === false && " While the AI step is off, pages without job-board data wait here too."}
         </p>
       )}
       {!items ? <Skeleton rows={4} /> : !items.length ? (
         <div className={`${cardClass} p-8 text-center text-sm text-slate-500`}>
-          {status === "NEEDS_ATTENTION" ? "No student link needs you right now." : `No student links${status !== "ALL" ? ` with status “${statusText(status).toLowerCase()}”` : " yet"}.`}
+          {status === "NEEDS_ATTENTION" ? "No student link needs you right now." : status === "ALL" ? "No student links yet." : `No student links under “${current.label}”.`}
           {status !== "ALL" && total > 0 && (
             <button type="button" className="ml-2 font-semibold text-[var(--color-secondary)] hover:underline cursor-pointer" onClick={() => { setStatus("ALL"); setItems(null); }}>Show all {total} links</button>
           )}
@@ -88,21 +98,14 @@ export default function ReviewLinks({ refreshKey, onOpenPosting, total, onCount 
       ) : (
         <div className={`${cardClass} overflow-hidden`}>
           <ul className="divide-y divide-slate-100">
-            {items.map((s) => (
+            {items.map((s) => { const badge = badgeFor(s, aiUsable); return (
               <li key={s.id} className="px-4 py-3 space-y-1">
                 <div className="flex items-center gap-2">
-                  {s.dismissedAt ? (
-                    <span className="shrink-0 whitespace-nowrap px-2 py-0.5 rounded-md border text-[10px] font-bold uppercase tracking-wider text-slate-600 bg-slate-100 border-slate-200">{s.dismissedById === s.submittedById ? "Withdrawn" : "Dismissed"}</span>
-                  ) : (
-                    <span className={`shrink-0 whitespace-nowrap px-2 py-0.5 rounded-md border text-[10px] font-bold uppercase tracking-wider ${STYLE[s.status] || CHIP_DEFAULT}`}>{s.status.replace("_", " ")}</span>
-                  )}
+                  {badge && <span className={`shrink-0 whitespace-nowrap px-2 py-0.5 rounded-md border text-[11px] font-semibold ${badge[1]}`}>{badge[0]}</span>}
                   <a href={safeHref(s.url) ?? undefined} target="_blank" rel="noopener noreferrer" className="text-sm text-[var(--color-secondary)] hover:underline truncate inline-flex items-center gap-1 min-w-0">
                     <span className="truncate">{s.url}</span> <ExternalLink size={12} className="shrink-0" />
                   </a>
                 </div>
-                {s.status === "EXTRACTING" && !s.dismissedAt && !s.postingId && aiUsable === false && (
-                  <p className="text-xs font-semibold text-amber-700">Waiting for an admin: the AI step is off, so nothing will read this page.</p>
-                )}
                 <p className="text-xs text-slate-500">
                   By {s.submittedBy ?? `user #${s.submittedById}`} · {new Date(s.createdAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
                   {s.postingId && <> · <button type="button" className="text-[var(--color-secondary)] hover:underline cursor-pointer" onClick={() => onOpenPosting(s.postingId)}>posting #{s.postingId}</button></>}
@@ -128,7 +131,7 @@ export default function ReviewLinks({ refreshKey, onOpenPosting, total, onCount 
                   </div>
                 )}
               </li>
-            ))}
+            ); })}
           </ul>
         </div>
       )}

@@ -41,6 +41,21 @@ export function needsAttentionWhere(aiUsable) {
     return { dismissedAt: null, OR: [{ status: 'FAILED' }, { postingId: null, OR: person.OR }] };
 }
 
+// Pure. The admin Student links chips (B-36): three buckets that never overlap and together cover
+// every link. In progress = still being read automatically; Done = everything else (a posting was
+// made, it was a duplicate, or it was dismissed / withdrawn).
+const READING = ['RECEIVED', 'PROCESSING', 'EXTRACTING'];
+export function linkFilterWhere(filter, aiUsable) {
+    const attention = needsAttentionWhere(aiUsable);
+    const reading = { dismissedAt: null, status: { in: READING } };
+    if (filter === 'NEEDS_ATTENTION') return attention;
+    if (filter === 'IN_PROGRESS') return { AND: [reading, { NOT: attention }] };
+    if (filter === 'DONE') return { NOT: { OR: [attention, reading] } };
+    if (filter === 'NEEDS_PERSON') return needsPersonWhere(aiUsable);
+    if (filter === 'ALL') return {};
+    return { status: filter }; // a single raw status (older callers)
+}
+
 // For the ops summary: how many need a person, and how many of them have waited too long.
 export async function needsPersonCounts(aiUsable, now = new Date(), db = prisma) {
     const where = needsPersonWhere(aiUsable);

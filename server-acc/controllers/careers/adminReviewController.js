@@ -13,7 +13,7 @@ import {
 } from '../../services/careers/postings/adminList.js';
 import { takeDownBody, takeDownPosting } from '../../services/careers/postings/takeDown.js';
 import { retrySubmission, dismissSubmission, dismissBody } from '../../services/careers/links/submissionActions.js';
-import { aiTierUsable, needsPersonWhere, needsAttentionWhere } from '../../services/careers/links/waiting.js';
+import { aiTierUsable, linkFilterWhere } from '../../services/careers/links/waiting.js';
 import { reviewCounts } from '../../services/careers/postings/reviewCounts.js';
 import { reportsForAdmin, handleReports } from '../../services/careers/postings/reports.js';
 import { bulkBodies, undoBulkApprove, bulkReject, bulkExpire } from '../../services/careers/postings/bulkActions.js';
@@ -36,7 +36,8 @@ const bulkBody = z.object({ ids: z.array(z.number().int().positive()).min(1).max
 const submissionsQuery = z.object({
     // NEEDS_PERSON (P5-T5): links nothing will read automatically (store-only, or waiting for an AI tier that is off).
     // NEEDS_ATTENTION (B-26): what the tab badge counts (failed + needs a person); the tab's default.
-    status: z.enum(['NEEDS_ATTENTION', 'NEEDS_PERSON', 'RECEIVED', 'PROCESSING', 'EXTRACTING', 'PENDING_REVIEW', 'STORED_ONLY', 'DUPLICATE', 'FAILED', 'ALL']).default('ALL'),
+    // IN_PROGRESS / DONE (B-36): the other two plain chips; with NEEDS_ATTENTION they split every link.
+    status: z.enum(['NEEDS_ATTENTION', 'IN_PROGRESS', 'DONE', 'NEEDS_PERSON', 'RECEIVED', 'PROCESSING', 'EXTRACTING', 'PENDING_REVIEW', 'STORED_ONLY', 'DUPLICATE', 'FAILED', 'ALL']).default('ALL'),
     page: z.coerce.number().int().min(1).default(1),
     limit: z.coerce.number().int().min(1).max(100).default(25),
 });
@@ -191,7 +192,7 @@ export const listSubmissions = async (req, res) => {
     try {
         const { status, page, limit } = submissionsQuery.parse(req.query);
         const aiUsable = await aiTierUsable();
-        const where = status === 'ALL' ? {} : status === 'NEEDS_ATTENTION' ? needsAttentionWhere(aiUsable) : status === 'NEEDS_PERSON' ? needsPersonWhere(aiUsable) : { status };
+        const where = linkFilterWhere(status, aiUsable);
         const [items, total] = await Promise.all([
             prisma.linkSubmission.findMany({ where, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
             prisma.linkSubmission.count({ where }),
