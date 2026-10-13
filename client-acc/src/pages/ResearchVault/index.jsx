@@ -2242,19 +2242,22 @@ function VaultList({ loading, empty, children }) {
 }
 
 function ResourceCard({ resource, follow, followedAreaIds, apiUrl, allAreas = [], onSelect }) {
-  // sourceType is the authoritative FILE vs EXTERNAL_LINK distinction
-  // (backend-derived, persisted per resource); fall back for legacy rows.
-  const isFileResource = resource.sourceType
-    ? resource.sourceType === 'FILE'
-    : Boolean(resource.filePath);
-  const isLink = !isFileResource;
-  const format = resource.format || (isFileResource ? (resource.mimeType?.includes('pdf') ? 'pdf' : 'docx') : 'link');
+  const hasFile = Boolean(resource.filePath);
+  const hasLink = Boolean(resource.url);
+  const isFileResource = resource.sourceType === 'FILE' || hasFile;
+  const isLink = hasLink;
 
-  const formatBadge = {
-    link: { cls: 'bg-blue-50 text-blue-700 border-blue-200', icon: <ExternalLink size={10} />, label: 'External Link' },
-    pdf:  { cls: 'bg-slate-100 text-slate-600 border-slate-200', icon: <FileText size={10} />, label: 'PDF' },
-    docx: { cls: 'bg-indigo-50 text-indigo-600 border-indigo-200', icon: <FileText size={10} />, label: 'DOCX' }
-  }[format] || { cls: 'bg-slate-50 text-slate-500 border-slate-200', icon: <FileText size={10} />, label: 'File' };
+  const fileExt = resource.filePath ? resource.filePath.split('.').pop()?.toLowerCase() : '';
+  const format = resource.format || (fileExt === 'pdf' || resource.mimeType?.includes('pdf') ? 'pdf' : (fileExt === 'docx' || fileExt === 'doc' || resource.mimeType?.includes('word')) ? 'docx' : (fileExt === 'pptx' || fileExt === 'ppt') ? 'pptx' : hasFile ? 'file' : 'link');
+
+  const fileFormatBadge = {
+    pdf:  { cls: 'bg-slate-100 text-slate-700 border-slate-200', icon: <FileText size={10} />, label: 'PDF' },
+    docx: { cls: 'bg-indigo-50 text-indigo-700 border-indigo-200', icon: <FileText size={10} />, label: 'DOCX' },
+    pptx: { cls: 'bg-amber-50 text-amber-700 border-amber-200', icon: <FileText size={10} />, label: 'Presentation' },
+    file: { cls: 'bg-slate-50 text-slate-600 border-slate-200', icon: <FileText size={10} />, label: 'File' },
+  }[format] || { cls: 'bg-slate-50 text-slate-600 border-slate-200', icon: <FileText size={10} />, label: 'File' };
+
+  const linkBadge = { cls: 'bg-blue-50 text-blue-700 border-blue-200', icon: <ExternalLink size={10} />, label: 'External Link' };
 
   const actionBtn = 'inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:border-[var(--color-secondary)] hover:text-[var(--color-primary-accent)] hover:bg-slate-50 transition-colors';
 
@@ -2315,9 +2318,16 @@ function ResourceCard({ resource, follow, followedAreaIds, apiUrl, allAreas = []
             {getResourceTypeIcon(resource.resourceType)}
             {formatResourceType(resource.resourceType)}
           </span>
-          <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${formatBadge.cls}`}>
-            {formatBadge.icon} {formatBadge.label}
-          </span>
+          {hasFile && (
+            <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${fileFormatBadge.cls}`}>
+              {fileFormatBadge.icon} {fileFormatBadge.label}
+            </span>
+          )}
+          {hasLink && (
+            <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${linkBadge.cls}`}>
+              {linkBadge.icon} {linkBadge.label}
+            </span>
+          )}
         </div>
 
         {/* Title + description */}
@@ -2368,8 +2378,8 @@ function ResourceCard({ resource, follow, followedAreaIds, apiUrl, allAreas = []
 
       {/* Action button(s) — label reflects what actually happens on click */}
       <div className="shrink-0 sm:ml-4 flex flex-col items-start gap-1.5" onClick={(e) => e.stopPropagation()}>
-        {isLink && (
-          <>
+        <div className="flex flex-wrap items-center gap-2">
+          {hasLink && (
             <a
               href={resource.url}
               target="_blank"
@@ -2379,20 +2389,29 @@ function ResourceCard({ resource, follow, followedAreaIds, apiUrl, allAreas = []
             >
               <ExternalLink size={14} /> Open Link
             </a>
-            <span className="text-[11px] text-slate-400 flex items-center gap-1">Opens externally <ExternalLink size={10} /></span>
-          </>
-        )}
-        {isFileResource && format === 'pdf' && (
-          <div className="flex items-center gap-2">
-            <a
-              href={`${apiUrl}&inline=1`}
-              target="_blank"
-              rel="noreferrer"
-              onClick={handleOpen}
-              className={actionBtn}
-            >
-              <FileText size={14} /> Open PDF
-            </a>
+          )}
+          {hasFile && format === 'pdf' && (
+            <>
+              <a
+                href={`${apiUrl}&inline=1`}
+                target="_blank"
+                rel="noreferrer"
+                onClick={handleOpen}
+                className={actionBtn}
+              >
+                <FileText size={14} /> Open PDF
+              </a>
+              <a
+                href={apiUrl}
+                download
+                onClick={handleDownload}
+                className={actionBtn}
+              >
+                <Download size={14} /> Download
+              </a>
+            </>
+          )}
+          {hasFile && format !== 'pdf' && (
             <a
               href={apiUrl}
               download
@@ -2401,19 +2420,9 @@ function ResourceCard({ resource, follow, followedAreaIds, apiUrl, allAreas = []
             >
               <Download size={14} /> Download
             </a>
-          </div>
-        )}
-        {isFileResource && format !== 'pdf' && (
-          <a
-            href={apiUrl}
-            download
-            onClick={handleDownload}
-            className={actionBtn}
-          >
-            <Download size={14} /> Download
-          </a>
-        )}
-        {!isLink && !isFileResource && (
+          )}
+        </div>
+        {!hasLink && !hasFile && (
           <span className="inline-flex items-center gap-2 rounded-full border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-400">
             <Lock size={14} /> Unavailable
           </span>
@@ -2426,17 +2435,19 @@ function ResourceCard({ resource, follow, followedAreaIds, apiUrl, allAreas = []
 function ResourceDetailModal({ resource, onClose, follow, followedAreaIds, allAreas = [], apiUrl }) {
   if (!resource) return null;
 
-  const isFileResource = resource.sourceType
-    ? resource.sourceType === 'FILE'
-    : Boolean(resource.filePath);
-  const isLink = !isFileResource;
-  const format = resource.format || (isFileResource ? (resource.mimeType?.includes('pdf') ? 'pdf' : 'docx') : 'link');
+  const hasFile = Boolean(resource.filePath);
+  const hasLink = Boolean(resource.url);
+  const fileExt = resource.filePath ? resource.filePath.split('.').pop()?.toLowerCase() : '';
+  const format = resource.format || (fileExt === 'pdf' || resource.mimeType?.includes('pdf') ? 'pdf' : (fileExt === 'docx' || fileExt === 'doc' || resource.mimeType?.includes('word')) ? 'docx' : (fileExt === 'pptx' || fileExt === 'ppt') ? 'pptx' : hasFile ? 'file' : 'link');
 
-  const formatBadge = {
-    link: { cls: 'bg-blue-50 text-blue-700 border-blue-200', icon: <ExternalLink size={12} />, label: 'External Link' },
+  const fileFormatBadge = {
     pdf:  { cls: 'bg-slate-100 text-slate-700 border-slate-200', icon: <FileText size={12} />, label: 'PDF Document' },
-    docx: { cls: 'bg-indigo-50 text-indigo-700 border-indigo-200', icon: <FileText size={12} />, label: 'Word Document (DOCX)' }
-  }[format] || { cls: 'bg-slate-50 text-slate-600 border-slate-200', icon: <FileText size={12} />, label: 'File' };
+    docx: { cls: 'bg-indigo-50 text-indigo-700 border-indigo-200', icon: <FileText size={12} />, label: 'Word Document (DOCX)' },
+    pptx: { cls: 'bg-amber-50 text-amber-700 border-amber-200', icon: <FileText size={12} />, label: 'Presentation' },
+    file: { cls: 'bg-slate-50 text-slate-600 border-slate-200', icon: <FileText size={12} />, label: 'Attached File' },
+  }[format] || { cls: 'bg-slate-50 text-slate-600 border-slate-200', icon: <FileText size={12} />, label: 'Attached File' };
+
+  const linkBadge = { cls: 'bg-blue-50 text-blue-700 border-blue-200', icon: <ExternalLink size={12} />, label: 'External Link' };
 
   return (
     <div
@@ -2458,9 +2469,16 @@ function ResourceDetailModal({ resource, onClose, follow, followedAreaIds, allAr
                 {getResourceTypeIcon(resource.resourceType)}
                 {formatResourceType(resource.resourceType)}
               </span>
-              <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-0.5 rounded-full border ${formatBadge.cls}`}>
-                {formatBadge.icon} {formatBadge.label}
-              </span>
+              {hasFile && (
+                <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-0.5 rounded-full border ${fileFormatBadge.cls}`}>
+                  {fileFormatBadge.icon} {fileFormatBadge.label}
+                </span>
+              )}
+              {hasLink && (
+                <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-0.5 rounded-full border ${linkBadge.cls}`}>
+                  {linkBadge.icon} {linkBadge.label}
+                </span>
+              )}
               {resource.status && resource.status !== 'APPROVED' && (
                 <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${STATUS_COLORS[resource.status] || STATUS_COLORS.PENDING}`}>
                   {resource.status}
@@ -2547,7 +2565,7 @@ function ResourceDetailModal({ resource, onClose, follow, followedAreaIds, allAr
         {/* External Link or Download Action Area */}
         <div className="pt-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-3">
-            {isLink && resource.url && (
+            {hasLink && resource.url && (
               <a
                 href={resource.url}
                 target="_blank"
@@ -2557,7 +2575,7 @@ function ResourceDetailModal({ resource, onClose, follow, followedAreaIds, allAr
                 <ExternalLink size={16} /> Open Resource Link
               </a>
             )}
-            {isFileResource && format === 'pdf' && (
+            {hasFile && format === 'pdf' && (
               <>
                 <a
                   href={`${apiUrl}&inline=1`}
@@ -2576,7 +2594,7 @@ function ResourceDetailModal({ resource, onClose, follow, followedAreaIds, allAr
                 </a>
               </>
             )}
-            {isFileResource && format !== 'pdf' && (
+            {hasFile && format !== 'pdf' && (
               <a
                 href={apiUrl}
                 download

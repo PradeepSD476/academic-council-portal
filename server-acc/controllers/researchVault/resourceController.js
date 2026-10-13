@@ -35,8 +35,17 @@ export const shapeResource = (item) => {
   const meta = item.meta && typeof item.meta === 'object' ? item.meta : {};
   const effectiveType = meta.resourceType || meta.category || item.type || 'GUIDE';
 
+  const trimmedFilePath = item.filePath?.trim() || null;
+  const fileExt = trimmedFilePath ? trimmedFilePath.split('.').pop()?.toLowerCase() : null;
+  const resolvedFormat = item.format || (fileExt === 'pdf' ? 'pdf' : (fileExt === 'docx' || fileExt === 'doc') ? 'docx' : (fileExt === 'pptx' || fileExt === 'ppt') ? 'pptx' : trimmedFilePath ? 'file' : item.url ? 'link' : null);
+  const resolvedSourceType = trimmedFilePath ? 'FILE' : (item.sourceType || 'LINK');
+
   return {
     ...item,
+    sourceType: resolvedSourceType,
+    format: resolvedFormat,
+    hasFile: Boolean(trimmedFilePath),
+    hasLink: Boolean(item.url?.trim()),
     resourceType: effectiveType,
     category: effectiveType,
     ...(isExp
@@ -364,7 +373,11 @@ export const submitResearchResource = async (req, res) => {
     // Auto-approve official materials (guides, templates) if submitted by admin/faculty or direct admin create
     const userRole = req.user?.role;
     const isDirectAdmin = Boolean(req.body.isDirectAdminCreate || explicitStatus === 'APPROVED' || ['RESEARCH_ADMIN', 'SUPER_ADMIN'].includes(userRole));
-    const isAutoApproved = isDirectAdmin || (dbType !== 'EXPERIENCE' && ['FACULTY'].includes(userRole));
+    const trimmedFilePath = filePath?.trim() || null;
+    const trimmedUrl = url?.trim() || null;
+    const fileExt = trimmedFilePath ? trimmedFilePath.split('.').pop()?.toLowerCase() : null;
+    const derivedFormat = format || (fileExt === 'pdf' ? 'pdf' : (fileExt === 'docx' || fileExt === 'doc') ? 'docx' : (fileExt === 'pptx' || fileExt === 'ppt') ? 'pptx' : trimmedFilePath ? 'file' : trimmedUrl ? 'link' : null);
+    const derivedSourceType = req.body.sourceType || (trimmedFilePath ? 'FILE' : 'LINK');
 
     const resource = await prisma.researchResource.create({
       data: {
@@ -373,12 +386,12 @@ export const submitResearchResource = async (req, res) => {
         type: dbType,
         content: content || null,
         meta,
-        url: url?.trim() || null,
-        filePath: filePath?.trim() || null,
+        url: trimmedUrl,
+        filePath: trimmedFilePath,
         fileSize: fileSize ? Number(fileSize) : null,
         mimeType: mimeType || null,
-        format: format || null,
-        sourceType: sourceType || 'LINK',
+        format: derivedFormat,
+        sourceType: derivedSourceType,
         status: isAutoApproved ? 'APPROVED' : 'PENDING',
         consentConfirmed: Boolean(consentConfirmed),
         researchAreas: normalizedAreas,
@@ -436,8 +449,16 @@ export const updateResearchResource = async (req, res) => {
     if (b.content !== undefined) updateData.content = b.content;
     if (b.type !== undefined) updateData.type = b.type;
     if (b.url !== undefined) updateData.url = b.url?.trim() || null;
-    if (b.filePath !== undefined) updateData.filePath = b.filePath?.trim() || null;
-    if (b.sourceType !== undefined) updateData.sourceType = b.sourceType;
+    if (b.filePath !== undefined) {
+      updateData.filePath = b.filePath?.trim() || null;
+      if (updateData.filePath) {
+        updateData.sourceType = b.sourceType || 'FILE';
+        const fileExt = updateData.filePath.split('.').pop()?.toLowerCase();
+        updateData.format = b.format || (fileExt === 'pdf' ? 'pdf' : (fileExt === 'docx' || fileExt === 'doc') ? 'docx' : (fileExt === 'pptx' || fileExt === 'ppt') ? 'pptx' : 'file');
+      }
+    }
+    if (b.sourceType !== undefined && !updateData.sourceType) updateData.sourceType = b.sourceType;
+    if (b.format !== undefined && !updateData.format) updateData.format = b.format;
     if (b.researchAreas !== undefined) updateData.researchAreas = normalizeResearchAreas(b.researchAreas);
     if (b.facultyId !== undefined) updateData.facultyId = b.facultyId ? Number(b.facultyId) : null;
 
