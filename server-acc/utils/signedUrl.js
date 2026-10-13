@@ -15,7 +15,7 @@ export const getPublicUrl = async ({ bucketName, filePath }) => {
         60 * 60
     );
 
-    const publicUrl = url.replace('http://minio-acc:9000', `${process.env.PUBLIC_DOMAIN}/media`);
+    const publicUrl = url.replace(/^https?:\/\/[^\/]+/, `${process.env.PUBLIC_DOMAIN || 'http://localhost'}/media`);
 
     return publicUrl;
 }
@@ -34,7 +34,7 @@ export const getUploadSignedUrl = async ({ fileName, contentType, folder }) => {
         5 * 60
     );
     
-    const signedURL = url.replace('http://minio-acc:9000', `${process.env.PUBLIC_DOMAIN}/media`);
+    const signedURL = url.replace(/^https?:\/\/[^\/]+/, `${process.env.PUBLIC_DOMAIN || 'http://localhost'}/media`);
     
     return { signedURL, filePath: objectName };
 }

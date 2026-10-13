@@ -1,5 +1,6 @@
 import prisma from '../../config/db.js';
 import { success, paginated, error } from '../../utils/response.js';
+import { getPublicUrl } from '../../utils/signedUrl.js';
 import { normalizeResearchAreas, resolveStoredAreaName, resolveStoredAreaNames } from '../../constants/researchAreas.js';
 import { resolveDepartmentAliases } from '../../constants/departments.js';
 
@@ -578,7 +579,14 @@ export const downloadResearchResourceHandler = async (req, res) => {
       data: { downloadCount: { increment: 1 } },
     });
 
-    const targetUrl = resource.filePath || resource.url;
+    let targetUrl = resource.url;
+    if (resource.filePath) {
+      targetUrl = await getPublicUrl({
+        bucketName: process.env.MINIO_BUCKET_NAME || 'acc-media',
+        filePath: resource.filePath,
+      });
+    }
+
     if (!targetUrl) return error(res, 'No download target available', 404);
 
     return res.redirect(targetUrl);
