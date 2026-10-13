@@ -27,7 +27,7 @@ const deadlineInfo = (opening) => {
 
 const LINKS = [
   { key: 'email', icon: Mail, label: 'Email', href: (v) => `mailto:${v}` },
-  { key: 'website', icon: Globe, label: 'Lab / Dept website', href: (v) => v },
+  { key: 'websiteUrl', altKey: 'website', icon: Globe, label: 'Lab / Dept website', href: (v) => v },
   { key: 'personalWebsiteUrl', icon: UserRound, label: 'Personal website', href: (v) => v },
   { key: 'googleScholarUrl', icon: BookOpen, label: 'Google Scholar', href: (v) => v },
   { key: 'linkedinUrl', icon: Linkedin, label: 'LinkedIn', href: (v) => v },
@@ -56,10 +56,10 @@ export default function FacultyDetail() {
 
   // Open openings first (soonest deadline first), then closed below the divider.
   const { openOpenings, closedOpenings } = useMemo(() => {
-    const list = faculty?.positions || [];
-    const open = list.filter((o) => o.computedStatus === 'OPEN')
+    const list = faculty?.openings || faculty?.positions || [];
+    const open = list.filter((o) => (o.status === 'OPEN' && (!o.deadline || new Date(o.deadline) >= new Date())) || o.computedStatus === 'OPEN')
       .sort((a, b) => (a.deadline ? new Date(a.deadline) : Infinity) - (b.deadline ? new Date(b.deadline) : Infinity));
-    const closed = list.filter((o) => o.computedStatus !== 'OPEN');
+    const closed = list.filter((o) => (o.status === 'CLOSED' || (o.deadline && new Date(o.deadline) < new Date())) && o.computedStatus !== 'OPEN');
     return { openOpenings: open, closedOpenings: closed };
   }, [faculty]);
 
@@ -75,7 +75,10 @@ export default function FacultyDetail() {
     );
   }
 
-  const availableLinks = LINKS.filter(({ key }) => Boolean(faculty[key]));
+  const availableLinks = LINKS.map((item) => ({
+    ...item,
+    value: faculty[item.key] || (item.altKey ? faculty[item.altKey] : null),
+  })).filter((item) => Boolean(item.value));
 
   const openingCard = (opening, closed = false) => {
     const dl = deadlineInfo(opening);
@@ -96,9 +99,12 @@ export default function FacultyDetail() {
               {positionTypeLabel(opening.positionType)}
             </span>
           )}
-          {opening.researchAreas?.map(({ researchArea }) => (
-            <span key={researchArea.id} className="rounded-full border border-[var(--color-secondary-border)] bg-[var(--color-secondary-light)] px-2 py-0.5 text-[11px] font-semibold text-blue-900">{researchArea.name}</span>
-          ))}
+          {(opening.researchAreas || []).map((area, idx) => {
+            const areaName = typeof area === 'string' ? area : area.researchArea?.name || area.name;
+            return (
+              <span key={idx} className="rounded-full border border-[var(--color-secondary-border)] bg-[var(--color-secondary-light)] px-2 py-0.5 text-[11px] font-semibold text-blue-900">{areaName}</span>
+            );
+          })}
           {dl && <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${dl.cls}`}>{dl.label}</span>}
         </div>
         <h3 className={`mt-2 text-base font-bold ${closed ? 'text-slate-500' : 'text-slate-950'}`}>{opening.title}</h3>
@@ -149,9 +155,13 @@ export default function FacultyDetail() {
       {/* Header */}
       <article className="academic-card rounded-3xl border border-slate-200 bg-white/95 p-6 shadow-sm sm:p-8">
         <div className="flex flex-wrap items-start gap-4">
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] text-xl font-bold text-white">
-            {faculty.name.split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('')}
-          </div>
+          {faculty.photoUrl ? (
+            <img src={faculty.photoUrl} alt={faculty.name} className="h-16 w-16 shrink-0 rounded-full object-cover border border-slate-200" />
+          ) : (
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] text-xl font-bold text-white">
+              {faculty.name.split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('')}
+            </div>
+          )}
           <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-extrabold tracking-tight text-slate-950">{faculty.name}</h1>
             <p className="mt-0.5 text-sm text-slate-600">{[faculty.designation, faculty.department].filter(Boolean).join(' · ')}</p>
@@ -159,9 +169,12 @@ export default function FacultyDetail() {
               <p className="mt-1 inline-flex items-center gap-1 text-xs text-slate-500"><MapPin size={13} /> {faculty.officeLocation}</p>
             )}
             <div className="mt-3 flex flex-wrap gap-1.5">
-              {(faculty.researchAreas || []).map(({ researchArea }) => (
-                <span key={researchArea.id} className="rounded-full border border-[var(--color-secondary-border)] bg-[var(--color-secondary-light)] px-2 py-1 text-[11px] font-semibold text-blue-900">{researchArea.name}</span>
-              ))}
+              {(faculty.researchAreas || []).map((area, idx) => {
+                const areaName = typeof area === 'string' ? area : area.researchArea?.name || area.name;
+                return (
+                  <span key={idx} className="rounded-full border border-[var(--color-secondary-border)] bg-[var(--color-secondary-light)] px-2 py-1 text-[11px] font-semibold text-blue-900">{areaName}</span>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -175,8 +188,8 @@ export default function FacultyDetail() {
 
         {availableLinks.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
-            {availableLinks.map(({ key, icon, label, href }) => (
-              <a key={key} href={href(faculty[key])} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-[var(--color-secondary)] hover:text-[var(--color-primary-accent)]">
+            {availableLinks.map(({ key, icon, label, href, value }) => (
+              <a key={key} href={href(value)} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-[var(--color-secondary)] hover:text-[var(--color-primary-accent)]">
                 {createElement(icon, { size: 13 })} {label}
               </a>
             ))}

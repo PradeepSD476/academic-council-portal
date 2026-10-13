@@ -5,7 +5,21 @@ import toast from 'react-hot-toast';
 import AuthContext from '../../context/auth/authContext';
 import { researchVaultApi } from '../../api/researchVaultApi';
 
-const responsePayload = (response) => response.data?.data || {};
+const extractItems = (response) => {
+  const d = response?.data?.data !== undefined ? response.data.data : response?.data;
+  if (Array.isArray(d)) return d;
+  if (Array.isArray(d?.items)) return d.items;
+  return [];
+};
+
+const extractTotal = (response) => {
+  if (typeof response?.data?.pagination?.total === 'number') return response.data.pagination.total;
+  const d = response?.data?.data !== undefined ? response.data.data : response?.data;
+  if (typeof d?.total === 'number') return d.total;
+  if (Array.isArray(d)) return d.length;
+  return 0;
+};
+
 const errorMessage = (error) => error.response?.data?.message || 'Could not load discussions.';
 
 const sections = [
@@ -28,7 +42,7 @@ const relativeTime = (value) => {
 
 export default function ResearchQuestionList() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useContext(AuthContext);
   const [areas, setAreas] = useState([]);
   const [questions, setQuestions] = useState([]);
@@ -37,20 +51,30 @@ export default function ResearchQuestionList() {
   const [sort, setSort] = useState(searchParams.get('sort') || 'newest');
   const [tag, setTag] = useState(searchParams.get('tag') || '');
   const [status, setStatus] = useState(searchParams.get('status') || 'all');
-  const [cursor, setCursor] = useState(null);
+  const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [refreshVersion, setRefreshVersion] = useState(0);
+
+  // Sync state to URL search parameters so filters persist on refresh or navigation
+  useEffect(() => {
+    const nextParams = {};
+    if (search) nextParams.search = search;
+    if (sort && sort !== 'newest') nextParams.sort = sort;
+    if (tag) nextParams.tag = tag;
+    if (status && status !== 'all') nextParams.status = status;
+    setSearchParams(nextParams, { replace: true });
+  }, [search, sort, tag, status, setSearchParams]);
   const [followedFacultyIds, setFollowedFacultyIds] = useState(() => new Set());
-  const submitQuestion = submitQuestionFactory(setFormOpen, setRefreshVersion);
+  const submitQuestion = submitQuestionFactory(setFormOpen, setRefreshVersion, areas);
   const [followedAreaIds, setFollowedAreaIds] = useState(() => new Set());
   const [relevantAreas, setRelevantAreas] = useState([]);
 
   useEffect(() => {
-    researchVaultApi.getAreas().then((response) => setAreas(responsePayload(response).data || [])).catch(() => {});
+    researchVaultApi.getAreas().then((response) => setAreas(extractItems(response))).catch(() => {});
     researchVaultApi.getFollows().then(({ data }) => {
       setFollowedFacultyIds(new Set(data.data?.facultyIds || []));
       setFollowedAreaIds(new Set(data.data?.areaIds || []));
@@ -66,10 +90,14 @@ export default function ResearchQuestionList() {
     if (!followedFacultyIds.size && !followedAreaIds.size) {
       // No follows yet: fetch all faculty to get their research areas
       researchVaultApi.getFaculty({ limit: 200 }).then((response) => {
-        const facultyList = responsePayload(response).data || [];
+        const facultyList = extractItems(response);
         const facultyAreaIds = new Set();
         facultyList.forEach((f) => {
-          f.researchAreas?.forEach((ra) => facultyAreaIds.add(ra.researchArea.id));
+          f.researchAreas?.forEach((ra) => {
+            const name = typeof ra === 'string' ? ra : ra?.researchArea?.name || ra?.name;
+            const match = areas.find((a) => a.name?.toLowerCase() === name?.toLowerCase() || a.id === ra?.id || a.id === ra?.researchArea?.id);
+            if (match) facultyAreaIds.add(match.id);
+          });
         });
         const filtered = areas.filter((a) => facultyAreaIds.has(a.id));
         setRelevantAreas(filtered.length ? filtered : areas);
@@ -78,11 +106,15 @@ export default function ResearchQuestionList() {
     }
     // User has follows: use followed areas + areas of followed faculty
     researchVaultApi.getFaculty({ limit: 200 }).then((response) => {
-      const facultyList = responsePayload(response).data || [];
+      const facultyList = extractItems(response);
       const relevantAreaIds = new Set(followedAreaIds);
       facultyList.forEach((f) => {
         if (followedFacultyIds.has(f.id)) {
-          f.researchAreas?.forEach((ra) => relevantAreaIds.add(ra.researchArea.id));
+          f.researchAreas?.forEach((ra) => {
+            const name = typeof ra === 'string' ? ra : ra?.researchArea?.name || ra?.name;
+            const match = areas.find((a) => a.name?.toLowerCase() === name?.toLowerCase() || a.id === ra?.id || a.id === ra?.researchArea?.id);
+            if (match) relevantAreaIds.add(match.id);
+          });
         }
       });
       const filtered = areas.filter((a) => relevantAreaIds.has(a.id));
@@ -99,7 +131,9 @@ export default function ResearchQuestionList() {
     let active = true;
     setLoading(true);
     setQuestions([]);
+    setPage(1);
     const params = {
+      page: 1,
       limit: 20,
       sort,
       ...(search ? { search } : {}),
@@ -109,11 +143,12 @@ export default function ResearchQuestionList() {
     };
     researchVaultApi.getQuestions(params).then((response) => {
       if (!active) return;
-      const result = responsePayload(response);
-      setQuestions(result.items || []);
-      setCursor(result.next_cursor || null);
-      setHasMore(Boolean(result.has_more));
-      setTotal(result.total || 0);
+      const items = extractItems(response);
+      const totalCount = extractTotal(response);
+      const pagination = response?.data?.pagination;
+      setQuestions(items);
+      setHasMore(Boolean(pagination?.hasNext || (pagination?.page && pagination.page * 20 < totalCount)));
+      setTotal(totalCount);
     }).catch((error) => {
       if (active) toast.error(errorMessage(error));
     }).finally(() => {
@@ -123,23 +158,26 @@ export default function ResearchQuestionList() {
   }, [search, sort, tag, status, refreshVersion]);
 
   const loadMore = async () => {
-    if (!cursor || loadingMore) return;
+    if (!hasMore || loadingMore) return;
     setLoadingMore(true);
+    const nextPage = page + 1;
     try {
       const response = await researchVaultApi.getQuestions({
+        page: nextPage,
         limit: 20,
         sort,
-        cursor,
         ...(search ? { search } : {}),
         ...(tag ? { tag } : {}),
         ...(status === 'needs-reply' ? { unanswered: 'true' } : {}),
         ...(status === 'resolved' ? { resolved: 'true' } : {})
       });
-      const result = responsePayload(response);
-      setQuestions((current) => [...current, ...(result.items || [])]);
-      setCursor(result.next_cursor || null);
-      setHasMore(Boolean(result.has_more));
-      setTotal(result.total || 0);
+      const items = extractItems(response);
+      const totalCount = extractTotal(response);
+      const pagination = response?.data?.pagination;
+      setQuestions((current) => [...current, ...items]);
+      setPage(nextPage);
+      setHasMore(Boolean(pagination?.hasNext || (pagination?.page && pagination.page * 20 < totalCount)));
+      setTotal(totalCount);
     } catch (error) {
       toast.error(errorMessage(error));
     } finally {
@@ -224,7 +262,11 @@ export default function ResearchQuestionList() {
               className="rounded-xl border border-slate-200 bg-white/90 px-3 py-2.5 text-xs font-semibold text-[var(--color-primary)] outline-none focus:border-[var(--color-secondary)] sm:w-48"
             >
               <option value="">All tags</option>
-              {relevantAreas.map((area) => <option key={area.id} value={area.slug}>{area.name}</option>)}
+              {(areas.length > 0 ? areas : relevantAreas).map((area) => (
+                <option key={area.id || area.slug} value={area.slug || area.name}>
+                  {area.name}
+                </option>
+              ))}
             </select>
             <select
               aria-label="Filter by status"
@@ -270,22 +312,25 @@ export default function ResearchQuestionList() {
               <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
                 <h2 className={`min-w-0 flex-1 text-base font-bold leading-snug ${isOwnQuestion ? 'text-blue-900' : 'text-slate-950'}`}>{question.title}</h2>
                 <div className="flex shrink-0 items-center gap-3 text-xs text-slate-500">
-                  <span className="inline-flex items-center gap-1"><MessageCircle size={14} /> {question.replyCount}</span>
-                  <span className="inline-flex items-center gap-1"><ThumbsUp size={14} /> {question.voteCount}</span>
+                  <span className="inline-flex items-center gap-1"><MessageCircle size={14} /> {question.replyCount || 0}</span>
+                  <span className="inline-flex items-center gap-1"><ThumbsUp size={14} /> {question.voteCount ?? question.upvotes ?? 0}</span>
                 </div>
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
                 <span className={`text-xs font-medium ${isOwnQuestion ? 'text-blue-700' : 'text-blue-700'}`}>
-                  {question.uploadedBy?.displayName || 'ACC student'}{question.uploadedBy?.rollNo ? ` · ${question.uploadedBy.rollNo}` : ''} · {relativeTime(question.createdAt)}
+                  {(question.uploadedBy || question.author)?.displayName || 'ACC student'}{(question.uploadedBy || question.author)?.rollNo ? ` · ${(question.uploadedBy || question.author).rollNo}` : ''} · {relativeTime(question.createdAt)}
                 </span>
                 {question.isResolved && <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700">Resolved</span>}
               </div>
               <div className="mt-2 flex flex-wrap gap-1.5">
-                {question.researchAreas?.map(({ researchArea }) => (
-                  <span key={researchArea.id} className="rounded-md border border-blue-100 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-800">
-                    {researchArea.name}
-                  </span>
-                ))}
+                {(question.researchAreas || []).map((area, idx) => {
+                  const areaName = typeof area === 'string' ? area : area.researchArea?.name || area.name;
+                  return (
+                    <span key={idx} className="rounded-md border border-blue-100 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-800">
+                      {areaName}
+                    </span>
+                  );
+                })}
               </div>
             </Link>
           );
@@ -315,9 +360,9 @@ export default function ResearchQuestionList() {
               <input name="title" required placeholder="Question title" className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" />
               <textarea name="content" required rows={5} placeholder="Write your question or details. Markdown is supported." className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm" />
               <div className="flex items-center gap-3 pt-2">
-                <select name="researchAreaIds" aria-label="Research area" className="flex-1 rounded-md border border-slate-300 px-3 py-2.5 text-sm">
+                <select name="researchArea" aria-label="Research area" className="flex-1 rounded-md border border-slate-300 px-3 py-2.5 text-sm">
                   <option value="">Select a research area (optional)</option>
-                  {areas.map((area) => <option key={area.id} value={area.id}>{area.name}</option>)}
+                  {areas.map((area) => <option key={area.id || area.name} value={area.name}>{area.name}</option>)}
                 </select>
               </div>
               <button type="submit" className="w-full rounded-xl bg-[var(--color-secondary)] px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary-accent)]">Post Question</button>
@@ -332,12 +377,23 @@ export default function ResearchQuestionList() {
 // Lives inside the component below so it can close the modal and trigger a
 // list refresh via state — a module-scope version of this function crashed at
 // runtime with a ReferenceError (no access to component state setters).
-const submitQuestionFactory = (setFormOpen, setRefreshVersion) => async (event) => {
+const submitQuestionFactory = (setFormOpen, setRefreshVersion, areas = []) => async (event) => {
   event.preventDefault();
   const form = event.currentTarget;
   const data = Object.fromEntries(new FormData(form).entries());
+  let chosenArea = data.researchArea || data.researchAreaIds || data.researchAreas;
+  if (chosenArea && areas.length > 0) {
+    const match = areas.find((a) => String(a.id) === String(chosenArea) || a.name === chosenArea);
+    if (match) chosenArea = match.name;
+  }
+  const researchAreas = chosenArea ? [chosenArea] : [];
   try {
-    await researchVaultApi.submitDiscussion({ ...data, researchAreaIds: data.researchAreaIds ? [Number(data.researchAreaIds)] : [] });
+    await researchVaultApi.submitDiscussion({
+      title: data.title,
+      content: data.content,
+      researchAreas,
+      researchAreaIds: data.researchAreaIds ? [Number(data.researchAreaIds)] : []
+    });
     toast.success('Question posted.');
     setFormOpen(false);
     form.reset();

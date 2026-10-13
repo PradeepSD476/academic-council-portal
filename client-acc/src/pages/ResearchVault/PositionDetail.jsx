@@ -56,15 +56,10 @@ export default function PositionDetail() {
   const toggleBookmark = async () => {
     if (!position) return;
     try {
-      if (position.bookmarked) {
-        await researchVaultApi.unbookmarkPosition(position.id);
-        setPosition({ ...position, bookmarked: false });
-        toast.success('Removed from saved positions.');
-      } else {
-        await researchVaultApi.bookmarkPosition(position.id);
-        setPosition({ ...position, bookmarked: true });
-        toast.success('Position saved — see it under Following.');
-      }
+      const res = await researchVaultApi.toggleBookmarkPosition(position.id);
+      const isNowBookmarked = res.data?.data?.bookmarked ?? !position.isBookmarked;
+      setPosition({ ...position, isBookmarked: isNowBookmarked, bookmarked: isNowBookmarked });
+      toast.success(isNowBookmarked ? 'Position saved — see it under Following.' : 'Removed from saved positions.');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Could not update bookmark.');
     }
@@ -83,7 +78,7 @@ export default function PositionDetail() {
   }
 
   const urgency = deadlineInfo(position.deadline);
-  const isBookmarked = Boolean(position.bookmarked);
+  const isBookmarked = Boolean(position.isBookmarked ?? position.bookmarked);
 
   return (
     <div className="space-y-5">
@@ -104,9 +99,13 @@ export default function PositionDetail() {
 
         {position.faculty && (
           <div className="mt-3 flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] text-sm font-semibold text-white">
-              {(position.faculty.name || 'F').split(' ').map((w) => w[0]).slice(0, 2).join('')}
-            </div>
+            {position.faculty.photoUrl ? (
+              <img src={position.faculty.photoUrl} alt={position.faculty.name} className="h-10 w-10 shrink-0 rounded-full object-cover border border-slate-200" />
+            ) : (
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] text-sm font-semibold text-white">
+                {(position.faculty.name || 'F').split(' ').map((w) => w[0]).slice(0, 2).join('')}
+              </div>
+            )}
             <div className="min-w-0">
               <p className="text-sm font-bold text-slate-900">{position.faculty.name}</p>
               <p className="text-xs text-slate-500">{position.faculty.designation}{position.faculty.designation && position.faculty.department ? ' · ' : ''}{position.faculty.department}</p>
@@ -136,10 +135,10 @@ export default function PositionDetail() {
           </section>
         )}
 
-        {(position.applicationUrl || position.applicationInstructions) && (
+        {(position.applicationUrl || position.applicationInstructions || position.howToApply) && (
           <section className="mt-5 rounded-2xl border border-[var(--color-secondary-border)] bg-[var(--color-secondary-light)] p-4">
             <h2 className="text-sm font-bold text-blue-900">How to apply</h2>
-            {position.applicationInstructions && <p className="mt-1.5 whitespace-pre-wrap text-sm leading-6 text-blue-900/90">{position.applicationInstructions}</p>}
+            {(position.howToApply || position.applicationInstructions) && <p className="mt-1.5 whitespace-pre-wrap text-sm leading-6 text-blue-900/90">{position.howToApply || position.applicationInstructions}</p>}
             {position.applicationUrl && (
               <a
                 href={position.applicationUrl}
@@ -155,9 +154,12 @@ export default function PositionDetail() {
 
         {position.researchAreas?.length > 0 && (
           <div className="mt-5 flex flex-wrap gap-1.5">
-            {position.researchAreas.map(({ researchArea }) => (
-              <span key={researchArea.id} className="rounded-full border border-[var(--color-secondary-border)] bg-[var(--color-secondary-light)] px-2 py-1 text-[11px] font-semibold text-blue-900">{researchArea.name}</span>
-            ))}
+            {position.researchAreas.map((area, idx) => {
+              const name = typeof area === 'string' ? area : area.researchArea?.name || area.name;
+              return (
+                <span key={idx} className="rounded-full border border-[var(--color-secondary-border)] bg-[var(--color-secondary-light)] px-2 py-1 text-[11px] font-semibold text-blue-900">{name}</span>
+              );
+            })}
           </div>
         )}
 

@@ -156,9 +156,12 @@ export default function ExperienceDetail() {
 
         {experience.researchAreas?.length > 0 && (
           <div className="mt-5 flex flex-wrap gap-1.5">
-            {experience.researchAreas.map(({ researchArea }) => (
-              <span key={researchArea.id} className="rounded-full border border-[var(--color-secondary-border)] bg-[var(--color-secondary-light)] px-2 py-1 text-[11px] font-semibold text-blue-900">{researchArea.name}</span>
-            ))}
+            {experience.researchAreas.map((area, idx) => {
+              const name = typeof area === 'string' ? area : area.researchArea?.name || area.name;
+              return (
+                <span key={idx} className="rounded-full border border-[var(--color-secondary-border)] bg-[var(--color-secondary-light)] px-2 py-1 text-[11px] font-semibold text-blue-900">{name}</span>
+              );
+            })}
           </div>
         )}
 
