@@ -4,7 +4,6 @@ import { ArrowLeft, BarChart3, BookOpenCheck, BriefcaseBusiness, CirclePlus, Fla
 import toast from 'react-hot-toast';
 import { researchVaultApi } from '../../api/researchVaultApi';
 import { getFilePath } from '../../lib/getFilePath';
-import { STATUS_COLORS } from './shared';
 
 const tabs = [
   { id: 'analytics', label: 'Overview', icon: BarChart3 },

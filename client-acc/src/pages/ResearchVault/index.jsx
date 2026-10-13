@@ -1,12 +1,16 @@
 import { createElement, useContext, useEffect, useId, useMemo, useRef, useState } from 'react';
-import { STATUS_COLORS } from './shared';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Activity, Bookmark, BookOpen, BookSearch, BriefcaseBusiness, Check, CheckCircle2, ChevronDown, CircleHelp, ExternalLink, Filter, FlaskConical, MessageCircle, Plus, Search, Send, ThumbsUp, UserRoundCheck, UserRoundPlus, UsersRound, X, Clock, Download, Eye, FileText, Lock, UploadCloud } from 'lucide-react';
 import toast from 'react-hot-toast';
 import AuthContext from '../../context/auth/authContext';
 import { researchVaultApi } from '../../api/researchVaultApi';
-import { getInitials } from '../../lib/utils';
 import { getFilePath } from '../../lib/getFilePath';
+
+const STATUS_COLORS = {
+  APPROVED: 'bg-blue-50 text-blue-700 border-blue-200',
+  REJECTED: 'bg-red-50 text-red-700 border-red-200',
+  PENDING: 'bg-amber-50 text-amber-700 border-amber-200',
+};
 
 const TABS_WITH_ACTIONS = ['experiences', 'discussions', 'resources'];
 
@@ -25,6 +29,18 @@ const sections = Object.values(TAB_CONFIG);
 const responseData = (response) => response.data?.data || [];
 const errorMessage = (error) => error.response?.data?.message || 'The request could not be completed.';
 const authorLabel = (author) => [author?.displayName || 'ACC student', author?.rollNo].filter(Boolean).join(' · ');
+
+const getInitials = (name, fallback = '?') => {
+  if (!name || typeof name !== 'string') return fallback;
+  const cleaned = name
+    .trim()
+    .replace(/^(Dr\.|Prof\.|Mr\.|Ms\.|Mrs\.|Miss|Mx\.)\s+/i, '')
+    .replace(/\s+/g, ' ');
+  const parts = cleaned.split(' ').filter(Boolean);
+  if (parts.length === 0) return fallback;
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+};
 
 // Module-level helper functions for resource type display
 const formatResourceType = (type) => {
