@@ -390,7 +390,7 @@ function ResourceProfileView({ resource, onBack }) {
                 )}
                 {resource.filePath && (
                   <a 
-                    href={`${researchVaultApi.getResourceDownloadUrl(resource.id)}?admin_view=1`} 
+                    href={resource.fileURL || `${researchVaultApi.getResourceDownloadUrl(resource.id)}?admin_view=1`} 
                     target="_blank" 
                     rel="noopener noreferrer" 
                     className="inline-flex items-center gap-2 rounded-md bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 border border-emerald-200"
@@ -974,7 +974,7 @@ export default function ResearchVaultAdmin() {
       if (file && file.size > 0) {
         toast.loading('Uploading file...', { id: 'upload' });
         try {
-          const result = await getFilePath({ file, folder: 'research-vault' });
+          const result = await getFilePath({ file, folder: 'resources' });
           if (result?.filePath) {
             values.filePath = result.filePath;
             values.fileSize = file.size;
@@ -984,16 +984,24 @@ export default function ResearchVaultAdmin() {
             values.format = ext === 'pdf' ? 'pdf' : (ext === 'docx' || ext === 'doc') ? 'docx' : (ext === 'pptx' || ext === 'ppt') ? 'pptx' : 'file';
           } else {
             toast.error('File storage upload failed. You can provide an external URL instead.');
-            if (!values.url) return false;
+            if (!values.url?.trim()) return false;
           }
         } catch {
           toast.error('File storage upload failed. You can provide an external URL instead.');
-          if (!values.url) return false;
+          if (!values.url?.trim()) return false;
         } finally {
           toast.dismiss('upload');
         }
       }
       delete values.file;
+      if (values.url) {
+        values.url = values.url.trim();
+        if (!values.url) delete values.url;
+      }
+      if (!values.filePath && !values.url) {
+        toast.error('Please provide an external URL or upload a file.');
+        return false;
+      }
     }
 
     try {
@@ -1469,7 +1477,7 @@ export default function ResearchVaultAdmin() {
                           </a>
                         )}
                         {entry.filePath && (
-                          <a href={`${researchVaultApi.getResourceDownloadUrl(entry.id)}?admin_view=1`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-sm font-bold text-blue-600 hover:text-blue-700 hover:underline">
+                          <a href={entry.fileURL || `${researchVaultApi.getResourceDownloadUrl(entry.id)}?admin_view=1`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-sm font-bold text-blue-600 hover:text-blue-700 hover:underline">
                             <Download size={14} /> View attached file
                           </a>
                         )}

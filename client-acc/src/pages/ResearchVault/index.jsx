@@ -1,11 +1,12 @@
 import { createElement, useContext, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { STATUS_COLORS } from './shared';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Activity, Bookmark, BookOpen, BookSearch, BriefcaseBusiness, Check, CheckCircle2, ChevronDown, CircleHelp, ExternalLink, Filter, FlaskConical, MessageCircle, Plus, Search, Send, ThumbsUp, UserRoundCheck, UserRoundPlus, UsersRound, X, Clock, Download, Eye, FileText, Lock } from 'lucide-react';
+import { Activity, Bookmark, BookOpen, BookSearch, BriefcaseBusiness, Check, CheckCircle2, ChevronDown, CircleHelp, ExternalLink, Filter, FlaskConical, MessageCircle, Plus, Search, Send, ThumbsUp, UserRoundCheck, UserRoundPlus, UsersRound, X, Clock, Download, Eye, FileText, Lock, UploadCloud } from 'lucide-react';
 import toast from 'react-hot-toast';
 import AuthContext from '../../context/auth/authContext';
 import { researchVaultApi } from '../../api/researchVaultApi';
 import { getInitials } from '../../lib/utils';
+import { getFilePath } from '../../lib/getFilePath';
 
 const TABS_WITH_ACTIONS = ['experiences', 'discussions', 'resources'];
 
@@ -320,6 +321,7 @@ export default function ResearchVault() {
     title: '', description: '', url: '', category: 'GUIDE',
     researchAreaIds: [], customArea: '', consent_confirmed: false
   });
+  const [resourceFile, setResourceFile] = useState(null);
   const [submittingResource, setSubmittingResource] = useState(false);
   const [resourceSubmitSuccess, setResourceSubmitSuccess] = useState(false);
   const [resourceSubmitWarnings, setResourceSubmitWarnings] = useState([]);
@@ -765,13 +767,56 @@ export default function ResearchVault() {
   // ── Submit Resource ────────────────────────────────────────────────────────
   const submitResource = async (e) => {
     e.preventDefault();
+    const trimmedUrl = resourceForm.url?.trim() || '';
+    if (!trimmedUrl && !resourceFile) {
+      toast.error('Please provide an external URL or upload a file.');
+      return;
+    }
     setSubmittingResource(true);
     setResourceSubmitWarnings([]);
     try {
+      let uploadedFilePath = null;
+      let fileSize = null;
+      let mimeType = null;
+      let format = null;
+
+      if (resourceFile) {
+        toast.loading('Uploading file...', { id: 'upload-res' });
+        try {
+          const uploadResult = await getFilePath({ file: resourceFile, folder: 'resources' });
+          if (uploadResult?.filePath) {
+            uploadedFilePath = uploadResult.filePath;
+            fileSize = resourceFile.size;
+            mimeType = resourceFile.type;
+            const ext = resourceFile.name?.split('.').pop()?.toLowerCase();
+            format = ext === 'pdf' ? 'pdf' : (ext === 'docx' || ext === 'doc') ? 'docx' : (ext === 'pptx' || ext === 'ppt') ? 'pptx' : 'file';
+          } else {
+            toast.error('Failed to upload file.');
+            if (!trimmedUrl) {
+              setSubmittingResource(false);
+              return;
+            }
+          }
+        } catch {
+          toast.error('Failed to upload file.');
+          if (!trimmedUrl) {
+            setSubmittingResource(false);
+            return;
+          }
+        } finally {
+          toast.dismiss('upload-res');
+        }
+      }
+
       const payload = {
         title: resourceForm.title.trim(),
         description: resourceForm.description.trim() || undefined,
-        url: resourceForm.url.trim(),
+        url: trimmedUrl || undefined,
+        filePath: uploadedFilePath || undefined,
+        fileSize: fileSize || undefined,
+        mimeType: mimeType || undefined,
+        format: format || undefined,
+        sourceType: uploadedFilePath ? 'FILE' : 'LINK',
         category: resourceForm.category,
         researchAreaIds: resourceForm.researchAreaIds,
         customArea: resourceForm.customArea.trim() || undefined,
@@ -794,6 +839,7 @@ export default function ResearchVault() {
 
   const resetResourceForm = () => {
     setResourceForm({ title: '', description: '', url: '', category: 'GUIDE', researchAreaIds: [], customArea: '', consent_confirmed: false });
+    setResourceFile(null);
     setResourceSubmitSuccess(false);
     setResourceSubmitWarnings([]);
     setResourceFormOpen(false);
@@ -863,7 +909,7 @@ export default function ResearchVault() {
             </div>
             <p className="ml-4 text-sm text-slate-500">Find a research group, learn from student experiences, and get practical guidance for your next step.</p>
           </div>
-          {(section === 'experiences' || section === 'discussions' || (section === 'resources' && user && !['RESEARCH_ADMIN', 'SUPER_ADMIN'].includes(user.role))) && (
+          {(section === 'experiences' || section === 'discussions' || section === 'resources') && (
             <button onClick={() => (section === 'resources' ? (() => { setResourceSubmitSuccess(false); setResourceFormOpen(true); })() : section === 'experiences' ? setExperienceFormOpen(true) : setFormOpen(true))} className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-95">
               {section === 'experiences' ? <><Send size={16} /> Share an experience</> : section === 'discussions' ? <><Send size={16} /> Ask a question</> : <><Plus size={16} /> Submit Resource</>}
             </button>
@@ -1949,7 +1995,7 @@ export default function ResearchVault() {
               </div>
             ) : (
               <form onSubmit={submitResource} className="space-y-4">
-                <p className="text-xs text-slate-500 border-l-2 border-[var(--color-secondary)] pl-3">Submitted resources are reviewed before publishing. Links only — admins handle file uploads.</p>
+                <p className="text-xs text-slate-500 border-l-2 border-[var(--color-secondary)] pl-3">Submitted resources are reviewed before publishing. Provide an external link, upload a document, or both.</p>
 
                 {/* Title */}
                 <div>
@@ -2049,20 +2095,46 @@ export default function ResearchVault() {
                   )}
                 </div>
 
-                {/* URL */}
-                <div>
-                  <label htmlFor="res-url" className="block text-xs font-semibold text-slate-700 mb-1">Link URL <span className="text-red-500">*</span></label>
-                  <input
-                    id="res-url"
-                    type="url"
-                    required
-                    maxLength={2048}
-                    value={resourceForm.url}
-                    onChange={(e) => setResourceForm({ ...resourceForm, url: e.target.value })}
-                    placeholder="https://docs.google.com/…"
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[var(--color-secondary)] outline-none font-mono"
-                  />
-                  <p className="mt-1 text-[11px] text-slate-400">Google Drive links: set sharing to "Anyone with the link can view". Prefer club or institutional drives over personal ones.</p>
+                {/* Content: URL and/or File */}
+                <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/50 p-4">
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+                    <UploadCloud size={16} className="text-[var(--color-secondary)]" /> Resource Content
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="res-url" className="block text-xs font-semibold text-slate-700 mb-1">
+                        External Link {resourceFile ? '(optional)' : ''}
+                      </label>
+                      <input
+                        id="res-url"
+                        type="url"
+                        maxLength={2048}
+                        value={resourceForm.url}
+                        onChange={(e) => setResourceForm({ ...resourceForm, url: e.target.value })}
+                        placeholder="https://docs.google.com/…"
+                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:border-[var(--color-secondary)] outline-none font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="res-file" className="block text-xs font-semibold text-slate-700 mb-1">
+                        Upload Document {resourceForm.url ? '(optional)' : ''}
+                      </label>
+                      <input
+                        id="res-file"
+                        type="file"
+                        accept=".pdf,.doc,.docx,.ppt,.pptx,.txt"
+                        onChange={(e) => setResourceFile(e.target.files?.[0] || null)}
+                        className="w-full rounded-xl border border-slate-200 bg-white px-2 py-1.5 text-xs focus:border-[var(--color-secondary)] outline-none file:mr-2 file:rounded-md file:border-0 file:bg-blue-50 file:px-2.5 file:py-1 file:text-xs file:font-semibold file:text-blue-600 hover:file:bg-blue-100 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                  {resourceFile && (
+                    <div className="flex items-center justify-between text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg">
+                      <span className="truncate">Attached: {resourceFile.name} ({(resourceFile.size / 1024).toFixed(1)} KB)</span>
+                      <button type="button" onClick={() => setResourceFile(null)} className="ml-2 text-rose-600 font-bold hover:underline">Remove</button>
+                    </div>
+                  )}
+                  <p className="text-[11px] text-slate-400">Supported formats: PDF, Word (DOCX), Presentations (PPTX). Provide a viewable link, upload a document, or both.</p>
                 </div>
 
                 {/* Consent */}
@@ -2079,7 +2151,7 @@ export default function ResearchVault() {
 
                 <div className="flex justify-end gap-2 pt-1">
                   <button type="button" onClick={resetResourceForm} disabled={submittingResource} className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
-                  <button type="submit" disabled={submittingResource || !resourceForm.consent_confirmed} className="rounded-full bg-[var(--color-secondary)] px-5 py-2 text-sm font-semibold text-white hover:bg-[var(--color-primary-accent)] disabled:opacity-50 transition-colors">
+                  <button type="submit" disabled={submittingResource || !resourceForm.consent_confirmed || (!resourceForm.url?.trim() && !resourceFile)} className="rounded-full bg-[var(--color-secondary)] px-5 py-2 text-sm font-semibold text-white hover:bg-[var(--color-primary-accent)] disabled:opacity-50 transition-colors">
                     {submittingResource ? 'Submitting…' : 'Submit for Review'}
                   </button>
                 </div>
@@ -2393,7 +2465,7 @@ function ResourceCard({ resource, follow, followedAreaIds, apiUrl, allAreas = []
           {hasFile && format === 'pdf' && (
             <>
               <a
-                href={`${apiUrl}&inline=1`}
+                href={resource.fileURL || `${apiUrl}&inline=1`}
                 target="_blank"
                 rel="noreferrer"
                 onClick={handleOpen}
@@ -2413,7 +2485,7 @@ function ResourceCard({ resource, follow, followedAreaIds, apiUrl, allAreas = []
           )}
           {hasFile && format !== 'pdf' && (
             <a
-              href={apiUrl}
+              href={resource.fileURL || apiUrl}
               download
               onClick={handleDownload}
               className={actionBtn}
@@ -2578,7 +2650,7 @@ function ResourceDetailModal({ resource, onClose, follow, followedAreaIds, allAr
             {hasFile && format === 'pdf' && (
               <>
                 <a
-                  href={`${apiUrl}&inline=1`}
+                  href={resource.fileURL || `${apiUrl}&inline=1`}
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-colors"
@@ -2596,7 +2668,7 @@ function ResourceDetailModal({ resource, onClose, follow, followedAreaIds, allAr
             )}
             {hasFile && format !== 'pdf' && (
               <a
-                href={apiUrl}
+                href={resource.fileURL || apiUrl}
                 download
                 className="inline-flex items-center gap-2 rounded-full bg-[var(--color-secondary)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[var(--color-primary-accent)] transition-colors"
               >

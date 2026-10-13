@@ -66,6 +66,25 @@ export const shapeResource = (item) => {
   };
 };
 
+export const attachFileURL = async (item) => {
+  if (!item) return null;
+  const shaped = shapeResource(item);
+  const trimmed = shaped.filePath?.trim();
+  if (trimmed) {
+    try {
+      shaped.fileURL = await getPublicUrl({
+        bucketName: process.env.MINIO_BUCKET_NAME || 'acc-media',
+        filePath: trimmed,
+      });
+    } catch {
+      shaped.fileURL = null;
+    }
+  } else {
+    shaped.fileURL = null;
+  }
+  return shaped;
+};
+
 // GET /api/v1/vault/resources - Public browse approved resources & guides
 export const getResearchResources = async (req, res, forcedType = null) => {
   try {
@@ -281,7 +300,7 @@ export const getResearchResources = async (req, res, forcedType = null) => {
       prisma.researchResource.count({ where }),
     ]);
 
-    const shaped = resources.map(shapeResource);
+    const shaped = await Promise.all(resources.map(attachFileURL));
     return paginated(res, shaped, { page, limit, total }, 'Resources fetched');
   } catch (err) {
     return error(res, 'Failed to fetch resources', 500, err);
@@ -314,7 +333,7 @@ export const getResearchResourceById = async (req, res) => {
 
     if (!resource) return error(res, 'Resource not found', 404);
 
-    return success(res, shapeResource(resource), 'Resource detail fetched');
+    return success(res, await attachFileURL(resource), 'Resource detail fetched');
   } catch (err) {
     return error(res, 'Failed to fetch resource', 500, err);
   }
@@ -373,6 +392,7 @@ export const submitResearchResource = async (req, res) => {
     // Auto-approve official materials (guides, templates) if submitted by admin/faculty or direct admin create
     const userRole = req.user?.role;
     const isDirectAdmin = Boolean(req.body.isDirectAdminCreate || explicitStatus === 'APPROVED' || ['RESEARCH_ADMIN', 'SUPER_ADMIN'].includes(userRole));
+    const isAutoApproved = isDirectAdmin || (dbType !== 'EXPERIENCE' && ['FACULTY'].includes(userRole));
     const trimmedFilePath = filePath?.trim() || null;
     const trimmedUrl = url?.trim() || null;
     const fileExt = trimmedFilePath ? trimmedFilePath.split('.').pop()?.toLowerCase() : null;
@@ -409,7 +429,7 @@ export const submitResearchResource = async (req, res) => {
 
     return success(
       res,
-      shapeResource(resource),
+      await attachFileURL(resource),
       isAutoApproved ? 'Resource published successfully' : 'Resource submitted for review',
       201
     );
@@ -471,7 +491,7 @@ export const updateResearchResource = async (req, res) => {
       data: updateData,
     });
 
-    return success(res, shapeResource(updated), 'Resource updated successfully');
+    return success(res, await attachFileURL(updated), 'Resource updated successfully');
   } catch (err) {
     return error(res, 'Failed to update resource', 500, err);
   }
@@ -529,7 +549,7 @@ export const getMyResearchResources = async (req, res, forcedType = null) => {
       },
     });
 
-    return success(res, resources.map(shapeResource), 'My resources fetched');
+    return success(res, await Promise.all(resources.map(attachFileURL)), 'My resources fetched');
   } catch (err) {
     return error(res, 'Failed to fetch your resources', 500, err);
   }
@@ -641,7 +661,7 @@ export const getResearchResourceModerationQueue = async (req, res, forcedType = 
       },
     });
 
-    return success(res, resources.map(shapeResource), 'Moderation queue fetched');
+    return success(res, await Promise.all(resources.map(attachFileURL)), 'Moderation queue fetched');
   } catch (err) {
     return error(res, 'Failed to fetch moderation queue', 500, err);
   }
@@ -667,7 +687,7 @@ export const setResearchResourceStatus = async (req, res) => {
       },
     });
 
-    return success(res, shapeResource(updated), `Resource status set to ${newStatus}`);
+    return success(res, await attachFileURL(updated), `Resource status set to ${newStatus}`);
   } catch (err) {
     return error(res, 'Failed to update resource status', 500, err);
   }
