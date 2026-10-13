@@ -334,10 +334,14 @@ function ResourceProfileView({ resource, onBack }) {
               {(resource.resourceType || resource.type || 'GUIDE').replace(/_/g, ' ')}
             </span>
             
-            {(resource.url || resource.filePath) && (
+            {resource.url && (
               <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-50 border border-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-                {resource.url ? <LinkIcon size={14} /> : <Download size={14} />}
-                {resource.url ? 'External Link' : 'File Attached'}
+                <LinkIcon size={14} /> External Link
+              </span>
+            )}
+            {resource.filePath && (
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 border border-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                <Download size={14} /> File Attached
               </span>
             )}
           </div>
@@ -373,25 +377,28 @@ function ResourceProfileView({ resource, onBack }) {
                 <Database size={16} className="text-slate-400" /> Resource Content
               </h3>
               
-              {resource.url ? (
-                <a 
-                  href={resource.url} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="inline-flex items-center gap-2 rounded-md bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100 border border-blue-200"
-                >
-                  <Globe size={16} /> Open External Resource
-                </a>
-              ) : resource.filePath ? (
-                <a 
-                  href={`${researchVaultApi.getResourceDownloadUrl(resource.id)}?admin_view=1`} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="inline-flex items-center gap-2 rounded-md bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100 border border-blue-200"
-                >
-                  <Download size={16} /> View / Download Attached File
-                </a>
-              ) : null}
+              <div className="flex flex-wrap items-center gap-3">
+                {resource.url && (
+                  <a 
+                    href={resource.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="inline-flex items-center gap-2 rounded-md bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100 border border-blue-200"
+                  >
+                    <Globe size={16} /> Open External Resource
+                  </a>
+                )}
+                {resource.filePath && (
+                  <a 
+                    href={`${researchVaultApi.getResourceDownloadUrl(resource.id)}?admin_view=1`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="inline-flex items-center gap-2 rounded-md bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 border border-emerald-200"
+                  >
+                    <Download size={16} /> View / Download Attached File
+                  </a>
+                )}
+              </div>
             </section>
           )}
           
@@ -972,6 +979,9 @@ export default function ResearchVaultAdmin() {
             values.filePath = result.filePath;
             values.fileSize = file.size;
             values.mimeType = file.type;
+            values.sourceType = 'FILE';
+            const ext = file.name?.split('.').pop()?.toLowerCase();
+            values.format = ext === 'pdf' ? 'pdf' : (ext === 'docx' || ext === 'doc') ? 'docx' : (ext === 'pptx' || ext === 'ppt') ? 'pptx' : 'file';
           } else {
             toast.error('File storage upload failed. You can provide an external URL instead.');
             if (!values.url) return false;
@@ -1624,10 +1634,14 @@ export default function ResearchVaultAdmin() {
                             <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
                               {(resource.resourceType || resource.type || 'GUIDE').replace(/_/g, ' ')}
                             </span>
-                            {(resource.url || resource.filePath) && (
-                              <span className="inline-flex items-center gap-1 rounded-md bg-slate-50 border border-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500">
-                                {resource.url ? <LinkIcon size={10} /> : <Download size={10} />}
-                                {resource.url ? 'External Link' : 'File Attached'}
+                            {resource.url && (
+                              <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 border border-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
+                                <LinkIcon size={10} /> External Link
+                              </span>
+                            )}
+                            {resource.filePath && (
+                              <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 border border-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                                <Download size={10} /> File Attached
                               </span>
                             )}
                           </div>
