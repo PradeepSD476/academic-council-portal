@@ -462,6 +462,7 @@ export default function ResearchVault() {
   }, [section, showMyExperiences]);
 
   const [showMySubmissions, setShowMySubmissions] = useState(false);
+  const [selectedResource, setSelectedResource] = useState(null);
   const [myResources, setMyResources] = useState([]);
   const [myResourcesLoading, setMyResourcesLoading] = useState(false);
   const [withdrawConfirm, setWithdrawConfirm] = useState(null); // { id, title }
@@ -585,6 +586,8 @@ export default function ResearchVault() {
                       // Filter logic: OR within same type (multiple facultyIds = any of them), AND across types (facultyIds AND areaIds)
                       ...(activeFacultyFilters.length > 0 ? { facultyIds: activeFacultyFilters.join(',') } : {}),
                       ...(activeAreaFilters.length > 0 ? { areaIds: activeAreaFilters.join(',') } : {}),
+                      followedFacultyIds: Array.from(followedFacultyIds).join(','),
+                      followedAreaIds: Array.from(followedAreaIds).join(','),
                     });
       request.then((response) => {
         const data = responseData(response);
@@ -602,7 +605,7 @@ export default function ResearchVault() {
       });
     }, 350);
     return () => { active = false; clearTimeout(timer); };
-  }, [section, search, discussionStatus, department, areaId, areas, openingsOnly, refreshVersion, followingAreaId, activeFacultyFilters, activeAreaFilters, resourceCategory, resourceFormat, resourceSort, resourcePage, positionAreaId, positionType, positionSort, experienceType]);
+  }, [section, search, discussionStatus, department, areaId, areas, openingsOnly, refreshVersion, followingAreaId, activeFacultyFilters, activeAreaFilters, followedFacultyIds, followedAreaIds, resourceCategory, resourceFormat, resourceSort, resourcePage, positionAreaId, positionType, positionSort, experienceType]);
 
   const follow = async (kind, id, name = '') => {
     const numericId = Number(id);
@@ -1357,6 +1360,11 @@ export default function ResearchVault() {
                 follow={follow}
                 followedAreaIds={followedAreaIds}
                 apiUrl={researchVaultApi.getResourceDownloadUrl(resource.id)}
+                allAreas={areas}
+                onSelect={(r) => {
+                  setSelectedResource(r);
+                  researchVaultApi.recordResourceView(r.id);
+                }}
               />
             ))}
           </VaultList>
@@ -2179,6 +2187,18 @@ export default function ResearchVault() {
       )}
 
       {pendingUnfollow && <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/45 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setPendingUnfollow(null); }}><section role="alertdialog" aria-modal="true" aria-labelledby="unfollow-title" aria-describedby="unfollow-description" className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-wider text-[var(--color-secondary)]">Research Vault</p><h2 id="unfollow-title" className="mt-1 text-xl font-bold text-slate-950">Unfollow {pendingUnfollow.name}?</h2></div><button type="button" aria-label="Close confirmation" onClick={() => setPendingUnfollow(null)} className="rounded-md p-2 text-slate-500 hover:bg-slate-100"><X size={18} /></button></div><p id="unfollow-description" className="mt-3 text-sm leading-6 text-slate-600">Updates from {pendingUnfollow.kind === 'faculty' ? 'this faculty member' : 'this research area'} will no longer appear in your Following feed. You can follow again at any time.</p><div className="mt-6 flex justify-end gap-2"><button type="button" onClick={() => setPendingUnfollow(null)} className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Keep following</button><button type="button" onClick={confirmUnfollow} className="rounded-md bg-rose-700 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-800">Unfollow</button></div></section></div>}
+
+      {/* Resource Detail Modal */}
+      {selectedResource && (
+        <ResourceDetailModal
+          resource={selectedResource}
+          onClose={() => setSelectedResource(null)}
+          follow={follow}
+          followedAreaIds={followedAreaIds}
+          allAreas={areas}
+          apiUrl={researchVaultApi.getResourceDownloadUrl(selectedResource.id)}
+        />
+      )}
     </div>
   );
 }
@@ -2221,7 +2241,7 @@ function VaultList({ loading, empty, children }) {
   return <div className={`space-y-4 transition-opacity duration-300 relative ${loading ? 'opacity-60 pointer-events-none' : ''}`}>{children}</div>;
 }
 
-function ResourceCard({ resource, follow, followedAreaIds, apiUrl }) {
+function ResourceCard({ resource, follow, followedAreaIds, apiUrl, allAreas = [], onSelect }) {
   // sourceType is the authoritative FILE vs EXTERNAL_LINK distinction
   // (backend-derived, persisted per resource); fall back for legacy rows.
   const isFileResource = resource.sourceType
@@ -2276,7 +2296,18 @@ function ResourceCard({ resource, follow, followedAreaIds, apiUrl }) {
   };
 
   return (
-    <article className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 border-b border-slate-200 py-5 first:pt-1 overflow-hidden">
+    <article
+      role="button"
+      tabIndex={0}
+      onClick={() => onSelect && onSelect(resource)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect && onSelect(resource);
+        }
+      }}
+      className="group flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 border-b border-slate-200 py-5 first:pt-1 overflow-hidden cursor-pointer hover:bg-slate-50/80 rounded-2xl p-3 -mx-3 transition-colors"
+    >
       <div className="flex-1 min-w-0">
         {/* Badges */}
         <div className="flex flex-wrap items-center gap-2">
@@ -2290,7 +2321,9 @@ function ResourceCard({ resource, follow, followedAreaIds, apiUrl }) {
         </div>
 
         {/* Title + description */}
-        <h2 className="mt-2 text-base font-bold text-slate-950 leading-snug break-words">{resource.title}</h2>
+        <h2 className="mt-2 text-base font-bold text-slate-950 leading-snug break-words group-hover:text-[var(--color-primary-accent)] transition-colors">
+          {resource.title}
+        </h2>
         {resource.description && (
           <p className="mt-1.5 max-w-3xl text-sm leading-6 text-slate-600 line-clamp-3">{resource.description}</p>
         )}
@@ -2307,29 +2340,34 @@ function ResourceCard({ resource, follow, followedAreaIds, apiUrl }) {
           {resource.createdAt && (
             <span className="flex items-center gap-1"><Clock size={12} /> {new Date(resource.createdAt).toLocaleDateString()}</span>
           )}
+          <span className="text-[var(--color-secondary)] font-semibold flex items-center gap-0.5 group-hover:underline ml-1">
+            View details &rarr;
+          </span>
         </div>
 
         {/* Research area tags (+ admin-pending custom tag) */}
-        <TagList
-          areas={resource.researchAreas}
-          allAreas={areas}
-          onFollow={follow}
-          followedAreaIds={followedAreaIds}
-        />
-        {resource.customArea && (
-          <div className="mt-2">
-            <span
-              title="Custom research area — pending admin review"
-              className="inline-flex items-center gap-1 rounded-full border border-dashed border-slate-300 bg-slate-50 px-2 py-1 text-[11px] font-semibold text-slate-500"
-            >
-              <Clock size={11} /> {resource.customArea.name}
-            </span>
-          </div>
-        )}
+        <div onClick={(e) => e.stopPropagation()}>
+          <TagList
+            areas={resource.researchAreas}
+            allAreas={allAreas}
+            onFollow={follow}
+            followedAreaIds={followedAreaIds}
+          />
+          {resource.customArea && (
+            <div className="mt-2">
+              <span
+                title="Custom research area — pending admin review"
+                className="inline-flex items-center gap-1 rounded-full border border-dashed border-slate-300 bg-slate-50 px-2 py-1 text-[11px] font-semibold text-slate-500"
+              >
+                <Clock size={11} /> {resource.customArea.name}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Action button(s) — label reflects what actually happens on click */}
-      <div className="shrink-0 sm:ml-4 flex flex-col items-start gap-1.5">
+      <div className="shrink-0 sm:ml-4 flex flex-col items-start gap-1.5" onClick={(e) => e.stopPropagation()}>
         {isLink && (
           <>
             <a
@@ -2382,6 +2420,182 @@ function ResourceCard({ resource, follow, followedAreaIds, apiUrl }) {
         )}
       </div>
     </article>
+  );
+}
+
+function ResourceDetailModal({ resource, onClose, follow, followedAreaIds, allAreas = [], apiUrl }) {
+  if (!resource) return null;
+
+  const isFileResource = resource.sourceType
+    ? resource.sourceType === 'FILE'
+    : Boolean(resource.filePath);
+  const isLink = !isFileResource;
+  const format = resource.format || (isFileResource ? (resource.mimeType?.includes('pdf') ? 'pdf' : 'docx') : 'link');
+
+  const formatBadge = {
+    link: { cls: 'bg-blue-50 text-blue-700 border-blue-200', icon: <ExternalLink size={12} />, label: 'External Link' },
+    pdf:  { cls: 'bg-slate-100 text-slate-700 border-slate-200', icon: <FileText size={12} />, label: 'PDF Document' },
+    docx: { cls: 'bg-indigo-50 text-indigo-700 border-indigo-200', icon: <FileText size={12} />, label: 'Word Document (DOCX)' }
+  }[format] || { cls: 'bg-slate-50 text-slate-600 border-slate-200', icon: <FileText size={12} />, label: 'File' };
+
+  return (
+    <div
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-xs"
+      role="presentation"
+      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="resource-modal-title"
+        className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-slate-200/80 flex flex-col space-y-6"
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={getResourceTypeBadgeClass(resource.resourceType)}>
+                {getResourceTypeIcon(resource.resourceType)}
+                {formatResourceType(resource.resourceType)}
+              </span>
+              <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-0.5 rounded-full border ${formatBadge.cls}`}>
+                {formatBadge.icon} {formatBadge.label}
+              </span>
+              {resource.status && resource.status !== 'APPROVED' && (
+                <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${STATUS_COLORS[resource.status] || STATUS_COLORS.PENDING}`}>
+                  {resource.status}
+                </span>
+              )}
+            </div>
+            <h2 id="resource-modal-title" className="text-xl sm:text-2xl font-extrabold text-slate-950 leading-snug break-words">
+              {resource.title}
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close dialog"
+            className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors shrink-0"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Metadata stats */}
+        <div className="flex flex-wrap items-center gap-4 py-3 px-4 rounded-2xl bg-slate-50 border border-slate-100 text-xs text-slate-600">
+          {resource.uploadedBy?.displayName && (
+            <span className="flex items-center gap-1.5 font-medium">
+              <UserRoundCheck size={14} className="text-[var(--color-secondary)]" /> {authorLabel(resource.uploadedBy)}
+            </span>
+          )}
+          <span className="flex items-center gap-1.5">
+            <Eye size={14} className="text-slate-400" /> {resource.viewCount ?? 0} views
+          </span>
+          {isFileResource && (
+            <span className="flex items-center gap-1.5">
+              <Download size={14} className="text-slate-400" /> {resource.downloadCount ?? 0} downloads
+            </span>
+          )}
+          {resource.createdAt && (
+            <span className="flex items-center gap-1.5 text-slate-500">
+              <Clock size={14} className="text-slate-400" /> {new Date(resource.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+            </span>
+          )}
+        </div>
+
+        {/* Description */}
+        {resource.description && (
+          <div className="space-y-1.5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Overview</h3>
+            <p className="text-sm leading-relaxed text-slate-700 whitespace-pre-wrap">{resource.description}</p>
+          </div>
+        )}
+
+        {/* Content (Guides / Instructions / Structured Content) */}
+        {resource.content && (
+          <div className="space-y-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Guide &amp; Content</h3>
+            <div className="max-h-96 overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50/70 p-5 text-sm leading-relaxed text-slate-800 whitespace-pre-wrap font-sans selection:bg-blue-100">
+              {resource.content}
+            </div>
+          </div>
+        )}
+
+        {/* Research Areas / Tags */}
+        {((resource.researchAreas && resource.researchAreas.length > 0) || resource.customArea) && (
+          <div className="space-y-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Research Areas</h3>
+            <div className="flex flex-wrap items-center gap-2">
+              <TagList
+                areas={resource.researchAreas}
+                allAreas={allAreas}
+                onFollow={follow}
+                followedAreaIds={followedAreaIds}
+              />
+              {resource.customArea && (
+                <span
+                  title="Custom research area — pending admin review"
+                  className="inline-flex items-center gap-1 rounded-full border border-dashed border-slate-300 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-500"
+                >
+                  <Clock size={12} /> {resource.customArea.name}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* External Link or Download Action Area */}
+        <div className="pt-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            {isLink && resource.url && (
+              <a
+                href={resource.url}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                className="inline-flex items-center gap-2 rounded-full bg-[var(--color-secondary)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[var(--color-primary-accent)] transition-colors"
+              >
+                <ExternalLink size={16} /> Open Resource Link
+              </a>
+            )}
+            {isFileResource && format === 'pdf' && (
+              <>
+                <a
+                  href={`${apiUrl}&inline=1`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-colors"
+                >
+                  <FileText size={16} /> View PDF
+                </a>
+                <a
+                  href={apiUrl}
+                  download
+                  className="inline-flex items-center gap-2 rounded-full bg-[var(--color-secondary)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[var(--color-primary-accent)] transition-colors"
+                >
+                  <Download size={16} /> Download
+                </a>
+              </>
+            )}
+            {isFileResource && format !== 'pdf' && (
+              <a
+                href={apiUrl}
+                download
+                className="inline-flex items-center gap-2 rounded-full bg-[var(--color-secondary)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[var(--color-primary-accent)] transition-colors"
+              >
+                <Download size={16} /> Download File
+              </a>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </section>
+    </div>
   );
 }
 

@@ -1,6 +1,6 @@
 import prisma from '../../config/db.js';
 import { success, paginated, error } from '../../utils/response.js';
-import { normalizeResearchAreas, resolveStoredAreaName } from '../../constants/researchAreas.js';
+import { normalizeResearchAreas, resolveStoredAreaName, resolveStoredAreaNames } from '../../constants/researchAreas.js';
 import { resolveDepartmentAliases } from '../../constants/departments.js';
 
 // Helper to extract and validate experience-only fields into `meta` Json
@@ -65,36 +65,125 @@ export const getResearchResources = async (req, res, forcedType = null) => {
 
     const {
       type: queryType,
+      category,
+      format,
+      sort = 'newest',
       search,
       area,
       areaId,
+      tag,
       facultyId,
       department,
       experienceType,
       status = 'APPROVED',
     } = req.query;
+
     const explicitForcedType = typeof forcedType === 'string' ? forcedType : null;
-    const type = explicitForcedType || queryType;
+    const requestedCategory = (category || queryType || '').trim();
+    const effectiveType = explicitForcedType || requestedCategory;
 
     const where = {};
 
-    // By default, public browse shows only APPROVED (unless status='ALL' is passed)
+    // 1. Status Filter (default shows only APPROVED unless status='ALL' is passed)
     if (status && status !== 'ALL') {
       where.status = status;
     }
 
-    if (type && type !== 'ALL') {
-      where.type = type;
+    // 2. Category / Type Filter
+    if (effectiveType && effectiveType !== 'ALL') {
+      const validEnumTypes = ['GUIDE', 'PAPER', 'TEMPLATE', 'EXPERIENCE'];
+      if (validEnumTypes.includes(effectiveType)) {
+        const typeOrConditions = [
+          { type: effectiveType },
+          { meta: { path: ['resourceType'], equals: effectiveType } },
+          { meta: { path: ['category'], equals: effectiveType } },
+        ];
+        if (!where.AND) where.AND = [];
+        where.AND.push({ OR: typeOrConditions });
+      } else {
+        // Sub-categories (e.g. SOP_WRITING, LOR, COLD_EMAILING, PHD_APPLICATIONS, GRANT_WRITING)
+        const getCategoryKeywords = (cat) => {
+          const norm = cat.toUpperCase().replace(/-/g, '_');
+          if (norm.includes('COLD') && norm.includes('EMAIL')) {
+            return ['cold-email', 'cold email', 'cold emailing', 'cold-emailing'];
+          }
+          if (norm.includes('SOP')) {
+            return ['sop', 'statement of purpose'];
+          }
+          if (norm.includes('LOR')) {
+            return ['lor', 'letter of recommendation', 'recommendation letter'];
+          }
+          if (norm.includes('PHD')) {
+            return ['phd', 'doctoral', 'ph.d'];
+          }
+          if (norm.includes('GRANT')) {
+            return ['grant', 'funding', 'fellowship'];
+          }
+          const spaced = cat.replace(/_/g, ' ');
+          const hyphenated = cat.replace(/_/g, '-');
+          return Array.from(new Set([cat, spaced, hyphenated]));
+        };
+
+        const keywords = getCategoryKeywords(effectiveType);
+        const subCatConditions = [
+          { meta: { path: ['resourceType'], equals: effectiveType } },
+          { meta: { path: ['category'], equals: effectiveType } },
+        ];
+        keywords.forEach((kw) => {
+          subCatConditions.push({ title: { contains: kw, mode: 'insensitive' } });
+          subCatConditions.push({ description: { contains: kw, mode: 'insensitive' } });
+          subCatConditions.push({ content: { contains: kw, mode: 'insensitive' } });
+        });
+
+        if (!where.AND) where.AND = [];
+        where.AND.push({ OR: subCatConditions });
+      }
     } else if (explicitForcedType === null && (!queryType || queryType === 'ALL')) {
       // General resource browse excludes student experiences by default
       where.type = { not: 'EXPERIENCE' };
     }
 
+    // 3. Format Filter (link, pdf, docx)
+    const reqFormat = (format || '').trim().toLowerCase();
+    if (reqFormat) {
+      if (!where.AND) where.AND = [];
+      if (reqFormat === 'link') {
+        where.AND.push({
+          OR: [
+            { sourceType: 'LINK' },
+            { format: { equals: 'link', mode: 'insensitive' } },
+            { url: { not: null } },
+          ],
+        });
+      } else if (reqFormat === 'pdf') {
+        where.AND.push({
+          OR: [
+            { format: { equals: 'pdf', mode: 'insensitive' } },
+            { mimeType: { contains: 'pdf', mode: 'insensitive' } },
+            { filePath: { endsWith: '.pdf', mode: 'insensitive' } },
+            { url: { contains: '.pdf', mode: 'insensitive' } },
+          ],
+        });
+      } else if (reqFormat === 'docx' || reqFormat === 'doc') {
+        where.AND.push({
+          OR: [
+            { format: { equals: 'docx', mode: 'insensitive' } },
+            { mimeType: { contains: 'word', mode: 'insensitive' } },
+            { mimeType: { contains: 'document', mode: 'insensitive' } },
+            { filePath: { endsWith: '.docx', mode: 'insensitive' } },
+            { filePath: { endsWith: '.doc', mode: 'insensitive' } },
+            { AND: [{ sourceType: 'FILE' }, { format: null }, { mimeType: null }] },
+          ],
+        });
+      }
+    }
+
+    // 4. Faculty Filter
     if (facultyId) {
       where.facultyId = Number(facultyId);
     }
 
-    // Filter by experience type (INTERNSHIP, THESIS, RA, INDEPENDENT_PROJECT, COURSE_PROJECT, OTHER)
+    // 5. Experience Type Filter
     if (experienceType && experienceType !== 'All' && experienceType !== '') {
       if (experienceType === 'INTERNSHIP') {
         where.OR = [
@@ -109,7 +198,7 @@ export const getResearchResources = async (req, res, forcedType = null) => {
       }
     }
 
-    // Filter by department across faculty profile or experience meta
+    // 6. Department Filter
     if (department && department !== 'All') {
       const deptTerm = department.trim();
       const aliases = resolveDepartmentAliases(deptTerm);
@@ -121,12 +210,21 @@ export const getResearchResources = async (req, res, forcedType = null) => {
       where.AND.push({ OR: deptConditions });
     }
 
-    const areaQuery = area || areaId;
+    // 7. Research Area / Tag Filter
+    const areaQuery = (tag || area || areaId || '').trim();
     if (areaQuery && areaQuery !== 'All') {
-      const resolvedArea = await resolveStoredAreaName(prisma, 'ResearchResource', areaQuery);
-      where.researchAreas = { has: resolvedArea };
+      const resolvedAreas = await resolveStoredAreaNames(prisma, 'ResearchResource', areaQuery);
+      const areaMatches = resolvedAreas.length > 0 ? resolvedAreas : [areaQuery];
+      if (!where.AND) where.AND = [];
+      where.AND.push({
+        OR: [
+          { researchAreas: { hasSome: areaMatches } },
+          { meta: { path: ['customArea', 'name'], equals: areaQuery } },
+        ],
+      });
     }
 
+    // 8. Search Keyword Filter
     if (search && search.trim()) {
       const term = search.trim();
       const searchConditions = [
@@ -134,16 +232,22 @@ export const getResearchResources = async (req, res, forcedType = null) => {
         { description: { contains: term, mode: 'insensitive' } },
         { content: { contains: term, mode: 'insensitive' } },
         { faculty: { name: { contains: term, mode: 'insensitive' } } },
+        { uploadedBy: { displayName: { contains: term, mode: 'insensitive' } } },
       ];
-      if (where.AND) {
-        where.AND.push({ OR: searchConditions });
-      } else if (where.OR) {
-        const existingOr = where.OR;
-        delete where.OR;
-        where.AND = [{ OR: existingOr }, { OR: searchConditions }];
-      } else {
-        where.OR = searchConditions;
-      }
+      if (!where.AND) where.AND = [];
+      where.AND.push({ OR: searchConditions });
+    }
+
+    // 9. Sorting
+    let orderBy = [{ createdAt: 'desc' }];
+    if (sort === 'most_viewed') {
+      orderBy = [{ viewCount: 'desc' }, { createdAt: 'desc' }];
+    } else if (sort === 'most_downloaded') {
+      orderBy = [{ downloadCount: 'desc' }, { createdAt: 'desc' }];
+    } else if (sort === 'oldest') {
+      orderBy = [{ createdAt: 'asc' }];
+    } else {
+      orderBy = [{ createdAt: 'desc' }];
     }
 
     const [resources, total] = await Promise.all([
@@ -151,13 +255,13 @@ export const getResearchResources = async (req, res, forcedType = null) => {
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         include: {
           faculty: {
             select: { id: true, name: true, department: true, designation: true, photoUrl: true },
           },
           uploadedBy: {
-            select: { id: true, displayName: true, email: true, photoURL: true },
+            select: { id: true, displayName: true, email: true, photoURL: true, role: true, rollNo: true },
           },
           _count: {
             select: { discussions: true },
@@ -379,15 +483,26 @@ export const getMyResearchResources = async (req, res, forcedType = null) => {
   try {
     const userId = Number(req.user.id);
     const explicitForcedType = typeof forcedType === 'string' ? forcedType : null;
+    const queryType = req.query?.type || req.query?.category;
     const type = explicitForcedType || queryType;
 
     const where = { uploadedById: userId };
-    if (type && type !== 'ALL') where.type = type;
+    if (type && type !== 'ALL') {
+      where.type = type;
+    } else if (explicitForcedType === null && (!queryType || queryType === 'ALL')) {
+      where.type = { not: 'EXPERIENCE' };
+    }
 
     const resources = await prisma.researchResource.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       include: {
+        faculty: {
+          select: { id: true, name: true, department: true, designation: true, photoUrl: true },
+        },
+        uploadedBy: {
+          select: { id: true, displayName: true, email: true, photoURL: true },
+        },
         _count: { select: { discussions: true } },
       },
     });
@@ -475,12 +590,17 @@ export const downloadResearchResourceHandler = async (req, res) => {
 // GET /api/v1/vault/admin/resources - Moderation queue
 export const getResearchResourceModerationQueue = async (req, res, forcedType = null) => {
   try {
+    const status = req.query?.status || 'PENDING';
+    const queryType = req.query?.type || req.query?.category;
     const explicitForcedType = typeof forcedType === 'string' ? forcedType : null;
     const type = explicitForcedType || queryType;
-    const where = { status };
+    const where = {};
+    if (status && status !== 'ALL') {
+      where.status = status;
+    }
     if (type && type !== 'ALL') {
       where.type = type;
-    } else if (explicitForcedType === null) {
+    } else if (explicitForcedType === null && (!queryType || queryType === 'ALL')) {
       where.type = { not: 'EXPERIENCE' };
     }
 
