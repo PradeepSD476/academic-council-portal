@@ -1,6 +1,7 @@
 import prisma from '../../config/db.js';
 import { success, paginated, error } from '../../utils/response.js';
-import { normalizeResearchAreas } from '../../constants/researchAreas.js';
+import { normalizeResearchAreas, resolveStoredAreaName } from '../../constants/researchAreas.js';
+import { resolveDepartmentAliases } from '../../constants/departments.js';
 
 // Helper to extract and validate experience-only fields into `meta` Json
 export const buildResourceMeta = (type, body) => {
@@ -12,6 +13,8 @@ export const buildResourceMeta = (type, body) => {
   const metaInput = body.meta && typeof body.meta === 'object' ? body.meta : {};
 
   return {
+    experienceType: body.experienceType || metaInput.experienceType || 'INTERNSHIP',
+    department: body.department?.trim() || metaInput.department?.trim() || null,
     labName: body.labName?.trim() || metaInput.labName?.trim() || null,
     duration: body.duration?.trim() || metaInput.duration?.trim() || null,
     prerequisites: body.prerequisites || metaInput.prerequisites || null,
@@ -29,11 +32,16 @@ export const shapeResource = (item) => {
   if (!item) return null;
   const isExp = item.type === 'EXPERIENCE';
   const meta = item.meta && typeof item.meta === 'object' ? item.meta : {};
+  const effectiveType = meta.resourceType || meta.category || item.type || 'GUIDE';
 
   return {
     ...item,
+    resourceType: effectiveType,
+    category: effectiveType,
     ...(isExp
       ? {
+          experienceType: meta.experienceType || 'INTERNSHIP',
+          department: meta.department || item.faculty?.department || null,
           labName: meta.labName || null,
           duration: meta.duration || null,
           prerequisites: meta.prerequisites || null,
@@ -49,40 +57,93 @@ export const shapeResource = (item) => {
 };
 
 // GET /api/v1/vault/resources - Public browse approved resources & guides
-export const getResearchResources = async (req, res) => {
+export const getResearchResources = async (req, res, forcedType = null) => {
   try {
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 12));
     const skip = (page - 1) * limit;
 
-    const { type, search, area, facultyId, status = 'APPROVED' } = req.query;
+    const {
+      type: queryType,
+      search,
+      area,
+      areaId,
+      facultyId,
+      department,
+      experienceType,
+      status = 'APPROVED',
+    } = req.query;
+    const explicitForcedType = typeof forcedType === 'string' ? forcedType : null;
+    const type = explicitForcedType || queryType;
 
     const where = {};
 
-    // By default, public browse shows only APPROVED
-    if (status) {
+    // By default, public browse shows only APPROVED (unless status='ALL' is passed)
+    if (status && status !== 'ALL') {
       where.status = status;
     }
 
     if (type && type !== 'ALL') {
       where.type = type;
+    } else if (explicitForcedType === null && (!queryType || queryType === 'ALL')) {
+      // General resource browse excludes student experiences by default
+      where.type = { not: 'EXPERIENCE' };
     }
 
     if (facultyId) {
       where.facultyId = Number(facultyId);
     }
 
-    if (area && area !== 'All') {
-      where.researchAreas = { has: area };
+    // Filter by experience type (INTERNSHIP, THESIS, RA, INDEPENDENT_PROJECT, COURSE_PROJECT, OTHER)
+    if (experienceType && experienceType !== 'All' && experienceType !== '') {
+      if (experienceType === 'INTERNSHIP') {
+        where.OR = [
+          { meta: { path: ['experienceType'], equals: 'INTERNSHIP' } },
+          { meta: { path: ['experienceType'], equals: null } },
+        ];
+      } else {
+        where.meta = {
+          path: ['experienceType'],
+          equals: experienceType,
+        };
+      }
+    }
+
+    // Filter by department across faculty profile or experience meta
+    if (department && department !== 'All') {
+      const deptTerm = department.trim();
+      const aliases = resolveDepartmentAliases(deptTerm);
+      const deptConditions = aliases.flatMap((a) => [
+        { faculty: { department: { contains: a, mode: 'insensitive' } } },
+        { meta: { path: ['department'], string_contains: a } },
+      ]);
+      if (!where.AND) where.AND = [];
+      where.AND.push({ OR: deptConditions });
+    }
+
+    const areaQuery = area || areaId;
+    if (areaQuery && areaQuery !== 'All') {
+      const resolvedArea = await resolveStoredAreaName(prisma, 'ResearchResource', areaQuery);
+      where.researchAreas = { has: resolvedArea };
     }
 
     if (search && search.trim()) {
       const term = search.trim();
-      where.OR = [
+      const searchConditions = [
         { title: { contains: term, mode: 'insensitive' } },
         { description: { contains: term, mode: 'insensitive' } },
         { content: { contains: term, mode: 'insensitive' } },
+        { faculty: { name: { contains: term, mode: 'insensitive' } } },
       ];
+      if (where.AND) {
+        where.AND.push({ OR: searchConditions });
+      } else if (where.OR) {
+        const existingOr = where.OR;
+        delete where.OR;
+        where.AND = [{ OR: existingOr }, { OR: searchConditions }];
+      } else {
+        where.OR = searchConditions;
+      }
     }
 
     const [resources, total] = await Promise.all([
@@ -152,7 +213,8 @@ export const submitResearchResource = async (req, res) => {
       title,
       description,
       content,
-      type = 'GUIDE',
+      type: rawType,
+      resourceType: rawResourceType,
       url,
       filePath,
       fileSize,
@@ -160,36 +222,50 @@ export const submitResearchResource = async (req, res) => {
       format,
       sourceType = 'LINK',
       researchAreas,
+      researchArea,
       facultyId,
       consentConfirmed,
+      status: explicitStatus,
     } = req.body;
 
     if (!title || !title.trim()) {
       return error(res, 'Title is required', 400);
     }
 
+    const requestedType = rawType || rawResourceType || 'GUIDE';
     const validTypes = ['GUIDE', 'PAPER', 'TEMPLATE', 'EXPERIENCE'];
-    const resourceType = validTypes.includes(type) ? type : 'GUIDE';
+    const dbType = validTypes.includes(requestedType) ? requestedType : 'GUIDE';
 
     // Validate type EXPERIENCE requirements
-    if (resourceType === 'EXPERIENCE') {
+    if (dbType === 'EXPERIENCE') {
       if (!description && !content) {
         return error(res, 'Experience description or content markdown is required', 400);
       }
     }
 
-    const meta = buildResourceMeta(resourceType, req.body);
-    const normalizedAreas = normalizeResearchAreas(researchAreas);
+    const baseMeta = buildResourceMeta(dbType, req.body) || {};
+    const meta = {
+      ...baseMeta,
+      resourceType: requestedType,
+      category: requestedType,
+    };
 
-    // Auto-approve if submitted by admin or faculty
+    let areaList = researchAreas || researchArea || [];
+    if (!Array.isArray(areaList) && typeof areaList === 'string') {
+      areaList = [areaList];
+    }
+    const normalizedAreas = normalizeResearchAreas(areaList);
+
+    // Auto-approve official materials (guides, templates) if submitted by admin/faculty or direct admin create
     const userRole = req.user?.role;
-    const isAutoApproved = ['RESEARCH_ADMIN', 'SUPER_ADMIN', 'FACULTY'].includes(userRole);
+    const isDirectAdmin = Boolean(req.body.isDirectAdminCreate || explicitStatus === 'APPROVED' || ['RESEARCH_ADMIN', 'SUPER_ADMIN'].includes(userRole));
+    const isAutoApproved = isDirectAdmin || (dbType !== 'EXPERIENCE' && ['FACULTY'].includes(userRole));
 
     const resource = await prisma.researchResource.create({
       data: {
         title: title.trim(),
         description: description || null,
-        type: resourceType,
+        type: dbType,
         content: content || null,
         meta,
         url: url?.trim() || null,
@@ -226,6 +302,7 @@ export const submitResearchResource = async (req, res) => {
 
 // POST /api/v1/vault/resources - Admin direct create
 export const createResearchResource = async (req, res) => {
+  req.body.isDirectAdminCreate = true;
   return submitResearchResource(req, res);
 };
 
@@ -298,10 +375,11 @@ export const deleteResearchResource = async (req, res) => {
 };
 
 // GET /api/v1/vault/resources/mine - User's uploaded resources
-export const getMyResearchResources = async (req, res) => {
+export const getMyResearchResources = async (req, res, forcedType = null) => {
   try {
     const userId = Number(req.user.id);
-    const { type } = req.query;
+    const explicitForcedType = typeof forcedType === 'string' ? forcedType : null;
+    const type = explicitForcedType || queryType;
 
     const where = { uploadedById: userId };
     if (type && type !== 'ALL') where.type = type;
@@ -395,11 +473,16 @@ export const downloadResearchResourceHandler = async (req, res) => {
 };
 
 // GET /api/v1/vault/admin/resources - Moderation queue
-export const getResearchResourceModerationQueue = async (req, res) => {
+export const getResearchResourceModerationQueue = async (req, res, forcedType = null) => {
   try {
-    const { type, status = 'PENDING' } = req.query;
+    const explicitForcedType = typeof forcedType === 'string' ? forcedType : null;
+    const type = explicitForcedType || queryType;
     const where = { status };
-    if (type && type !== 'ALL') where.type = type;
+    if (type && type !== 'ALL') {
+      where.type = type;
+    } else if (explicitForcedType === null) {
+      where.type = { not: 'EXPERIENCE' };
+    }
 
     const resources = await prisma.researchResource.findMany({
       where,
@@ -443,8 +526,7 @@ export const setResearchResourceStatus = async (req, res) => {
 
 // ── Experience Compatibility Aliases (maps /experiences endpoints to ResearchResource) ──
 export const getResearchExperiences = async (req, res) => {
-  req.query.type = 'EXPERIENCE';
-  return getResearchResources(req, res);
+  return getResearchResources(req, res, 'EXPERIENCE');
 };
 
 export const getResearchExperienceById = async (req, res) => {
@@ -466,8 +548,7 @@ export const deleteResearchExperience = async (req, res) => {
 };
 
 export const getMyResearchExperiences = async (req, res) => {
-  req.query.type = 'EXPERIENCE';
-  return getMyResearchResources(req, res);
+  return getMyResearchResources(req, res, 'EXPERIENCE');
 };
 
 export const setResearchExperienceStatus = async (req, res) => {
@@ -475,6 +556,5 @@ export const setResearchExperienceStatus = async (req, res) => {
 };
 
 export const getResearchModerationQueue = async (req, res) => {
-  req.query.type = 'EXPERIENCE';
-  return getResearchResourceModerationQueue(req, res);
+  return getResearchResourceModerationQueue(req, res, 'EXPERIENCE');
 };

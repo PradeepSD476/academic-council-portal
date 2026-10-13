@@ -1,6 +1,7 @@
 import prisma from '../../config/db.js';
 import { success, paginated, error } from '../../utils/response.js';
-import { normalizeResearchAreas } from '../../constants/researchAreas.js';
+import { normalizeResearchAreas, resolveStoredAreaName } from '../../constants/researchAreas.js';
+import { resolveDepartmentAliases } from '../../constants/departments.js';
 import { deadlineLabel, isOpenOpening } from '../../utils/openingStatus.js';
 
 // Helper to format/shape open position for API responses
@@ -25,7 +26,7 @@ export const getOpenPositions = async (req, res) => {
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
     const skip = (page - 1) * limit;
 
-    const { search, department, area, positionType, status, facultyId } = req.query;
+    const { search, department, area, areaId, positionType, status, facultyId } = req.query;
 
     const where = {};
     const now = new Date();
@@ -60,13 +61,17 @@ export const getOpenPositions = async (req, res) => {
     }
 
     if (department && department !== 'All') {
-      where.faculty = {
-        department: { equals: department, mode: 'insensitive' },
-      };
+      const deptTerm = department.trim();
+      const aliases = resolveDepartmentAliases(deptTerm);
+      const deptConditions = aliases.map((a) => ({ faculty: { department: { contains: a, mode: 'insensitive' } } }));
+      if (!where.AND) where.AND = [];
+      where.AND.push(deptConditions.length === 1 ? deptConditions[0] : { OR: deptConditions });
     }
 
-    if (area && area !== 'All') {
-      where.researchAreas = { has: area };
+    const areaQuery = area || areaId;
+    if (areaQuery && areaQuery !== 'All') {
+      const resolvedArea = await resolveStoredAreaName(prisma, 'ResearchOpenPosition', areaQuery);
+      where.researchAreas = { has: resolvedArea };
     }
 
     if (search && search.trim()) {

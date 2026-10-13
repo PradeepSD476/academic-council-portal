@@ -1,6 +1,6 @@
 import prisma from '../../config/db.js';
 import { success, paginated, error } from '../../utils/response.js';
-import { normalizeResearchAreas } from '../../constants/researchAreas.js';
+import { normalizeResearchAreas, resolveStoredAreaName, resolveStoredAreaNames } from '../../constants/researchAreas.js';
 
 // Helper to decorate discussions with hasVoted and counts
 const decorateDiscussion = (item, currentUserId = null) => {
@@ -16,11 +16,16 @@ const decorateDiscussion = (item, currentUserId = null) => {
     };
   });
 
+  const replyCount = item._count?.replies ?? replies.length;
+
   return {
     ...item,
     hasVoted,
     replies,
-    replyCount: item._count?.replies ?? replies.length,
+    replyCount,
+    voteCount: item.upvotes ?? 0,
+    isResolved: replyCount > 0,
+    uploadedBy: item.author,
   };
 };
 
@@ -31,7 +36,17 @@ export const getResearchDiscussions = async (req, res) => {
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 15));
     const skip = (page - 1) * limit;
 
-    const { search, area, resourceId } = req.query;
+    const {
+      search,
+      area,
+      areaId,
+      tag,
+      sort = 'newest',
+      unanswered,
+      resolved,
+      status: queryStatus,
+      resourceId,
+    } = req.query;
 
     const where = {
       parentId: null, // Only top-level items; replies are nested
@@ -43,16 +58,63 @@ export const getResearchDiscussions = async (req, res) => {
       where.resourceId = null; // Standard Q&A threads
     }
 
-    if (area && area !== 'All') {
-      where.researchAreas = { has: area };
+    // 1. Tag / Area Filtering
+    const areaQuery = (tag || area || areaId || '').trim();
+    if (areaQuery && areaQuery !== 'All') {
+      const resolvedAreas = await resolveStoredAreaNames(prisma, 'ResearchDiscussion', areaQuery);
+      if (resolvedAreas.length === 1) {
+        where.researchAreas = { has: resolvedAreas[0] };
+      } else if (resolvedAreas.length > 1) {
+        where.researchAreas = { hasSome: resolvedAreas };
+      }
     }
 
+    // 2. Status / Reply Filtering
+    const isUnanswered =
+      unanswered === 'true' ||
+      unanswered === true ||
+      queryStatus === 'needs-reply' ||
+      queryStatus === 'unanswered';
+    const isResolved =
+      resolved === 'true' ||
+      resolved === true ||
+      queryStatus === 'resolved' ||
+      queryStatus === 'answered';
+
+    if (isUnanswered) {
+      where.replies = { none: {} };
+    } else if (isResolved) {
+      where.replies = { some: {} };
+    }
+
+    // 3. Search Filter (title, content, or author displayName)
     if (search && search.trim()) {
       const term = search.trim();
-      where.OR = [
-        { title: { contains: term, mode: 'insensitive' } },
-        { content: { contains: term, mode: 'insensitive' } },
+      where.AND = [
+        ...(where.AND || []),
+        {
+          OR: [
+            { title: { contains: term, mode: 'insensitive' } },
+            { content: { contains: term, mode: 'insensitive' } },
+            { author: { displayName: { contains: term, mode: 'insensitive' } } },
+          ],
+        },
       ];
+    }
+
+    // 4. Sorting
+    let orderBy = [{ createdAt: 'desc' }];
+    if (sort === 'oldest') {
+      orderBy = [{ createdAt: 'asc' }];
+    } else if (sort === 'upvoted') {
+      orderBy = [{ upvotes: 'desc' }, { createdAt: 'desc' }];
+    } else if (sort === 'replies') {
+      orderBy = [{ replies: { _count: 'desc' } }, { createdAt: 'desc' }];
+    } else if (sort === 'unanswered') {
+      orderBy = [{ replies: { _count: 'asc' } }, { createdAt: 'desc' }];
+    } else {
+      // Default: 'newest'
+      orderBy = [{ createdAt: 'desc' }];
     }
 
     const [discussions, total] = await Promise.all([
@@ -60,15 +122,15 @@ export const getResearchDiscussions = async (req, res) => {
         where,
         skip,
         take: limit,
-        orderBy: [{ upvotes: 'desc' }, { createdAt: 'desc' }],
+        orderBy,
         include: {
           author: {
-            select: { id: true, displayName: true, email: true, photoURL: true, role: true },
+            select: { id: true, displayName: true, email: true, photoURL: true, role: true, rollNo: true },
           },
           replies: {
             include: {
               author: {
-                select: { id: true, displayName: true, email: true, photoURL: true, role: true },
+                select: { id: true, displayName: true, email: true, photoURL: true, role: true, rollNo: true },
               },
             },
             orderBy: { createdAt: 'asc' },
@@ -103,7 +165,7 @@ export const getResearchDiscussionById = async (req, res) => {
       where: { id },
       include: {
         author: {
-          select: { id: true, displayName: true, email: true, photoURL: true, role: true },
+          select: { id: true, displayName: true, email: true, photoURL: true, role: true, rollNo: true },
         },
         resource: {
           select: { id: true, title: true, type: true },
@@ -111,7 +173,7 @@ export const getResearchDiscussionById = async (req, res) => {
         replies: {
           include: {
             author: {
-              select: { id: true, displayName: true, email: true, photoURL: true, role: true },
+              select: { id: true, displayName: true, email: true, photoURL: true, role: true, rollNo: true },
             },
           },
           orderBy: { createdAt: 'asc' },
@@ -165,13 +227,17 @@ export const getQuestionReplies = async (req, res) => {
 // POST /api/v1/vault/discussions - Create a new Q&A discussion / thread
 export const createResearchDiscussion = async (req, res) => {
   try {
-    const { title, content, researchAreas, resourceId } = req.body;
+    const { title, content, resourceId } = req.body;
 
     if (!content || !content.trim()) {
       return error(res, 'Content is required', 400);
     }
 
-    const normalizedAreas = normalizeResearchAreas(researchAreas);
+    let incomingAreas = req.body.researchAreas || req.body.researchArea || [];
+    if (!Array.isArray(incomingAreas) && typeof incomingAreas === 'string') {
+      incomingAreas = [incomingAreas];
+    }
+    const normalizedAreas = normalizeResearchAreas(incomingAreas);
 
     const discussion = await prisma.researchDiscussion.create({
       data: {

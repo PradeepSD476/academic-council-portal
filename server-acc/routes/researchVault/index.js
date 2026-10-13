@@ -6,6 +6,7 @@ import discussionRoutes from './discussionRoutes.js';
 
 import {
   getResearchAreas,
+  getDepartments,
   createResearchArea,
   getInterestMatch,
   getResearchFollows,
@@ -56,6 +57,7 @@ router.use('/discussions', discussionRoutes);
 
 // ── Research Areas & Taxonomy ─────────────────────────────────────────────────
 router.get('/areas', getResearchAreas);
+router.get('/departments', getDepartments);
 router.post('/areas', checkAuth, checkResearchAdmin, createResearchArea);
 
 // ── Student Research Experiences (Mapped to ResearchResource type=EXPERIENCE) ─

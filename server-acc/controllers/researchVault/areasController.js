@@ -1,5 +1,6 @@
 import prisma from '../../config/db.js';
 import { success, error } from '../../utils/response.js';
+import { isDepartmentMatch } from '../../constants/departments.js';
 
 // GET /api/v1/vault/areas - Return distinct research areas dynamically aggregated from database
 export const getResearchAreas = async (req, res) => {
@@ -41,6 +42,22 @@ export const getResearchAreas = async (req, res) => {
   }
 };
 
+// GET /api/v1/vault/departments - Return distinct departments dynamically aggregated from database
+export const getDepartments = async (req, res) => {
+  try {
+    const rows = await prisma.$queryRaw`
+      SELECT DISTINCT trim(department) AS name
+      FROM "FacultyProfile"
+      WHERE department IS NOT NULL AND trim(department) <> ''
+      ORDER BY name ASC;
+    `;
+    const names = rows.map((r) => r.name);
+    return success(res, names, 'Departments fetched');
+  } catch (err) {
+    return error(res, 'Failed to fetch departments', 500, err);
+  }
+};
+
 // POST /api/v1/vault/areas - Admin add custom area (returns formatted object)
 export const createResearchArea = async (req, res) => {
   try {
@@ -79,42 +96,60 @@ export const getInterestMatch = async (req, res) => {
       orderBy: { name: 'asc' },
     });
 
+    const deptWeight = department ? 40 : 0;
+    const subAreaWeight = subArea ? 50 : 0;
+    const projectWeight = projectType ? 30 : 0;
+    const possiblePoints = deptWeight + subAreaWeight + projectWeight;
+
     const matches = faculty
       .map((profile) => {
-        let score = 0;
+        let earnedPoints = 0;
         const matchReasons = [];
 
-        if (department && profile.department && profile.department.toLowerCase() === department.toLowerCase()) {
-          score += 40;
+        // 1. Department match (substring, case-insensitive, and alias-aware e.g. "electrical" in "Electrical Engineering", "cse" in "Computer Science & Engineering")
+        if (department && profile.department && isDepartmentMatch(profile.department, department)) {
+          earnedPoints += deptWeight;
           matchReasons.push(`Department match: ${profile.department}`);
         }
 
+        // 2. Research area match (case-insensitive substring or slug match)
         if (subArea && Array.isArray(profile.researchAreas)) {
-          const matchedArea = profile.researchAreas.find(
-            (a) => a.toLowerCase().includes(subArea.toLowerCase()) || subArea.toLowerCase().includes(a.toLowerCase())
-          );
+          const searchAreaSlug = subArea.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+          const searchAreaLower = subArea.toLowerCase();
+
+          const matchedArea = profile.researchAreas.find((a) => {
+            const aLower = a.toLowerCase();
+            const aSlug = aLower.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            return aLower.includes(searchAreaLower) || searchAreaLower.includes(aLower) || aSlug === searchAreaSlug;
+          });
+
           if (matchedArea) {
-            score += 50;
+            earnedPoints += subAreaWeight;
             matchReasons.push(`Research area match: ${matchedArea}`);
           }
         }
 
+        // 3. Project type / openings match
         if (projectType && profile.openings?.length) {
           const matchedOpening = profile.openings.find((o) =>
-            o.positionType?.toLowerCase().includes(projectType.toLowerCase())
+            o.positionType?.toLowerCase().includes(projectType.toLowerCase()) ||
+            projectType.toLowerCase().includes(o.positionType?.toLowerCase())
           );
           if (matchedOpening) {
-            score += 30;
-            matchReasons.push(`Has open ${projectType} position: "${matchedOpening.title}"`);
+            earnedPoints += projectWeight;
+            matchReasons.push(`Has open position: "${matchedOpening.title}"`);
           } else {
-            score += 10;
             matchReasons.push(`Has ${profile.openings.length} active position(s)`);
           }
+        } else if (profile.openings?.length > 0) {
+          matchReasons.push(`${profile.openings.length} open position${profile.openings.length === 1 ? '' : 's'}`);
         }
+
+        const matchScore = possiblePoints > 0 ? Math.round((earnedPoints / possiblePoints) * 100) : 0;
 
         return {
           ...profile,
-          matchScore: Math.min(100, score),
+          matchScore,
           matchReasons,
         };
       })

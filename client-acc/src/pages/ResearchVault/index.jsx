@@ -93,6 +93,19 @@ const POSITION_SORT_OPTIONS = [
   { value: 'department', label: 'Department (A-Z)' },
 ];
 
+const DEPARTMENT_SUGGESTIONS = [
+  'Computer Science & Engineering',
+  'Electrical Engineering',
+  'Mechanical Engineering',
+  'Chemical Engineering',
+  'Civil & Environmental Engineering',
+  'Metallurgical & Materials Engineering',
+  'Mathematics',
+  'Physics',
+  'Chemistry',
+  'Humanities & Social Sciences',
+];
+
 // Custom dropdown used across the Open Positions filter row. Renders a pill
 // trigger with the options panel positioned below it (absolute, z-30), so it
 // never overlaps the page header the way a native <select> popup can.
@@ -281,6 +294,7 @@ export default function ResearchVault() {
   const [search, setSearch] = useState('');
   const [discussionStatus, setDiscussionStatus] = useState('all');
   const [department, setDepartment] = useState('');
+  const [departmentList, setDepartmentList] = useState(DEPARTMENT_SUGGESTIONS);
   const [areaId, setAreaId] = useState('');
   const [areaSearch, setAreaSearch] = useState('');
   const [areaPickerOpen, setAreaPickerOpen] = useState(false);
@@ -378,9 +392,14 @@ export default function ResearchVault() {
       list = list.filter((position) => bookmarkedPositionIds.has(position.id));
     }
     if (positionAreaId === 'other') {
+      const standardAreaNames = new Set(areas.map((area) => area.name?.toLowerCase()));
       const standardAreaIds = new Set(areas.map((area) => area.id));
       list = list.filter((position) => !(position.researchAreas || [])
-        .some((entry) => standardAreaIds.has(entry.researchArea.id)));
+        .some((entry) => {
+          const name = typeof entry === 'string' ? entry : entry?.researchArea?.name || entry?.name;
+          const id = typeof entry === 'object' ? (entry?.researchArea?.id || entry?.id) : null;
+          return (name && standardAreaNames.has(name.toLowerCase())) || (id && standardAreaIds.has(id));
+        }));
     }
     return list;
   }, [items, positionShowClosed, positionSavedOnly, bookmarkedPositionIds, positionAreaId, areas]);
@@ -463,6 +482,12 @@ export default function ResearchVault() {
 
   useEffect(() => {
     researchVaultApi.getAreas().then((response) => setAreas(responseData(response))).catch(() => {});
+    researchVaultApi.getDepartments().then((response) => {
+      const fetched = responseData(response);
+      if (Array.isArray(fetched) && fetched.length > 0) {
+        setDepartmentList(Array.from(new Set([...fetched, ...DEPARTMENT_SUGGESTIONS])));
+      }
+    }).catch(() => {});
     researchVaultApi.getFaculty({ limit: 100 }).then((response) => setFacultyOptions(responseData(response))).catch(() => {});
     researchVaultApi.getFollows().then(({ data }) => {
       setFollowedFacultyIds(new Set(data.data?.facultyIds || []));
@@ -480,12 +505,16 @@ export default function ResearchVault() {
     followedFacultyIds.forEach((fid) => {
       const faculty = facultyOptions.find((f) => f.id === fid);
       if (faculty?.researchAreas) {
-        faculty.researchAreas.forEach((ra) => relevantAreaIds.add(ra.researchArea.id));
+        faculty.researchAreas.forEach((ra) => {
+          const areaName = typeof ra === 'string' ? ra : ra?.researchArea?.name || ra?.name;
+          const matchedArea = areas.find((a) => a.name?.toLowerCase() === areaName?.toLowerCase() || a.id === ra?.id || a.id === ra?.researchArea?.id);
+          if (matchedArea) relevantAreaIds.add(matchedArea.id);
+        });
       }
     });
     const filtered = areas.filter((a) => relevantAreaIds.has(a.id));
     return filtered.length ? filtered : areas;
-}, [areas, followedFacultyIds, followedAreaIds, facultyOptions]);
+  }, [areas, followedFacultyIds, followedAreaIds, facultyOptions]);
 
   // Compute active filter labels for Following section
   const activeFacultyList = activeFacultyFilters.length > 0
@@ -509,9 +538,11 @@ export default function ResearchVault() {
     let active = true;
     const timer = setTimeout(() => {
       setLoading(true);
-      const params = { search, ...(areaId ? { areaId } : {}) };
+      const selectedArea = areas.find((area) => String(area.id) === areaId);
+      const areaParam = selectedArea?.name || selectedArea?.slug || undefined;
+      const params = { search, ...(areaParam ? { area: areaParam } : {}) };
       const request = section === 'faculty'
-        ? researchVaultApi.getFaculty({ search, department, area: areas.find((area) => String(area.id) === areaId)?.slug, openings: openingsOnly ? 'true' : undefined })
+        ? researchVaultApi.getFaculty({ search, department, area: areaParam, openings: openingsOnly ? 'true' : undefined })
         : section === 'experiences'
           ? researchVaultApi.getExperiences({
               ...params,
@@ -853,8 +884,13 @@ export default function ResearchVault() {
         </label>
         {section === 'discussions' && <select value={discussionStatus} onChange={(event) => setDiscussionStatus(event.target.value)} aria-label="Filter discussions by status" className="rounded-xl border border-slate-200 bg-white/90 px-3 py-2.5 text-xs font-semibold text-[var(--color-primary)] outline-none focus:border-[var(--color-secondary)] sm:w-48"><option value="all">All discussions</option><option value="needs-reply">Needs a reply</option><option value="resolved">Resolved</option></select>}
         {(section === 'faculty' || section === 'experiences' || section === 'positions') && (
-          <input value={department} onChange={(event) => setDepartment(event.target.value)} placeholder="Department" className="rounded-xl border border-slate-200 bg-white/90 px-3 py-2.5 text-xs font-semibold text-[var(--color-primary)] outline-none focus:border-[var(--color-secondary)] sm:w-56" />
+          <input list="vault-departments" value={department} onChange={(event) => setDepartment(event.target.value)} placeholder="Department" className="rounded-xl border border-slate-200 bg-white/90 px-3 py-2.5 text-xs font-semibold text-[var(--color-primary)] outline-none focus:border-[var(--color-secondary)] sm:w-56" />
         )}
+        <datalist id="vault-departments">
+          {departmentList.map((dept) => (
+            <option key={dept} value={dept} />
+          ))}
+        </datalist>
         {section === 'faculty' && <label className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-3 py-2.5 text-xs font-semibold text-slate-700"><input type="checkbox" checked={openingsOnly} onChange={(event) => setOpeningsOnly(event.target.checked)} className="accent-blue-700" /> Current openings</label>}
         {section !== 'positions' && (
           <div ref={section === 'following' ? followingAreaPickerRef : areaPickerRef} className="relative sm:w-56">
@@ -1015,7 +1051,7 @@ export default function ResearchVault() {
                 <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); follow('faculty', faculty.id, faculty.name); }} aria-pressed={followedFacultyIds.has(faculty.id)} title={followedFacultyIds.has(faculty.id) ? `Unfollow ${faculty.name}` : `Follow ${faculty.name}`} className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:border-[var(--color-secondary)] hover:text-[var(--color-primary-accent)] shrink-0">{followedFacultyIds.has(faculty.id) ? <><UserRoundCheck size={15} /> Following</> : <><UserRoundPlus size={15} /> Follow</>}</button>
               </div>
               {faculty.biography && <p className="mt-3 text-sm leading-6 text-slate-700">{faculty.biography}</p>}
-              <TagList areas={faculty.researchAreas?.map((entry) => entry.researchArea) || []} onFollow={follow} followedAreaIds={followedAreaIds} />
+              <TagList areas={faculty.researchAreas} allAreas={areas} onFollow={follow} followedAreaIds={followedAreaIds} />
               {/* Computed open count only (see utils/openingStatus.js) — never
                   raw isActive rows; still viewable when nothing is open. */}
               <p className={`mt-3 text-xs font-semibold ${faculty.openOpeningsCount > 0 ? 'text-blue-700' : 'text-slate-500'}`}>
@@ -1030,7 +1066,7 @@ export default function ResearchVault() {
             <p className="flex items-center gap-2 text-sm font-bold text-blue-950"><UsersRound size={16} /> Find a research match</p>
             <p className="mt-2 text-xs leading-5 text-slate-600">Choose any interests. Recommendations are ranked by research-area fit, department, and active openings.</p>
             <form onSubmit={findMatches} className="mt-4 space-y-3">
-              <input value={interest.department} onChange={(event) => setInterest({ ...interest, department: event.target.value })} placeholder="Department (e.g. Electrical)" aria-label="Preferred department" className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-[var(--color-primary)] outline-none focus:border-[var(--color-secondary)]" />
+              <input list="vault-departments" value={interest.department} onChange={(event) => setInterest({ ...interest, department: event.target.value })} placeholder="Department (e.g. Electrical)" aria-label="Preferred department" className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-[var(--color-primary)] outline-none focus:border-[var(--color-secondary)]" />
               <input value={interest.subArea} onChange={(event) => setInterest({ ...interest, subArea: event.target.value })} placeholder="Research area (e.g. robotics)" aria-label="Research area of interest" className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-[var(--color-primary)] outline-none focus:border-[var(--color-secondary)]" />
               <select value={interest.projectType} onChange={(event) => setInterest({ ...interest, projectType: event.target.value })} aria-label="Preferred project type" className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-[var(--color-primary)] outline-none focus:border-[var(--color-secondary)]"><option value="">Any project type</option><option value="SUMMER_RESEARCH">Summer research</option><option value="THESIS">Thesis</option><option value="READING_PROJECT">Reading project</option><option value="RA_SHIP">Research assistantship</option></select>
               <button disabled={matching || (!interest.department.trim() && !interest.subArea.trim() && !interest.projectType)} className="w-full rounded-xl bg-[var(--color-secondary)] px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary-accent)] disabled:cursor-not-allowed disabled:opacity-50">{matching ? 'Finding matches...' : 'Find faculty matches'}</button>
@@ -1180,14 +1216,14 @@ export default function ResearchVault() {
                   {experience.duration && <span>Duration: {experience.duration}</span>}
                   {experience.outcome && <span>Outcome: {experience.outcome}</span>}
                 </div>
-                <TagList areas={experience.researchAreas?.map((entry) => entry.researchArea) || []} onFollow={follow} followedAreaIds={followedAreaIds} />
+                <TagList areas={experience.researchAreas} allAreas={areas} onFollow={follow} followedAreaIds={followedAreaIds} />
               </article>
             ))}
           </VaultList>}
         </div>
       )}
 
-      {section === 'discussions' && <VaultList loading={loading} empty="No discussions found.">{items.map((discussion) => <DiscussionItem key={discussion.id} discussion={discussion} currentUserId={user?.id} onReply={reply} onVote={vote} onAcceptAnswer={acceptAnswer} onFollow={follow} followedAreaIds={followedAreaIds} setRefreshVersion={setRefreshVersion} />)}</VaultList>}
+      {section === 'discussions' && <VaultList loading={loading} empty="No discussions found.">{items.map((discussion) => <DiscussionItem key={discussion.id} discussion={discussion} currentUserId={user?.id} onReply={reply} onVote={vote} onAcceptAnswer={acceptAnswer} onFollow={follow} followedAreaIds={followedAreaIds} allAreas={areas} setRefreshVersion={setRefreshVersion} />)}</VaultList>}
 
       {section === 'resources' && (
         <div className="space-y-4">
@@ -1282,7 +1318,7 @@ export default function ResearchVault() {
                             <>
                               <button
                                 type="button"
-                                onClick={() => { setEditingResource(r); setEditForm({ title: r.title, description: r.description || '', url: r.url || '', category: r.resourceType, researchAreaIds: r.researchAreas?.map(ra => ra.researchArea.id) || [], customArea: r.customArea?.name || '' }); }}
+                                onClick={() => { setEditingResource(r); setEditForm({ title: r.title, description: r.description || '', url: r.url || '', category: r.resourceType, researchAreaIds: r.researchAreas?.map(ra => typeof ra === 'number' ? ra : typeof ra === 'string' ? (areas.find(a => a.name?.toLowerCase() === ra.toLowerCase() || a.slug === ra)?.id || ra) : (ra?.researchArea?.id || ra?.id)).filter(Boolean) || [], customArea: r.customArea?.name || '' }); }}
                                 className="text-xs font-semibold text-[var(--color-primary-accent)] hover:underline"
                               >Edit</button>
                               <button
@@ -1296,7 +1332,7 @@ export default function ResearchVault() {
                             <button
                               type="button"
                               onClick={() => {
-                                setResourceForm({ title: r.title, description: r.description || '', url: r.url || '', category: r.resourceType, researchAreaIds: r.researchAreas?.map(ra => ra.researchArea.id) || [], consent_confirmed: false });
+                                setResourceForm({ title: r.title, description: r.description || '', url: r.url || '', category: r.resourceType, researchAreaIds: r.researchAreas?.map(ra => typeof ra === 'number' ? ra : typeof ra === 'string' ? (areas.find(a => a.name?.toLowerCase() === ra.toLowerCase() || a.slug === ra)?.id || ra) : (ra?.researchArea?.id || ra?.id)).filter(Boolean) || [], consent_confirmed: false });
                                 setResourceSubmitSuccess(false);
                                 setResourceFormOpen(true);
                               }}
@@ -2275,7 +2311,8 @@ function ResourceCard({ resource, follow, followedAreaIds, apiUrl }) {
 
         {/* Research area tags (+ admin-pending custom tag) */}
         <TagList
-          areas={resource.researchAreas?.map((entry) => entry.researchArea) || []}
+          areas={resource.researchAreas}
+          allAreas={areas}
           onFollow={follow}
           followedAreaIds={followedAreaIds}
         />
@@ -2348,12 +2385,52 @@ function ResourceCard({ resource, follow, followedAreaIds, apiUrl }) {
   );
 }
 
-function TagList({ areas, onFollow, followedAreaIds, compact = false }) {
+function TagList({ areas, onFollow, followedAreaIds, compact = false, allAreas = [] }) {
   if (!areas?.length) return null;
-  return <div className={`flex flex-wrap gap-1.5 ${compact ? '' : 'mt-3'}`}>{areas.map((area) => {
-    const isFollowing = followedAreaIds?.has(area.id) || false;
-    return <button type="button" key={area.id} onClick={(e) => { e.preventDefault(); e.stopPropagation(); onFollow('area', area.id, area.name); }} aria-pressed={isFollowing} title={isFollowing ? `Unfollow ${area.name}` : `Click to follow ${area.name}`} className={`relative rounded-full border px-2 ${compact ? 'py-0.5' : 'py-1'} text-[11px] font-semibold transition-all duration-150 cursor-pointer ${isFollowing ? 'border-blue-200 bg-blue-50 text-blue-900 hover:bg-blue-100 hover:shadow-sm hover:-translate-y-0.5' : 'border-blue-200 bg-blue-50 text-blue-900 hover:bg-blue-100 hover:shadow-sm hover:-translate-y-0.5'}`}>{isFollowing ? <Check size={11} className="mr-1 inline" /> : <Plus size={11} className="mr-1 inline" />}{area.name}</button>;
-  })}</div>;
+  const normalized = areas.map((entry) => {
+    if (!entry) return null;
+    if (typeof entry === 'string') {
+      const match = allAreas?.find((a) => a.name?.toLowerCase() === entry.toLowerCase() || a.slug === entry);
+      return match || { id: entry, name: entry };
+    }
+    if (entry.researchArea) {
+      return entry.researchArea;
+    }
+    return entry;
+  }).filter(Boolean);
+
+  if (!normalized.length) return null;
+
+  return (
+    <div className={`flex flex-wrap gap-1.5 ${compact ? '' : 'mt-3'}`}>
+      {normalized.map((area, idx) => {
+        const areaId = area.id ?? area.name ?? idx;
+        const areaName = area.name || String(area);
+        const isFollowing = (typeof area.id === 'number' && followedAreaIds?.has(area.id)) || false;
+        return (
+          <button
+            type="button"
+            key={areaId}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (onFollow) onFollow('area', area.id || areaName, areaName);
+            }}
+            aria-pressed={isFollowing}
+            title={isFollowing ? `Unfollow ${areaName}` : `Click to follow ${areaName}`}
+            className={`relative rounded-full border px-2 ${compact ? 'py-0.5' : 'py-1'} text-[11px] font-semibold transition-all duration-150 cursor-pointer ${
+              isFollowing
+                ? 'border-blue-200 bg-blue-50 text-blue-900 hover:bg-blue-100 hover:shadow-sm hover:-translate-y-0.5'
+                : 'border-blue-200 bg-blue-50 text-blue-900 hover:bg-blue-100 hover:shadow-sm hover:-translate-y-0.5'
+            }`}
+          >
+            {isFollowing ? <Check size={11} className="mr-1 inline" /> : <Plus size={11} className="mr-1 inline" />}
+            {areaName}
+          </button>
+        );
+      })}
+    </div>
+  );
 }
 
 const authorLabel = (author) => [author?.displayName || 'ACC student', author?.rollNo].filter(Boolean).join(' · ');
@@ -2367,7 +2444,7 @@ const relativeTime = (value) => {
   return new Date(value).toLocaleDateString();
 };
 
-function DiscussionItem({ discussion, currentUserId, onReply, onVote, onAcceptAnswer, onFollow, followedAreaIds, setRefreshVersion }) {
+function DiscussionItem({ discussion, currentUserId, onReply, onVote, onAcceptAnswer, onFollow, followedAreaIds, allAreas = [], setRefreshVersion }) {
   const [replyText, setReplyText] = useState('');
   const [_replyTo, setReplyTo] = useState(null);
   const isOwnDiscussion = discussion.uploadedBy?.id === currentUserId;
@@ -2391,7 +2468,7 @@ function DiscussionItem({ discussion, currentUserId, onReply, onVote, onAcceptAn
       <p className="mt-3 whitespace-pre-wrap text-base leading-7 text-left text-slate-700">{discussion.content}</p>
       <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2">
         <p className={`text-xs font-medium ${isOwnDiscussion ? 'text-blue-700' : 'text-slate-600'}`}>{authorLabel(discussion.uploadedBy)}{discussion.uploadedBy?.role === 'FACULTY' ? ' · Verified faculty' : ''}</p>
-        <TagList areas={discussion.researchAreas?.map((entry) => entry.researchArea) || []} onFollow={onFollow} followedAreaIds={followedAreaIds} compact />
+        <TagList areas={discussion.researchAreas} allAreas={allAreas} onFollow={onFollow} followedAreaIds={followedAreaIds} compact />
       </div>
       <div className="mt-3 flex items-center gap-4">
         <button onClick={() => onVote(discussion.id)} aria-pressed={discussion.hasVoted || false} className={`inline-flex items-center gap-1.5 text-xs font-semibold transition-colors ${discussion.hasVoted ? 'text-[var(--color-secondary)]' : 'text-slate-600 hover:text-[var(--color-primary-accent)]'}`}><ThumbsUp size={14} fill={discussion.hasVoted ? 'currentColor' : 'none'} /> {discussion.voteCount ?? discussion._count?.votes ?? 0}</button>

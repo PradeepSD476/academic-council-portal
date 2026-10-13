@@ -1,6 +1,7 @@
 import prisma from '../../config/db.js';
 import { success, paginated, error } from '../../utils/response.js';
-import { normalizeResearchAreas } from '../../constants/researchAreas.js';
+import { normalizeResearchAreas, resolveStoredAreaName } from '../../constants/researchAreas.js';
+import { resolveDepartmentAliases } from '../../constants/departments.js';
 
 // Helper to generate a clean URL-friendly slug
 const generateSlug = (name) => {
@@ -19,7 +20,7 @@ export const getFacultyProfiles = async (req, res) => {
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 12));
     const skip = (page - 1) * limit;
 
-    const { search, department, area, isActive } = req.query;
+    const { search, department, area, areaId, isActive } = req.query;
 
     const where = {};
 
@@ -31,11 +32,17 @@ export const getFacultyProfiles = async (req, res) => {
     }
 
     if (department && department !== 'All') {
-      where.department = { equals: department, mode: 'insensitive' };
+      const deptTerm = department.trim();
+      const aliases = resolveDepartmentAliases(deptTerm);
+      const deptConditions = aliases.map((a) => ({ department: { contains: a, mode: 'insensitive' } }));
+      if (!where.AND) where.AND = [];
+      where.AND.push(deptConditions.length === 1 ? deptConditions[0] : { OR: deptConditions });
     }
 
-    if (area && area !== 'All') {
-      where.researchAreas = { has: area };
+    const areaQuery = area || areaId;
+    if (areaQuery && areaQuery !== 'All') {
+      const resolvedArea = await resolveStoredAreaName(prisma, 'FacultyProfile', areaQuery);
+      where.researchAreas = { has: resolvedArea };
     }
 
     if (search && search.trim()) {

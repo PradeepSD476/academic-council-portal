@@ -74,7 +74,8 @@ export default function ResearchQuestionDetail() {
     setLoadingReplies(true);
     try {
       const data = payload(await researchVaultApi.getQuestionReplies(questionId, { sort, limit: 20 }));
-      setReplies(data.items || []);
+      const items = Array.isArray(data) ? data : (data.items || []);
+      setReplies(items);
       setReplyCursor(data.next_cursor || null);
       setHasMoreReplies(Boolean(data.has_more));
     } catch (error) {
@@ -89,7 +90,8 @@ export default function ResearchQuestionDetail() {
     setLoadingReplies(true);
     try {
       const data = payload(await researchVaultApi.getQuestionReplies(questionId, { sort: replySort, cursor: replyCursor, limit: 20 }));
-      setReplies((current) => [...current, ...(data.items || [])]);
+      const items = Array.isArray(data) ? data : (data.items || []);
+      setReplies((current) => [...current, ...items]);
       setReplyCursor(data.next_cursor || null);
       setHasMoreReplies(Boolean(data.has_more));
     } catch (error) {
@@ -157,7 +159,7 @@ export default function ResearchQuestionDetail() {
       <nav className="sticky top-0 z-20 -mx-4 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur sm:-mx-6 sm:px-6" aria-label="Question navigation">
         <Link to={listPath} className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-[var(--color-primary-accent)]"><ArrowLeft size={16} /> Back to all questions</Link>
         <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
-          {question.researchAreas?.[0] && <span className="text-xs font-semibold text-[var(--color-primary-accent)]">{question.researchAreas[0].researchArea.name}</span>}
+          {question.researchAreas?.[0] && <span className="text-xs font-semibold text-[var(--color-primary-accent)]">{typeof question.researchAreas[0] === 'string' ? question.researchAreas[0] : question.researchAreas[0]?.researchArea?.name || question.researchAreas[0]?.name}</span>}
           {question.position && question.total && <span className="text-xs text-slate-500">Question {question.position} of {question.total}</span>}
           <div className="flex items-center gap-1">
             {questionPath(question.previous_id) ? <Link title="Previous question" to={questionPath(question.previous_id)} className="rounded-md border border-slate-200 p-2 text-slate-600 hover:bg-slate-50"><ChevronLeft size={16} /></Link> : <span className="rounded-md border border-slate-100 p-2 text-slate-300"><ChevronLeft size={16} /></span>}

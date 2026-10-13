@@ -4,8 +4,9 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 const api = axios.create({ baseURL: `${API_URL}/v1/vault`, withCredentials: true });
 
 export const researchVaultApi = {
-  // ── Research Areas ────────────────────────────────────────────────────────
+  // ── Research Areas & Departments ──────────────────────────────────────────
   getAreas: () => api.get('/areas'),
+  getDepartments: () => api.get('/departments'),
   createArea: (data) => api.post('/areas', data),
 
   // ── Faculty ───────────────────────────────────────────────────────────

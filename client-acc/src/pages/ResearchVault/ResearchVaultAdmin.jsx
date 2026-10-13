@@ -330,8 +330,8 @@ function ResourceProfileView({ resource, onBack }) {
           
           <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
             <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-700 border border-slate-200">
-              {resource.resourceType === 'DATASET' ? <Activity size={14} className="text-slate-500" /> : resource.resourceType === 'GUIDE' ? <BookOpen size={14} className="text-slate-500" /> : <FileText size={14} className="text-slate-500" />}
-              {resource.resourceType.replace(/_/g, ' ')}
+              {(resource.resourceType || resource.type) === 'DATASET' ? <Activity size={14} className="text-slate-500" /> : (resource.resourceType || resource.type) === 'GUIDE' ? <BookOpen size={14} className="text-slate-500" /> : <FileText size={14} className="text-slate-500" />}
+              {(resource.resourceType || resource.type || 'GUIDE').replace(/_/g, ' ')}
             </span>
             
             {(resource.url || resource.filePath) && (
@@ -344,7 +344,7 @@ function ResourceProfileView({ resource, onBack }) {
           
           {resource.researchAreas?.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-2">
-              {resource.researchAreas.map(ra => ra.researchArea?.name).filter(Boolean).map((area, idx) => (
+              {resource.researchAreas.map(ra => typeof ra === 'string' ? ra : ra?.researchArea?.name || ra?.name).filter(Boolean).map((area, idx) => (
                 <span key={idx} className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 border border-slate-200">
                   <Tag size={12} className="text-slate-400" /> {area}
                 </span>
@@ -451,8 +451,6 @@ function ResourceForm({ areas, create, onClose }) {
                     <option value="DATASET">Dataset</option>
                     <option value="SOP_WRITING">SOP writing</option>
                     <option value="COLD_EMAILING">Cold-emailing professors</option>
-//                    <option value="PHD_APPLICATIONS">PhD applications</option>
-//                    <option value="GRANT_WRITING">Grant writing</option>
                     <option value="OTHER">Other</option>
                   </select>
                 </div>
@@ -462,7 +460,7 @@ function ResourceForm({ areas, create, onClose }) {
                   <select name="researchAreaId" className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 hover:border-slate-400">
                     <option value="">Select an area (optional)</option>
                     {areas.map((area) => (
-                      <option key={area.id} value={area.id}>{area.name}</option>
+                      <option key={area.id || area.name} value={area.id || area.name}>{area.name}</option>
                     ))}
                   </select>
                 </div>
@@ -571,7 +569,7 @@ function PositionProfileView({ position, onBack }) {
                 <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Research Area</h4>
                 <div className="flex flex-wrap items-center gap-2 text-sm font-medium text-slate-800">
                   <FlaskConical size={16} className="text-slate-400" /> 
-                  {position.researchAreas.map(ra => ra.researchArea.name).join(', ')}
+                  {position.researchAreas.map(ra => typeof ra === 'string' ? ra : ra?.researchArea?.name || ra?.name || '').filter(Boolean).join(', ')}
                 </div>
               </div>
             )}
@@ -905,7 +903,7 @@ export default function ResearchVaultAdmin() {
         researchVaultApi.getAnalytics(),
         researchVaultApi.getModerationQueue(),
         researchVaultApi.getFaculty({ limit: 100 }),
-        researchVaultApi.getResources({ limit: 100 }),
+        researchVaultApi.getResources({ limit: 100, status: 'ALL' }),
         researchVaultApi.getPositions(),
         researchVaultApi.getAreas(),
         Promise.resolve({ data: { data: [] } }), // researchVaultApi.getCustomAreasQueue(),
@@ -944,8 +942,18 @@ export default function ResearchVaultAdmin() {
     event.preventDefault();
     const form = event.currentTarget;
     const values = Object.fromEntries(new FormData(form).entries());
-    if (values.researchAreaId) values.researchAreaIds = [Number(values.researchAreaId)];
-    delete values.researchAreaId;
+
+    if (values.researchAreaId) {
+      const match = areas.find((a) => String(a.id) === String(values.researchAreaId) || a.name === values.researchAreaId);
+      if (match) {
+        values.researchAreas = [match.name];
+      } else if (typeof values.researchAreaId === 'string' && values.researchAreaId.trim()) {
+        values.researchAreas = [values.researchAreaId.trim()];
+      }
+      values.researchAreaIds = [Number(values.researchAreaId) || 0];
+      delete values.researchAreaId;
+    }
+
     if (values.facultyId) values.facultyId = Number(values.facultyId);
     else if (kind === 'position') values.facultyId = null;
     if (values.positionsAvailable) values.positionsAvailable = Number(values.positionsAvailable);
@@ -953,18 +961,27 @@ export default function ResearchVaultAdmin() {
     else delete values.deadline;
 
     if (kind === 'resource') {
+      values.type = values.resourceType || values.type || 'GUIDE';
+      values.status = 'APPROVED';
       const file = form.elements.file?.files[0];
-      if (file) {
+      if (file && file.size > 0) {
         toast.loading('Uploading file...', { id: 'upload' });
-        const result = await getFilePath({ file, folder: 'research-vault' });
-        if (!result?.filePath) {
-          toast.error('File upload failed', { id: 'upload' });
-          return;
+        try {
+          const result = await getFilePath({ file, folder: 'research-vault' });
+          if (result?.filePath) {
+            values.filePath = result.filePath;
+            values.fileSize = file.size;
+            values.mimeType = file.type;
+          } else {
+            toast.error('File storage upload failed. You can provide an external URL instead.');
+            if (!values.url) return false;
+          }
+        } catch {
+          toast.error('File storage upload failed. You can provide an external URL instead.');
+          if (!values.url) return false;
+        } finally {
+          toast.dismiss('upload');
         }
-        values.filePath = result.filePath;
-        values.fileSize = file.size;
-        values.mimeType = file.type;
-        toast.dismiss('upload');
       }
       delete values.file;
     }
@@ -1349,9 +1366,12 @@ export default function ResearchVaultAdmin() {
                         {entry.labName && <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-50 border border-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600"><FlaskConical size={12} className="text-slate-400"/> {entry.labName}</span>}
                         {(entry.faculty?.name || entry.externalGuideName) && <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-50 border border-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600"><UsersRound size={12} className="text-slate-400"/> {entry.faculty?.name || entry.externalGuideName}</span>}
                         {entry.duration && <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-50 border border-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600"><Clock size={12} className="text-slate-400"/> {entry.duration}</span>}
-                        {entry.researchAreas?.length > 0 && entry.researchAreas.map((ra, idx) => (
-                          <span key={idx} className="inline-flex items-center gap-1.5 rounded-md bg-blue-50 border border-blue-100 px-2.5 py-1 text-xs font-medium text-blue-700"><Tag size={12} className="text-blue-400"/> {ra.researchArea?.name}</span>
-                        ))}
+                        {entry.researchAreas?.length > 0 && entry.researchAreas.map((ra, idx) => {
+                          const areaName = typeof ra === 'string' ? ra : ra?.researchArea?.name || ra?.name;
+                          return (
+                            <span key={idx} className="inline-flex items-center gap-1.5 rounded-md bg-blue-50 border border-blue-100 px-2.5 py-1 text-xs font-medium text-blue-700"><Tag size={12} className="text-blue-400"/> {areaName}</span>
+                          );
+                        })}
                       </div>
                     </div>
                     
@@ -1428,7 +1448,7 @@ export default function ResearchVaultAdmin() {
                       
                       <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-4 p-3 bg-slate-50 rounded-lg border border-slate-200 shadow-sm">
                         <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                          <FileText size={16} className="text-blue-500" /> {entry.resourceType}
+                          <FileText size={16} className="text-blue-500" /> {entry.resourceType || entry.type || 'RESOURCE'}
                         </div>
                         
                         {(entry.url || entry.filePath) && <div className="hidden sm:block w-px h-5 bg-slate-200"></div>}
@@ -1447,11 +1467,14 @@ export default function ResearchVaultAdmin() {
 
                       {(entry.researchAreas?.length > 0 || entry.customArea) && (
                         <div className="mt-4 flex flex-wrap gap-2">
-                          {entry.researchAreas?.map((ra, idx) => (
-                            <span key={idx} className="inline-flex items-center gap-1.5 rounded-md bg-slate-50 border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-600">
-                              <Tag size={12} className="text-slate-400"/> {ra.researchArea?.name}
-                            </span>
-                          ))}
+                          {entry.researchAreas?.map((ra, idx) => {
+                            const areaName = typeof ra === 'string' ? ra : ra?.researchArea?.name || ra?.name;
+                            return (
+                              <span key={idx} className="inline-flex items-center gap-1.5 rounded-md bg-slate-50 border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-600">
+                                <Tag size={12} className="text-slate-400"/> {areaName}
+                              </span>
+                            );
+                          })}
                           {entry.customArea && (
                             <span className="inline-flex items-center gap-1.5 rounded-md bg-amber-50 border border-amber-200 px-2.5 py-1 text-xs font-bold text-amber-700 shadow-sm">
                               <AlertCircle size={12} className="text-amber-500"/> Custom Area: {entry.customArea.name}
@@ -1593,13 +1616,13 @@ export default function ResearchVaultAdmin() {
                     >
                       <div className="flex items-start gap-4">
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 group-hover:bg-blue-100 transition-colors">
-                          {resource.resourceType === 'DATASET' ? <Activity size={18} /> : resource.resourceType === 'GUIDE' ? <BookOpen size={18} /> : <FileText size={18} />}
+                          {(resource.resourceType || resource.type) === 'DATASET' ? <Activity size={18} /> : (resource.resourceType || resource.type) === 'GUIDE' ? <BookOpen size={18} /> : <FileText size={18} />}
                         </div>
                         <div className="min-w-0 flex-1">
                           <h4 className="font-bold text-slate-900 line-clamp-1 group-hover:text-blue-700 transition-colors" title={resource.title}>{resource.title}</h4>
                           <div className="mt-1 flex flex-wrap gap-2">
                             <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
-                              {resource.resourceType.replace(/_/g, ' ')}
+                              {(resource.resourceType || resource.type || 'GUIDE').replace(/_/g, ' ')}
                             </span>
                             {(resource.url || resource.filePath) && (
                               <span className="inline-flex items-center gap-1 rounded-md bg-slate-50 border border-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500">
@@ -1613,7 +1636,7 @@ export default function ResearchVaultAdmin() {
                           )}
                           {resource.researchAreas?.length > 0 && (
                             <p className="mt-2 text-[11px] font-medium text-slate-400 truncate">
-                              Area: {resource.researchAreas.map(ra => ra.researchArea?.name).filter(Boolean).join(', ')}
+                              Area: {resource.researchAreas.map(ra => typeof ra === 'string' ? ra : ra?.researchArea?.name || ra?.name).filter(Boolean).join(', ')}
                             </p>
                           )}
                         </div>
@@ -1723,7 +1746,7 @@ export default function ResearchVaultAdmin() {
                                 {position.researchAreas && position.researchAreas.length > 0 && (
                                   <div className="flex items-center gap-1.5">
                                     <FlaskConical size={14} className="text-slate-400" />
-                                    <span className="truncate max-w-[200px]">{position.researchAreas.map(ra => ra.researchArea.name).join(', ')}</span>
+                                    <span className="truncate max-w-[200px]">{position.researchAreas.map(ra => typeof ra === 'string' ? ra : ra?.researchArea?.name || ra?.name || '').filter(Boolean).join(', ')}</span>
                                   </div>
                                 )}
                                 {position.faculty?.name && (
