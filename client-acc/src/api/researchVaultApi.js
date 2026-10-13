@@ -8,6 +8,7 @@ export const researchVaultApi = {
   getAreas: () => api.get('/areas'),
   getDepartments: () => api.get('/departments'),
   createArea: (data) => api.post('/areas', data),
+  deleteArea: (id) => api.delete(`/areas/${id}`),
 
   // ── Faculty ───────────────────────────────────────────────────────────
   getFaculty: (params) => api.get('/faculty', { params }),

@@ -35,7 +35,15 @@ export const getResearchAreas = async (req, res) => {
   try {
     const search = (req.query.search || '').trim();
 
-    // Dynamically fetch all distinct research areas across faculty, positions, resources, and discussions
+    // 1. Fetch all explicitly registered area directory resources from ResearchResource (4-table model)
+    const directoryResources = await prisma.researchResource.findMany({
+      where: {
+        sourceType: 'AREA_DIRECTORY',
+      },
+      orderBy: { title: 'asc' },
+    });
+
+    // 2. Dynamically fetch all distinct research areas across the 4 tables
     const rows = await prisma.$queryRaw`
       SELECT DISTINCT trim(area) AS name
       FROM (
@@ -51,20 +59,53 @@ export const getResearchAreas = async (req, res) => {
       ORDER BY name ASC;
     `;
 
-    let areas = rows.map((r) => r.name);
+    const seen = new Set();
+    const areas = [];
 
-    if (search) {
-      const lower = search.toLowerCase();
-      areas = areas.filter((a) => a.toLowerCase().includes(lower));
+    // Directory entries take priority for descriptions, custom slugs, and timestamps
+    for (const resItem of directoryResources) {
+      const lower = resItem.title.toLowerCase();
+      if (!seen.has(lower)) {
+        seen.add(lower);
+        const meta = resItem.meta && typeof resItem.meta === 'object' ? resItem.meta : {};
+        areas.push({
+          id: resItem.id,
+          name: resItem.title,
+          slug: meta.slug || resItem.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+          description: resItem.description || '',
+          createdAt: resItem.createdAt,
+          updatedAt: resItem.updatedAt,
+        });
+      }
     }
 
-    const data = areas.map((name, index) => ({
-      id: index + 1,
-      name,
-      slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
-    }));
+    // Include any areas dynamically discovered from the 4 models
+    let syntheticId = areas.length ? Math.max(...areas.map((a) => a.id)) + 1000 : 1000;
+    for (const row of rows) {
+      if (row.name && !seen.has(row.name.toLowerCase())) {
+        seen.add(row.name.toLowerCase());
+        areas.push({
+          id: syntheticId++,
+          name: row.name,
+          slug: row.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+          description: '',
+        });
+      }
+    }
 
-    return success(res, data, 'Research areas fetched');
+    let filtered = areas;
+    if (search) {
+      const lower = search.toLowerCase();
+      filtered = areas.filter(
+        (a) =>
+          a.name.toLowerCase().includes(lower) ||
+          (a.description && a.description.toLowerCase().includes(lower))
+      );
+    }
+
+    filtered.sort((a, b) => a.name.localeCompare(b.name));
+
+    return success(res, filtered, 'Research areas fetched');
   } catch (err) {
     return error(res, 'Failed to fetch research areas', 500, err);
   }
@@ -86,16 +127,107 @@ export const getDepartments = async (req, res) => {
   }
 };
 
-// POST /api/v1/vault/areas - Admin add custom area (returns formatted object)
+// POST /api/v1/vault/areas - Admin add research area stored within ResearchResource (4-table model)
 export const createResearchArea = async (req, res) => {
   try {
     const name = String(req.body.name || '').trim();
     if (!name) return error(res, 'Area name is required', 400);
 
-    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    return success(res, { id: Date.now(), name, slug }, 'Research area added', 201);
+    const rawSlug = String(req.body.slug || '').trim();
+    const slug = (rawSlug || name)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '') || `area-${Date.now()}`;
+
+    const description = String(req.body.description || '').trim() || null;
+
+    // Check for duplicate area name in ResearchResource directory
+    const existing = await prisma.researchResource.findFirst({
+      where: {
+        sourceType: 'AREA_DIRECTORY',
+        title: { equals: name, mode: 'insensitive' },
+      },
+    });
+
+    if (existing) {
+      return error(res, `A research area with name "${name}" already exists.`, 409);
+    }
+
+    const newAreaResource = await prisma.researchResource.create({
+      data: {
+        title: name,
+        description,
+        type: 'GUIDE',
+        sourceType: 'AREA_DIRECTORY',
+        status: 'APPROVED',
+        meta: { isAreaDirectory: true, slug },
+        researchAreas: [name],
+        uploadedById: req.user.id,
+      },
+    });
+
+    return success(
+      res,
+      {
+        id: newAreaResource.id,
+        name: newAreaResource.title,
+        slug,
+        description: newAreaResource.description || '',
+        createdAt: newAreaResource.createdAt,
+        updatedAt: newAreaResource.updatedAt,
+      },
+      'Research area added successfully',
+      201
+    );
   } catch (err) {
     return error(res, 'Failed to create research area', 500, err);
+  }
+};
+
+// DELETE /api/v1/vault/areas/:id - Admin delete research area from ResearchResource
+export const deleteResearchArea = async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!id || isNaN(id)) return error(res, 'Valid research area ID is required', 400);
+
+    const existing = await prisma.researchResource.findFirst({
+      where: {
+        id,
+        sourceType: 'AREA_DIRECTORY',
+      },
+    });
+
+    if (!existing) {
+      return error(res, 'Research area not found', 404);
+    }
+
+    const areaName = existing.title;
+
+    // Prevent deletion if actively linked to active profiles, positions, resources, or discussions
+    const inFaculty = await prisma.facultyProfile.count({
+      where: { researchAreas: { has: areaName } },
+    });
+    const inPositions = await prisma.researchOpenPosition.count({
+      where: { researchAreas: { has: areaName } },
+    });
+    const inResources = await prisma.researchResource.count({
+      where: {
+        researchAreas: { has: areaName },
+        sourceType: { not: 'AREA_DIRECTORY' },
+      },
+    });
+    const inDiscussions = await prisma.researchDiscussion.count({
+      where: { researchAreas: { has: areaName } },
+    });
+
+    if (inFaculty > 0 || inPositions > 0 || inResources > 0 || inDiscussions > 0) {
+      return error(res, `Cannot delete "${areaName}" because it is currently associated with active records.`, 400);
+    }
+
+    await prisma.researchResource.delete({ where: { id } });
+    return success(res, null, 'Research area deleted successfully');
+  } catch (err) {
+    return error(res, 'Failed to delete research area', 500, err);
   }
 };
 

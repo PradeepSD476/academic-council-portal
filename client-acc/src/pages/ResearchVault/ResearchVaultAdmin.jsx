@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, BarChart3, BookOpenCheck, BriefcaseBusiness, CirclePlus, FlaskConical, Trash2, FileText, User, UsersRound, Image as ImageIcon, Link as LinkIcon, BookOpen, Globe, MapPin, Mail, Phone, Linkedin, GraduationCap, Info, Clock, MessageCircle, Eye, Download, AlertCircle, Activity, ChevronRight, Database, Calendar, CheckCircle2, Check, X, Building2, Tag, Plus } from 'lucide-react';
+import { ArrowLeft, BarChart3, BookOpenCheck, BriefcaseBusiness, CirclePlus, FlaskConical, Trash2, FileText, User, UsersRound, Image as ImageIcon, Link as LinkIcon, BookOpen, Globe, MapPin, Mail, Phone, Linkedin, GraduationCap, Info, Clock, MessageCircle, Eye, Download, AlertCircle, Activity, ChevronRight, Database, Calendar, CheckCircle2, Check, X, Building2, Tag, Plus, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { researchVaultApi } from '../../api/researchVaultApi';
 import { getFilePath } from '../../lib/getFilePath';
@@ -571,6 +571,14 @@ function PositionProfileView({ position, onBack }) {
                 </div>
               </div>
             )}
+            {(position.faculty?.department || position.department) && (
+              <div>
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Department</h4>
+                <div className="flex items-center gap-2 text-sm font-medium text-slate-800">
+                  <Building2 size={16} className="text-slate-400" /> {position.faculty?.department || position.department}
+                </div>
+              </div>
+            )}
             {position.researchAreas && position.researchAreas.length > 0 && (
               <div>
                 <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Research Area</h4>
@@ -602,12 +610,35 @@ function PositionProfileView({ position, onBack }) {
             </section>
           )}
 
-          {position.applicationInstructions && (
+          {position.requirements && (
             <section>
-              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3">Application Instructions</h3>
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3">Requirements / Skills</h3>
               <div className="prose prose-sm prose-slate max-w-none text-slate-600 whitespace-pre-wrap leading-relaxed">
-                {position.applicationInstructions}
+                {position.requirements}
               </div>
+            </section>
+          )}
+
+          {(position.howToApply || position.applicationInstructions) && (
+            <section>
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3">How to Apply / Instructions</h3>
+              <div className="prose prose-sm prose-slate max-w-none text-slate-600 whitespace-pre-wrap leading-relaxed">
+                {position.howToApply || position.applicationInstructions}
+              </div>
+            </section>
+          )}
+
+          {position.applicationUrl && (
+            <section>
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3">Application Link</h3>
+              <a 
+                href={position.applicationUrl} 
+                target="_blank" 
+                rel="noreferrer" 
+                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+              >
+                <LinkIcon size={16} /> Open Application Form
+              </a>
             </section>
           )}
         </div>
@@ -727,6 +758,20 @@ function AreaForm({ create, onClose }) {
 }
 
 function PositionForm({ faculty, areas, create, onClose }) {
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      const success = await create(event, 'position');
+      if (success && onClose) onClose();
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 sm:p-6" onClick={(e) => { if (e.target === e.currentTarget && onClose) onClose(); }}>
       <div className="w-full max-w-3xl max-h-full flex flex-col rounded-xl border border-slate-200 bg-white shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
@@ -741,10 +786,7 @@ function PositionForm({ faculty, areas, create, onClose }) {
         </div>
 
         <div className="overflow-y-auto flex-1">
-          <form onSubmit={async (event) => {
-              const success = await create(event, 'position');
-              if (success && onClose) onClose();
-            }} 
+          <form onSubmit={handleSubmit} 
             onReset={() => {
               if (onClose) onClose();
             }}
@@ -865,12 +907,21 @@ function PositionForm({ faculty, areas, create, onClose }) {
 
             {/* Action Area */}
             <div className="bg-slate-50 px-6 py-4 flex items-center justify-end gap-3 border-t border-slate-200 sticky bottom-0 z-10 shrink-0">
-              <button type="reset" className="rounded-lg px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors">
+              <button type="reset" disabled={submitting} className="rounded-lg px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors disabled:opacity-50">
                 Cancel
               </button>
-              <button type="submit" className="inline-flex w-fit items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700">
-                <CirclePlus size={16} /> 
-                Add Position
+              <button type="submit" disabled={submitting} className="inline-flex w-fit items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                {submitting ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <CirclePlus size={16} /> 
+                    Add Position
+                  </>
+                )}
               </button>
             </div>
           </form>
@@ -911,7 +962,7 @@ export default function ResearchVaultAdmin() {
         researchVaultApi.getModerationQueue(),
         researchVaultApi.getFaculty({ limit: 100 }),
         researchVaultApi.getResources({ limit: 100, status: 'ALL' }),
-        researchVaultApi.getPositions(),
+        researchVaultApi.getPositions({ limit: 100, status: 'ALL' }),
         researchVaultApi.getAreas(),
         Promise.resolve({ data: { data: [] } }), // researchVaultApi.getCustomAreasQueue(),
         researchVaultApi.getResourceModerationQueue()
@@ -959,13 +1010,37 @@ export default function ResearchVaultAdmin() {
       }
       values.researchAreaIds = [Number(values.researchAreaId) || 0];
       delete values.researchAreaId;
+    } else {
+      delete values.researchAreaId;
     }
 
     if (values.facultyId) values.facultyId = Number(values.facultyId);
     else if (kind === 'position') values.facultyId = null;
     if (values.positionsAvailable) values.positionsAvailable = Number(values.positionsAvailable);
-    if (values.deadline) values.deadline = new Date(values.deadline).toISOString();
-    else delete values.deadline;
+    if (values.deadline) {
+      if (typeof values.deadline === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(values.deadline)) {
+        values.deadline = new Date(`${values.deadline}T23:59:59.999Z`).toISOString();
+      } else {
+        const d = new Date(values.deadline);
+        if (!isNaN(d.getTime())) {
+          values.deadline = d.toISOString();
+        } else {
+          delete values.deadline;
+        }
+      }
+    } else {
+      delete values.deadline;
+    }
+
+    if (kind === 'position') {
+      if (values.applicationInstructions) {
+        if (!values.howToApply) {
+          values.howToApply = values.applicationInstructions;
+        } else {
+          values.howToApply = `${values.howToApply}\n\nInstructions: ${values.applicationInstructions}`;
+        }
+      }
+    }
 
     if (kind === 'resource') {
       values.type = values.resourceType || values.type || 'GUIDE';
@@ -1007,10 +1082,36 @@ export default function ResearchVaultAdmin() {
     try {
       if (kind === 'faculty') await researchVaultApi.createFaculty(values);
       if (kind === 'resource') await researchVaultApi.createResource(values);
-      if (kind === 'position') await researchVaultApi.createPosition(values);
-      if (kind === 'area') await researchVaultApi.createArea(values);
+      if (kind === 'position') {
+        const response = await researchVaultApi.createPosition(values);
+        const createdPos = response.data?.data;
+        if (createdPos) {
+          setPositions((prev) => {
+            const exists = prev.some((p) => p.id === createdPos.id);
+            if (exists) return prev;
+            return [createdPos, ...prev];
+          });
+        }
+      }
+      if (kind === 'area') {
+        const response = await researchVaultApi.createArea(values);
+        const createdArea = response.data?.data;
+        if (createdArea) {
+          setAreas((prev) => {
+            const exists = prev.some((a) => a.id === createdArea.id || a.name.toLowerCase() === createdArea.name.toLowerCase());
+            if (exists) return prev;
+            return [...prev, createdArea].sort((a, b) => a.name.localeCompare(b.name));
+          });
+        }
+      }
       form.reset();
-      toast.success('Research Vault record created.');
+      toast.success(
+        kind === 'area'
+          ? 'Research area created.'
+          : kind === 'position'
+          ? 'Open position created successfully.'
+          : 'Research Vault record created.'
+      );
       await refresh();
       return true;
     } catch (error) {
@@ -1709,7 +1810,9 @@ export default function ResearchVaultAdmin() {
             <div className="mb-10">
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm max-w-sm">
                 <p className="text-sm font-semibold text-slate-500">Active Opportunities</p>
-                <p className="mt-2 text-3xl font-bold text-slate-900">{positions.filter(p => p.status === 'OPEN').length}</p>
+                <p className="mt-2 text-3xl font-bold text-slate-900">
+                  {positions.filter(p => p.status === 'OPEN' && (!p.deadline || new Date(p.deadline) >= new Date())).length}
+                </p>
               </div>
             </div>
 
@@ -1763,8 +1866,20 @@ export default function ResearchVaultAdmin() {
                                   </div>
                                 )}
                               </div>
+
+                              {position.description && (
+                                <p className="mt-2 text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                                  {position.description}
+                                </p>
+                              )}
                               
                               <div className="mt-3 flex flex-wrap gap-4 text-[13px] text-slate-500">
+                                {(position.faculty?.department || position.department) && (
+                                  <div className="flex items-center gap-1.5">
+                                    <Building2 size={14} className="text-slate-400" />
+                                    <span className="truncate max-w-[200px]">{position.faculty?.department || position.department}</span>
+                                  </div>
+                                )}
                                 {position.researchAreas && position.researchAreas.length > 0 && (
                                   <div className="flex items-center gap-1.5">
                                     <FlaskConical size={14} className="text-slate-400" />
@@ -1885,9 +2000,17 @@ export default function ResearchVaultAdmin() {
                                   )}
                                 </div>
                                 <button 
-                                  onClick={(e) => {
+                                  onClick={async (e) => {
                                     e.stopPropagation();
-                                    toast.error('Research areas used by existing records cannot be removed here.');
+                                    if (!window.confirm(`Are you sure you want to delete "${area.name}"?`)) return;
+                                    try {
+                                      await researchVaultApi.deleteArea(area.id);
+                                      toast.success('Research area deleted.');
+                                      setAreas((prev) => prev.filter((a) => a.id !== area.id));
+                                      await refresh();
+                                    } catch (err) {
+                                      toast.error(err.response?.data?.message || 'Failed to delete research area.');
+                                    }
                                   }} 
                                   title="Delete research area" 
                                   className="shrink-0 flex items-center justify-center rounded-lg border border-transparent p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors focus:ring-2 focus:ring-rose-200 focus:outline-none -mr-2"

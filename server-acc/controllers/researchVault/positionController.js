@@ -32,12 +32,13 @@ export const getOpenPositions = async (req, res) => {
     const now = new Date();
 
     // Query-level deadline filtering to keep pagination totals completely accurate
-    if (status === 'CLOSED') {
+    const isStatusAll = status === 'ALL' || status === 'all' || req.query.includeClosed === 'true' || req.query.includeClosed === true;
+    if (status === 'CLOSED' || status === 'closed') {
       where.OR = [
         { status: 'CLOSED' },
         { deadline: { lt: now } },
       ];
-    } else if (status === 'ALL') {
+    } else if (isStatusAll) {
       // Show all positions without deadline/status filtering
     } else {
       // Default: only truly OPEN positions
@@ -95,7 +96,7 @@ export const getOpenPositions = async (req, res) => {
         where,
         skip,
         take: limit,
-        orderBy: [{ deadline: 'asc' }, { createdAt: 'desc' }],
+        orderBy: isStatusAll ? [{ createdAt: 'desc' }] : [{ deadline: 'asc' }, { createdAt: 'desc' }],
         include: {
           faculty: {
             select: {
@@ -185,6 +186,7 @@ export const createOpenPosition = async (req, res) => {
       howToApply,
       researchAreas,
       facultyId,
+      status: reqStatus,
     } = req.body;
 
     if (!title || !title.trim()) {
@@ -195,23 +197,40 @@ export const createOpenPosition = async (req, res) => {
     const filled = Number(positionsFilled) >= 0 ? Number(positionsFilled) : 0;
     const normalizedAreas = normalizeResearchAreas(researchAreas);
 
-    // Compute status and create within $transaction
-    const position = await prisma.$transaction(async (tx) => {
-      const status = filled >= available ? 'CLOSED' : 'OPEN';
+    // Prevent duplicate active positions with identical title for the same faculty
+    const existingDuplicate = await prisma.researchOpenPosition.findFirst({
+      where: {
+        title: { equals: title.trim(), mode: 'insensitive' },
+        facultyId: facultyId ? Number(facultyId) : null,
+        status: 'OPEN',
+      },
+    });
 
+    if (existingDuplicate) {
+      return error(res, 'An open position with this title already exists for this faculty.', 400);
+    }
+
+    // Determine status: respect explicit choice if given, otherwise calculate from filled/available
+    let status = reqStatus;
+    if (!status || !['OPEN', 'CLOSED'].includes(status)) {
+      status = filled >= available ? 'CLOSED' : 'OPEN';
+    }
+
+    // Create within $transaction
+    const position = await prisma.$transaction(async (tx) => {
       return await tx.researchOpenPosition.create({
         data: {
           title: title.trim(),
-          description: description || null,
+          description: description?.trim() || null,
           positionType: positionType.trim(),
-          requirements: requirements || null,
-          eligibility: eligibility || null,
+          requirements: requirements?.trim() || null,
+          eligibility: eligibility?.trim() || null,
           positionsAvailable: available,
           positionsFilled: filled,
           status,
           deadline: deadline ? new Date(deadline) : null,
           applicationUrl: applicationUrl?.trim() || null,
-          howToApply: howToApply || null,
+          howToApply: howToApply?.trim() || null,
           researchAreas: normalizedAreas,
           facultyId: facultyId ? Number(facultyId) : null,
           uploadedById: req.user.id,
@@ -224,6 +243,13 @@ export const createOpenPosition = async (req, res) => {
               department: true,
               designation: true,
               photoUrl: true,
+            },
+          },
+          uploadedBy: {
+            select: {
+              id: true,
+              displayName: true,
+              email: true,
             },
           },
         },

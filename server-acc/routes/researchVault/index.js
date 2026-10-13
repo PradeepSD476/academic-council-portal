@@ -8,6 +8,7 @@ import {
   getResearchAreas,
   getDepartments,
   createResearchArea,
+  deleteResearchArea,
   getInterestMatch,
   getResearchFollows,
   getFollowingUpdates,
@@ -59,6 +60,7 @@ router.use('/discussions', discussionRoutes);
 router.get('/areas', getResearchAreas);
 router.get('/departments', getDepartments);
 router.post('/areas', checkAuth, checkResearchAdmin, createResearchArea);
+router.delete('/areas/:id', checkAuth, checkResearchAdmin, deleteResearchArea);
 
 // ── Student Research Experiences (Mapped to ResearchResource type=EXPERIENCE) ─
 router.get('/experiences/mine', checkAuth, getMyResearchExperiences);

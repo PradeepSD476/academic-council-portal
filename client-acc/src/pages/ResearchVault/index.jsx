@@ -24,6 +24,7 @@ const sections = Object.values(TAB_CONFIG);
 
 const responseData = (response) => response.data?.data || [];
 const errorMessage = (error) => error.response?.data?.message || 'The request could not be completed.';
+const authorLabel = (author) => [author?.displayName || 'ACC student', author?.rollNo].filter(Boolean).join(' · ');
 
 // Module-level helper functions for resource type display
 const formatResourceType = (type) => {
@@ -296,6 +297,16 @@ export default function ResearchVault() {
   const [discussionStatus, setDiscussionStatus] = useState('all');
   const [department, setDepartment] = useState('');
   const [departmentList, setDepartmentList] = useState(DEPARTMENT_SUGGESTIONS);
+  const [departmentPickerOpen, setDepartmentPickerOpen] = useState(false);
+  const departmentPickerRef = useRef(null);
+
+  const matchingDepartments = useMemo(() => {
+    const query = department.trim().toLowerCase();
+    if (!query) return [];
+    return departmentList.filter((dept) =>
+      dept.toLowerCase().includes(query)
+    );
+  }, [department, departmentList]);
   const [areaId, setAreaId] = useState('');
   const [areaSearch, setAreaSearch] = useState('');
   const [areaPickerOpen, setAreaPickerOpen] = useState(false);
@@ -532,6 +543,7 @@ export default function ResearchVault() {
     const closeOnOutsidePointer = (event) => {
       if (!areaPickerRef.current?.contains(event.target)) setAreaPickerOpen(false);
       if (!followingAreaPickerRef.current?.contains(event.target)) setFollowingAreaPickerOpen(false);
+      if (!departmentPickerRef.current?.contains(event.target)) setDepartmentPickerOpen(false);
     };
     document.addEventListener('pointerdown', closeOnOutsidePointer);
     return () => document.removeEventListener('pointerdown', closeOnOutsidePointer);
@@ -919,7 +931,7 @@ export default function ResearchVault() {
 
       <nav className="vault-tabs flex items-center gap-2 overflow-x-auto px-1 pb-1 scrollbar-thin -ml-1" aria-label="Research Vault sections" style={{ scrollbarWidth: 'thin', scrollbarColor: 'var(--color-secondary) transparent' }}>
         {sections.map(({ id, label, icon: Icon }) => (
-          <button key={id} onClick={() => { if (id === section) return; if (id === 'discussions') { navigate('/dashboard/research-vault/questions'); return; } setSection(id); navigate(`/dashboard/research-vault?section=${id}`, { replace: true }); setItems([]); setLoading(true); setSearch(''); setDiscussionStatus('all'); setAreaId(''); setAreaSearch(''); setAreaPickerOpen(false); }} className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold whitespace-nowrap transition-all duration-200 ${section === id ? 'is-active bg-[var(--color-secondary)] text-white shadow-[0_4px_16px_var(--color-secondary-glow)] scale-[1.02]' : 'border-slate-200 bg-white/95 text-slate-500 shadow-xs hover:border-slate-300 hover:bg-white/90 hover:text-[var(--color-primary)]'}`}>
+          <button key={id} onClick={() => { if (id === section) return; if (id === 'discussions') { navigate('/dashboard/research-vault/questions'); return; } setSection(id); navigate(`/dashboard/research-vault?section=${id}`, { replace: true }); setItems([]); setLoading(true); setSearch(''); setDiscussionStatus('all'); setAreaId(''); setAreaSearch(''); setAreaPickerOpen(false); setDepartmentPickerOpen(false); }} className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold whitespace-nowrap transition-all duration-200 ${section === id ? 'is-active bg-[var(--color-secondary)] text-white shadow-[0_4px_16px_var(--color-secondary-glow)] scale-[1.02]' : 'border-slate-200 bg-white/95 text-slate-500 shadow-xs hover:border-slate-300 hover:bg-white/90 hover:text-[var(--color-primary)]'}`}>
             {createElement(Icon, { size: 16 })} {label}
           </button>
         ))}
@@ -933,13 +945,71 @@ export default function ResearchVault() {
         </label>
         {section === 'discussions' && <select value={discussionStatus} onChange={(event) => setDiscussionStatus(event.target.value)} aria-label="Filter discussions by status" className="rounded-xl border border-slate-200 bg-white/90 px-3 py-2.5 text-xs font-semibold text-[var(--color-primary)] outline-none focus:border-[var(--color-secondary)] sm:w-48"><option value="all">All discussions</option><option value="needs-reply">Needs a reply</option><option value="resolved">Resolved</option></select>}
         {(section === 'faculty' || section === 'experiences' || section === 'positions') && (
-          <input list="vault-departments" value={department} onChange={(event) => setDepartment(event.target.value)} placeholder="Department" className="rounded-xl border border-slate-200 bg-white/90 px-3 py-2.5 text-xs font-semibold text-[var(--color-primary)] outline-none focus:border-[var(--color-secondary)] sm:w-56" />
+          <div ref={departmentPickerRef} className="relative sm:w-56">
+            <input
+              type="text"
+              value={department}
+              onChange={(event) => {
+                const val = event.target.value;
+                setDepartment(val);
+                if (val.trim()) {
+                  setDepartmentPickerOpen(true);
+                } else {
+                  setDepartmentPickerOpen(false);
+                }
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') {
+                  setDepartmentPickerOpen(false);
+                }
+                if (event.key === 'Enter' && departmentPickerOpen && matchingDepartments.length > 0) {
+                  event.preventDefault();
+                  setDepartment(matchingDepartments[0]);
+                  setDepartmentPickerOpen(false);
+                }
+              }}
+              placeholder="Department"
+              aria-label="Filter by department"
+              autoComplete="off"
+              className={`w-full rounded-xl border border-slate-200 bg-white/90 py-2.5 pl-3 ${department ? 'pr-8' : 'pr-3'} text-xs font-semibold text-[var(--color-primary)] outline-none focus:border-[var(--color-secondary)]`}
+            />
+            {department && (
+              <button
+                type="button"
+                aria-label="Clear department filter"
+                onClick={() => {
+                  setDepartment('');
+                  setDepartmentPickerOpen(false);
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+              >
+                <X size={14} />
+              </button>
+            )}
+            {departmentPickerOpen && department.trim() && matchingDepartments.length > 0 && (
+              <div
+                role="listbox"
+                aria-label="Department suggestions"
+                className="absolute left-0 top-full z-30 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl"
+              >
+                {matchingDepartments.map((dept) => (
+                  <button
+                    key={dept}
+                    type="button"
+                    role="option"
+                    onClick={() => {
+                      setDepartment(dept);
+                      setDepartmentPickerOpen(false);
+                    }}
+                    className="block w-full rounded-lg px-3 py-2 text-left text-xs font-medium text-slate-700 hover:bg-blue-50 hover:text-[var(--color-primary-accent)]"
+                  >
+                    {dept}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         )}
-        <datalist id="vault-departments">
-          {departmentList.map((dept) => (
-            <option key={dept} value={dept} />
-          ))}
-        </datalist>
         {section === 'faculty' && <label className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-3 py-2.5 text-xs font-semibold text-slate-700"><input type="checkbox" checked={openingsOnly} onChange={(event) => setOpeningsOnly(event.target.checked)} className="accent-blue-700" /> Current openings</label>}
         {section !== 'positions' && (
           <div ref={section === 'following' ? followingAreaPickerRef : areaPickerRef} className="relative sm:w-56">
@@ -1115,7 +1185,7 @@ export default function ResearchVault() {
             <p className="flex items-center gap-2 text-sm font-bold text-blue-950"><UsersRound size={16} /> Find a research match</p>
             <p className="mt-2 text-xs leading-5 text-slate-600">Choose any interests. Recommendations are ranked by research-area fit, department, and active openings.</p>
             <form onSubmit={findMatches} className="mt-4 space-y-3">
-              <input list="vault-departments" value={interest.department} onChange={(event) => setInterest({ ...interest, department: event.target.value })} placeholder="Department (e.g. Electrical)" aria-label="Preferred department" className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-[var(--color-primary)] outline-none focus:border-[var(--color-secondary)]" />
+              <input value={interest.department} onChange={(event) => setInterest({ ...interest, department: event.target.value })} placeholder="Department (e.g. Electrical)" aria-label="Preferred department" className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-[var(--color-primary)] outline-none focus:border-[var(--color-secondary)]" />
               <input value={interest.subArea} onChange={(event) => setInterest({ ...interest, subArea: event.target.value })} placeholder="Research area (e.g. robotics)" aria-label="Research area of interest" className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-[var(--color-primary)] outline-none focus:border-[var(--color-secondary)]" />
               <select value={interest.projectType} onChange={(event) => setInterest({ ...interest, projectType: event.target.value })} aria-label="Preferred project type" className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-[var(--color-primary)] outline-none focus:border-[var(--color-secondary)]"><option value="">Any project type</option><option value="SUMMER_RESEARCH">Summer research</option><option value="THESIS">Thesis</option><option value="READING_PROJECT">Reading project</option><option value="RA_SHIP">Research assistantship</option></select>
               <button disabled={matching || (!interest.department.trim() && !interest.subArea.trim() && !interest.projectType)} className="w-full rounded-xl bg-[var(--color-secondary)] px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary-accent)] disabled:cursor-not-allowed disabled:opacity-50">{matching ? 'Finding matches...' : 'Find faculty matches'}</button>
@@ -2509,6 +2579,7 @@ function ResourceDetailModal({ resource, onClose, follow, followedAreaIds, allAr
 
   const hasFile = Boolean(resource.filePath);
   const hasLink = Boolean(resource.url);
+  const isFileResource = resource.sourceType === 'FILE' || hasFile;
   const fileExt = resource.filePath ? resource.filePath.split('.').pop()?.toLowerCase() : '';
   const format = resource.format || (fileExt === 'pdf' || resource.mimeType?.includes('pdf') ? 'pdf' : (fileExt === 'docx' || fileExt === 'doc' || resource.mimeType?.includes('word')) ? 'docx' : (fileExt === 'pptx' || fileExt === 'ppt') ? 'pptx' : hasFile ? 'file' : 'link');
 
@@ -2736,8 +2807,6 @@ function TagList({ areas, onFollow, followedAreaIds, compact = false, allAreas =
     </div>
   );
 }
-
-const authorLabel = (author) => [author?.displayName || 'ACC student', author?.rollNo].filter(Boolean).join(' · ');
 
 const relativeTime = (value) => {
   const seconds = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 1000));

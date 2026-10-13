@@ -111,7 +111,9 @@ export const getResearchResources = async (req, res, forcedType = null) => {
     const requestedCategory = (category || queryType || '').trim();
     const effectiveType = explicitForcedType || requestedCategory;
 
-    const where = {};
+    const where = {
+      sourceType: { not: 'AREA_DIRECTORY' },
+    };
 
     // 1. Status Filter (default shows only APPROVED unless status='ALL' is passed)
     if (status && status !== 'ALL') {
@@ -528,7 +530,7 @@ export const getMyResearchResources = async (req, res, forcedType = null) => {
     const queryType = req.query?.type || req.query?.category;
     const type = explicitForcedType || queryType;
 
-    const where = { uploadedById: userId };
+    const where = { uploadedById: userId, sourceType: { not: 'AREA_DIRECTORY' } };
     if (type && type !== 'ALL') {
       where.type = type;
     } else if (explicitForcedType === null && (!queryType || queryType === 'ALL')) {
@@ -643,7 +645,9 @@ export const getResearchResourceModerationQueue = async (req, res, forcedType = 
     const queryType = req.query?.type || req.query?.category;
     const explicitForcedType = typeof forcedType === 'string' ? forcedType : null;
     const type = explicitForcedType || queryType;
-    const where = {};
+    const where = {
+      sourceType: { not: 'AREA_DIRECTORY' },
+    };
     if (status && status !== 'ALL') {
       where.status = status;
     }
