@@ -16,7 +16,7 @@ import { checkAuth } from './middlewares/checkAuth.js'
 import forumRoutes from './routes/forum.js'
 import financeVaultRoutes from './routes/financeVault.js'
 import roadmapRoutes from './routes/roadmap.js'
-import researchVaultRoutes from './routes/researchVault.js'
+import researchVaultRoutes from './routes/researchVault/index.js'
 import doubtRoutes from './routes/doubt.js'
 
 dotenv.config();
