@@ -1196,7 +1196,7 @@ export default function ResearchVaultAdmin() {
   };
 
   return (
-    <div className="research-vault-theme mx-auto max-w-7xl space-y-6 pb-12 text-slate-900">
+    <div className="mx-auto max-w-7xl space-y-6 pb-12 text-slate-900">
       {(!selectedFaculty && !location.state?.facultyId && !selectedResource && !selectedPosition && !selectedArea) && (
         <>
           <header className="mb-6">

@@ -911,7 +911,7 @@ export default function ResearchVault() {
   };
 
   return (
-    <div className="research-vault-theme mx-auto max-w-7xl space-y-6 pb-12 text-slate-900">
+    <div className="mx-auto max-w-7xl space-y-6 pb-12 text-slate-900">
       <header>
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>

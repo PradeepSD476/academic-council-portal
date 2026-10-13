@@ -148,14 +148,14 @@ export default function ResearchQuestionDetail() {
     }
   };
 
-  if (loading) return <div className="research-vault-theme mx-auto max-w-5xl py-12 text-center text-sm text-slate-500">Loading question...</div>;
-  if (!question) return <div className="research-vault-theme mx-auto max-w-5xl py-12 text-center text-sm text-slate-500"><p>Question not found.</p><Link to={listPath} className="mt-3 inline-flex text-sm font-semibold text-blue-700">Back to discussions</Link></div>;
+  if (loading) return <div className="mx-auto max-w-5xl py-12 text-center text-sm text-slate-500">Loading question...</div>;
+  if (!question) return <div className="mx-auto max-w-5xl py-12 text-center text-sm text-slate-500"><p>Question not found.</p><Link to={listPath} className="mt-3 inline-flex text-sm font-semibold text-blue-700">Back to discussions</Link></div>;
 
   const canAcceptAnswer = question.uploadedBy?.id === user?.id || adminRoles.includes(user?.role);
   const acceptedReply = replies.some((reply) => reply.isAccepted);
 
   return (
-    <div className="research-vault-theme mx-auto max-w-5xl space-y-5 pb-12 text-slate-900">
+    <div className="mx-auto max-w-5xl space-y-5 pb-12 text-slate-900">
       <nav className="sticky top-0 z-20 -mx-4 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur sm:-mx-6 sm:px-6" aria-label="Question navigation">
         <Link to={listPath} className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-[var(--color-primary-accent)]"><ArrowLeft size={16} /> Back to all questions</Link>
         <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
