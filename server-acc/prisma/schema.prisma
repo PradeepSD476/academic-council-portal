@@ -26,16 +26,13 @@ model User {
   likes               Like[]
   uploadedResources   Resource[]
   bookmarks           Bookmark[]
-<<<<<<< HEAD
   wikiArticles        WikiArticle[]
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
-=======
   doubts              Doubt[]
   doubtAnswers        DoubtAnswer[]
   doubtVotes          DoubtVote[]
   doubtReports        DoubtReport[]
->>>>>>> upstream/main
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
 }
 
 model Experience {
@@ -283,9 +280,6 @@ enum GenderEligibility {
   ALL
   MALE
   FEMALE
-<<<<<<< HEAD
-}
-=======
 }
 
 model Roadmap {
@@ -415,4 +409,3 @@ enum DoubtReportStatus {
   ACTIONED
   DISMISSED
 }
->>>>>>> upstream/main
