@@ -542,7 +542,7 @@ export default function ResearchVault() {
         });
       }
     });
-    const filtered = areas.filter((a) => relevantAreaIds.has(a.id));
+    const filtered = areas.filter((a) => relevantAreaIds.has(a.id) || Array.from(relevantAreaIds).some((rid) => String(rid) === String(a.id)));
     return filtered.length ? filtered : areas;
   }, [areas, followedFacultyIds, followedAreaIds, facultyOptions]);
 
@@ -638,26 +638,35 @@ export default function ResearchVault() {
   }, [section, search, discussionStatus, department, areaId, areas, openingsOnly, refreshVersion, followingAreaId, activeFacultyFilters, activeAreaFilters, followedFacultyIds, followedAreaIds, resourceCategory, resourceFormat, resourceSort, resourcePage, positionAreaId, positionType, positionSort, experienceType]);
 
   const follow = async (kind, id, name = '') => {
-    const numericId = Number(id);
     const isFaculty = kind === 'faculty';
+    let numericId = Number(id);
+    if (!isFaculty && (isNaN(numericId) || !numericId)) {
+      const match = areas.find(
+        (a) =>
+          a.name?.toLowerCase().trim() === String(id || name).toLowerCase().trim() ||
+          a.slug?.toLowerCase().trim() === String(id || name).toLowerCase().trim()
+      );
+      if (match?.id) numericId = Number(match.id);
+    }
+    const finalId = !isNaN(numericId) && numericId ? numericId : id;
     const followingSet = isFaculty ? followedFacultyIds : followedAreaIds;
-    const isFollowing = followingSet.has(numericId);
+    const isFollowing = followingSet.has(finalId) || Array.from(followingSet).some((x) => String(x) === String(finalId));
     if (isFollowing) {
-      setPendingUnfollow({ kind, id: numericId, name });
+      setPendingUnfollow({ kind, id: finalId, name });
       return;
     }
 
     try {
       if (isFaculty) {
-        await researchVaultApi.followFaculty(numericId);
+        await researchVaultApi.followFaculty(finalId);
       } else {
-        await researchVaultApi.followArea(numericId);
+        await researchVaultApi.followArea(finalId);
       }
 
       const updateFollowed = isFaculty ? setFollowedFacultyIds : setFollowedAreaIds;
       updateFollowed((current) => {
         const next = new Set(current);
-        next.add(numericId);
+        next.add(finalId);
         return next;
       });
       toast.success(`You're now following ${name || 'this research item'}.`);
@@ -674,8 +683,10 @@ export default function ResearchVault() {
       else await researchVaultApi.unfollowArea(id);
       const updateFollowed = kind === 'faculty' ? setFollowedFacultyIds : setFollowedAreaIds;
       updateFollowed((current) => {
-        const next = new Set(current);
-        next.delete(id);
+        const next = new Set();
+        current.forEach((x) => {
+          if (String(x) !== String(id)) next.add(x);
+        });
         return next;
       });
       toast.success(`Unfollowed ${name || 'research item'}.`);
@@ -1697,8 +1708,8 @@ export default function ResearchVault() {
               </h3>
               <div className="flex flex-wrap gap-2">
                 {Array.from(followedAreaIds).map((aid) => {
-                  const area = areas.find((a) => a.id === aid);
-                  const isSelected = activeAreaFilters.includes(aid);
+                  const area = areas.find((a) => String(a.id) === String(aid) || a.name?.toLowerCase().trim() === String(aid).toLowerCase().trim()) || { id: aid, name: String(aid) };
+                  const isSelected = activeAreaFilters.some((f) => String(f) === String(aid));
                   return area ? (
                     <button
                       type="button"
@@ -1707,7 +1718,7 @@ export default function ResearchVault() {
                         e.preventDefault();
                         e.stopPropagation();
                         setActiveAreaFilters(prev => 
-                          isSelected ? prev.filter(id => id !== aid) : [...prev, aid]
+                          isSelected ? prev.filter(id => String(id) !== String(aid)) : [...prev, aid]
                         );
                       }}
                       aria-pressed={isSelected}
@@ -2781,7 +2792,11 @@ function TagList({ areas, onFollow, followedAreaIds, compact = false, allAreas =
   const normalized = areas.map((entry) => {
     if (!entry) return null;
     if (typeof entry === 'string') {
-      const match = allAreas?.find((a) => a.name?.toLowerCase() === entry.toLowerCase() || a.slug === entry);
+      const match = allAreas?.find(
+        (a) =>
+          a.name?.toLowerCase().trim() === entry.toLowerCase().trim() ||
+          a.slug?.toLowerCase().trim() === entry.toLowerCase().trim()
+      );
       return match || { id: entry, name: entry };
     }
     if (entry.researchArea) {
@@ -2797,7 +2812,10 @@ function TagList({ areas, onFollow, followedAreaIds, compact = false, allAreas =
       {normalized.map((area, idx) => {
         const areaId = area.id ?? area.name ?? idx;
         const areaName = area.name || String(area);
-        const isFollowing = (typeof area.id === 'number' && followedAreaIds?.has(area.id)) || false;
+        const isFollowing = (followedAreaIds && (
+          followedAreaIds.has(area.id) ||
+          Array.from(followedAreaIds).some((fa) => String(fa) === String(area.id) || String(fa).toLowerCase() === areaName.toLowerCase())
+        )) || false;
         return (
           <button
             type="button"
@@ -2811,7 +2829,7 @@ function TagList({ areas, onFollow, followedAreaIds, compact = false, allAreas =
             title={isFollowing ? `Unfollow ${areaName}` : `Click to follow ${areaName}`}
             className={`relative rounded-full border px-2 ${compact ? 'py-0.5' : 'py-1'} text-[11px] font-semibold transition-all duration-150 cursor-pointer ${
               isFollowing
-                ? 'border-blue-200 bg-blue-50 text-blue-900 hover:bg-blue-100 hover:shadow-sm hover:-translate-y-0.5'
+                ? 'border-blue-400 bg-blue-100 text-blue-900 shadow-sm'
                 : 'border-blue-200 bg-blue-50 text-blue-900 hover:bg-blue-100 hover:shadow-sm hover:-translate-y-0.5'
             }`}
           >

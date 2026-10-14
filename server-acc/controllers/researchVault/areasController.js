@@ -30,68 +30,74 @@ const saveFollows = (data) => {
   }
 };
 
+// Helper to dynamically aggregate distinct research areas across directory resources and 4 models
+export const fetchAllResearchAreas = async () => {
+  // 1. Fetch all explicitly registered area directory resources from ResearchResource (4-table model)
+  const directoryResources = await prisma.researchResource.findMany({
+    where: {
+      sourceType: 'AREA_DIRECTORY',
+    },
+    orderBy: { title: 'asc' },
+  });
+
+  // 2. Dynamically fetch all distinct research areas across the 4 tables
+  const rows = await prisma.$queryRaw`
+    SELECT DISTINCT trim(area) AS name
+    FROM (
+      SELECT unnest("researchAreas") AS area FROM "FacultyProfile"
+      UNION
+      SELECT unnest("researchAreas") AS area FROM "ResearchOpenPosition"
+      UNION
+      SELECT unnest("researchAreas") AS area FROM "ResearchResource"
+      UNION
+      SELECT unnest("researchAreas") AS area FROM "ResearchDiscussion"
+    ) sub
+    WHERE area IS NOT NULL AND trim(area) <> ''
+    ORDER BY name ASC;
+  `;
+
+  const seen = new Set();
+  const areas = [];
+
+  // Directory entries take priority for descriptions, custom slugs, and timestamps
+  for (const resItem of directoryResources) {
+    const lower = resItem.title.toLowerCase();
+    if (!seen.has(lower)) {
+      seen.add(lower);
+      const meta = resItem.meta && typeof resItem.meta === 'object' ? resItem.meta : {};
+      areas.push({
+        id: resItem.id,
+        name: resItem.title,
+        slug: meta.slug || resItem.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+        description: resItem.description || '',
+        createdAt: resItem.createdAt,
+        updatedAt: resItem.updatedAt,
+      });
+    }
+  }
+
+  // Include any areas dynamically discovered from the 4 models
+  let syntheticId = areas.length ? Math.max(...areas.map((a) => a.id)) + 1000 : 1000;
+  for (const row of rows) {
+    if (row.name && !seen.has(row.name.toLowerCase())) {
+      seen.add(row.name.toLowerCase());
+      areas.push({
+        id: syntheticId++,
+        name: row.name,
+        slug: row.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+        description: '',
+      });
+    }
+  }
+
+  return areas;
+};
+
 // GET /api/v1/vault/areas - Return distinct research areas dynamically aggregated from database
 export const getResearchAreas = async (req, res) => {
   try {
     const search = (req.query.search || '').trim();
-
-    // 1. Fetch all explicitly registered area directory resources from ResearchResource (4-table model)
-    const directoryResources = await prisma.researchResource.findMany({
-      where: {
-        sourceType: 'AREA_DIRECTORY',
-      },
-      orderBy: { title: 'asc' },
-    });
-
-    // 2. Dynamically fetch all distinct research areas across the 4 tables
-    const rows = await prisma.$queryRaw`
-      SELECT DISTINCT trim(area) AS name
-      FROM (
-        SELECT unnest("researchAreas") AS area FROM "FacultyProfile"
-        UNION
-        SELECT unnest("researchAreas") AS area FROM "ResearchOpenPosition"
-        UNION
-        SELECT unnest("researchAreas") AS area FROM "ResearchResource"
-        UNION
-        SELECT unnest("researchAreas") AS area FROM "ResearchDiscussion"
-      ) sub
-      WHERE area IS NOT NULL AND trim(area) <> ''
-      ORDER BY name ASC;
-    `;
-
-    const seen = new Set();
-    const areas = [];
-
-    // Directory entries take priority for descriptions, custom slugs, and timestamps
-    for (const resItem of directoryResources) {
-      const lower = resItem.title.toLowerCase();
-      if (!seen.has(lower)) {
-        seen.add(lower);
-        const meta = resItem.meta && typeof resItem.meta === 'object' ? resItem.meta : {};
-        areas.push({
-          id: resItem.id,
-          name: resItem.title,
-          slug: meta.slug || resItem.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
-          description: resItem.description || '',
-          createdAt: resItem.createdAt,
-          updatedAt: resItem.updatedAt,
-        });
-      }
-    }
-
-    // Include any areas dynamically discovered from the 4 models
-    let syntheticId = areas.length ? Math.max(...areas.map((a) => a.id)) + 1000 : 1000;
-    for (const row of rows) {
-      if (row.name && !seen.has(row.name.toLowerCase())) {
-        seen.add(row.name.toLowerCase());
-        areas.push({
-          id: syntheticId++,
-          name: row.name,
-          slug: row.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
-          description: '',
-        });
-      }
-    }
+    const areas = await fetchAllResearchAreas();
 
     let filtered = areas;
     if (search) {
@@ -343,10 +349,10 @@ export const getFollowingUpdates = async (req, res) => {
       ? req.query.facultyIds.split(',').map((s) => Number(s.trim())).filter(Boolean)
       : [];
     const queryAreaIds = req.query.areaIds
-      ? req.query.areaIds.split(',').map((s) => Number(s.trim())).filter(Boolean)
+      ? req.query.areaIds.split(',').map((s) => s.trim()).filter(Boolean)
       : [];
     if (req.query.areaId) {
-      const singleAid = Number(req.query.areaId);
+      const singleAid = String(req.query.areaId).trim();
       if (singleAid && !queryAreaIds.includes(singleAid)) queryAreaIds.push(singleAid);
     }
 
@@ -355,44 +361,43 @@ export const getFollowingUpdates = async (req, res) => {
       ? req.query.followedFacultyIds.split(',').map((s) => Number(s.trim())).filter(Boolean)
       : [];
     const clientFollowedAreaIds = req.query.followedAreaIds
-      ? req.query.followedAreaIds.split(',').map((s) => Number(s.trim())).filter(Boolean)
+      ? req.query.followedAreaIds.split(',').map((s) => s.trim()).filter(Boolean)
       : [];
 
     const effectiveFollowedFacultyIds = Array.from(
-      new Set([...(stored.facultyIds || []), ...clientFollowedFacultyIds])
+      new Set([...(stored.facultyIds || []).map((id) => Number(id)).filter(Boolean), ...clientFollowedFacultyIds])
     );
     const effectiveFollowedAreaIds = Array.from(
-      new Set([...(stored.areaIds || []), ...clientFollowedAreaIds])
+      new Set([...(stored.areaIds || []).map((id) => String(id).trim()).filter(Boolean), ...clientFollowedAreaIds])
     );
 
-    // Build area ID to name mapping
-    const areaRows = await prisma.$queryRaw`
-      SELECT DISTINCT trim(area) AS name
-      FROM (
-        SELECT unnest("researchAreas") AS area FROM "FacultyProfile"
-        UNION
-        SELECT unnest("researchAreas") AS area FROM "ResearchOpenPosition"
-        UNION
-        SELECT unnest("researchAreas") AS area FROM "ResearchResource"
-        UNION
-        SELECT unnest("researchAreas") AS area FROM "ResearchDiscussion"
-      ) sub
-      WHERE area IS NOT NULL AND trim(area) <> ''
-      ORDER BY name ASC;
-    `;
+    // Build area ID, slug, and name mapping using dynamically aggregated areas
+    const allAreasList = await fetchAllResearchAreas();
     const areaIdToName = {};
     const areaNameToName = {};
-    areaRows.forEach((r, idx) => {
-      areaIdToName[idx + 1] = r.name;
-      areaNameToName[r.name.toLowerCase()] = r.name;
+    const areaSlugToName = {};
+
+    allAreasList.forEach((a) => {
+      areaIdToName[String(a.id)] = a.name;
+      areaNameToName[a.name.toLowerCase().trim()] = a.name;
+      if (a.slug) areaSlugToName[a.slug.toLowerCase().trim()] = a.name;
     });
 
+    const resolveAreaName = (aid) => {
+      if (!aid) return null;
+      const str = String(aid).trim();
+      if (areaIdToName[str]) return areaIdToName[str];
+      if (areaNameToName[str.toLowerCase()]) return areaNameToName[str.toLowerCase()];
+      if (areaSlugToName[str.toLowerCase()]) return areaSlugToName[str.toLowerCase()];
+      return str;
+    };
+
     const followedAreaNames = effectiveFollowedAreaIds
-      .map((aid) => areaIdToName[aid])
+      .map(resolveAreaName)
       .filter(Boolean);
 
     const activeAreaNames = queryAreaIds
-      .map((aid) => areaIdToName[aid] || areaNameToName[String(aid).toLowerCase()])
+      .map(resolveAreaName)
       .filter(Boolean);
     const activeFacultyIds = queryFacultyIds;
 
@@ -406,7 +411,7 @@ export const getFollowingUpdates = async (req, res) => {
         faculty: { select: { id: true, name: true, department: true, designation: true } },
       },
       orderBy: { createdAt: 'desc' },
-      take: 30,
+      take: 50,
     });
 
     // Fetch candidate approved resources (guides, papers, templates, experiences)
@@ -417,7 +422,7 @@ export const getFollowingUpdates = async (req, res) => {
         uploadedBy: { select: { id: true, displayName: true } },
       },
       orderBy: { createdAt: 'desc' },
-      take: 30,
+      take: 50,
     });
 
     // Fetch candidate top-level discussions / questions
@@ -427,7 +432,7 @@ export const getFollowingUpdates = async (req, res) => {
         author: { select: { id: true, displayName: true } },
       },
       orderBy: { createdAt: 'desc' },
-      take: 30,
+      take: 50,
     });
 
     // Fetch candidate faculty for publication/bio activity
@@ -444,7 +449,7 @@ export const getFollowingUpdates = async (req, res) => {
         updatedAt: true,
         createdAt: true,
       },
-      take: 30,
+      take: 50,
     });
 
     const allUpdates = [];
@@ -525,25 +530,36 @@ export const getFollowingUpdates = async (req, res) => {
     const hasActiveArea = activeAreaNames.length > 0;
 
     const filtered = allUpdates.filter((item) => {
-      const itemAreas = (item.researchAreas || []).map((a) => a.toLowerCase());
+      const rawAreas = item.researchAreas || [];
+      const itemAreas = rawAreas.map((a) => {
+        if (typeof a === 'string') return a.toLowerCase().trim();
+        if (a && typeof a === 'object') return (a.name || a.researchArea?.name || '').toLowerCase().trim();
+        return '';
+      }).filter(Boolean);
+
+      const matchesArea = (targetName) => {
+        if (!targetName) return false;
+        const normTarget = targetName.toLowerCase().trim();
+        return itemAreas.some((ia) => ia === normTarget || ia.includes(normTarget) || normTarget.includes(ia));
+      };
 
       // If active sub-filters exist:
       if (hasActiveFaculty && hasActiveArea) {
         const matchesFaculty = item.facultyId && activeFacultyIds.includes(item.facultyId);
-        const matchesArea = activeAreaNames.some((a) => itemAreas.includes(a.toLowerCase()));
-        return matchesFaculty && matchesArea;
+        const matchesAreaCondition = activeAreaNames.some(matchesArea);
+        return matchesFaculty && matchesAreaCondition;
       }
       if (hasActiveFaculty) {
         return item.facultyId && activeFacultyIds.includes(item.facultyId);
       }
       if (hasActiveArea) {
-        return activeAreaNames.some((a) => itemAreas.includes(a.toLowerCase()));
+        return activeAreaNames.some(matchesArea);
       }
 
       // No active sub-filter: show all activity for what the user is following
       if (item.isBookmarked) return true;
       if (item.facultyId && effectiveFollowedFacultyIds.includes(item.facultyId)) return true;
-      if (followedAreaNames.some((a) => itemAreas.includes(a.toLowerCase()))) return true;
+      if (followedAreaNames.some(matchesArea)) return true;
       return false;
     });
 
@@ -559,7 +575,7 @@ export const getFollowingUpdates = async (req, res) => {
         }
       });
 
-    return success(res, result.slice(0, 30), 'Following updates fetched');
+    return success(res, result.slice(0, 50), 'Following updates fetched');
   } catch (err) {
     return error(res, 'Failed to fetch updates', 500, err);
   }
@@ -584,7 +600,7 @@ export const unfollowFaculty = async (req, res) => {
   if (!userId || !facultyId) return success(res, { followed: false }, 'Unfollowed faculty');
   const store = loadFollows();
   if (store[userId]?.facultyIds) {
-    store[userId].facultyIds = store[userId].facultyIds.filter((id) => id !== facultyId);
+    store[userId].facultyIds = store[userId].facultyIds.filter((id) => Number(id) !== facultyId);
     saveFollows(store);
   }
   return success(res, { followed: false }, 'Unfollowed faculty');
@@ -592,12 +608,15 @@ export const unfollowFaculty = async (req, res) => {
 
 export const followResearchArea = async (req, res) => {
   const userId = req.user?.id ? String(req.user.id) : null;
-  const areaId = Number(req.body?.areaId || req.body?.id || req.params?.id);
-  if (!userId || !areaId) return success(res, { followed: true }, 'Followed area');
+  const rawId = req.body?.areaId || req.body?.id || req.params?.id;
+  const numId = Number(rawId);
+  const effectiveAreaId = !isNaN(numId) && numId > 0 ? numId : (rawId ? String(rawId) : null);
+  if (!userId || !effectiveAreaId) return success(res, { followed: true }, 'Followed area');
   const store = loadFollows();
   if (!store[userId]) store[userId] = { facultyIds: [], areaIds: [] };
-  if (!store[userId].areaIds.includes(areaId)) {
-    store[userId].areaIds.push(areaId);
+  const currentAreaIds = store[userId].areaIds || [];
+  if (!currentAreaIds.some((id) => String(id) === String(effectiveAreaId))) {
+    store[userId].areaIds.push(effectiveAreaId);
     saveFollows(store);
   }
   return success(res, { followed: true }, 'Followed area');
@@ -605,11 +624,13 @@ export const followResearchArea = async (req, res) => {
 
 export const unfollowResearchArea = async (req, res) => {
   const userId = req.user?.id ? String(req.user.id) : null;
-  const areaId = Number(req.params?.id || req.body?.areaId || req.body?.id);
-  if (!userId || !areaId) return success(res, { followed: false }, 'Unfollowed area');
+  const rawId = req.params?.id || req.body?.areaId || req.body?.id;
+  const numId = Number(rawId);
+  const effectiveAreaId = !isNaN(numId) && numId > 0 ? numId : (rawId ? String(rawId) : null);
+  if (!userId || !effectiveAreaId) return success(res, { followed: false }, 'Unfollowed area');
   const store = loadFollows();
   if (store[userId]?.areaIds) {
-    store[userId].areaIds = store[userId].areaIds.filter((id) => id !== areaId);
+    store[userId].areaIds = store[userId].areaIds.filter((id) => String(id) !== String(effectiveAreaId));
     saveFollows(store);
   }
   return success(res, { followed: false }, 'Unfollowed area');

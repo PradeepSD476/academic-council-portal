@@ -90,8 +90,8 @@ router.patch('/admin/resources/:id/status', checkAuth, checkResearchAdmin, setRe
 router.get('/admin/analytics', checkAuth, checkResearchAdmin, getResearchAnalytics);
 
 // ── Follows & Matching Compatibility ──────────────────────────────────────────
-router.get('/follow', checkAuth, getResearchFollows);
-router.get('/follow/updates', checkAuth, getFollowingUpdates);
+router.get('/follow', optionalAuth, getResearchFollows);
+router.get('/follow/updates', optionalAuth, getFollowingUpdates);
 router.post('/follow/faculty', checkAuth, followFaculty);
 router.delete('/follow/faculty/:id', checkAuth, unfollowFaculty);
 router.post('/follow/area', checkAuth, followResearchArea);

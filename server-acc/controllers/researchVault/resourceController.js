@@ -14,6 +14,7 @@ export const buildResourceMeta = (type, body) => {
   const metaInput = body.meta && typeof body.meta === 'object' ? body.meta : {};
 
   return {
+    ...metaInput,
     experienceType: body.experienceType || metaInput.experienceType || 'INTERNSHIP',
     department: body.department?.trim() || metaInput.department?.trim() || null,
     labName: body.labName?.trim() || metaInput.labName?.trim() || null,
@@ -24,7 +25,6 @@ export const buildResourceMeta = (type, body) => {
     externalGuideName: body.externalGuideName?.trim() || metaInput.externalGuideName?.trim() || null,
     stipend: body.stipend || metaInput.stipend || null,
     role: body.role?.trim() || metaInput.role?.trim() || 'Research Intern',
-    ...metaInput,
   };
 };
 
@@ -216,17 +216,39 @@ export const getResearchResources = async (req, res, forcedType = null) => {
 
     // 5. Experience Type Filter
     if (experienceType && experienceType !== 'All' && experienceType !== '') {
-      if (experienceType === 'INTERNSHIP') {
-        where.OR = [
-          { meta: { path: ['experienceType'], equals: 'INTERNSHIP' } },
-          { meta: { path: ['experienceType'], equals: null } },
-        ];
-      } else {
-        where.meta = {
-          path: ['experienceType'],
-          equals: experienceType,
-        };
+      const expNorm = String(experienceType).trim().toUpperCase();
+      const expVariants = Array.from(new Set([expNorm, experienceType.trim()]));
+      if (expNorm === 'INDEPENDENT' || expNorm === 'INDEPENDENT_PROJECT') {
+        expVariants.push('INDEPENDENT', 'INDEPENDENT_PROJECT');
       }
+
+      const expConditions = expVariants.map((val) => ({
+        meta: { path: ['experienceType'], equals: val },
+      }));
+
+      // For INTERNSHIP, also match items where experienceType was defaulted or omitted
+      if (expNorm === 'INTERNSHIP') {
+        expConditions.push({
+          AND: [
+            { type: 'EXPERIENCE' },
+            {
+              NOT: {
+                OR: [
+                  { meta: { path: ['experienceType'], equals: 'THESIS' } },
+                  { meta: { path: ['experienceType'], equals: 'RA' } },
+                  { meta: { path: ['experienceType'], equals: 'INDEPENDENT' } },
+                  { meta: { path: ['experienceType'], equals: 'INDEPENDENT_PROJECT' } },
+                  { meta: { path: ['experienceType'], equals: 'COURSE_PROJECT' } },
+                  { meta: { path: ['experienceType'], equals: 'OTHER' } },
+                ],
+              },
+            },
+          ],
+        });
+      }
+
+      if (!where.AND) where.AND = [];
+      where.AND.push({ OR: expConditions });
     }
 
     // 6. Department Filter
