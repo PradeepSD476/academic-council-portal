@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import AuthContext from "../../context/auth/authContext";
 import { Mail, Lock, GraduationCap, ArrowRight, Sparkles } from "lucide-react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { authApi } from "../../api/authApi";
 import toast from "react-hot-toast";
@@ -218,6 +218,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
 function SignIn() {
   const { user, login, loading } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -227,14 +228,17 @@ function SignIn() {
     if (user) {
       if (!user.rollNo && user?.role !== 'FACULTY') navigate("/login-with-roll");
       else {
-        if (user?.role !== 'FACULTY') {
+        const from = location.state?.from?.pathname || location.state?.from;
+        if (from) {
+          navigate(from, { replace: true });
+        } else if (user?.role !== 'FACULTY') {
           navigate("/dashboard/courses");
         } else {
           navigate("/admin/dashboard");
         }
       }
     }
-  }, [user, navigate]);
+  }, [user, navigate, location.state]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
