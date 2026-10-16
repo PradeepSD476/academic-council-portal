@@ -48,7 +48,7 @@ services:
       - acc-net
       
   minio-acc:
-    image: cgr.dev/chainguard/minio:latest
+    image: minio/minio
     container_name: acc-minio
     command: server /data --console-address ":9001"
     restart: unless-stopped
