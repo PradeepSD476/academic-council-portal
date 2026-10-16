@@ -20,7 +20,7 @@ const ManageResources = () => {
   const [page, setPage] = useState(1);
   const limit = 10;
   const [hasMore, setHasMore] = useState(true);
-  const [notifyUsers, setNotifyUsers] = useState(true);
+  const [notifyUsers, setNotifyUsers] = useState(false);
 
   // Modal and Upload states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -164,12 +164,16 @@ const ManageResources = () => {
           };
           delete addPayload.courseId;
 
-          await axios.post(
+          const response = await axios.post(
             `${import.meta.env.VITE_API_URL}/v1/resources`,
             addPayload,
             { withCredentials: true }
           );
           successCount++;
+
+          if (response.data?.notification && !response.data.notification.notificationSent) {
+            toast("Email not sent.");
+          }
         }
 
         if (successCount > 0) {
@@ -518,7 +522,7 @@ const ManageResources = () => {
                       className="w-4 h-4 rounded accent-[var(--color-secondary)] cursor-pointer"
                     />
                     <label htmlFor="notifyUsers" className="text-xs text-slate-600 font-semibold cursor-pointer">
-                      Notify enrolled students via in-app alert
+                      Notify enrolled students via email
                     </label>
                   </div>
                 )}

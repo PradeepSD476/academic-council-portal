@@ -271,7 +271,6 @@ export const sendEmailVerification = async (req, res) => {
     }
 
     const normalizedEmail = emailDetails.email;
-
     const verification = await prisma.verification.findFirst({
       where: {
         email: {

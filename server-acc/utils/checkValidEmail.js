@@ -15,13 +15,13 @@ export const checkEmailValidity = (email) => {
     throw error;
   }
 
-  // Format: <name>_<rollNumber>@iitp.ac.in
+  // Format: <firstName>_<rollNumber>@iitp.ac.in
   // Roll Number format: 2-digit year + 2-digit program + 2-letter branch + 2-digit sequence
   const studentEmailRegex = /^[a-z0-9._%+-]+_([0-9]{4}[a-z]{2}[0-9]{2})@iitp\.ac\.in$/i;
   const match = normalizedEmail.match(studentEmailRegex);
 
   if (!match) {
-    const error = new Error('Invalid email format. Must be like name_rollnumber@iitp.ac.in (e.g. name_2401ai36@iitp.ac.in).');
+    const error = new Error('Invalid email format. Must be like firstname_rollnumber@iitp.ac.in (e.g. keshav_2511cm07@iitp.ac.in).');
     error.code = 'INVALID_EMAIL_FORMAT';
     throw error;
   }
