@@ -15,7 +15,7 @@ import {
 import FAQAccordion from "../../components/faq/FAQAccordion";
 import FAQSearchBar from "../../components/faq/FAQSearchBar";
 import FAQSidebar from "../../components/faq/FAQSidebar";
-import { getCategories, getFAQByCategory, searchFAQ, faqData } from "../../lib/fuseSearch";
+import { getCategories, getFAQByCategory, searchFAQGroups, faqData } from "../../lib/fuseSearch";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -39,13 +39,17 @@ export default function FAQPage() {
     return counts;
   }, [categories]);
 
+  const searchResults = useMemo(() => {
+    return searchQuery.trim() ? searchFAQGroups(searchQuery, 100) : null;
+  }, [searchQuery]);
+
   /** Displayed FAQ items after search or category filter */
   const displayedItems = useMemo(() => {
-    if (searchQuery.trim().length > 0) {
-      return searchFAQ(searchQuery, 100).map((r) => r.item);
+    if (searchResults) {
+      return [...searchResults.sequenceMatches, ...searchResults.similarMatches];
     }
     return getFAQByCategory(activeCategory);
-  }, [searchQuery, activeCategory]);
+  }, [searchResults, activeCategory]);
 
   const totalPages = Math.ceil(displayedItems.length / ITEMS_PER_PAGE) || 1;
 
@@ -53,6 +57,24 @@ export default function FAQPage() {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     return displayedItems.slice(start, start + ITEMS_PER_PAGE);
   }, [displayedItems, currentPage]);
+
+  const paginatedGroups = useMemo(() => {
+    if (!searchResults) return [{ label: null, items: paginatedItems }];
+
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const end = start + ITEMS_PER_PAGE;
+    let offset = 0;
+    return [
+      { label: "Sequence matches", items: searchResults.sequenceMatches },
+      { label: "Similar results", items: searchResults.similarMatches },
+    ].map((group) => {
+      const groupStart = offset;
+      offset += group.items.length;
+      const from = Math.max(0, start - groupStart);
+      const to = Math.min(group.items.length, end - groupStart);
+      return { ...group, items: group.items.slice(from, to) };
+    }).filter((group) => group.items.length > 0);
+  }, [searchResults, paginatedItems, currentPage]);
 
   const handleCategorySelect = useCallback((cat) => {
     setActiveCategory(cat);
@@ -203,15 +225,24 @@ export default function FAQPage() {
                   transition={{ duration: 0.18 }}
                   className="flex flex-col gap-3"
                 >
-                  {paginatedItems.map((item, i) => (
-                    <motion.div
-                      key={item.id}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.025, duration: 0.2 }}
-                    >
-                      <FAQAccordion item={item} defaultOpen={i === 0 && !!searchQuery} />
-                    </motion.div>
+                  {paginatedGroups.map((group) => (
+                    <section key={group.label || "category-results"} className="space-y-3">
+                      {group.label && (
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 pt-2">
+                          {group.label} ({group.items.length})
+                        </h3>
+                      )}
+                      {group.items.map((item, i) => (
+                        <motion.div
+                          key={item.id}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.025, duration: 0.2 }}
+                        >
+                          <FAQAccordion item={item} defaultOpen={i === 0 && !!searchQuery} />
+                        </motion.div>
+                      ))}
+                    </section>
                   ))}
 
                   {/* ── Pagination Controls ───────────────────────────── */}

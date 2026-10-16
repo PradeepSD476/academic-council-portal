@@ -10,6 +10,7 @@
 
 import Fuse from "fuse.js";
 import faqData from "@/data/faq.json";
+import { getSequenceFAQs, getSimilarFAQs } from "../fuseSearch.js";
 
 const FUSE_OPTIONS = {
   keys: [
@@ -41,11 +42,23 @@ const fuse = new Fuse(faqData, FUSE_OPTIONS);
 export function searchFAQs(query, limit = 10) {
   if (!query?.trim() || query.trim().length < 2) return [];
 
-  return fuse
-    .search(query.trim(), { limit: limit + 5 })   // fetch extras, filter below
-    .filter((r) => r.score !== undefined && r.score < 0.65) // keep all Fuse-approved matches
-    .slice(0, limit)
-    .map((r) => r.item);
+  const groups = searchFAQGroups(query, limit);
+  return [...groups.sequenceMatches, ...groups.similarMatches];
+}
+
+export function searchFAQGroups(query, limit = 10) {
+  if (!query?.trim() || limit <= 0) {
+    return { sequenceMatches: [], similarMatches: [] };
+  }
+
+  const sequenceMatches = getSequenceFAQs(query, limit);
+  const similarMatches = getSimilarFAQs(
+    query,
+    sequenceMatches,
+    limit - sequenceMatches.length
+  );
+
+  return { sequenceMatches, similarMatches };
 }
 
 /**

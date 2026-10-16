@@ -28,10 +28,25 @@ const ChatWindow = memo(function ChatWindow({
             <div key={msg.id} className="space-y-2.5">
               {/* Introductory bot text */}
               {msg.text && <ChatMessage message={{ ...msg, faqs: undefined }} />}
-              {/* FAQ cards */}
-              {msg.faqs.map((faq) => (
-                <FAQCard key={faq.id} faq={faq} />
-              ))}
+              {msg.faqGroups ? (
+                <>
+                  {[
+                    { label: "Sequence matches", items: msg.faqGroups.sequenceMatches },
+                    { label: "Similar results", items: msg.faqGroups.similarMatches },
+                  ].map((group) => group.items.length > 0 && (
+                    <section key={group.label} className="space-y-2">
+                      <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                        {group.label}
+                      </h3>
+                      {group.items.map((faq) => (
+                        <FAQCard key={faq.id} faq={faq} />
+                      ))}
+                    </section>
+                  ))}
+                </>
+              ) : (
+                msg.faqs.map((faq) => <FAQCard key={faq.id} faq={faq} />)
+              )}
             </div>
           );
         }
