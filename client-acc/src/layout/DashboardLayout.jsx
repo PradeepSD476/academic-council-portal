@@ -89,6 +89,7 @@ export default function DashboardLayout() {
             fixed top-16 left-0 h-[calc(100vh-64px)] w-64 z-50
             md:static md:h-full md:z-auto
             bg-white border-r border-slate-200 flex flex-col shrink-0
+            min-h-0
             transition-transform duration-200 ease-in-out
             ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
@@ -154,7 +155,10 @@ export default function DashboardLayout() {
         </div>
 
         {/* Navigation Items */}
-        <nav className="flex-1 px-3 space-y-1 overflow-y-auto scrollbar-thin" data-lenis-prevent>
+        <nav
+          className="flex-1 min-h-0 px-3 space-y-1 overflow-y-auto scrollbar-thin"
+          data-lenis-prevent
+        >
           {(isSTUDENT ||
             ((isAdmin || isCareerAdmin || isResearchAdmin) && viewRole === "STUDENT")) && (
               <>

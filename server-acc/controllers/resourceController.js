@@ -150,15 +150,17 @@ export const addResource = async (req, res) => {
             }
         })
 
+        let notification = null;
         if(notifyUsers){
-            notifyOnResourceUpdate({ resourceType, resourceTitle: title, courseCode: course.courseCode, displayName: user.displayName, allowedBranches: course.allowedBranch, academicYear: course.academicYear });
+            notification = await notifyOnResourceUpdate({ resourceType, resourceTitle: title, courseCode: course.courseCode, displayName: user.displayName, allowedBranches: course.allowedBranch, academicYear: course.academicYear });
         }
         
 
         return res.status(201).json({
             success: true,
             message: "Successfully Created Resource.",
-            data: resource
+            data: resource,
+            notification
         })
     } catch (error) {
         console.log(error)

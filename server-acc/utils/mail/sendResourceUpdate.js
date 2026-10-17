@@ -45,17 +45,28 @@ function sleep(ms) {
 
 
 export default async function notifyOnResourceUpdate({ resourceType, resourceTitle, courseCode, displayName, allowedBranches, academicYear }) {
+	let sentCount = 0;
+	let failedCount = 0;
 	try {
-		const recievers = await getEmailReciever({ allowedBranches, academicYear });
+		const recievers = await getEmailReciever({ allowedBranches, academicYear }) || [];
 		for (const val of recievers) {
 			try {
 				await sendResourceUpdateMail({ to: val.email, resourceType, resourceTitle, courseCode, displayName })
+				sentCount += 1;
 				await sleep(300);
 			} catch (mailErr) {
+				failedCount += 1;
 				console.error(mailErr)
 			}
 		}
 	} catch (error) {
 		console.error("Mail Service Stopped: ", error)
+		failedCount += 1;
 	}
+
+	return {
+		sentCount,
+		failedCount,
+		notificationSent: sentCount > 0 && failedCount === 0,
+	};
 }
