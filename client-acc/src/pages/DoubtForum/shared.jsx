@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { CircleCheck, ChevronLeft, ChevronRight, ChevronUp, EyeOff, Lock, Pin, X } from "lucide-react";
 import { DOUBT_ADMIN_ROLES, timeAgo } from "./constants";
 
@@ -79,21 +79,34 @@ export function VoteButton({ count, active, onClick, disabled, label = "Upvote" 
 }
 
 export function Pager({ page, totalPages, onChange }) {
+  const ref = useRef(null);
   if (totalPages <= 1) return null;
+
+  // The dashboard scrolls inside <main>, not the window. Jump back to the top of the
+  // list on a page change, otherwise on phones you stay at the bottom of the new page.
+  const go = (next) => {
+    onChange(next);
+    ref.current?.closest("main")?.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const button =
-    "flex items-center gap-1 px-3 py-1.5 text-xs font-semibold border border-slate-200 rounded-lg bg-white text-slate-600 hover:bg-slate-50 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed";
+    "flex items-center gap-1 px-3 py-2 text-xs font-semibold border border-slate-200 rounded-lg bg-white text-slate-600 hover:bg-slate-50 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed";
   return (
-    <div className="flex items-center justify-center gap-3 pt-2">
-      <button type="button" className={button} disabled={page <= 1} onClick={() => onChange(page - 1)}>
-        <ChevronLeft size={14} /> Previous
+    <nav
+      ref={ref}
+      aria-label="Pagination"
+      className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+    >
+      <button type="button" className={button} disabled={page <= 1} onClick={() => go(page - 1)} aria-label="Previous page">
+        <ChevronLeft size={14} /> <span className="max-[360px]:hidden">Previous</span>
       </button>
-      <span className="text-xs font-semibold text-slate-500">
+      <span className="text-xs font-semibold text-slate-500 whitespace-nowrap">
         Page {page} of {totalPages}
       </span>
-      <button type="button" className={button} disabled={page >= totalPages} onClick={() => onChange(page + 1)}>
-        Next <ChevronRight size={14} />
+      <button type="button" className={button} disabled={page >= totalPages} onClick={() => go(page + 1)} aria-label="Next page">
+        <span className="max-[360px]:hidden">Next</span> <ChevronRight size={14} />
       </button>
-    </div>
+    </nav>
   );
 }
 

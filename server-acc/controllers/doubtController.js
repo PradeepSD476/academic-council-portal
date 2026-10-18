@@ -343,9 +343,10 @@ export const addAnswer = async (req, res) => {
             data: { body, doubtId, authorId: req.user.id },
         });
 
-        // Email the person who asked. Skipped when they answer their own doubt.
+        // Email the person who asked. Skipped when they answer their own doubt, and when
+        // the doubt is hidden (the asker can't open a hidden thread, so the link would 404).
         // Sent in the background so a slow or failing mail server never blocks the answer.
-        if (doubt.authorId !== req.user.id && doubt.author?.email) {
+        if (!doubt.isHidden && doubt.authorId !== req.user.id && doubt.author?.email) {
             notifyAsker({ doubt, answerer: req.user, body });
         }
 

@@ -59,7 +59,7 @@ export default function DashboardLayout() {
   }, [location.pathname, isAdmin, isFaculty, isCareerAdmin, isResearchAdmin]);
 
   return (
-    <div className="flex h-[calc(100vh-64px)] bg-[#F8FAFC] text-slate-800 relative overflow-hidden">
+    <div className="flex h-[calc(100dvh-64px)] bg-[#F8FAFC] text-slate-800 relative overflow-hidden">
       {/* Mobile Sidebar Toggle Button */}
       <button
         onClick={() => setOpen(!open)}
@@ -86,7 +86,7 @@ export default function DashboardLayout() {
       {/* Sidebar */}
       <aside
         className={`
-            fixed top-16 left-0 h-[calc(100vh-64px)] w-64 z-50
+            fixed top-16 left-0 h-[calc(100dvh-64px)] w-64 z-50
             md:static md:h-full md:z-auto
             bg-white border-r border-slate-200 flex flex-col shrink-0
             transition-transform duration-200 ease-in-out
