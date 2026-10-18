@@ -51,8 +51,14 @@ export default function DoubtForum() {
         ...(status ? { status } : {}),
         ...(mine ? { mine: true } : {}),
       });
+      const pages = res.data.pagination?.totalPages || 1;
+      // The list can shrink under us (a doubt was hidden/deleted); don't strand the user on an empty page.
+      if (page > pages) {
+        setPage(pages);
+        return;
+      }
       setDoubts(res.data.data || []);
-      setTotalPages(res.data.pagination?.totalPages || 1);
+      setTotalPages(pages);
       setTotal(res.data.pagination?.total || 0);
     } catch (err) {
       toast.error(apiError(err, "Could not load doubts."));
