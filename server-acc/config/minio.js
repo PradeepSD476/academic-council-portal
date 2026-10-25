@@ -2,24 +2,35 @@ import dotenv from "dotenv";
 dotenv.config();
 import * as Minio from "minio";
 
-const accessKey = process.env.MINIO_ACCESS_KEY;
-const secretKey = process.env.MINIO_SECRET_KEY;
+const accessKey = process.env.MINIO_ACCESS_KEY || process.env.MINIO_ROOT_USER;
+const secretKey = process.env.MINIO_SECRET_KEY || process.env.MINIO_ROOT_PASSWORD;
+const isConfigured = Boolean(accessKey && secretKey);
 
-if (!accessKey || !secretKey) {
-  throw new Error("MINIO_ACCESS_KEY and MINIO_SECRET_KEY must be configured");
-}
-
-const storage = new Minio.Client({
-  endPoint: process.env.MINIO_ENDPOINT || 'localhost',
-  port: parseInt(process.env.MINIO_PORT, 10) || 9000,
-  useSSL: process.env.MINIO_USE_SSL === 'true',
-  accessKey,
-  secretKey,
-});
+const storage = isConfigured
+  ? new Minio.Client({
+      endPoint: process.env.MINIO_ENDPOINT || 'localhost',
+      port: parseInt(process.env.MINIO_PORT, 10) || 9000,
+      useSSL: process.env.MINIO_USE_SSL === 'true',
+      accessKey,
+      secretKey,
+    })
+  : new Proxy({}, {
+      get(_target, property) {
+        if (property === 'then') return undefined;
+        return () => Promise.reject(
+          new Error('MinIO is unavailable: configure MINIO_ACCESS_KEY and MINIO_SECRET_KEY to enable storage.')
+        );
+      },
+    });
 
 const bucketName = process.env.MINIO_BUCKET_NAME || 'acc-portal';
 
 async function ensureBucket() {
+  if (!isConfigured) {
+    console.warn("MinIO credentials are not configured; skipping bucket initialization.");
+    return;
+  }
+
   try {
     const exists = await storage.bucketExists(bucketName);
     if (exists) {

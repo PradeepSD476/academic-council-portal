@@ -19,10 +19,15 @@ import researchVaultRoutes from './routes/researchVault/index.js';
 import roadmapRoutes from './routes/roadmap.js';
 import doubtRoutes from './routes/doubt.js';
 
-import { checkAuth } from './middlewares/checkAuth.js';
 import { ensureBucket } from './config/minio.js';
 
 dotenv.config();
+
+try {
+  await ensureBucket();
+} catch (error) {
+  console.warn("Minio bucket initialization failed. Running without Minio.", error.message);
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -60,6 +65,7 @@ app.use('/api/v1', courseRoutes);
 app.use('/api/v1', signedURLRoutes);
 app.use('/api/v1', announcementRoutes);
 app.use('/api/v1', profileRoutes);
+app.use('/api/v1', resourceRoutes);
 app.use('/api/v1', userRoutes);
 app.use('/api/v1', dashboardRoutes);
 app.use('/api/v1', forumRoutes);
