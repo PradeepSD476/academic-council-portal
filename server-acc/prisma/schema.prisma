@@ -3,23 +3,22 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("POSTGRES_DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("POSTGRES_DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
   id                  Int            @id @default(autoincrement())
   email               String         @unique
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
-  admissionYear       Int?
-  branchName          String?
-  displayName         String?
-  photoURL            String?
-  program             Program?
+  password            String         @default("xyz")
   role                Role           @default(STUDENT)
   rollNo              String?
-  password            String         @default("xyz")
+  displayName         String?
+  photoURL            String?
+  admissionYear       Int?
+  branchName          String?
+  program             Program?
   lastseen            DateTime?
   postedAnnouncements Announcement[]
   comments            Comment[]      @relation("CommentBy")
@@ -27,6 +26,18 @@ model User {
   likes               Like[]
   uploadedResources   Resource[]
   bookmarks           Bookmark[]
+<<<<<<< HEAD
+<<<<<<< HEAD
+  wikiArticles        WikiArticle[]
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+=======
+  doubts              Doubt[]
+  doubtAnswers        DoubtAnswer[]
+  doubtVotes          DoubtVote[]
+  doubtReports        DoubtReport[]
+>>>>>>> upstream/main
+=======
 
   // Research Vault (4 Models)
   researchOpenPositions       ResearchOpenPosition[] @relation("OpenPositionsUploaded")
@@ -38,6 +49,7 @@ model User {
   doubtAnswers DoubtAnswer[]
   doubtVotes   DoubtVote[]
   doubtReports DoubtReport[]
+>>>>>>> upstream/main
 }
 
 model Experience {
@@ -46,25 +58,25 @@ model Experience {
   description    String         @db.Text
   experienceType ExperienceType
   status         ContentStatus
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  uploadedById   Int
   domain         String?
   resumeUrl      String?
-  comments       Comment[]
+  uploadedById   Int
   uploadedBy     User           @relation(fields: [uploadedById], references: [id])
+  comments       Comment[]
   likes          Like[]
   bookmarks      Bookmark[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 }
 
 model Bookmark {
   id        Int        @id @default(autoincrement())
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
   postId    Int
   post      Experience @relation(fields: [postId], references: [id], onDelete: Cascade)
   userId    Int
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
   @@unique([userId, postId])
   @@index([postId])
@@ -74,8 +86,6 @@ model Bookmark {
 model Comment {
   id        Int         @id @default(autoincrement())
   content   String?
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
   postId    Int?
   userId    Int
   parentId  Int?
@@ -84,6 +94,8 @@ model Comment {
   replies   Comment[]   @relation("ParentComment")
   post      Experience? @relation(fields: [postId], references: [id])
   user      User        @relation("CommentBy", fields: [userId], references: [id])
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 
   @@index([postId])
   @@index([rootId])
@@ -93,12 +105,12 @@ model Comment {
 
 model Like {
   id        Int         @id @default(autoincrement())
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
   postId    Int?
   userId    Int
   post      Experience? @relation(fields: [postId], references: [id])
   user      User        @relation(fields: [userId], references: [id])
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 
   @@unique([userId, postId])
   @@index([postId])
@@ -109,9 +121,9 @@ model Verification {
   email      String
   otpHash    String
   type       VerificationType
+  expiringAt DateTime
   createdAt  DateTime         @default(now())
   updatedAt  DateTime         @updatedAt
-  expiringAt DateTime
 
   @@index([email])
   @@index([expiringAt])
@@ -122,14 +134,14 @@ model Course {
   courseCode    String     @unique
   name          String
   description   String?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
   academicYear  Int
   allowedBranch String[]
   program       Program
   credits       Decimal    @db.Decimal
   instructor    String
   resources     Resource[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 }
 
 model Resource {
@@ -140,44 +152,78 @@ model Resource {
   resourceType ResourceType
   uploadedById Int?
   courseId     Int?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
   course       Course?      @relation(fields: [courseId], references: [id])
   uploadedBy   User?        @relation(fields: [uploadedById], references: [id])
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 }
 
 model Announcement {
   id             Int      @id @default(autoincrement())
   title          String
   description    String?
+  type           String   @default("GENERAL")
   isPinned       Boolean  @default(false)
   isFileAttached Boolean  @default(false)
   filePath       String?
   uploadedById   Int?
+  uploadedBy     User?    @relation(fields: [uploadedById], references: [id])
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-  type           String   @default("GENERAL")
-  uploadedBy     User?    @relation(fields: [uploadedById], references: [id])
 }
 
 model FinanceVault {
-  id          Int    @id @default(autoincrement())
-  title       String
-  description String
-
-  category FinanceCategory
-  provider String?
-
-  amount String?
-
+  id                  Int               @id @default(autoincrement())
+  title               String
+  description         String
+  category            FinanceCategory
+  provider            String?
+  amount              String?
   eligibilityCriteria String?
   incomeEligibility   String?
+  genderEligibility   GenderEligibility @default(ALL)
+  applicableBranch    String[]
+  academicYear        String?
+  subCategory         String[]
+  state               String[]
+  deadline            DateTime?
+  applicationUrl      String?
+  officialWebsite     String?
+  requiredDocuments   String?
+  attachments         Json?
+  isActive            Boolean           @default(true)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+}
 
-  genderEligibility GenderEligibility @default(ALL)
+model WikiCategory {
+  id          Int           @id @default(autoincrement())
+  name        String        @unique
+  slug        String        @unique
+  description String?
+  articles    WikiArticle[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
 
-  applicableBranch String[]
-  academicYear     String?
+model WikiArticle {
+  id          Int          @id @default(autoincrement())
+  title       String
+  slug        String       @unique
+  content     String       @db.Text
+  categoryId  Int
+  category    WikiCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  authorId    Int?
+  author      User?        @relation(fields: [authorId], references: [id])
+  isPublished Boolean      @default(true)
+  views       Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
+<<<<<<< HEAD
+  @@index([categoryId])
+  @@index([slug])
+=======
   subCategory String[]
   state       String[]
 
@@ -193,6 +239,7 @@ model FinanceVault {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+>>>>>>> upstream/main
 }
 
 enum Role {
@@ -203,7 +250,11 @@ enum Role {
   FACULTY
   CAREER_ADMIN
   FINANCE_ADMIN
+<<<<<<< HEAD
+  WIKI_ADMIN
+=======
   RESEARCH_ADMIN
+>>>>>>> upstream/main
 }
 
 enum VerificationType {
@@ -268,6 +319,9 @@ enum GenderEligibility {
   ALL
   MALE
   FEMALE
+<<<<<<< HEAD
+}
+=======
 }
 
 model Roadmap {
@@ -394,6 +448,9 @@ enum DoubtReportStatus {
   ACTIONED
   DISMISSED
 }
+<<<<<<< HEAD
+>>>>>>> upstream/main
+=======
 
 // ===========================================================================
 // Research Vault (Exactly 4 Models)
@@ -544,3 +601,4 @@ model ResearchDiscussion {
   @@index([parentId, createdAt])
   @@index([researchAreas], type: Gin)
 }
+>>>>>>> upstream/main
