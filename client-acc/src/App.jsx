@@ -54,6 +54,19 @@ import FinanceDashboard from "./pages/FinanceVault/admin/Dashboard.jsx";
 import AddScholarship from "./pages/FinanceVault/admin/AddScholarship.jsx";
 import EditScholarship from "./pages/FinanceVault/admin/EditScholarship.jsx";
 import ManageRoadmap from "./pages/admin/ManageRoadmap.jsx";
+<<<<<<< HEAD
+=======
+import ResearchVault from "./pages/ResearchVault/index.jsx";
+import ResearchVaultAdmin from "./pages/ResearchVault/ResearchVaultAdmin.jsx";
+import ResearchQuestionList from "./pages/ResearchVault/ResearchQuestionList.jsx";
+import ResearchQuestionDetail from "./pages/ResearchVault/ResearchQuestionDetail.jsx";
+import PositionDetail from "./pages/ResearchVault/PositionDetail.jsx";
+import ExperienceDetail from "./pages/ResearchVault/ExperienceDetail.jsx";
+import FacultyDetail from "./pages/ResearchVault/FacultyDetail.jsx";
+import DoubtForum from "./pages/DoubtForum/index.jsx";
+import AskDoubt from "./pages/DoubtForum/AskDoubt.jsx";
+import DoubtThread from "./pages/DoubtForum/DoubtThread.jsx";
+>>>>>>> upstream/main
 import ManageDoubts from "./pages/admin/ManageDoubts.jsx";
 
 const AppRoutes = () => {
@@ -85,8 +98,13 @@ const AppRoutes = () => {
               "FACULTY",
               "CAREER_ADMIN",
               "FINANCE_ADMIN",
+<<<<<<< HEAD
               "WIKI_ADMIN",
             ]}
+=======
+              "RESEARCH_ADMIN",
+              ]}
+>>>>>>> upstream/main
           >
             <DashboardLayout />
           </ProtectedRoute>
@@ -97,6 +115,7 @@ const AppRoutes = () => {
             <Route path=":key" element={<CourseResources />} />
           </Route>
         </Route>
+<<<<<<< HEAD
         <Route path="announcements" element={<Announcements />} />
         <Route path="career-vault" element={<CareerVault />} />
         <Route path="finance-vault" element={<FinanceVault />} />
@@ -104,6 +123,27 @@ const AppRoutes = () => {
         <Route path="wiki" element={<WikiHome />} />
         <Route path="level-up" element={<LevelUp />} />
         <Route path="level-up/:roadmapSlug/:chapterSlug" element={<LevelUp />} />
+=======
+     <Route path="announcements" element={<Announcements />} />
+
+<Route path="career-vault" element={<CareerVault />} />
+
+<Route path="finance-vault" element={<FinanceVault />} />
+<Route path="research-vault" element={<ResearchVault />} />
+<Route path="research-vault/questions" element={<ResearchQuestionList />} />
+<Route path="research-vault/questions/:questionId" element={<ResearchQuestionDetail />} />
+<Route path="research-vault/positions/:positionId" element={<PositionDetail />} />
+<Route path="research-vault/faculty/:facultyId" element={<FacultyDetail />} />
+          <Route path="research-vault/experiences/:experienceId" element={<ExperienceDetail />} />
+
+<Route
+  path="finance-vault/:id"
+  element={<ScholarshipDetails />}
+/>
+
+<Route path="level-up" element={<LevelUp />} />
+<Route path="level-up/:roadmapSlug/:chapterSlug" element={<LevelUp />} />
+>>>>>>> upstream/main
 
         {/* ACC Wiki: doubt forum */}
         <Route path="doubts" element={<DoubtForum />} />
@@ -124,13 +164,34 @@ const AppRoutes = () => {
               "FACULTY",
               "CAREER_ADMIN",
               "FINANCE_ADMIN",
+<<<<<<< HEAD
               "WIKI_ADMIN",
+=======
+              "RESEARCH_ADMIN",
+
+>>>>>>> upstream/main
             ]}
           >
             <DashboardLayout />
           </ProtectedRoute>
         }
       >
+        <Route
+          path="research-vault"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY", "RESEARCH_ADMIN"]}>
+              <ResearchVaultAdmin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="research-vault/experiences/:experienceId"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY", "RESEARCH_ADMIN"]}>
+              <ExperienceDetail />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="dashboard"
           element={
