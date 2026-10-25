@@ -67,7 +67,7 @@ async function main() {
 
   await prisma.wikiArticle.upsert({
     where: { slug: 'fee-payment-successful-portal-not-updated' },
-    update: articleData,
+    update: {},
     create: {
       slug: 'fee-payment-successful-portal-not-updated',
       ...articleData,
@@ -78,5 +78,8 @@ async function main() {
 }
 
 main()
-  .catch((e) => console.error(e))
+  .catch((e) => {
+    console.error(e);
+    process.exitCode = 1;
+  })
   .finally(async () => await prisma.$disconnect());

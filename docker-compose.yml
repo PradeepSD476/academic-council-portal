@@ -77,6 +77,10 @@ services:
     depends_on:
       postgres-acc:
         condition: service_healthy
+      minio-acc:
+        condition: service_started
+    environment:
+      MINIO_ENDPOINT: minio-acc
     networks:
       - acc-net
 

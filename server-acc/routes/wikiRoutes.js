@@ -7,6 +7,8 @@ import {
   createArticle,
   deleteArticle
 } from '../controllers/wikiController.js';
+import { checkAuth } from '../middlewares/checkAuth.js';
+import { checkWikiAdmin } from '../middlewares/checkWikiAdmin.js';
 
 const router = express.Router();
 
@@ -16,8 +18,8 @@ router.get('/articles', getArticles);
 router.get('/articles/:slug', getArticleBySlug);
 
 // Admin routes
-router.post('/categories', createCategory);
-router.post('/articles', createArticle);
-router.delete('/articles/:id', deleteArticle);
+router.post('/categories', checkAuth, checkWikiAdmin, createCategory);
+router.post('/articles', checkAuth, checkWikiAdmin, createArticle);
+router.delete('/articles/:id', checkAuth, checkWikiAdmin, deleteArticle);
 
 export default router;
