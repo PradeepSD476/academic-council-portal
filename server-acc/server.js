@@ -23,6 +23,7 @@ import { checkAuth } from './middlewares/checkAuth.js'
 import forumRoutes from './routes/forum.js'
 import financeVaultRoutes from './routes/financeVault.js'
 import roadmapRoutes from './routes/roadmap.js'
+import researchVaultRoutes from './routes/researchVault/index.js'
 import doubtRoutes from './routes/doubt.js'
 >>>>>>> upstream/main
 
@@ -77,8 +78,12 @@ app.use('/api/v1', dashboardRoutes);
 app.use('/api/v1', forumRoutes);
 app.use('/api/v1/finance-vault', financeVaultRoutes);
 <<<<<<< HEAD
+<<<<<<< HEAD
 app.use('/api/v1/wiki', wikiRoutes);
 =======
+=======
+app.use('/api/v1/vault', researchVaultRoutes);
+>>>>>>> upstream/main
 app.use('/api/v1', roadmapRoutes);
 app.use('/api/v1', doubtRoutes);
 >>>>>>> upstream/main

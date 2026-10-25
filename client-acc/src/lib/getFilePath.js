@@ -5,6 +5,7 @@ export const getFilePath = async ({ file, folder }) => {
         return;
     }
     try {
+        const resolvedContentType = file.type || 'application/octet-stream';
         const response = await fetch(`${import.meta.env.VITE_API_URL}/v1/upload/get-upload-url`, {
             method: 'POST',
             headers: {
@@ -12,7 +13,7 @@ export const getFilePath = async ({ file, folder }) => {
             },
             body: JSON.stringify({
                 filename: file.name,
-                contentType: file.type,
+                contentType: resolvedContentType,
                 folder: folder || 'uploads'
             }),
             credentials: 'include'
@@ -26,7 +27,7 @@ export const getFilePath = async ({ file, folder }) => {
         const minioResponse = await fetch(signedUrl, {
             method: 'PUT',
             headers: {
-                'Content-Type': file.type,
+                'Content-Type': resolvedContentType,
             },
             body: file
         })
