@@ -24,24 +24,17 @@ import { ensureBucket } from './config/minio.js';
 
 dotenv.config();
 
-try {
-  await ensureBucket();
-} catch (error) {
-  console.warn("Minio bucket initialization failed. Running without Minio.", error.message);
-}
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors({
-  origin: [ 
+  origin: [
     process.env.CLIENT_URL,
-    "https://academic-council-portal.vercel.app", 
+    "https://academic-council-portal.vercel.app",
     "http://localhost:800",
-    "https://acc.iitp.ac.in", 
-    "http://acc.iitp.ac.in", 
-    "https://172.16.1.254", 
-    "http://172.16.1.254" 
+    "https://acc.iitp.ac.in",
+    "http://acc.iitp.ac.in",
+    "https://172.16.1.254"
   ],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   credentials: true
@@ -67,7 +60,6 @@ app.use('/api/v1', courseRoutes);
 app.use('/api/v1', signedURLRoutes);
 app.use('/api/v1', announcementRoutes);
 app.use('/api/v1', profileRoutes);
-app.use('/api/v1', resourceRoutes);
 app.use('/api/v1', userRoutes);
 app.use('/api/v1', dashboardRoutes);
 app.use('/api/v1', forumRoutes);
