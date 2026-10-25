@@ -9,44 +9,38 @@ datasource db {
 }
 
 model User {
-  id                  Int            @id @default(autoincrement())
-  email               String         @unique
-  password            String         @default("xyz")
-  role                Role           @default(STUDENT)
-  rollNo              String?
-  displayName         String?
-  photoURL            String?
-  admissionYear       Int?
-  branchName          String?
-  program             Program?
-  lastseen            DateTime?
+  id            Int       @id @default(autoincrement())
+  email         String    @unique
+  password      String    @default("xyz")
+  role          Role      @default(STUDENT)
+  rollNo        String?
+  displayName   String?
+  photoURL      String?
+  admissionYear Int?
+  branchName    String?
+  program       Program?
+  lastseen      DateTime?
+
   postedAnnouncements Announcement[]
-  comments            Comment[]      @relation("CommentBy")
+  comments            Comment[]            @relation("CommentBy")
   experiences         Experience[]
   likes               Like[]
   uploadedResources   Resource[]
   bookmarks           Bookmark[]
-<<<<<<< HEAD
   wikiArticles        WikiArticle[]
   doubts              Doubt[]
   doubtAnswers        DoubtAnswer[]
   doubtVotes          DoubtVote[]
   doubtReports        DoubtReport[]
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
-=======
 
-  // Research Vault (4 Models)
+  // Research Vault Relations
   researchOpenPositions       ResearchOpenPosition[] @relation("OpenPositionsUploaded")
   researchResourcesUploaded   ResearchResource[]     @relation("ResearchResourcesUploaded")
   researchResourcesApproved   ResearchResource[]     @relation("ResearchResourcesApproved")
   researchDiscussionsAuthored ResearchDiscussion[]   @relation("ResearchDiscussionsAuthored")
 
-  doubts       Doubt[]
-  doubtAnswers DoubtAnswer[]
-  doubtVotes   DoubtVote[]
-  doubtReports DoubtReport[]
->>>>>>> upstream/main
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Experience {
@@ -217,26 +211,8 @@ model WikiArticle {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
-<<<<<<< HEAD
   @@index([categoryId])
   @@index([slug])
-=======
-  subCategory String[]
-  state       String[]
-
-  deadline DateTime?
-
-  applicationUrl  String?
-  officialWebsite String?
-
-  requiredDocuments String?
-  attachments       Json?
-
-  isActive Boolean @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
->>>>>>> upstream/main
 }
 
 enum Role {
@@ -247,11 +223,8 @@ enum Role {
   FACULTY
   CAREER_ADMIN
   FINANCE_ADMIN
-<<<<<<< HEAD
   WIKI_ADMIN
-=======
   RESEARCH_ADMIN
->>>>>>> upstream/main
 }
 
 enum VerificationType {
@@ -441,13 +414,10 @@ enum DoubtReportStatus {
   PENDING
   ACTIONED
   DISMISSED
-<<<<<<< HEAD
-}
-=======
 }
 
 // ===========================================================================
-// Research Vault (Exactly 4 Models)
+// Research Vault
 // ===========================================================================
 
 enum ResearchResourceType {
@@ -595,4 +565,3 @@ model ResearchDiscussion {
   @@index([parentId, createdAt])
   @@index([researchAreas], type: Gin)
 }
->>>>>>> upstream/main

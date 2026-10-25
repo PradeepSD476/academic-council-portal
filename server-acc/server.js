@@ -15,21 +15,12 @@ import dashboardRoutes from './routes/dashboard.js';
 import forumRoutes from './routes/forum.js';
 import financeVaultRoutes from './routes/financeVault.js';
 import wikiRoutes from './routes/wikiRoutes.js';
+import researchVaultRoutes from './routes/researchVault/index.js';
 import roadmapRoutes from './routes/roadmap.js';
 import doubtRoutes from './routes/doubt.js';
 
 import { checkAuth } from './middlewares/checkAuth.js';
 import { ensureBucket } from './config/minio.js';
-<<<<<<< HEAD
-=======
-import dashboardRoutes from './routes/dashboard.js'
-import { checkAuth } from './middlewares/checkAuth.js'
-import forumRoutes from './routes/forum.js'
-import financeVaultRoutes from './routes/financeVault.js'
-import roadmapRoutes from './routes/roadmap.js'
-import researchVaultRoutes from './routes/researchVault/index.js'
-import doubtRoutes from './routes/doubt.js'
->>>>>>> upstream/main
 
 dotenv.config();
 
@@ -81,11 +72,8 @@ app.use('/api/v1', userRoutes);
 app.use('/api/v1', dashboardRoutes);
 app.use('/api/v1', forumRoutes);
 app.use('/api/v1/finance-vault', financeVaultRoutes);
-<<<<<<< HEAD
 app.use('/api/v1/wiki', wikiRoutes);
-=======
 app.use('/api/v1/vault', researchVaultRoutes);
->>>>>>> upstream/main
 app.use('/api/v1', roadmapRoutes);
 app.use('/api/v1', doubtRoutes);
 
