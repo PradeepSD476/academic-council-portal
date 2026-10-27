@@ -11,7 +11,7 @@
  */
 
 import { useState, useCallback, useRef } from "react";
-import { searchFAQs, getFAQsByCategory } from "@/lib/chatbot/search.js";
+import { searchFAQGroups, getFAQsByCategory } from "@/lib/chatbot/search.js";
 import { COMMANDS } from "@/lib/chatbot/categories.js";
 
 const WELCOME_MESSAGE = {
@@ -96,13 +96,15 @@ export function useChatbot({ isOpen }) {
         }
 
         // 2. Fuse.js semantic search
-        const results = searchFAQs(query, 10);
+        const faqGroups = searchFAQGroups(query, 10);
+        const results = [...faqGroups.sequenceMatches, ...faqGroups.similarMatches];
 
         // Show FAQ cards whenever the search finds anything.
         // searchFAQs already applies the score threshold — no need to re-check here.
         if (results.length > 0) {
           pushBotMessage({
             faqs: results,
+            faqGroups,
             text:
               results.length === 1
                 ? "Here's what I found:"
