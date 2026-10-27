@@ -16,7 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "@google-cloud/storage": "^7.17.2",
-    "@prisma/client": "5.22.0",
+    "@prisma/client": "6.19.0",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -32,6 +32,6 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.10",
-    "prisma": "5.22.0"
+    "prisma": "^6.19.0"
   }
 }

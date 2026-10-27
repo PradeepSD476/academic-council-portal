@@ -136,21 +136,37 @@ export default function WikiHome() {
   const [expandedId, setExpandedId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     let active = true;
     fetchWikiArticles()
       .then((data) => {
+        if (!Array.isArray(data)) {
+          throw new Error('The Wiki API returned an invalid response.');
+        }
         if (active) setArticles(data.map(getSearchableArticle));
-      })
-      .catch(() => {
-        if (active) setError('Wiki articles could not be loaded. Please try again later.');
+      }).catch((loadError) => {
+        console.error('Failed to load Wiki articles:', loadError);
+        if (!active) return;
+
+        const status = loadError.response?.status;
+        const backendError = loadError.response?.data?.error || '';
+        if (status >= 500 && /can't reach database server|database server/i.test(backendError)) {
+          setError('The Wiki server cannot reach PostgreSQL. Start the database and check the backend database connection.');
+        } else if (status) {
+          setError(`The Wiki server returned an error (${status}). Check the backend and try again.`);
+        } else if (loadError.request) {
+          setError('Cannot reach the Wiki API. Confirm the backend is running and the frontend API proxy is configured.');
+        } else {
+          setError('The Wiki API returned an invalid response. Check the backend logs and try again.');
+        }
       })
       .finally(() => {
         if (active) setLoading(false);
       });
     return () => { active = false; };
-  }, []);
+  }, [retryCount]);
 
   const fuse = useMemo(() => new Fuse(articles, {
     threshold: 0.32,
@@ -228,7 +244,23 @@ export default function WikiHome() {
         </div>
 
         {loading && <div className="flex items-center gap-2 py-8 text-sm text-slate-600"><LoaderCircle size={18} className="animate-spin" /> Loading Wiki articles...</div>}
-        {error && <div role="alert" className="flex items-center gap-2 border-l-4 border-red-600 bg-red-50 px-4 py-3 text-sm text-red-900"><AlertCircle size={18} />{error}</div>}
+        {error && (
+          <div role="alert" className="flex flex-wrap items-center gap-2 border-l-4 border-red-600 bg-red-50 px-4 py-3 text-sm text-red-900">
+            <AlertCircle size={18} aria-hidden="true" />
+            <span className="flex-1">{error}</span>
+            <button
+              type="button"
+              onClick={() => {
+                setError('');
+                setLoading(true);
+                setRetryCount((count) => count + 1);
+              }}
+              className="font-semibold underline underline-offset-2"
+            >
+              Retry
+            </button>
+          </div>
+        )}
         {!loading && !error && results.length === 0 && (
           <div className="border-y border-slate-200 py-8 text-sm text-slate-600">
             No guide matched “{query}”. Try a related phrase such as “payment”, “portal”, “transaction”, or “email”.

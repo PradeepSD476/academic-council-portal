@@ -81,6 +81,8 @@ services:
         condition: service_started
     environment:
       MINIO_ENDPOINT: minio-acc
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
     networks:
       - acc-net
 

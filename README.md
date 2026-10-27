@@ -37,6 +37,31 @@ _got to the backend directory (ie. server) create a env file_
 #### Install the dependencies : _npm install_
 #### Run the server: _npm run dev_  
 
+### ACC Wiki local setup
+
+The Wiki page reads published articles from PostgreSQL through the ACC backend. For local development:
+
+1. Configure the repository-root `.env` with `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB`. Set `server-acc/.env`'s `POSTGRES_DATABASE_URL` to the same database, using `localhost` as the host.
+2. Start PostgreSQL with `docker compose up -d postgres-acc`.
+3. Apply the database migrations and seed the example Wiki article:
+
+   ```sh
+   cd server-acc
+   npx prisma migrate deploy
+   npx prisma db seed
+   npm run dev
+   ```
+
+4. In another terminal, start the frontend:
+
+   ```sh
+   cd client-acc
+   npm ci
+   npm run dev
+   ```
+
+The Vite development server proxies `/api` requests to the backend on port `3000`. For Docker Compose, the backend uses the `postgres-acc` service hostname automatically.
+
 
 ### Important things to take care of in doing git operations  
 
