@@ -17,6 +17,11 @@ function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [dropdown, setDropdown] = useState(false);
   const { user, logout, isAuthenticated } = useContext(AuthContext);
+  const canManageResearch = [
+    "SUPER_ADMIN",
+    "FACULTY",
+    "RESEARCH_ADMIN",
+  ].includes(user?.role);
   const dropdownRef = useRef(null);
 
   const location = useLocation();
@@ -38,6 +43,7 @@ function Navbar() {
 
   const getDashboardPath = () => {
     if (user?.role === "FACULTY") return "/admin/dashboard";
+    if (user?.role === "RESEARCH_ADMIN") return "/admin/research-vault";
     return "/dashboard/courses";
   };
 
@@ -182,6 +188,19 @@ function Navbar() {
                             <FiGrid className="text-sm text-blue-600" />
                             <span>My Dashboard</span>
                           </button>
+
+                          {canManageResearch && (
+                            <button
+                              onClick={() => {
+                                navigate("/admin/research-vault");
+                                setDropdown(false);
+                              }}
+                              className="flex items-center gap-2.5 w-full px-2.5 py-2 font-medium text-slate-700 hover:text-slate-950 hover:bg-slate-100 rounded-md transition-colors text-left cursor-pointer"
+                            >
+                              <FiGrid className="text-sm text-rose-600" />
+                              <span>Research Vault</span>
+                            </button>
+                          )}
 
                           <div className="h-px bg-slate-100 my-1" />
 

@@ -1,6 +1,6 @@
 import { createElement, useContext, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Activity, Bookmark, BookOpen, BookSearch, BriefcaseBusiness, Check, CheckCircle2, ChevronDown, CircleHelp, ExternalLink, Filter, FlaskConical, MessageCircle, Plus, Search, Send, ThumbsUp, UserRoundCheck, UserRoundPlus, UsersRound, X, Clock, Download, Eye, FileText, Lock, UploadCloud } from 'lucide-react';
+import { Activity, Bookmark, BookOpen, BookSearch, BriefcaseBusiness, Check, CheckCircle2, ChevronDown, CircleHelp, ExternalLink, Filter, FlaskConical, MessageCircle, Plus, Search, Send, ThumbsUp, UserRoundCheck, UserRoundPlus, UsersRound, X, Clock, Download, Eye, FileText, Lock, UploadCloud, Shield } from 'lucide-react';
 import toast from 'react-hot-toast';
 import AuthContext from '../../context/auth/authContext';
 import { researchVaultApi } from '../../api/researchVaultApi';
@@ -948,11 +948,21 @@ export default function ResearchVault() {
             </div>
             <p className="ml-4 text-sm text-slate-500">Find a research group, learn from student experiences, and get practical guidance for your next step.</p>
           </div>
-          {(section === 'experiences' || section === 'discussions' || section === 'resources') && (
-            <button onClick={() => (section === 'resources' ? (() => { setResourceSubmitSuccess(false); setResourceFormOpen(true); })() : section === 'experiences' ? setExperienceFormOpen(true) : setFormOpen(true))} className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-95">
-              {section === 'experiences' ? <><Send size={16} /> Share an experience</> : section === 'discussions' ? <><Send size={16} /> Ask a question</> : <><Plus size={16} /> Submit Resource</>}
-            </button>
-          )}
+          <div className="flex items-center gap-2.5">
+            {['SUPER_ADMIN', 'FACULTY', 'RESEARCH_ADMIN'].includes(user?.role) && (
+              <button
+                onClick={() => navigate('/admin/research-vault')}
+                className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-xs font-bold text-rose-700 shadow-xs hover:bg-rose-100 transition cursor-pointer"
+              >
+                <Shield size={14} /> Admin Vault
+              </button>
+            )}
+            {(section === 'experiences' || section === 'discussions' || section === 'resources') && (
+              <button onClick={() => (section === 'resources' ? (() => { setResourceSubmitSuccess(false); setResourceFormOpen(true); })() : section === 'experiences' ? setExperienceFormOpen(true) : setFormOpen(true))} className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-95">
+                {section === 'experiences' ? <><Send size={16} /> Share an experience</> : section === 'discussions' ? <><Send size={16} /> Ask a question</> : <><Plus size={16} /> Submit Resource</>}
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
