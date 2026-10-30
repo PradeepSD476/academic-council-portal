@@ -48,6 +48,8 @@ import DoubtForum from "./pages/DoubtForum/index.jsx";
 import AskDoubt from "./pages/DoubtForum/AskDoubt.jsx";
 import DoubtThread from "./pages/DoubtForum/DoubtThread.jsx";
 import ManageDoubts from "./pages/admin/ManageDoubts.jsx";
+
+
 const AppRoutes = () => {
   return (
     <Routes>
@@ -135,6 +137,7 @@ const AppRoutes = () => {
             </ProtectedRoute>
         }
       >
+
         <Route
           path="research-vault"
           element={
@@ -155,7 +158,7 @@ const AppRoutes = () => {
           path="dashboard"
           element={
             <ProtectedRoute
-              roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "RESOURCE_ADMIN", "FACULTY",]}
+              roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "RESOURCE_ADMIN", "FACULTY"]}
             >
               <AdminDashboard />
             </ProtectedRoute>
@@ -254,7 +257,7 @@ const AppRoutes = () => {
 <Route
   path="level-up"
   element={
-    <ProtectedRoute roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "RESOURCE_ADMIN", "FACULTY", "CAREER_ADMIN", "FINANCE_ADMIN"]}>
+    <ProtectedRoute roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "RESOURCE_ADMIN", "FACULTY", "CAREER_ADMIN", "FINANCE_ADMIN", "RESEARCH_ADMIN"]}>
       <ManageRoadmap />
     </ProtectedRoute>
   }
