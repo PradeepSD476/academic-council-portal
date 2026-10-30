@@ -14,7 +14,7 @@ const ManageUsers = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [onlineOnly, setOnlineOnly] = useState(false);
 
-  const roles = ['STUDENT', 'CAREER_ADMIN', 'ANNOUNCEMENT_ADMIN', 'RESOURCE_ADMIN', 'FINANCE_ADMIN', 'SUPER_ADMIN', 'FACULTY'];
+  const roles = ['STUDENT', 'CAREER_ADMIN', 'ANNOUNCEMENT_ADMIN', 'RESOURCE_ADMIN', 'FINANCE_ADMIN', 'RESEARCH_ADMIN', 'SUPER_ADMIN', 'FACULTY'];
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -264,7 +264,8 @@ const RoleBadge = ({ role }) => {
     'STUDENT': 'bg-emerald-950/60 text-emerald-300 border-emerald-800/60',
     'FACULTY': 'bg-blue-950/60 text-blue-300 border-blue-800/60',
     'CAREER_ADMIN': 'bg-[var(--color-secondary)]/10 text-[var(--color-secondary)] border-[var(--color-secondary)]/30',
-    'FINANCE_ADMIN': 'bg-teal-950/60 text-teal-300 border-teal-800/60'
+    'FINANCE_ADMIN': 'bg-teal-950/60 text-teal-300 border-teal-800/60',
+    'RESEARCH_ADMIN': 'bg-indigo-950/60 text-indigo-300 border-indigo-800/60'
   };
 
   const style = colors[role] || 'bg-neutral-800 text-slate-600 border-slate-300';

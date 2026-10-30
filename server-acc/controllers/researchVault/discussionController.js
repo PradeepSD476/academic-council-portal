@@ -314,7 +314,7 @@ export const updateResearchDiscussion = async (req, res) => {
     if (!existing) return error(res, 'Discussion not found', 404);
 
     const isOwner = existing.authorId === req.user.id;
-    const isAdmin = ['RESEARCH_ADMIN', 'SUPER_ADMIN'].includes(req.user.role);
+    const isAdmin = ['RESEARCH_ADMIN', 'SUPER_ADMIN', 'FACULTY'].includes(req.user.role);
 
     if (!isOwner && !isAdmin) {
       return error(res, 'Not authorized to edit this discussion', 403);
@@ -353,7 +353,7 @@ export const deleteResearchDiscussion = async (req, res) => {
     if (!existing) return error(res, 'Discussion not found', 404);
 
     const isOwner = existing.authorId === req.user.id;
-    const isAdmin = ['RESEARCH_ADMIN', 'SUPER_ADMIN'].includes(req.user.role);
+    const isAdmin = ['RESEARCH_ADMIN', 'SUPER_ADMIN', 'FACULTY'].includes(req.user.role);
 
     if (!isOwner && !isAdmin) {
       return error(res, 'Not authorized to delete this discussion', 403);
@@ -541,7 +541,7 @@ export const deleteExperienceComment = async (req, res) => {
     if (!existing) return error(res, 'Comment not found', 404);
 
     const isOwner = existing.authorId === req.user.id;
-    const isAdmin = ['RESEARCH_ADMIN', 'SUPER_ADMIN'].includes(req.user.role);
+    const isAdmin = ['RESEARCH_ADMIN', 'SUPER_ADMIN', 'FACULTY'].includes(req.user.role);
 
     if (!isOwner && !isAdmin) {
       return error(res, 'Not authorized to delete this comment', 403);
