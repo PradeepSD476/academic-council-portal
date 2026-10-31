@@ -19,7 +19,7 @@ Button and page names below are written exactly as they appear in the portal.
 - The whole feature is **hidden from students until an admin switches it on**. While it is off, the rest of the portal behaves exactly as before.
 - It runs as **two processes from the same code**:
   - the existing **API** (`backend-acc`);
-  - a separate **worker** (`fetcher-acc`) that does all fetching and emailing on a timer.
+  - a separate **worker** (`fetcher-acc`) that does all the fetching on a timer.
 
 ---
 
@@ -44,8 +44,8 @@ The API and the worker never call each other. They talk only through the databas
 |---|---|---|
 | 02:00, 08:00, 14:00, 20:00 | `ingestAll` | Fetches every enabled job board. New openings go to the review queue. |
 | 05:30 | `recheckLiveness` | Rechecks manual and student-link openings, and expires openings whose deadline passed. |
-| 09:00 | `alerts` | Sends students' job-alert emails. Only runs if switched on. |
-| 10:00 | `reviewReminder` | Emails career admins when openings have waited over 24 h. Only runs if switched on. |
+| 09:00 | `alerts` | Hidden feature (see A5): finds it is off and does nothing. |
+| 10:00 | `reviewReminder` | Hidden feature (see A5): finds it is off and does nothing. |
 | every 10 min | `linksAndExtraction` | Processes links students shared (and the AI step, if on). |
 | every 10 s | `runRequests` | Runs a "Fetch now" request, if there is one. |
 | every minute | `heartbeat` | Writes "I'm alive". |
@@ -79,8 +79,8 @@ The API and the worker share the same `.env` file. Never put real values in git.
 | `CAREERS_LLM_FAST_MODEL` | optional | Model name. Leave empty for the provider's default. |
 | `CAREERS_LLM_STRONG_MODEL` | optional | Second, stronger model for unsure results (Gemini only). Leave empty to skip. |
 | `GEMINI_API_KEY` / `GROQ_API_KEY` | only for that provider | **Server-side only.** Never a `VITE_*` variable, never in the browser. |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | for emails | Job-alert and review-reminder emails need these (existing variables). |
-| `CLIENT_URL` | for emails | Used to build the links inside emails (existing). |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | existing | This feature sends no email for now (see A5), so it doesn't use them. |
+| `CLIENT_URL` | existing | Same: only used for links inside the hidden emails. |
 | `SECRET_KEY` | yes (existing) | Also used to count weekly visitors without storing who they are. |
 | `POSTGRES_DATABASE_URL` | yes (existing) | The worker needs the database too. |
 | `DEV_SEED_PASSWORD` | **local only** | For the developers' demo accounts. Not used on the server. |
@@ -106,18 +106,24 @@ The AI step is optional. With it off, links that can't be read automatically wai
 | **Show Jobs & Internships to students** | off | The master switch. Off means students see nothing new. |
 | **Fetch job boards** | on | Off pauses scheduled fetches and "Fetch now". |
 | **Automatic extraction for student links** | off | The AI step for links that aren't job-board links. |
-| **Gemini key is billed** | off | Turns on the monthly budget limit for a paid Gemini key. |
-| **Email job alerts to students** | off | Daily or weekly digests for students who saved an alert. |
-| **Remind career admins by email** | off | Daily email to CAREER_ADMIN users when the queue has waited over 24 h. |
 
 There are also number limits, saved with **Save limits**:
-- monthly LLM budget;
 - cloud AI calls per day;
 - "Flag below confidence";
 - company-name match threshold;
 - links per student per day.
 
 Changes take effect within about **30 seconds** (settings are cached). The AI step can take about **1.5 minutes** to notice a change.
+
+**Built but hidden.** These are in the code but switched off, with no controls in the portal:
+
+- job-alert emails to students (the **Job alerts** button is removed from the jobs page);
+- the daily review-reminder email to career admins;
+- the monthly spending cap for a billed Gemini key.
+
+Their settings can't be changed through the portal or its API, so nothing is emailed. Bringing one back is a code change: in `server-acc/services/careers/settings.js` set its `editable` back to `true`, then restore its entry in `client-acc/src/pages/admin/careers/FlagsCard.jsx` (and the button in `JobsPage.jsx` for job alerts).
+
+**If you use a billed AI key:** the portal has no spending cap, only the daily limit on cloud AI calls. Set a budget limit in the provider's own console.
 
 ## A6. Operations alerts: what they mean and what to do
 
@@ -127,14 +133,11 @@ Changes take effect within about **30 seconds** (settings are cached). The AI st
 | *Board* is failing: … | That job board returned an error | Open **Sources**, check the board. Test the token with `verifyBoard.js` (A7). Archive the board if it is gone. |
 | *Board* returned 0 jobs on its last run | Board is empty or moved | Check the company's careers page; fix or archive the board. |
 | LLM extraction is on but … is not usable | AI provider down or key wrong | Fix the key or provider in `.env` and restart, or switch the AI step off. |
-| The monthly LLM budget is used up / N% used | Paid key near or at its cap | Raise the budget, or wait for next month. |
 | N postings are waiting in Flagged | Review backlog | Admins: **Jobs Review → Flagged**. |
 | N student link(s) failed to process | Links that need a retry or a decision | Admins: **Jobs Review → Student links → Needs attention**. |
 | N student link(s) have waited more than 48 hours | Links nobody has handled | Same place: create a posting or dismiss. |
 | N live posting(s) were reported by several students | Students flagged a problem | Admins: **All postings**, check, then **Mark as handled**. |
-| N job alert(s) could not be emailed | Mail failing | Check `SMTP_*` and `CLIENT_URL`, then the API log. |
 | N posting(s) have waited more than 48 hours for review | Queue not reviewed | Admins: do the daily review (B2). |
-| The review reminder email was not sent on … | Reminder mail failed | Check SMTP settings. |
 
 ## A7. Command-line tools
 
@@ -144,7 +147,7 @@ Run in `server-acc/`, or with `docker compose exec fetcher-acc …`:
 |---|---|
 | `npm run careers:job -- ingest` / `ingest <sourceId>` | Fetch all boards, or one, now. Prints a table per board. |
 | `npm run careers:job -- links` | Process waiting student links now. |
-| `npm run careers:job -- liveness` / `alerts` / `reminder` | Run that job once. |
+| `npm run careers:job -- liveness` | Run the liveness recheck once. |
 | `npm run careers:job -- cleanup` | **Lists** test data (dry run). `cleanup --yes` deletes it. Refuses to run when `NODE_ENV=production`. |
 | `node scripts/careers/verifyBoard.js <kind> <token>` | Check that a job board token works before adding it. `kind` = greenhouse, lever, ashby, smartrecruiters, workable. |
 | `node scripts/careers/scanBoards.js` | Scan the candidate board list (read-only). Prints lines to paste into **Add boards in bulk**. |
@@ -156,7 +159,7 @@ Run in `server-acc/`, or with `docker compose exec fetcher-acc …`:
 None of this needs a redeploy:
 
 1. **Hide it from students:** Operations → switch off **Show Jobs & Internships to students**.
-2. **Stop all background work** (fetching, emails): `docker compose stop fetcher-acc`.
+2. **Stop all background work** (fetching, student links): `docker compose stop fetcher-acc`.
 3. **Remove the code:** the migrations only added tables and columns, so they can stay. The older code simply ignores them.
 
 ## A9. After every pull or upgrade
@@ -292,7 +295,6 @@ Every opening and Career Vault experience points to one company record, so "Goog
 On the Operations page (see A5 for the full list):
 
 - **Show Jobs & Internships to students**: switch on only after the first review round. Switch off at any time to hide the feature.
-- **Email job alerts to students** and **Remind career admins by email**: only once email works (ask the maintainers).
 - **Links per student per day** (a number limit): raise it if students hit the limit with real openings.
 
 ## B9. Activity log

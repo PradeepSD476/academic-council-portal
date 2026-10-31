@@ -1,4 +1,6 @@
 // Feature flags and limits (AppSetting). Showing the feature to students asks for confirmation.
+// Job-alert emails, review reminders and the paid-key budget are hidden (D-18): their settings stay
+// off and can't be edited, so they have no controls here.
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { careersAdminApi, errorMessage } from "../../../api/careersApi";
@@ -8,16 +10,12 @@ const TOGGLES = [
   ["careers.visibleToStudents", "Show Jobs & Internships to students", "Off: students get a “not available” page; admins still see everything."],
   ["careers.ingestionEnabled", "Fetch job boards", "The scheduled fetches and “Fetch now” do nothing while this is off."],
   ["careers.llmEnabled", "Automatic extraction for student links", "Uses the configured model. Off: links wait in the queue."],
-  ["careers.llmPaidTier", "Gemini key is billed", "Only for Gemini. Turns on the monthly budget cap."],
-  ["careers.alertEmailsEnabled", "Email job alerts to students", "Daily / weekly digests for students who saved an alert. Needs the SMTP settings on the server."],
-  ["careers.reviewReminderEmails", "Remind career admins by email", "Once a day, only when something has waited over 24 hours for review."],
 ];
 const NUMBERS = [
   ["careers.confidenceThreshold", "Flag below confidence", 0.05],
   ["careers.fuzzyThreshold", "Company name match threshold", 0.01],
   ["careers.submissionDailyLimit", "Links per student per day", 1],
   ["careers.llmDailyRequestLimit", "Cloud AI calls per day (Groq / Gemini)", 1],
-  ["careers.llmMonthlyBudgetUsd", "Monthly LLM budget (USD)", 1],
 ];
 
 export default function FlagsCard({ onChanged }) {
