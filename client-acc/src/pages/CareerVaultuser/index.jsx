@@ -11,6 +11,12 @@ import NativeRichTextEditor from "./NativeRichTextEditor";
 import { forumApi } from "../../api/forumApi";
 import { getFilePath } from "../../lib/getFilePath";
 import { FileText } from "lucide-react";
+import { useCareersStatus } from "../../hooks/useCareersStatus";
+import CareerVaultTabs from "../Careers/components/CareerVaultTabs";
+import OpenRolesChip from "../Careers/components/OpenRolesChip";
+import CompanyPicker from "../Careers/components/CompanyPicker";
+import SeniorReportFields from "../Careers/components/SeniorReportFields";
+import { reportPayload } from "../Careers/lib/seniorReports";
 
 void motion;
 
@@ -34,8 +40,10 @@ const DOMAINS = [
 ];
 
 // ─── Create Post View (Full Page) ────────────────────────────────────────────
-const CreatePostView = ({ onBack, onSubmitted }) => {
+const CreatePostView = ({ onBack, onSubmitted, showCompany }) => {
   const [title, setTitle] = useState("");
+  const [company, setCompany] = useState(null); // optional { value: companyId, label: name }
+  const [report, setReport] = useState({}); // careers P8-T1: optional stipend / CTC / rounds / year
   const [experienceType, setExperienceType] = useState("");
   const [domain, setDomain] = useState("");
   const [description, setDescription] = useState("");
@@ -76,7 +84,7 @@ const CreatePostView = ({ onBack, onSubmitted }) => {
         }
       }
 
-      await forumApi.submitPost({ title: title.trim(), description, experienceType, domain, status: "DRAFT", resumeUrl });
+      await forumApi.submitPost({ title: title.trim(), description, experienceType, domain, status: "DRAFT", resumeUrl, ...(company ? { companyId: company.value } : {}), ...(showCompany ? reportPayload(report, experienceType) : {}) });
       toast.success("Post submitted! It will appear publicly after admin review.");
       onSubmitted();
       onBack();
@@ -175,7 +183,17 @@ const CreatePostView = ({ onBack, onSubmitted }) => {
               </select>
             </div>
           </div>
+
+          {showCompany && (
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="post-company" className="text-xs font-semibold text-slate-600">Company (optional)</label>
+              <CompanyPicker inputId="post-company" value={company} onChange={setCompany} />
+              <p className="text-xs text-slate-500">Links your experience to the company page, next to its open roles.</p>
+            </div>
+          )}
         </div>
+
+        {showCompany && <SeniorReportFields experienceType={experienceType} value={report} onChange={setReport} />}
 
         {/* Section 2: Story Content */}
         <div className="p-5 rounded-2xl border border-slate-200 bg-white/95 backdrop-blur-xl shadow-xs flex flex-col gap-4">
@@ -335,6 +353,7 @@ const CommentPreview = ({ postId, commentCount, onViewAll }) => {
 // ─── Main CareerVault Page ────────────────────────────────────────────────────
 const CareerVault = () => {
   const { user } = useContext(AuthContext);
+  const careers = useCareersStatus(user?.id); // Jobs & Companies (careers): tabs + open-roles chip only when enabled
   const [allExperiences, setAllExperiences] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
   const [expandedComments, setExpandedComments] = useState({});
@@ -575,6 +594,7 @@ const CareerVault = () => {
       <CreatePostView
         onBack={() => setShowCreateModal(false)}
         onSubmitted={fetchPosts}
+        showCompany={careers.enabled}
       />
     );
   }
@@ -593,6 +613,7 @@ const CareerVault = () => {
           Learn from interview and internship experiences shared by seniors and alumni.
         </p>
       </div>
+      {careers.enabled && <CareerVaultTabs />}
 
       {/* Search & Filter Controls */}
       <div className="space-y-3">
@@ -695,6 +716,7 @@ const CareerVault = () => {
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[var(--color-secondary)]/10 text-[var(--color-secondary)] border border-[var(--color-secondary)]/20 uppercase">
                           {exp.domain || 'Uncategorized'}
                         </span>
+                        {careers.enabled && exp.company && <OpenRolesChip company={exp.company} count={exp.openRoles} />}
                       </div>
                     </div>
 

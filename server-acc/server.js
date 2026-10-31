@@ -16,6 +16,8 @@ import { checkAuth } from './middlewares/checkAuth.js'
 import forumRoutes from './routes/forum.js'
 import financeVaultRoutes from './routes/financeVault.js'
 import roadmapRoutes from './routes/roadmap.js'
+import careersRoutes from './routes/careers.js'
+import careersAdminRoutes from './routes/careersAdmin.js'
 import researchVaultRoutes from './routes/researchVault/index.js'
 import doubtRoutes from './routes/doubt.js'
 
@@ -69,6 +71,8 @@ app.use('/api/v1', forumRoutes);
 app.use('/api/v1/finance-vault', financeVaultRoutes);
 app.use('/api/v1/vault', researchVaultRoutes);
 app.use('/api/v1', roadmapRoutes);
+app.use('/api/v1', careersRoutes);
+app.use('/api/v1', careersAdminRoutes);
 app.use('/api/v1', doubtRoutes);
 
 server.listen(PORT, () => {

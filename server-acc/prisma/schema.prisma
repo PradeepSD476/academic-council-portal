@@ -27,6 +27,17 @@ model User {
   likes               Like[]
   uploadedResources   Resource[]
   bookmarks           Bookmark[]
+  // Careers (P2): self-reported, 0.00-10.00, used only to filter postings for this user. Hidden from
+  // every query by the global omit in config/db.js; only /careers/me/* opts in.
+  cpi                 Decimal?       @db.Decimal(4, 2)
+  cpiUpdatedAt        DateTime?
+  programme           String? // careers P7-T2: self-reported (BTECH, DUAL, MTECH, MSC, MBA, PHD, OTHER); private like cpi
+  graduationYear      Int? // careers P7-T2: self-reported expected graduation year; private like cpi
+  savedPostings       SavedPosting[] // careers P4-lite (relation only, no column)
+  postingApplications PostingApplication[] // careers P4-lite (relation only, no column)
+  postingReports      PostingReport[] // careers P6 (relation only, no column)
+  hiddenPostings      HiddenPosting[] // careers P6 (relation only, no column)
+  savedSearches       SavedSearch[] // careers P7 (relation only, no column)
 
   // Research Vault (4 Models)
   researchOpenPositions       ResearchOpenPosition[] @relation("OpenPositionsUploaded")
@@ -55,6 +66,16 @@ model Experience {
   uploadedBy     User           @relation(fields: [uploadedById], references: [id])
   likes          Like[]
   bookmarks      Bookmark[]
+  companyId      Int?
+  company        Company?       @relation(fields: [companyId], references: [id])
+  // careers P8-T1 (F-29, user OK 11 Oct, D-15): optional numbers a senior reports. Private per
+  // experience (omitted in config/db.js); shown only as company aggregates when 3+ report them.
+  reportedStipend Int? // ₹ per month (internships)
+  reportedCtcLpa  Decimal? @db.Decimal(5, 2) // ₹ lakh per year (placements)
+  reportedRounds  Int? // number of interview rounds
+  reportedYear    Int? // year of the internship / placement
+
+  @@index([companyId])
 }
 
 model Bookmark {
@@ -303,6 +324,520 @@ model RoadmapChapter {
   section   RoadmapSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 
   @@unique([sectionId, slug])
+}
+
+// ─────────────────────────── Careers: company registry ───────────────────────────
+// Additive only. Audit columns (*ById) are plain Int with no FK so user deletion is never blocked.
+
+enum CompanyStatus {
+  ACTIVE
+  CANDIDATE
+  MERGED
+}
+
+enum AliasOrigin {
+  SEED
+  MANUAL
+  AUTO
+  MERGE
+}
+
+enum MergeAction {
+  MERGE
+  SPLIT
+}
+
+model Company {
+  id             Int            @id @default(autoincrement())
+  name           String
+  slug           String         @unique
+  normalizedName String
+  website        String?
+  status         CompanyStatus  @default(ACTIVE)
+  mergedIntoId   Int?
+  rejectedAt     DateTime? // careers P7-T11: a rejected CANDIDATE (page noise like "keka"); hidden, never deleted (D-13)
+  rejectedById   Int? // careers P7-T11
+  rejectReason   String? // careers P7-T11
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  aliases        CompanyAlias[]
+  experiences    Experience[]
+  postings       Posting[]
+  sources        Source[]
+
+  @@index([normalizedName])
+  @@index([status])
+}
+
+model CompanyAlias {
+  id              Int         @id @default(autoincrement())
+  companyId       Int
+  company         Company     @relation(fields: [companyId], references: [id])
+  alias           String
+  normalizedAlias String      @unique
+  origin          AliasOrigin @default(AUTO)
+  createdAt       DateTime    @default(now())
+
+  @@index([companyId])
+}
+
+model CompanyMergeLog {
+  id            Int         @id @default(autoincrement())
+  action        MergeAction
+  fromCompanyId Int // MERGE: absorbed company.  SPLIT: original company
+  toCompanyId   Int // MERGE: surviving company. SPLIT: newly created company
+  moved         Json // { aliasIds, postingIds, experienceIds, sourceIds }
+  performedById Int
+  undoneAt      DateTime?
+  undoneById    Int?
+  createdAt     DateTime    @default(now())
+
+  @@index([fromCompanyId])
+  @@index([toCompanyId])
+}
+
+model AppSetting {
+  key         String   @id
+  value       Json
+  updatedById Int?
+  updatedAt   DateTime @updatedAt
+}
+
+// ─────────────────────────── Careers: ingestion ───────────────────────────
+
+enum SourceKind {
+  GREENHOUSE
+  LEVER
+  ASHBY
+  MANUAL
+  STUDENT_LINK
+  SMARTRECRUITERS // careers P7-T7 (user OK 11 Oct: enum values added, D-14)
+  WORKABLE // careers P7-T7
+}
+
+enum SourceHealth {
+  UNKNOWN
+  OK
+  FAILING
+  ZERO_RESULTS
+  DISABLED
+}
+
+enum RunStatus {
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+enum PostingType {
+  INTERNSHIP
+  FULL_TIME
+  UNKNOWN
+}
+
+enum WorkMode {
+  ONSITE
+  HYBRID
+  REMOTE
+  UNKNOWN
+}
+
+enum Disclosure {
+  DISCLOSED
+  RANGE
+  NOT_DISCLOSED
+  UNCLEAR
+}
+
+enum PostingStatus {
+  PENDING_REVIEW
+  LIVE
+  EXPIRED
+  REJECTED
+}
+
+enum ExtractionTier {
+  STRUCTURED
+  JSON_LD
+  LLM_FAST
+  LLM_STRONG
+  MANUAL
+}
+
+enum ExtractionState {
+  QUEUED
+  DONE
+  FAILED
+  SKIPPED_BUDGET
+}
+
+enum SubmissionStatus {
+  RECEIVED
+  PROCESSING
+  EXTRACTING
+  PENDING_REVIEW
+  STORED_ONLY
+  DUPLICATE
+  FAILED
+}
+
+enum ReviewAction {
+  APPROVE
+  REJECT
+  EDIT
+  EXPIRE
+  REOPEN
+  CREATE_MANUAL
+}
+
+model Source {
+  id                  Int             @id @default(autoincrement())
+  name                String
+  kind                SourceKind
+  boardToken          String? // greenhouse board token | lever site | ashby org; null for MANUAL / STUDENT_LINK
+  companyId           Int? // an ATS board belongs to one company
+  company             Company?        @relation(fields: [companyId], references: [id])
+  isEnabled           Boolean         @default(true)
+  health              SourceHealth    @default(UNKNOWN)
+  lastRunAt           DateTime?
+  lastSuccessAt       DateTime?
+  lastFetchedCount    Int?
+  lastKeptCount       Int?
+  consecutiveFailures Int             @default(0)
+  lastError           String?         @db.Text
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  archivedAt          DateTime? // P6-T11: archived = disabled and hidden on Sources; its postings keep their history
+  excludeTitleKeywords String[] // P7-T9: this board's titles containing any of these are dropped (after the global rules); [] / NULL = none
+  includeTitleKeywords String[] // P7-T9: when set, only this board's titles containing one of these are kept
+  runs                SourceRun[]
+  observations        PostingSource[]
+
+  @@unique([kind, boardToken])
+  @@index([companyId])
+}
+
+model SourceRun {
+  id             Int       @id @default(autoincrement())
+  sourceId       Int
+  source         Source    @relation(fields: [sourceId], references: [id])
+  status         RunStatus @default(RUNNING)
+  startedAt      DateTime  @default(now())
+  finishedAt     DateTime?
+  fetchedCount   Int       @default(0)
+  keptCount      Int       @default(0) // after the relevance filter
+  newCount       Int       @default(0) // new Posting rows
+  duplicateCount Int       @default(0) // merged into existing postings
+  droppedBySourceRules Int? // P7-T9: kept by the global rules but dropped by the board's own keyword rules; NULL before P7-T9
+  error          String?   @db.Text
+
+  @@index([sourceId, startedAt])
+}
+
+model Posting {
+  id                   Int             @id @default(autoincrement())
+  companyId            Int
+  company              Company         @relation(fields: [companyId], references: [id])
+  roleTitle            String
+  roleTitleNormalized  String
+  type                 PostingType     @default(UNKNOWN)
+  ppoMentioned         Boolean? // null = not stated
+  location             String? // raw
+  locationNormalized   String? // "bengaluru|hyderabad", "remote"
+  workMode             WorkMode        @default(UNKNOWN)
+  skills               String[]
+  compCurrency         String          @default("INR")
+  stipendMin           Int? // per month
+  stipendMax           Int?
+  stipendDisclosure    Disclosure      @default(NOT_DISCLOSED)
+  ctcMin               Int? // per year
+  ctcMax               Int?
+  ctcDisclosure        Disclosure      @default(NOT_DISCLOSED)
+  compensationRaw      String? // exact source wording; required when a disclosure is UNCLEAR
+  descriptionText      String          @db.Text
+  contentFingerprint   String // 16 hex chars (simhash64)
+  applyUrl             String
+  eligibleBranches     String[] // roll-number branch codes; [] = not stated
+  eligibleYears        Int[] // academic years; [] = not stated
+  eligibleGradYears    Int[] // careers P7-T2: graduation batches ("2027 graduates"); [] / NULL = not stated
+  season               String? // careers P7-T3: SUMMER | WINTER, only when the text says so
+  startMonth           DateTime? // careers P7-T3: 1st of the stated start month (UTC)
+  durationMonths       Int? // careers P7-T3: stated internship length
+  minCpi               Decimal?        @db.Decimal(4, 2)
+  deadlineStated       DateTime? // only when the source published one
+  firstSeenAt          DateTime        @default(now())
+  lastSeenLiveAt       DateTime        @default(now())
+  status               PostingStatus   @default(PENDING_REVIEW)
+  extractionTier       ExtractionTier
+  extractionConfidence Float? // 0..1; null for MANUAL
+  uncertainFields      String[]
+  rejectReason         String?
+  reviewedById         Int?
+  reviewedAt           DateTime?
+  publishedAt          DateTime? // first time it went LIVE
+  expiredReason        ExpiryReason? // why it is EXPIRED; null = not expired, or expired before this was recorded
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  observations         PostingSource[]
+  reviews              PostingReview[]
+  saves                SavedPosting[]
+  applications         PostingApplication[]
+  reports              PostingReport[]
+  hiddenBy             HiddenPosting[]
+  dailyStats           PostingDailyStat[] // careers P7-T4 (relation only, no column)
+
+  @@index([status, lastSeenLiveAt])
+  @@index([status, publishedAt]) // "Newest first" (B-15)
+  @@index([companyId, status])
+  @@index([companyId, roleTitleNormalized])
+  @@index([contentFingerprint])
+}
+
+// One row per (source, external job): first/last seen per source (the proposal's posting_observations).
+model PostingSource {
+  id          Int      @id @default(autoincrement())
+  postingId   Int
+  posting     Posting  @relation(fields: [postingId], references: [id], onDelete: Cascade)
+  sourceId    Int
+  source      Source   @relation(fields: [sourceId], references: [id])
+  externalId  String // ATS job id; for MANUAL / STUDENT_LINK: sha1(canonicalUrl)
+  url         String
+  firstSeenAt DateTime @default(now())
+  lastSeenAt  DateTime @default(now())
+  isLive      Boolean  @default(true)
+  missedRuns  Int      @default(0)
+
+  @@unique([sourceId, externalId])
+  @@index([postingId])
+}
+
+// Audit trail of admin review actions (the proposal's extraction_reviews).
+model PostingReview {
+  id        Int          @id @default(autoincrement())
+  postingId Int
+  posting   Posting      @relation(fields: [postingId], references: [id], onDelete: Cascade)
+  action    ReviewAction
+  byUserId  Int
+  changes   Json? // { field: { from, to } }
+  note      String?
+  createdAt DateTime     @default(now())
+
+  @@index([postingId])
+}
+
+model LinkSubmission {
+  id            Int              @id @default(autoincrement())
+  url           String
+  canonicalUrl  String
+  note          String?
+  submittedById Int
+  status        SubmissionStatus @default(RECEIVED)
+  postingId     Int?
+  error         String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  // P5 (decision D-01/D-04): a link withdrawn by its student or dismissed by an admin is kept, never
+  // processed again, and the reason is shown to the student. No enum value is added for it.
+  dismissedAt   DateTime?
+  dismissReason String?
+  dismissedById Int?
+
+  shares        LinkShare[]
+
+  @@index([submittedById, createdAt])
+  @@index([status])
+  @@index([canonicalUrl])
+}
+
+// A student who shared a link someone had already shared (B-08): it shows in their "My submissions".
+model LinkShare {
+  id           Int            @id @default(autoincrement())
+  submissionId Int
+  submission   LinkSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  userId       Int
+  createdAt    DateTime       @default(now())
+
+  @@unique([submissionId, userId])
+  @@index([userId, createdAt])
+}
+
+model Extraction {
+  id             Int             @id @default(autoincrement())
+  submissionId   Int?
+  postingId      Int? // set once a posting exists
+  tier           ExtractionTier // LLM_FAST | LLM_STRONG
+  state          ExtractionState @default(QUEUED)
+  model          String? // actual model id used
+  inputText      String          @db.Text
+  inputTruncated Boolean         @default(false)
+  sourceUrl      String
+  attempts       Int             @default(0)
+  nextAttemptAt  DateTime        @default(now()) // backoff after 429 / 5xx / unreachable
+  output         Json?
+  confidence     Float?
+  error          String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([state, nextAttemptAt])
+}
+
+model LlmUsage {
+  id           Int      @id @default(autoincrement())
+  model        String
+  purpose      String // "extract" | "escalate"
+  provider     String // "ollama" | "gemini"
+  batched      Boolean  @default(false)
+  inputTokens  Int
+  outputTokens Int
+  costUsd      Decimal  @db.Decimal(10, 6) // 0 for ollama and the Gemini free tier
+  extractionId Int?
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+// ─────────────────────────── Careers: P4-lite (saved + application tracking) ───────────────────────────
+
+enum ApplicationStatus {
+  INTERESTED
+  APPLIED
+  IN_PROGRESS
+  REJECTED
+  OFFER
+}
+
+model SavedPosting {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postingId Int
+  posting   Posting  @relation(fields: [postingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postingId])
+  @@index([postingId])
+}
+
+model PostingApplication {
+  id        Int               @id @default(autoincrement())
+  userId    Int
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postingId Int
+  posting   Posting           @relation(fields: [postingId], references: [id], onDelete: Cascade)
+  status    ApplicationStatus
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  note      String? // P6-T10: the student's own note, plain text, at most 500 characters
+  appliedAt DateTime? // P6-T10: when the status first became Applied (or a later stage); null before, or for rows from before P6-T10
+
+  @@unique([userId, postingId])
+  @@index([postingId])
+}
+
+// Why a posting expired: only BOARD (it left its board / its page is gone) may come back by itself.
+enum ExpiryReason {
+  BOARD
+  ADMIN
+  DEADLINE
+}
+
+// A student's report of a problem with a posting (P6-T7, F-05). One per student and posting.
+// reason: CLOSED | WRONG_PAY | WRONG_ELIGIBILITY | NOT_A_JOB | OTHER (checked in code, not an enum,
+// so a reason can be added without ALTER TYPE). handledAt: an admin looked at it; only open reports
+// count towards the automatic "reported" flag. Who reported is never shown to anyone.
+model PostingReport {
+  id        Int       @id @default(autoincrement())
+  postingId Int
+  posting   Posting   @relation(fields: [postingId], references: [id], onDelete: Cascade)
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reason    String
+  note      String?
+  createdAt DateTime  @default(now())
+  handledAt DateTime?
+
+  @@unique([userId, postingId])
+  @@index([postingId, handledAt])
+}
+
+// "Not for me" (P6-T9, F-12): a posting a student hid from their own jobs list. Private to the
+// student; nobody else's list changes.
+model HiddenPosting {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postingId Int
+  posting   Posting  @relation(fields: [postingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postingId])
+  @@index([postingId])
+}
+
+enum AlertFrequency {
+  DAILY
+  WEEKLY
+}
+
+// careers P7-T1 (F-19): a student's job alert. filters = the jobs-page query params; the digest lists
+// LIVE postings published since lastRunAt. token = the no-login unsubscribe link.
+model SavedSearch {
+  id             Int            @id @default(autoincrement())
+  userId         Int
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String
+  filters        Json
+  frequency      AlertFrequency @default(WEEKLY)
+  token          String         @unique
+  unsubscribedAt DateTime?
+  lastRunAt      DateTime?
+  lastSentAt     DateTime?
+  lastSentCount  Int?
+  lastError      String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([userId])
+}
+
+// careers P7-T4 (F-30): Apply clicks per posting and IST day. Counts only, never who clicked.
+model PostingDailyStat {
+  id          Int      @id @default(autoincrement())
+  postingId   Int
+  posting     Posting  @relation(fields: [postingId], references: [id], onDelete: Cascade)
+  day         DateTime // start of the IST day (UTC instant)
+  applyClicks Int      @default(0)
+
+  @@unique([postingId, day])
+  @@index([day])
+}
+
+// careers P7-T4: one row per student and IST week who opened the jobs list. visitorKey is a keyed
+// hash of the user id and the week, so a row cannot be tied to a student, or to the same student
+// in another week. Only counted, never listed.
+model CareersWeeklyVisitor {
+  weekStart  DateTime
+  visitorKey String
+
+  @@id([weekStart, visitorKey])
+}
+
+// careers P8-T2 (F-02 level 2): one line per permanently deleted posting. The posting and its history
+// go; this row keeps what it was, who deleted it, when and why. No foreign key (the posting is gone).
+model PostingDeletion {
+  id          Int      @id @default(autoincrement())
+  postingId   Int
+  roleTitle   String
+  companyName String
+  status      String // the posting's status when it was deleted
+  reason      String
+  removed     Json // counts: { saves, applications, reports, hidden, observations, reviews, applyClicks }
+  byUserId    Int
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([byUserId])
 }
 
 // ---------------------------------------------------------------------------
