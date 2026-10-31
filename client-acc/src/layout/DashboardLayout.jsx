@@ -30,7 +30,8 @@ export default function DashboardLayout() {
     user?.role === "ANNOUNCEMENT_ADMIN" ||
     user?.role === "RESOURCE_ADMIN" ||
     user?.role === "CAREER_ADMIN" ||
-    user?.role === "FINANCE_ADMIN";
+    user?.role === "FINANCE_ADMIN" ||
+    user?.role === "RESEARCH_ADMIN";
   const isCareerAdmin = user?.role === "CAREER_ADMIN";
   const isFinanceAdmin = user?.role === "FINANCE_ADMIN";
   const isResearchAdmin = user?.role === "RESEARCH_ADMIN";
@@ -49,14 +50,14 @@ export default function DashboardLayout() {
       return;
     }
 
-    if (isAdmin || isResearchAdmin) {
+    if (isAdmin) {
       if (location.pathname.startsWith("/admin")) {
         setViewRole("admin");
       } else {
         setViewRole("STUDENT");
       }
     }
-  }, [location.pathname, isAdmin, isFaculty, isCareerAdmin, isResearchAdmin]);
+  }, [location.pathname, isAdmin, isFaculty, isCareerAdmin, isFinanceAdmin, isResearchAdmin]);
 
   return (
     <div className="flex h-[calc(100vh-64px)] bg-[#F8FAFC] text-slate-800 relative overflow-hidden">
@@ -104,7 +105,7 @@ export default function DashboardLayout() {
 
         {/* User Card */}
         <div className="bg-gradient-to-br from-slate-50 via-white to-slate-50 rounded-xl mx-3.5 p-3.5 my-3 border border-slate-200/90 shadow-2xs relative">
-          {(isAdmin || isCareerAdmin || isFinanceAdmin || isResearchAdmin) && !isFaculty && (
+          {isAdmin && !isFaculty && (
             <button
               onClick={() => {
                 const target =
@@ -155,8 +156,7 @@ export default function DashboardLayout() {
 
         {/* Navigation Items */}
         <nav className="flex-1 px-3 space-y-1 overflow-y-auto scrollbar-thin" data-lenis-prevent>
-          {(isSTUDENT ||
-            ((isAdmin || isCareerAdmin || isResearchAdmin) && viewRole === "STUDENT")) && (
+          {(isSTUDENT || (isAdmin && viewRole === "STUDENT")) && (
               <>
                 <p className="px-3 text-[10px] font-bold text-slate-400 uppercase my-2 tracking-wider">
                   Student Navigation
@@ -214,7 +214,7 @@ export default function DashboardLayout() {
               </>
             )}
 
-          {isAdmin && !isCareerAdmin && viewRole === "admin" && (
+          {isAdmin && !isCareerAdmin && !isFinanceAdmin && !isResearchAdmin && viewRole === "admin" && (
             <>
               <p className="px-3 text-[10px] font-bold text-slate-400 uppercase my-2 tracking-wider">
                 Admin Panel
