@@ -51,6 +51,19 @@ import CareersOperations from "./pages/admin/careers/Operations.jsx";
 import CareersBackfill from "./pages/admin/careers/ExperienceBackfill.jsx";
 import CareersAllPostings from "./pages/admin/careers/AllPostings.jsx";
 import CareersActivityLog from "./pages/admin/careers/ActivityLog.jsx";
+import ResearchVault from "./pages/ResearchVault/index.jsx";
+import ResearchVaultAdmin from "./pages/ResearchVault/ResearchVaultAdmin.jsx";
+import ResearchQuestionList from "./pages/ResearchVault/ResearchQuestionList.jsx";
+import ResearchQuestionDetail from "./pages/ResearchVault/ResearchQuestionDetail.jsx";
+import PositionDetail from "./pages/ResearchVault/PositionDetail.jsx";
+import ExperienceDetail from "./pages/ResearchVault/ExperienceDetail.jsx";
+import FacultyDetail from "./pages/ResearchVault/FacultyDetail.jsx";
+import DoubtForum from "./pages/DoubtForum/index.jsx";
+import AskDoubt from "./pages/DoubtForum/AskDoubt.jsx";
+import DoubtThread from "./pages/DoubtForum/DoubtThread.jsx";
+import ManageDoubts from "./pages/admin/ManageDoubts.jsx";
+
+
 const AppRoutes = () => {
   return (
     <Routes>
@@ -80,6 +93,7 @@ const AppRoutes = () => {
               "FACULTY",
               "CAREER_ADMIN",
               "FINANCE_ADMIN",
+              "RESEARCH_ADMIN",
               ]}
           >
             <DashboardLayout />
@@ -101,6 +115,12 @@ const AppRoutes = () => {
 <Route path="career-vault/saved" element={<SavedPage />} />
 
 <Route path="finance-vault" element={<FinanceVault />} />
+<Route path="research-vault" element={<ResearchVault />} />
+<Route path="research-vault/questions" element={<ResearchQuestionList />} />
+<Route path="research-vault/questions/:questionId" element={<ResearchQuestionDetail />} />
+<Route path="research-vault/positions/:positionId" element={<PositionDetail />} />
+<Route path="research-vault/faculty/:facultyId" element={<FacultyDetail />} />
+          <Route path="research-vault/experiences/:experienceId" element={<ExperienceDetail />} />
 
 <Route
   path="finance-vault/:id"
@@ -109,6 +129,12 @@ const AppRoutes = () => {
 
 <Route path="level-up" element={<LevelUp />} />
 <Route path="level-up/:roadmapSlug/:chapterSlug" element={<LevelUp />} />
+
+        {/* ACC Wiki: doubt forum */}
+        <Route path="doubts" element={<DoubtForum />} />
+        <Route path="doubts/ask" element={<AskDoubt />} />
+        <Route path="doubts/:id" element={<DoubtThread />} />
+        <Route path="doubts/:id/edit" element={<AskDoubt />} />
       </Route>
 
       {/* admin  */}
@@ -123,6 +149,7 @@ const AppRoutes = () => {
               "FACULTY",
                 "CAREER_ADMIN",
               "FINANCE_ADMIN",
+              "RESEARCH_ADMIN",
 
             ]}
           >
@@ -130,11 +157,28 @@ const AppRoutes = () => {
             </ProtectedRoute>
         }
       >
+
+        <Route
+          path="research-vault"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY", "RESEARCH_ADMIN"]}>
+              <ResearchVaultAdmin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="research-vault/experiences/:experienceId"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY", "RESEARCH_ADMIN"]}>
+              <ExperienceDetail />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="dashboard"
           element={
             <ProtectedRoute
-              roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "RESOURCE_ADMIN", "FACULTY",]}
+              roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "RESOURCE_ADMIN", "FACULTY"]}
             >
               <AdminDashboard />
             </ProtectedRoute>
@@ -233,7 +277,7 @@ const AppRoutes = () => {
 <Route
   path="level-up"
   element={
-    <ProtectedRoute roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "RESOURCE_ADMIN", "FACULTY", "CAREER_ADMIN", "FINANCE_ADMIN"]}>
+    <ProtectedRoute roles={["SUPER_ADMIN", "ANNOUNCEMENT_ADMIN", "RESOURCE_ADMIN", "FACULTY", "CAREER_ADMIN", "FINANCE_ADMIN", "RESEARCH_ADMIN"]}>
       <ManageRoadmap />
     </ProtectedRoute>
   }
@@ -302,6 +346,14 @@ const AppRoutes = () => {
     </ProtectedRoute>
   }
 />
+        <Route
+          path="manage-doubts"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY"]}>
+              <ManageDoubts />
+            </ProtectedRoute>
+          }
+        />
       </Route>
      
     </Routes>

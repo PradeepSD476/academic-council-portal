@@ -38,6 +38,17 @@ model User {
   postingReports      PostingReport[] // careers P6 (relation only, no column)
   hiddenPostings      HiddenPosting[] // careers P6 (relation only, no column)
   savedSearches       SavedSearch[] // careers P7 (relation only, no column)
+
+  // Research Vault (4 Models)
+  researchOpenPositions       ResearchOpenPosition[] @relation("OpenPositionsUploaded")
+  researchResourcesUploaded   ResearchResource[]     @relation("ResearchResourcesUploaded")
+  researchResourcesApproved   ResearchResource[]     @relation("ResearchResourcesApproved")
+  researchDiscussionsAuthored ResearchDiscussion[]   @relation("ResearchDiscussionsAuthored")
+
+  doubts       Doubt[]
+  doubtAnswers DoubtAnswer[]
+  doubtVotes   DoubtVote[]
+  doubtReports DoubtReport[]
 }
 
 model Experience {
@@ -188,8 +199,8 @@ model FinanceVault {
   applicableBranch String[]
   academicYear     String?
 
-  subCategory      String[]
-  state            String[]
+  subCategory String[]
+  state       String[]
 
   deadline DateTime?
 
@@ -213,6 +224,7 @@ enum Role {
   FACULTY
   CAREER_ADMIN
   FINANCE_ADMIN
+  RESEARCH_ADMIN
 }
 
 enum VerificationType {
@@ -826,4 +838,244 @@ model PostingDeletion {
 
   @@index([createdAt])
   @@index([byUserId])
+}
+
+// ---------------------------------------------------------------------------
+// ACC Wiki: doubt-resolution forum
+// ---------------------------------------------------------------------------
+
+model Doubt {
+  id        Int           @id @default(autoincrement())
+  title     String
+  body      String        @db.Text
+  category  String        @default("Other")
+  status    DoubtStatus   @default(OPEN)
+  isPinned  Boolean       @default(false)
+  isLocked  Boolean       @default(false)
+  isHidden  Boolean       @default(false)
+  authorId  Int
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  answers   DoubtAnswer[]
+  votes     DoubtVote[]
+  reports   DoubtReport[]
+
+  @@index([authorId])
+  @@index([category])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model DoubtAnswer {
+  id         Int           @id @default(autoincrement())
+  body       String        @db.Text
+  isAccepted Boolean       @default(false)
+  isHidden   Boolean       @default(false)
+  doubtId    Int
+  authorId   Int
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  doubt      Doubt         @relation(fields: [doubtId], references: [id], onDelete: Cascade)
+  author     User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  votes      DoubtVote[]
+  reports    DoubtReport[]
+
+  @@index([doubtId])
+  @@index([authorId])
+}
+
+model DoubtVote {
+  id        Int          @id @default(autoincrement())
+  userId    Int
+  doubtId   Int?
+  answerId  Int?
+  createdAt DateTime     @default(now())
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  doubt     Doubt?       @relation(fields: [doubtId], references: [id], onDelete: Cascade)
+  answer    DoubtAnswer? @relation(fields: [answerId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, doubtId])
+  @@unique([userId, answerId])
+  @@index([doubtId])
+  @@index([answerId])
+}
+
+model DoubtReport {
+  id         Int               @id @default(autoincrement())
+  reason     String
+  status     DoubtReportStatus @default(PENDING)
+  reporterId Int
+  doubtId    Int?
+  answerId   Int?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  reporter   User              @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  doubt      Doubt?            @relation(fields: [doubtId], references: [id], onDelete: Cascade)
+  answer     DoubtAnswer?      @relation(fields: [answerId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([doubtId])
+  @@index([answerId])
+}
+
+enum DoubtStatus {
+  OPEN
+  RESOLVED
+}
+
+enum DoubtReportStatus {
+  PENDING
+  ACTIONED
+  DISMISSED
+}
+
+// ===========================================================================
+// Research Vault (Exactly 4 Models)
+// ===========================================================================
+
+enum ResearchResourceType {
+  GUIDE
+  PAPER
+  TEMPLATE
+  EXPERIENCE
+}
+
+enum ResourceStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum OpeningStatus {
+  OPEN
+  CLOSED
+}
+
+// 1. FACULTY DIRECTORY
+model FacultyProfile {
+  id                 Int      @id @default(autoincrement())
+  name               String
+  slug               String   @unique
+  designation        String?
+  department         String?
+  email              String?  @unique
+  phone              String?
+  officeLocation     String?
+  photoUrl           String?
+  websiteUrl         String?
+  personalWebsiteUrl String?
+  googleScholarUrl   String?
+  linkedinUrl        String?
+  biography          String?  @db.Text
+  publications       String?  @db.Text
+  researchAreas      String[]
+  isActive           Boolean  @default(true)
+  profileViewCount   Int      @default(0)
+
+  openings  ResearchOpenPosition[]
+  resources ResearchResource[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([department])
+  @@index([researchAreas], type: Gin)
+}
+
+// 2. OPEN RESEARCH POSITIONS
+model ResearchOpenPosition {
+  id                 Int           @id @default(autoincrement())
+  title              String
+  description        String?       @db.Text
+  positionType       String        @default("RA")
+  requirements       String?       @db.Text
+  eligibility        String?
+  positionsAvailable Int           @default(1)
+  positionsFilled    Int           @default(0)
+  status             OpeningStatus @default(OPEN)
+  deadline           DateTime?
+  applicationUrl     String?
+  howToApply         String?
+  researchAreas      String[]
+  bookmarkedUserIds  Int[]         @default([])
+
+  facultyId    Int?
+  faculty      FacultyProfile? @relation(fields: [facultyId], references: [id], onDelete: SetNull)
+  uploadedById Int
+  uploadedBy   User            @relation("OpenPositionsUploaded", fields: [uploadedById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([facultyId])
+  @@index([status, deadline])
+  @@index([researchAreas], type: Gin)
+}
+
+// 3. RESEARCH RESOURCES (Guides, Papers, Templates, and Student Experiences)
+model ResearchResource {
+  id               Int                  @id @default(autoincrement())
+  title            String
+  description      String?
+  type             ResearchResourceType @default(GUIDE)
+  content          String?              @db.Text
+  meta             Json?
+  url              String?
+  filePath         String?
+  fileSize         Int?
+  mimeType         String?
+  format           String?
+  sourceType       String               @default("FILE")
+  status           ResourceStatus       @default(PENDING)
+  rejectionReason  String?
+  consentConfirmed Boolean              @default(false)
+  researchAreas    String[]
+  viewCount        Int                  @default(0)
+  downloadCount    Int                  @default(0)
+
+  facultyId Int?
+  faculty   FacultyProfile? @relation(fields: [facultyId], references: [id], onDelete: SetNull)
+
+  uploadedById Int?
+  uploadedBy   User?     @relation("ResearchResourcesUploaded", fields: [uploadedById], references: [id])
+  approvedById Int?
+  approvedBy   User?     @relation("ResearchResourcesApproved", fields: [approvedById], references: [id])
+  reviewedAt   DateTime?
+
+  discussions ResearchDiscussion[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, type])
+  @@index([facultyId])
+  @@index([researchAreas], type: Gin)
+}
+
+// 4. RESEARCH DISCUSSIONS (Q&A, 1-Level Threaded Replies, and Resource Comments)
+model ResearchDiscussion {
+  id            Int      @id @default(autoincrement())
+  title         String?
+  content       String   @db.Text
+  researchAreas String[]
+  upvotes       Int      @default(0)
+  voterIds      Int[]    @default([])
+
+  resourceId Int?
+  resource   ResearchResource? @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  parentId Int?
+  parent   ResearchDiscussion?  @relation("DiscussionReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  ResearchDiscussion[] @relation("DiscussionReplies")
+
+  authorId Int
+  author   User @relation("ResearchDiscussionsAuthored", fields: [authorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([resourceId])
+  @@index([parentId, createdAt])
+  @@index([researchAreas], type: Gin)
 }

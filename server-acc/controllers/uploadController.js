@@ -3,12 +3,12 @@ import { getUploadSignedUrl } from "../utils/signedUrl.js";
 const signedURL = async (req, res) => {
     try {
         const { filename, contentType, folder } = req.body;
-        console.log(req.body)
-        if (!filename || !contentType) {
-            return res.status(400).json({ success: false, message: 'Missing filename or contentType.' });
+        if (!filename) {
+            return res.status(400).json({ success: false, message: 'Missing filename.' });
         }
+        const resolvedType = contentType || 'application/octet-stream';
 
-        const { signedURL, filePath } = await getUploadSignedUrl({ fileName: filename, contentType: contentType, folder: folder })
+        const { signedURL, filePath } = await getUploadSignedUrl({ fileName: filename, contentType: resolvedType, folder: folder || 'uploads' })
         console.log(signedURL, filePath)
         res.status(200).json({
             success: true,
