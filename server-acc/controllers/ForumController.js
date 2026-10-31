@@ -302,7 +302,8 @@ export const editPost = async (req, res) => {
             data: dataToUpdate
         })
 
-        if(status === "PUBLISHED"){
+        // Careers B-49: only when it goes live, so editing a published experience doesn't email everyone again.
+        if(status === "PUBLISHED" && post.status !== "PUBLISHED"){
             notifyOnNewPost({ displayName: post.uploadedBy?.displayName || 'Anonymous', experienceTitle: title, experienceType: experienceType, company: domain || 'N/A' })
         }
 
