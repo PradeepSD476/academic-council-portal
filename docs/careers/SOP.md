@@ -54,20 +54,39 @@ Two copies of the same job never run at once (database lock), so a manual run an
 
 ## A2. First deploy
 
-**Merging the PR does not deploy this feature.** The automatic deploy (`.github/workflows/deploy.yml`) only pulls the code on the institute VM and rebuilds the website. It does not rebuild the backend, run migrations or start the worker, and the backend doesn't run migrations when it starts. Until the steps below are done, the feature stays hidden, because the website gets no answer from the old backend.
+**Merging the PR does not deploy this feature.** The automatic deploy (`.github/workflows/deploy.yml`) only pulls the code on the institute VM and runs a client build there. The site is served by the `frontend-acc` container, so nothing new goes live: not the website, the backend, the migrations or the worker. Run the steps below by hand.
 
-Run in `server-acc/` on the server (`/home/iitp/Academic-Council-Portal`):
+Do this at a quiet time: the backend and website restart in step 6. Run everything from the repo root on the server (`/home/iitp/Academic-Council-Portal`).
 
-1. `npm ci`
-2. `npx prisma migrate deploy`: applies the 21 `careers_*` migrations. They only **add** tables and columns; nothing existing is changed or dropped.
-3. `npm run careers:seed`: inserts default settings, the starter company list and a starter set of job boards. It only adds what is missing, so it is safe to run again.
-4. From the repo root, run `docker compose up -d --build backend-acc fetcher-acc`.
-5. Log in as a career admin and open **Sources & Ops** in the sidebar (this is the **Operations** page). Check:
+**Migrations must run through Docker,** as shown. The `.env` database address only works inside Docker, so `npx prisma …` run directly on the VM can't reach the database.
+
+1. **Back up the database.** Keep the file outside the repo, because it holds student data.
+
+   ```
+   docker compose exec -T postgres-acc sh -c 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' > ~/acc-backup-$(date +%F).sql
+   ```
+
+2. **Build the new images:** `docker compose build backend-acc fetcher-acc frontend-acc`
+3. **Check what will be applied:** `docker compose run --rm backend-acc npx prisma migrate status`
+   - Expect the 21 `careers_*` migrations as pending, plus `doubt_forum` and `research_vault` if they aren't live yet. The command exits with an error code while anything is pending; that is normal.
+   - **Stop and investigate** if it reports a failed migration, or if those tables were created some other way (by hand or with `prisma db push`). `migrate deploy` would try to create them again and stop with an error.
+4. **Apply them:** `docker compose run --rm backend-acc npx prisma migrate deploy`. These only **add** tables and columns; nothing existing is changed or dropped.
+5. **Add defaults:** `docker compose run --rm backend-acc npm run careers:seed`. This inserts default settings, the starter company list and a starter set of job boards. It only adds what is missing, so it is safe to run again.
+6. **Start everything:** `docker compose up -d backend-acc fetcher-acc frontend-acc`
+7. **Check the VM can reach job boards:** `docker compose run --rm fetcher-acc node scripts/careers/verifyBoard.js greenhouse stripe`
+   - It should list jobs. If it can't connect, the VM probably needs a campus proxy, and this feature has no proxy support, so the network must allow outbound HTTPS.
+8. Log in as a career admin and open **Sources & Ops** in the sidebar (this is the **Operations** page). Check:
    - the **Worker** card says **Running**;
    - there are no red alerts.
-6. Click **Sources** (top of Operations), add any further job boards, then **Fetch all now**.
-7. Open **Jobs Review** and approve a first batch of openings.
-8. Back on Operations, switch on **Show Jobs & Internships to students** (it asks you to confirm). We recommend about one week of admin-only use first.
+9. Click **Sources** (top of Operations), add any further job boards, then **Fetch all now**.
+10. Open **Jobs Review** and approve a first batch of openings.
+11. Back on Operations, switch on **Show Jobs & Internships to students** (it asks you to confirm). We recommend about one week of admin-only use first.
+
+**Worth checking once on your server:**
+
+- **nginx timeout:** `nginx-acc/` isn't in the repo. **Add boards in bulk** and **Fill from link** can take over a minute, so make sure `proxy_read_timeout` for the API allows that. If it's too short, the admin sees an error although the work finishes.
+- **`NODE_ENV=production`** in `server-acc/.env`: the `cleanup` command only refuses to run on live data when this is set.
+- **Ollama:** inside a container `localhost` is the container itself, so `OLLAMA_URL` must point elsewhere. This doesn't apply to Groq.
 
 ## A3. Environment variables (`server-acc/.env`)
 
@@ -164,7 +183,7 @@ Their settings can't be changed through the portal or its API, so nothing is ema
 
 ## A7. Command-line tools
 
-Run in `server-acc/`, or with `docker compose exec fetcher-acc …`:
+Run these inside the worker container, for example `docker compose exec fetcher-acc npm run careers:job -- links`:
 
 | Command | Use |
 |---|---|
@@ -187,10 +206,11 @@ None of this needs a redeploy:
 
 ## A9. After every pull or upgrade
 
-1. `npx prisma migrate status`. If it lists pending migrations, run `npx prisma migrate deploy`.
+1. Build the images: `docker compose build backend-acc fetcher-acc frontend-acc`
+2. Check migrations: `docker compose run --rm backend-acc npx prisma migrate status`. If it lists pending ones, back up the database (A2 step 1), then run `docker compose run --rm backend-acc npx prisma migrate deploy`.
    - A database behind the code shows up as errors like *"column … does not exist"*.
-2. Restart both: `docker compose up -d --build backend-acc fetcher-acc`.
-3. **Never** use `prisma db push` or `prisma migrate reset` on the server.
+3. Start them: `docker compose up -d backend-acc fetcher-acc frontend-acc`
+4. **Never** use `prisma db push` or `prisma migrate reset` on the server.
 
 ## A10. Before you ship a UI change: the 10-minute browser check
 
@@ -205,7 +225,7 @@ Automated tests don't catch layout bugs. Before merging any change to these page
 
 Testing safety:
 - Use throwaway test data and remove it afterwards (`cleanup` in A7 helps).
-- **Never click Publish Post on a test Career Vault experience.** The existing portal emails *every user* when an experience is published.
+- **Never click Publish Post on a test Career Vault experience.** The portal emails *every user* the first time an experience is published.
 
 ---
 
