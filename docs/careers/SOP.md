@@ -54,7 +54,9 @@ Two copies of the same job never run at once (database lock), so a manual run an
 
 ## A2. First deploy
 
-Run in `server-acc/` on the server:
+**Merging the PR does not deploy this feature.** The automatic deploy (`.github/workflows/deploy.yml`) only pulls the code on the institute VM and rebuilds the website. It does not rebuild the backend, run migrations or start the worker, and the backend doesn't run migrations when it starts. Until the steps below are done, the feature stays hidden, because the website gets no answer from the old backend.
+
+Run in `server-acc/` on the server (`/home/iitp/Academic-Council-Portal`):
 
 1. `npm ci`
 2. `npx prisma migrate deploy`: applies the 21 `careers_*` migrations. They only **add** tables and columns; nothing existing is changed or dropped.
@@ -85,7 +87,28 @@ The API and the worker share the same `.env` file. Never put real values in git.
 | `POSTGRES_DATABASE_URL` | yes (existing) | The worker needs the database too. |
 | `DEV_SEED_PASSWORD` | **local only** | For the developers' demo accounts. Not used on the server. |
 
-The AI step is optional. With it off, links that can't be read automatically wait for an admin, under **Student links → Needs attention**.
+**After any change to `.env`,** run `docker compose up -d backend-acc fetcher-acc` from the repo root. `docker compose restart` is not enough: it keeps the old values.
+
+### Turning on the AI step with Groq
+
+The AI step is optional. With it off, links that can't be read automatically wait for an admin, under **Student links → Needs attention**. API keys are never in git: `.env` is ignored, so each server needs its own key added by hand.
+
+1. Create a key at [console.groq.com/keys](https://console.groq.com/keys). Use an account ACC owns, not a student's personal one: the limits are per account, and the key has to outlast any one student.
+2. On the server, add these two lines to `server-acc/.env`:
+
+   ```
+   LLM_PROVIDER=groq
+   GROQ_API_KEY=<your key>
+   ```
+
+   Leave `CAREERS_LLM_FAST_MODEL` empty to use the default model, `openai/gpt-oss-120b`.
+3. From the repo root, run `docker compose up -d backend-acc fetcher-acc`. Both need the key: the worker reads student links, and the API runs **Fill from link** and the status check.
+4. In the portal, open **Sources & Ops** and switch on **Automatic extraction for student links**.
+5. Check the **LLM (groq)** card on Operations, and that there is no red "not usable" alert (it can take about 1.5 minutes to update). A wrong key shows up there.
+
+Keep the key out of chat, email and tickets. To change it, edit `.env` and repeat step 3.
+
+**How much it can handle:** Groq's free tier allows 200,000 tokens a day, which is roughly 50 – 80 pages (an estimate). Only links with no job-board data use it, so job boards don't count. Check your account's limits page for the current numbers.
 
 ## A4. Is the worker healthy?
 
@@ -132,7 +155,7 @@ Their settings can't be changed through the portal or its API, so nothing is ema
 | The worker has not reported for N minutes / has never reported | Worker stopped or stuck | See A4. |
 | *Board* is failing: … | That job board returned an error | Open **Sources**, check the board. Test the token with `verifyBoard.js` (A7). Archive the board if it is gone. |
 | *Board* returned 0 jobs on its last run | Board is empty or moved | Check the company's careers page; fix or archive the board. |
-| LLM extraction is on but … is not usable | AI provider down or key wrong | Fix the key or provider in `.env` and restart, or switch the AI step off. |
+| LLM extraction is on but … is not usable | AI provider down or key wrong | Fix the key or provider in `.env` and run `docker compose up -d backend-acc fetcher-acc` (see A3), or switch the AI step off. |
 | N postings are waiting in Flagged | Review backlog | Admins: **Jobs Review → Flagged**. |
 | N student link(s) failed to process | Links that need a retry or a decision | Admins: **Jobs Review → Student links → Needs attention**. |
 | N student link(s) have waited more than 48 hours | Links nobody has handled | Same place: create a posting or dismiss. |
