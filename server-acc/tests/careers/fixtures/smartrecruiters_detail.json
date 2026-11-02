@@ -1,0 +1,143 @@
+{
+ "6000000001476174": {
+  "id": "6000000001476174",
+  "name": "Software Dev Engineer I",
+  "uuid": "00ea60a4-021e-4be8-b053-c7016e0b0607",
+  "jobId": "15d81192-39c1-43a4-8ac8-d99017fa45f7",
+  "jobAdId": "157edde6-39a1-44c9-b03b-875b6909d1f7",
+  "defaultJobAd": true,
+  "refNumber": "REF267M",
+  "company": {
+   "name": "SWIGGY",
+   "identifier": "SWIGGY"
+  },
+  "location": {
+   "city": "Bengaluru",
+   "region": "KA",
+   "country": "in",
+   "remote": false,
+   "hybrid": true,
+   "latitude": "12.9628957",
+   "longitude": "77.57754",
+   "fullLocation": "Bengaluru, KA, India"
+  },
+  "releasedDate": "2026-10-09T11:13:46.983Z",
+  "postingUrl": "https://jobs.smartrecruiters.com/SWIGGY/6000000001476174-software-dev-engineer-i",
+  "applyUrl": "https://jobs.smartrecruiters.com/SWIGGY/6000000001476174-software-dev-engineer-i?oga=true",
+  "referralUrl": "https://jobs.smartrecruiters.com/external-referrals/company/SWIGGY/publication/00ea60a4-021e-4be8-b053-c7016e0b0607?dcr_ci=SWIGGY",
+  "jobAd": {
+   "sections": {
+    "companyDescription": {
+     "title": "Company Description",
+     "text": "<p>At Swiggy, SDE I(s) play an integral role in owning end-to-end Design/Architecture of complex systems.They co-own the technology vision of the respective team and significantly contribute to the overall success of the team. They partner with the product/business teams to understand the product features and specifications, translate them into high level and low-level design thereby facilitating the team in design and development of mission critical applications.</p><p>&#xa0;</p>"
+    },
+    "jobDescription": {
+     "title": "Job Description",
+     "text": "<p><strong>What qualities are we looking for?</strong></p><ul><li>Proficient understanding of React Native and React Fundamentals</li><li>Experience and working knowledge of Android Native development.</li><li>Good understanding of ES6 and above.</li><li>Experience with Typescript is required.</li><li>Sound knowledge of design patterns and practices for writing clean, linted, maintainable and reusable code.</li><li>Understanding of Version Control Systems like Git</li><li>Experience in using supplementary libraries like Redux, Redux Saga, Zustand, Lerna etc is a plus.</li><li>Experience in TDD (Test Driven Development) for Unit Testing with libraries like Jest, react-native-testing library etc.</li></ul><p><strong>What will you get to do here?</strong></p><ul><li>Enable best practices to help the team achieve their technical tasks and continually thrive in improving the technology of the product/team.</li><li>Develop user-facing features and apps.</li><li>Build reusable code and libraries for future use</li><li>Ensure the technical feasibility of UI/UX designs</li><li>Be extremely detail oriented to strive for pixel perfect implementation in all android devices.</li><li>Optimize application for maximum speed and scalability</li><li>Should know the internals of third party libraries being used</li></ul>"
+    },
+    "qualifications": {
+     "title": "Qualifications",
+     "text": "<ul><li>B Tech/M Tech in Computer Science or equivalent from a reputed college with 1-3 years of experience in a product development company (strong internship/project experience considered).</li></ul>"
+    },
+    "additionalInformation": {
+     "title": "Additional Information",
+     "text": "<p><strong>Visit our tech blogs to learn more about some the challenges we deal with:</strong><br>\nhttps://bytes.swiggy.com/the-swiggy-delivery-challenge-part-one-6a2abb4f82f6</p><p>https://bytes.swiggy.com/swiggy-distance-service-9868dcf613f4<br>\nhttps://bytes.swiggy.com/the-tech-that-brings-you-your-food-1a7926229886</p><p>&#xa0;</p><div sr-tagline=\"\"></div><p><strong>Visit our tech blogs to learn more about some the challenges we deal with:&#xa0;https://medium.com/swiggy-bytes</strong></p><p><strong>We are an equal opportunity employer and all qualified applicants will receive consideration for employment without regard to race, colour, religion, sex, disability status, or any other characteristic protected by the law.</strong></p>"
+    }
+   }
+  },
+  "active": true,
+  "visibility": "PUBLIC",
+  "industry": {
+   "id": "it_and_services",
+   "label": "Information Technology And Services"
+  },
+  "function": {
+   "id": "engineering",
+   "label": "Engineering"
+  },
+  "experienceLevel": {
+   "id": "entry_level",
+   "label": "Entry Level"
+  },
+  "typeOfEmployment": {
+   "id": "permanent",
+   "label": "Full-time"
+  },
+  "language": {
+   "code": "en",
+   "label": "English",
+   "labelNative": "English (US)"
+  }
+ },
+ "6000000001466226": {
+  "id": "6000000001466226",
+  "name": "Junior Sales Manager",
+  "uuid": "e94797d9-5426-49ca-a069-cffafc37f33d",
+  "jobId": "646efb1d-20b0-4e91-a9b9-9fdada3d9354",
+  "jobAdId": "895e634b-1196-43a1-9260-f0c09704904b",
+  "defaultJobAd": true,
+  "refNumber": "REF1048Y",
+  "company": {
+   "name": "SWIGGY",
+   "identifier": "SWIGGY"
+  },
+  "location": {
+   "city": "Ratlam",
+   "region": "MP",
+   "country": "in",
+   "postalCode": "457001",
+   "remote": false,
+   "hybrid": false,
+   "latitude": "23.3315103",
+   "longitude": "75.0366677",
+   "fullLocation": "Ratlam, MP, India"
+  },
+  "releasedDate": "2026-10-06T12:46:28.271Z",
+  "postingUrl": "https://jobs.smartrecruiters.com/SWIGGY/6000000001466226-junior-sales-manager",
+  "applyUrl": "https://jobs.smartrecruiters.com/SWIGGY/6000000001466226-junior-sales-manager?oga=true",
+  "referralUrl": "https://jobs.smartrecruiters.com/external-referrals/company/SWIGGY/publication/e94797d9-5426-49ca-a069-cffafc37f33d?dcr_ci=SWIGGY",
+  "jobAd": {
+   "sections": {
+    "companyDescription": {
+     "title": "Company Description",
+     "text": "<p>About Swiggy:</p><p>Swiggy is India's leading on-demand delivery platform with a tech-first approach to logistics and a solution-first approach to consumer demands. With a presence in 500 cities across India, partnerships with hundreds of thousands of restaurants, an employee base of over 5000, a 2 lakh+ strong independent fleet of Delivery Executives, we deliver unparalleled convenience driven by continuous innovation.</p><p>Built on the back of robust ML technology and fueled by terabytes of data processed every day, Swiggy offers a fast, seamless and reliable delivery experience for millions of customers across India.</p><p>From starting out as a hyperlocal food delivery service in 2014, to becoming a logistics hub of excellence today, our capabilities result not only in lightning-fast delivery for customers, but also in a productive and fulfilling experience for our employees.</p><p>With Swiggy's New Supply and the recent launches of Swiggy Instamart, Swiggy Genie, and Guiltfree, we are consistently making waves in the market, while continually growing the opportunities we offer our people.</p>"
+    },
+    "jobDescription": {
+     "title": "Job Description",
+     "text": "<p>Overview</p><p>A Junior Sales Manager owns the acquisition and engagement of single-outlet independent restaurants across an assigned city. You are the primary touchpoint for these restaurants—learning their business, understanding their challenges, and building a partnership where you help the restaurant partner directly drive their growth in orders, visibility, and customer engagement. This role is Consultative &amp; On-Field and requires you to be resourceful, adaptable, and genuinely invested in your partners' success. You'll develop consultative sales skills, learn restaurant operations intimately, and build the foundation for scaling your career.</p><p>Key Responsibilities</p><ul><li><p>Own a defined geographic territory: build strong and successful relationships with the assigned restaurant partners</p></li><li><p>Field-intensive engagement: Conduct in-person visits, walking restaurants through product demos, ROI analysis, and present how working with Swiggy is a mutually beneficial relationship</p></li><li><p>Consultative selling: Diagnose restaurant needs through questions about their current channels, delivery logistics, marketing spend, and business goals. Position Swiggy’s products as solutions, not features</p></li><li><p>Relationship management: Manage the full lifecycle each month, pitching, negotiation, activation, and ongoing support to the restaurant partner</p></li><li><p>Data-driven problem solving: Track adoption metrics, identify why restaurants aren't growing, troubleshoot&#xa0; issues, and course-correct</p></li><li><p>Revenue responsibility: Own targets within your territory; track your own pipeline and conversion rates</p></li><li><p>Excel mastery: all the data related to your day-to-day work will be on the city and central trackers, so you must have advanced knowledge of Excel/Googlesheet/WSP</p></li><li><p>Market research: Stay updated on restaurant trends, competitive landscape, and local market dynamics. Feedback from the field informs product direction</p></li><li><p>80 to 90 In-person meetings with restaurant partners a month</p></li></ul>"
+    },
+    "qualifications": {
+     "title": "Qualifications",
+     "text": "<p>What We're Looking For</p><p>Experience &amp; Background:</p><ul><li><p>0-2 years in B2B sales, field sales, or business development (preferably in fmcg, food/beverage, or hotel industry)</p></li><li><p>Track record of meeting or exceeding targets and managing your own pipeline</p></li><li><p>Restaurant Business is a round-the-clock business; the role holder has to take ownership of the growth of the assigned portfolio of restaurant partner</p></li><li><p>Comfort with data, especially Excel—you should be able to build pivot tables, use VLOOKUP, and create dashboards without help</p></li><li><p>Post - Graduated preferably in marketing or sales</p></li></ul>"
+    },
+    "additionalInformation": {
+     "title": "Additional Information",
+     "text": "<p><em>\"We are an equal opportunity employer and all qualified applicants will receive consideration for employment without regards to race, color, religion, sex, disability status, or any other characteristic protected by the law\"</em></p><div sr-tagline=\"\"></div><p><strong>Visit our tech blogs to learn more about some the challenges we deal with:&#xa0;https://medium.com/swiggy-bytes</strong></p><p><strong>We are an equal opportunity employer and all qualified applicants will receive consideration for employment without regard to race, colour, religion, sex, disability status, or any other characteristic protected by the law.</strong></p>"
+    }
+   }
+  },
+  "active": true,
+  "visibility": "PUBLIC",
+  "industry": {
+   "id": "it_and_services",
+   "label": "Information Technology And Services"
+  },
+  "function": {
+   "id": "sales",
+   "label": "Sales"
+  },
+  "experienceLevel": {
+   "id": "not_applicable",
+   "label": "Not Applicable"
+  },
+  "typeOfEmployment": {
+   "id": "permanent",
+   "label": "Full-time"
+  },
+  "language": {
+   "code": "en",
+   "label": "English",
+   "labelNative": "English (US)"
+  }
+ }
+}

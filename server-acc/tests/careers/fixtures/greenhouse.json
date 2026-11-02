@@ -1,0 +1,208 @@
+{
+  "jobs": [
+    {
+      "absolute_url": "https://www.rubrik.com/company/careers/departments/job.7820794?gh_jid=7820794",
+      "data_compliance": [
+        {
+          "type": "gdpr",
+          "requires_consent": false,
+          "requires_processing_consent": false,
+          "requires_retention_consent": false,
+          "retention_period": null,
+          "demographic_data_consent_applies": false
+        }
+      ],
+      "internal_job_id": 3414235,
+      "location": {
+        "name": "Paris, France "
+      },
+      "metadata": [
+        {
+          "id": 943349,
+          "name": "Geo",
+          "value": "EMEA",
+          "value_type": "single_select"
+        },
+        {
+          "id": 681454,
+          "name": "Projected Offer Accept Date (for FP&A)",
+          "value": "09-15-26 FY27 Q3",
+          "value_type": "single_select"
+        }
+      ],
+      "id": 7820794,
+      "updated_at": "2026-09-18T11:40:32-04:00",
+      "requisition_id": "10870",
+      "title": "Account Executive",
+      "company_name": "Rubrik Job Board",
+      "first_published": "2026-06-26T08:56:08-04:00",
+      "language": "en",
+      "application_deadline": null,
+      "content": "&lt;p class=&quot;p1&quot;&gt;&lt;strong&gt;About Team &amp;amp; About Role&lt;/strong&gt;&lt;/p&gt;\n&lt;p class=&quot;p2&quot;&gt;Rubrik&#39;s sales organisation is a unified group of elite cross functional professionals helping companies across every major industry, from financial services and manufacturing to the public sector, achieve true resilience against cyberattacks, malicious insiders, and operational disruptions. As an Enterprise Account Executive in France, you will drive Rubrik&#39;s expansion in one of Europe&#39;s most dynamic enterprise markets, owning the full sales cycle from first contact to close and building the pipeline that powers our growth across the French enterprise landscape.&lt;/p&gt;\n&lt;p class=&quot;p1&quot;&gt;&lt;strong&gt;&lt;br&gt;What You&#39;ll Do&lt;/strong&gt;&lt;/p&gt;\n&lt;ul class=&quot;ul1&quot;&gt;\n&lt;li class=&quot;li2&quot;&gt;Define and execute a territory sales plan for France, driving net new logo acquisition through disciplined prospecting, pipeline development, and strategic account pursuit&lt;/li&gt;\n&lt;li class=&quot;li2&quot;&gt;Run complete, multistakeholder sales cycles end to end, from discovery and qualification through solution design, negotiation, and close, consistently building toward and exceeding your targets&lt;/li&gt;\n&lt;li class=&quot;li2&quot;&gt;Build and manage a high quality pipeline that balances breadth across your enterprise territory with depth in your highest priority opportunities&lt;/li&gt;\n&lt;li class=&quot;li2&quot;&gt;Partner closely with Solutions Engineers, Channel Development, and Rubrik&#39;s partner ecosystem to position our data security platform against the full scope of customer risk&lt;/li&gt;\n&lt;li class=&quot;li2&quot;&gt;Develop relationships with key decision makers and executive sponsors within target accounts, connecting Rubrik&#39;s capabilities to their most pressing business priorities&lt;/li&gt;\n&lt;li class=&quot;li2&quot;&gt;Work with channel partners, distributors, and VARs to extend your reach and accelerate growth across the territory&lt;/li&gt;\n&lt;li class=&quot;li2&quot;&gt;Provide market intelligence back to Rubrik leadership, including competitive signals, customer insights, and partnership opportunities that shape our go to market in France&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p class=&quot;p1&quot;&gt;&lt;strong&gt;&lt;br&gt;Experience You&#39;ll Need&lt;/strong&gt;&lt;/p&gt;\n&lt;ul class=&quot;ul1&quot;&gt;\n&lt;li class=&quot;li2&quot;&gt;2+ years of enterprise technology sales experience (IT infrastructure, SaaS, or ideally both)&lt;/li&gt;\n&lt;li class=&quot;li2&quot;&gt;Demonstrated ability to source your own pipeline and land net new logos within the French enterprise market&lt;/li&gt;\n&lt;li class=&quot;li2&quot;&gt;Fluent in French and English; you engage confidently with enterprise buyers and technical stakeholders in both languages&lt;/li&gt;\n&lt;li class=&quot;li2&quot;&gt;Understanding of enterprise buying cycles, procurement processes, and multistakeholder decision making&lt;/li&gt;\n&lt;li class=&quot;li2&quot;&gt;Driven, goal oriented approach; you hold yourself accountable to pipeline metrics and push consistently to convert activity into outcomes&lt;/li&gt;\n&lt;li class=&quot;li2&quot;&gt;Comfortable working with channel partners as part of a broader go to market motion&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p class=&quot;p1&quot;&gt;&lt;strong&gt;&lt;br&gt;Preferred Qualifications&lt;/strong&gt;&lt;/p&gt;\n&lt;ul class=&quot;ul1&quot;&gt;\n&lt;li class=&quot;li2&quot;&gt;Background in cybersecurity, data protection, backup/recovery, or adjacent infrastructure categories&lt;/li&gt;\n&lt;li class=&quot;li2&quot;&gt;Experience with MEDDPICC as a sales qualification and execution framework&lt;/li&gt;\n&lt;li class=&quot;li2&quot;&gt;Existing relationships within the French enterprise market&lt;/li&gt;\n&lt;li class=&quot;li2&quot;&gt;Familiarity with Salesforce for pipeline management and forecast accuracy&lt;br&gt;&lt;br&gt;&…",
+      "departments": [
+        {
+          "id": 54284,
+          "name": "Sales",
+          "child_ids": [],
+          "parent_id": null
+        }
+      ],
+      "offices": [
+        {
+          "id": 59076,
+          "name": "France - Remote",
+          "location": null,
+          "child_ids": [],
+          "parent_id": 59072
+        }
+      ],
+      "ai_disclaimer": null,
+      "include_ai_disclaimer": null,
+      "ai_opt_out_request_url": "http://app.greenhouse.io/ai_opt_out_request/job_post/7820794/ai_opt_out"
+    },
+    {
+      "absolute_url": "https://www.rubrik.com/company/careers/departments/job.8071013?gh_jid=8071013",
+      "data_compliance": [
+        {
+          "type": "gdpr",
+          "requires_consent": false,
+          "requires_processing_consent": false,
+          "requires_retention_consent": false,
+          "retention_period": null,
+          "demographic_data_consent_applies": false
+        }
+      ],
+      "internal_job_id": 3497017,
+      "location": {
+        "name": "Germany, Remote"
+      },
+      "metadata": [
+        {
+          "id": 943349,
+          "name": "Geo",
+          "value": "EMEA",
+          "value_type": "single_select"
+        },
+        {
+          "id": 681454,
+          "name": "Projected Offer Accept Date (for FP&A)",
+          "value": "09-15-26 FY27 Q3",
+          "value_type": "single_select"
+        }
+      ],
+      "id": 8071013,
+      "updated_at": "2026-09-03T14:19:37-04:00",
+      "requisition_id": "11145",
+      "title": "Account Executive, Named - Germany",
+      "company_name": "Rubrik Job Board",
+      "first_published": "2026-07-31T12:14:47-04:00",
+      "language": "en",
+      "application_deadline": null,
+      "content": "&lt;p data-start=&quot;162&quot; data-end=&quot;733&quot;&gt;&amp;nbsp;&lt;/p&gt;\n&lt;p&gt;&lt;strong&gt;About Team &amp;amp; About Role&lt;/strong&gt;&lt;/p&gt;\n&lt;p&gt;Rubrik&#39;s sales organisation is a unified group of elite cross-functional professionals helping companies across every major industry achieve true resilience against cyberattacks, malicious insiders, and operational disruptions. As Named Account Executive in Germany, you&#39;ll own a portfolio of large enterprise accounts, driving Rubrik&#39;s continued expansion in one of Europe&#39;s most dynamic enterprise markets.&lt;/p&gt;\n&lt;p&gt;&lt;strong&gt;What You&#39;ll Do&lt;/strong&gt;&lt;/p&gt;\n&lt;ul&gt;\n&lt;li&gt;Own and grow a portfolio of enterprise accounts across Germany, combining existing customer relationships with new business development.&lt;/li&gt;\n&lt;li&gt;Run full, multistakeholder sales cycles end to end — from discovery and qualification through solution design, negotiation, and close — across both net-new logo and existing-account expansion deals.&lt;/li&gt;\n&lt;li&gt;Build and manage a high-quality pipeline across your territory, balancing larger strategic opportunities with faster-moving transactional deals.&lt;/li&gt;\n&lt;li&gt;Develop executive relationships within your accounts, translating Rubrik&#39;s technical capabilities into the board-level priorities that make data security a strategic imperative.&lt;/li&gt;\n&lt;li&gt;Partner closely with Solutions Engineers, Channel Development, and Rubrik&#39;s partner ecosystem to extend reach across your territory and position Rubrik against the full scope of customer risk.&lt;/li&gt;\n&lt;li&gt;Collaborate with and learn from your regional peers — the German team works closely together on deal strategy and account coverage, so you&#39;ll grow fastest by leaning on each other.&lt;/li&gt;\n&lt;li&gt;Feed market intelligence back to Rubrik&#39;s leadership, including competitive signals and account trends that shape our go-to-market approach across Germany.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p&gt;&lt;strong&gt;Experience You&#39;ll Need&lt;/strong&gt;&lt;/p&gt;\n&lt;ul&gt;\n&lt;li&gt;Experience closing complex enterprise deals, with the appetite to grow into larger, multi-product opportunities — we&#39;ll help you build the rest.&lt;/li&gt;\n&lt;li&gt;A track record that shows both new-logo acquisition and growing existing customer relationships.&lt;/li&gt;\n&lt;li&gt;Fluent in German and professional in English; you engage confidently with both technical buyers and executive stakeholders in either language.&lt;/li&gt;\n&lt;li&gt;Understanding of enterprise buying cycles, procurement processes, and multistakeholder decision-making within large or complex organisations.&lt;/li&gt;\n&lt;li&gt;Comfortable working with channel partners and distributors as part of a broader go-to-market motion.&lt;/li&gt;\n&lt;li&gt;Willingness to travel regularly across your territory to build in-person relationships with customers.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p&gt;&lt;strong&gt;Preferred Qualifications&lt;/strong&gt;&lt;/p&gt;\n&lt;ul&gt;\n&lt;li&gt;Background in cybersecurity, data protection, backup/recovery, or adjacent infrastructure/cloud categories — candidates who understand the difference between data centre and cloud environments tend to ramp fastest.&lt;/li&gt;\n&lt;li&gt;Experience with MEDDPICC as a sales qualification and execution framework.&lt;/li&gt;\n&lt;li&gt;Existing relationships within large German enterprise or Mittelstand organisations.&lt;/li&gt;\n&lt;li&gt;Familiarity with Salesforce for pipeline management and forecast accuracy.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;p&gt;#LI-CH2 #LI-remote&lt;/p&gt;&lt;div class=&quot;content-conclusion&quot;&gt;&lt;h2&gt;Join Us in Securing and Accelerating the World&#39;s AI Transformation&lt;/h2&gt;\n&lt;p&gt;Rubrik (RBRK), the Security and AI Operations Company, leads at the intersection of data protection, cyber resilience, and enterprise AI acceleration. Rubrik Security Cloud deliv…",
+      "departments": [
+        {
+          "id": 54284,
+          "name": "Sales",
+          "child_ids": [],
+          "parent_id": null
+        }
+      ],
+      "offices": [
+        {
+          "id": 59077,
+          "name": "Germany - Remote",
+          "location": null,
+          "child_ids": [],
+          "parent_id": 59072
+        }
+      ],
+      "ai_disclaimer": null,
+      "include_ai_disclaimer": null,
+      "ai_opt_out_request_url": "http://app.greenhouse.io/ai_opt_out_request/job_post/8071013/ai_opt_out"
+    },
+    {
+      "absolute_url": "https://www.rubrik.com/company/careers/departments/job.8202834?gh_jid=8202834",
+      "data_compliance": [
+        {
+          "type": "gdpr",
+          "requires_consent": false,
+          "requires_processing_consent": false,
+          "requires_retention_consent": false,
+          "retention_period": null,
+          "demographic_data_consent_applies": true
+        }
+      ],
+      "internal_job_id": 3550180,
+      "location": {
+        "name": "Central or Western US"
+      },
+      "metadata": [
+        {
+          "id": 943349,
+          "name": "Geo",
+          "value": "AMER",
+          "value_type": "single_select"
+        },
+        {
+          "id": 681454,
+          "name": "Projected Offer Accept Date (for FP&A)",
+          "value": "Evergreen",
+          "value_type": "single_select"
+        }
+      ],
+      "id": 8202834,
+      "updated_at": "2026-09-29T17:08:28-04:00",
+      "requisition_id": "11411",
+      "title": "Account Executive, SaaS Product Line Specialist",
+      "company_name": "Rubrik Job Board",
+      "first_published": "2026-09-15T16:38:52-04:00",
+      "language": "en",
+      "application_deadline": null,
+      "content": "&lt;h2&gt;About the Team &amp;amp; Role&lt;/h2&gt;\n&lt;p&gt;Rubrik&#39;s Product Line Sales organization drives focused growth across Rubrik&#39;s specialized workloads, including our SaaS data protection and security portfolio (Microsoft 365, Google Workspace, Salesforce, and other critical SaaS applications). This team partners closely with core Account Executives, Sales Engineers, and Customer Success to bring deep product and technical expertise into every SaaS opportunity — from first conversation through technical validation to close.&lt;/p&gt;\n&lt;p&gt;We&#39;re hiring a SaaS Product Line Sales Specialist to own and accelerate Rubrik&#39;s SaaS data protection business within a defined territory. This is a highly technical, quota-carrying overlay role: you&#39;ll be the subject-matter expert who can go deep on tenant architecture, identity and access models, backup and recovery mechanics, and the shared responsibility model — and use that fluency to win deals against SaaS-native point solutions. The ideal candidate has sold in this exact space before, at a company like AvePoint, CoreView, or Keepit, and understands both the buyer and the competitive landscape intimately.&lt;/p&gt;\n&lt;h2&gt;What You’ll Do&lt;/h2&gt;\n&lt;ul&gt;\n&lt;li&gt;&lt;strong&gt;Own the SaaS product line number: &lt;/strong&gt;partner with core Account Executives to identify, qualify, and close SaaS data protection and security opportunities across net-new and existing accounts.&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Lead with technical credibility: &lt;/strong&gt;articulate Rubrik’s SaaS architecture, security posture, and the gaps in Microsoft’s and Google’s native shared responsibility model in a way that resonates with both technical and business buyers.&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Drive technical discovery and validation: &lt;/strong&gt;run or co-lead discovery calls, demos, and proof-of-concept engagements for M365, Google Workspace, and Salesforce workloads alongside Sales Engineers.&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Win competitive deals: &lt;/strong&gt;build and defend positioning against SaaS-native vendors (AvePoint, CoreView, Keepit, Veeam, Druva, and similar), translating technical differentiation into business value.&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Build territory and account plans: &lt;/strong&gt;develop a coverage strategy in partnership with core sales, SE, and channel teams to maximize SaaS attach and expansion within the install base.&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Engage multiple stakeholders: &lt;/strong&gt;present to IT administrators, security and compliance teams, and executive economic buyers, tailoring the message to each audience.&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Forecast with discipline: &lt;/strong&gt;maintain accurate pipeline and forecast data in Salesforce and participate in regular business reviews.&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Stay current: &lt;/strong&gt;maintain deep knowledge of Rubrik’s SaaS roadmap, the M365/Google Workspace/Salesforce ecosystems, and the competitive landscape.&lt;/li&gt;\n&lt;/ul&gt;\n&lt;h2&gt;Experience You’ll Need&lt;/h2&gt;\n&lt;ul&gt;\n&lt;li&gt;&lt;strong&gt;SaaS sales experience: &lt;/strong&gt;3+ years of quota-carrying sales experience selling SaaS data protection, security, or governance solutions for Microsoft 365, Google Workspace, or Salesforce environments.&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Directly relevant background: &lt;/strong&gt;experience at a SaaS data protection or management vendor such as AvePoint, CoreView, or Keepit (or a comparable company like Druva, Veeam, or Spanning) is strongly preferred.&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Genuine technical depth: &lt;/strong&gt;comfortable discussing tenant architecture, APIs, identity and access management (Entra ID/Azure AD), backup and recovery mechanics, and security and compliance frameworks without relying solely on a Sales Engineer.&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Proven technical selling motion: &lt…",
+      "departments": [
+        {
+          "id": 54284,
+          "name": "Sales",
+          "child_ids": [],
+          "parent_id": null
+        }
+      ],
+      "offices": [
+        {
+          "id": 59002,
+          "name": "USA - California",
+          "location": null,
+          "child_ids": [],
+          "parent_id": 58996
+        },
+        {
+          "id": 59013,
+          "name": "USA - Illinois",
+          "location": null,
+          "child_ids": [],
+          "parent_id": 58996
+        },
+        {
+          "id": 59038,
+          "name": "USA - Texas",
+          "location": null,
+          "child_ids": [],
+          "parent_id": 58996
+        },
+        {
+          "id": 59041,
+          "name": "USA - Washington",
+          "location": null,
+          "child_ids": [],
+          "parent_id": 58996
+        }
+      ],
+      "ai_disclaimer": null,
+      "include_ai_disclaimer": null,
+      "ai_opt_out_request_url": "http://app.greenhouse.io/ai_opt_out_request/job_post/8202834/ai_opt_out"
+    }
+  ],
+  "meta": {
+    "total": 3
+  }
+}

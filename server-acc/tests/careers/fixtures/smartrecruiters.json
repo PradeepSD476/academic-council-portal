@@ -1,0 +1,196 @@
+{
+ "offset": 0,
+ "limit": 100,
+ "totalFound": 4,
+ "content": [
+  {
+   "id": "6000000001476174",
+   "name": "Software Dev Engineer I",
+   "uuid": "00ea60a4-021e-4be8-b053-c7016e0b0607",
+   "jobAdId": "157edde6-39a1-44c9-b03b-875b6909d1f7",
+   "defaultJobAd": true,
+   "refNumber": "REF267M",
+   "company": {
+    "identifier": "SWIGGY",
+    "name": "SWIGGY"
+   },
+   "releasedDate": "2026-10-09T11:13:46.983Z",
+   "location": {
+    "city": "Bengaluru",
+    "region": "KA",
+    "country": "in",
+    "remote": false,
+    "hybrid": true,
+    "latitude": "12.9628957",
+    "longitude": "77.57754",
+    "fullLocation": "Bengaluru, KA, India"
+   },
+   "industry": {
+    "id": "it_and_services",
+    "label": "Information Technology And Services"
+   },
+   "department": {},
+   "function": {
+    "id": "engineering",
+    "label": "Engineering"
+   },
+   "typeOfEmployment": {
+    "id": "permanent",
+    "label": "Full-time"
+   },
+   "experienceLevel": {
+    "id": "entry_level",
+    "label": "Entry Level"
+   },
+   "visibility": "PUBLIC",
+   "ref": "https://api.smartrecruiters.com/v1/companies/Swiggy/postings/6000000001476174",
+   "language": {
+    "code": "en",
+    "label": "English",
+    "labelNative": "English (US)"
+   }
+  },
+  {
+   "id": "6000000001466226",
+   "name": "Junior Sales Manager",
+   "uuid": "e94797d9-5426-49ca-a069-cffafc37f33d",
+   "jobAdId": "895e634b-1196-43a1-9260-f0c09704904b",
+   "defaultJobAd": true,
+   "refNumber": "REF1048Y",
+   "company": {
+    "identifier": "SWIGGY",
+    "name": "SWIGGY"
+   },
+   "releasedDate": "2026-10-06T12:46:28.271Z",
+   "location": {
+    "city": "Ratlam",
+    "region": "MP",
+    "country": "in",
+    "postalCode": "457001",
+    "remote": false,
+    "hybrid": false,
+    "latitude": "23.3315103",
+    "longitude": "75.0366677",
+    "fullLocation": "Ratlam, MP, India"
+   },
+   "industry": {
+    "id": "it_and_services",
+    "label": "Information Technology And Services"
+   },
+   "department": {},
+   "function": {
+    "id": "sales",
+    "label": "Sales"
+   },
+   "typeOfEmployment": {
+    "id": "permanent",
+    "label": "Full-time"
+   },
+   "experienceLevel": {
+    "id": "not_applicable",
+    "label": "Not Applicable"
+   },
+   "visibility": "PUBLIC",
+   "ref": "https://api.smartrecruiters.com/v1/companies/Swiggy/postings/6000000001466226",
+   "language": {
+    "code": "en",
+    "label": "English",
+    "labelNative": "English (US)"
+   }
+  },
+  {
+   "id": "6000000001476209",
+   "name": "Senior Strategic Account Manager",
+   "uuid": "1999e0c9-d830-47c9-abf5-dae04603c166",
+   "jobAdId": "a6d11830-713e-427f-840a-fc48d29d2bb8",
+   "defaultJobAd": true,
+   "refNumber": "REF1134A",
+   "company": {
+    "identifier": "SWIGGY",
+    "name": "SWIGGY"
+   },
+   "releasedDate": "2026-10-09T12:00:13.549Z",
+   "location": {
+    "city": "Gurugram",
+    "region": "HR",
+    "country": "in",
+    "remote": false,
+    "hybrid": false,
+    "latitude": "28.4594965",
+    "longitude": "77.0266383",
+    "fullLocation": "Gurugram, HR, India"
+   },
+   "industry": {
+    "id": "internet",
+    "label": "Internet"
+   },
+   "department": {},
+   "function": {
+    "id": "sales",
+    "label": "Sales"
+   },
+   "typeOfEmployment": {
+    "id": "permanent",
+    "label": "Full-time"
+   },
+   "experienceLevel": {
+    "id": "not_applicable",
+    "label": "Not Applicable"
+   },
+   "visibility": "PUBLIC",
+   "ref": "https://api.smartrecruiters.com/v1/companies/Swiggy/postings/6000000001476209",
+   "language": {
+    "code": "en",
+    "label": "English",
+    "labelNative": "English (US)"
+   }
+  },
+  {
+   "id": "6000000001476161",
+   "name": "Sales Manager I",
+   "uuid": "cd6796b6-38b9-433b-8974-db2e833dec81",
+   "jobAdId": "ddfb22f0-83c7-4883-b8a7-d9d192e3c6d2",
+   "defaultJobAd": true,
+   "refNumber": "REF229V",
+   "company": {
+    "identifier": "SWIGGY",
+    "name": "SWIGGY"
+   },
+   "releasedDate": "2026-10-09T10:42:56.132Z",
+   "location": {
+    "city": "Chennai",
+    "region": "TN",
+    "country": "in",
+    "remote": false,
+    "hybrid": false,
+    "latitude": "13.0570568",
+    "longitude": "80.2098219",
+    "fullLocation": "Chennai, TN, India"
+   },
+   "industry": {
+    "id": "internet",
+    "label": "Internet"
+   },
+   "department": {},
+   "function": {
+    "id": "sales",
+    "label": "Sales"
+   },
+   "typeOfEmployment": {
+    "id": "permanent",
+    "label": "Full-time"
+   },
+   "experienceLevel": {
+    "id": "not_applicable",
+    "label": "Not Applicable"
+   },
+   "visibility": "PUBLIC",
+   "ref": "https://api.smartrecruiters.com/v1/companies/Swiggy/postings/6000000001476161",
+   "language": {
+    "code": "en",
+    "label": "English",
+    "labelNative": "English (US)"
+   }
+  }
+ ]
+}

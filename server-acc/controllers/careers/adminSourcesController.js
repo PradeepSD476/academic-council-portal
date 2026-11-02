@@ -1,0 +1,252 @@
+// Admin: ATS sources (boards), "Run now" requests for the worker, and recent runs.
+// New and re-enabled boards are queued for a run at once instead of waiting for the next schedule.
+import { z } from 'zod';
+import prisma from '../../config/db.js';
+import { CareersError, sendError, parseId } from '../../services/careers/errors.js';
+import { getSetting, setSetting, clearSettingsCache } from '../../services/careers/settings.js';
+import { workerStatus } from '../../services/careers/ops/alerts.js';
+import { ATS_KINDS } from '../../services/careers/ingest/ingestAll.js';
+import { existingBoard, checkBoard, bulkAddBoards, bulkSummary, defaultSourceName } from '../../services/careers/sources/addBoard.js';
+import { parseBulkLines, MAX_BULK_LINES, BOARD_TOKEN } from '../../services/careers/sources/bulkLines.js';
+import { sourceQuality } from '../../services/careers/sources/quality.js';
+import { loadCompanyIndex } from '../../services/careers/companies/companyIndex.js';
+import { archiveProblem, archiveData, restoreData, enableProblem } from '../../services/careers/sources/archive.js';
+import { keywordFields } from '../../services/careers/sources/keywordRules.js';
+
+const createBody = z.object({
+    kind: z.enum(ATS_KINDS),
+    // Board tokens are path segments on the ATS APIs: letters, digits, - and _ only.
+    boardToken: z.string().trim().toLowerCase().regex(BOARD_TOKEN, 'Use the board token from the board URL (letters, digits, - or _).'),
+    companyId: z.number().int().positive(),
+    name: z.string().trim().min(1).max(120).optional(),
+});
+
+const bulkBody = z.object({ lines: z.string().max(20_000) });
+
+const updateBody = z.object({
+    isEnabled: z.boolean().optional(),
+    name: z.string().trim().min(1).max(120).optional(),
+    companyId: z.number().int().positive().optional(),
+    ...keywordFields, // P7-T9
+}).refine((b) => Object.keys(b).length > 0, { message: 'Nothing to update.' });
+
+const runsQuery = z.object({ limit: z.coerce.number().int().min(1).max(100).default(20) });
+
+const sourceSelect = {
+    id: true, name: true, kind: true, boardToken: true, isEnabled: true, health: true, lastRunAt: true, lastSuccessAt: true,
+    lastFetchedCount: true, lastKeptCount: true, consecutiveFailures: true, lastError: true, createdAt: true, archivedAt: true,
+    excludeTitleKeywords: true, includeTitleKeywords: true,
+    company: { select: { id: true, name: true, slug: true, status: true } },
+    _count: { select: { observations: true } },
+};
+
+export const listSources = async (req, res) => {
+    try {
+        clearSettingsCache(); // runRequest and the heartbeat are written by the worker process
+        // ?runsSince=<requestedAt>: what the runs since a "Fetch now" found (B-17).
+        const since = req.query?.runsSince ? new Date(String(req.query.runsSince)) : null;
+        if (since && Number.isNaN(since.getTime())) throw new CareersError(400, 'VALIDATION_ERROR', 'runsSince must be a date.');
+        const [sources, pendingRequest, heartbeat, quality] = await Promise.all([
+            // Archived sources (P6-T11) only with ?archived=include ("Show archived").
+            prisma.source.findMany({ where: req.query?.archived === 'include' ? {} : { archivedAt: null }, select: sourceSelect, orderBy: [{ kind: 'asc' }, { id: 'asc' }] }),
+            getSetting('careers.runRequest'),
+            getSetting('careers.workerHeartbeat'),
+            sourceQuality(prisma),
+        ]);
+        const live = await prisma.postingSource.groupBy({ by: ['sourceId'], where: { isLive: true }, _count: { _all: true } });
+        const liveBySource = new Map(live.map((r) => [r.sourceId, r._count._all]));
+        const runs = since ? await prisma.sourceRun.findMany({ where: { startedAt: { gte: since } }, select: { status: true, newCount: true } }) : null;
+        const archivedCount = await prisma.source.count({ where: { archivedAt: { not: null } } });
+        return res.json({
+            success: true,
+            data: sources.map((s) => ({ ...s, liveObservations: liveBySource.get(s.id) ?? 0, quality: quality[s.id] ?? null })),
+            archivedCount,
+            pendingRequest,
+            worker: workerStatus(heartbeat),
+            ...(runs ? { runsSince: runsSummary(runs) } : {}),
+        });
+    } catch (err) {
+        return sendError(res, err, 'listSources');
+    }
+};
+
+// Pure. Finished runs, the new postings they created, and how many failed.
+export function runsSummary(runs) {
+    const finished = runs.filter((r) => r.status !== 'RUNNING');
+    return {
+        runs: finished.length,
+        newPostings: finished.reduce((n, r) => n + (r.newCount ?? 0), 0),
+        failed: finished.filter((r) => r.status === 'FAILED').length,
+    };
+}
+
+// Validate-on-create: the board is fetched once; a token that doesn't work is a 400, not a FAILING
+// source on its next run.
+export const createSource = async (req, res) => {
+    try {
+        const body = createBody.parse(req.body);
+        const company = await prisma.company.findUnique({ where: { id: body.companyId }, select: { id: true, name: true, status: true } });
+        if (!company) throw new CareersError(404, 'NOT_FOUND', `Company #${body.companyId} was not found.`);
+        if (company.status === 'MERGED') throw new CareersError(409, 'COMPANY_MERGED', `${company.name} is merged into another company; pick that one.`);
+
+        const exists = await existingBoard(prisma, body.kind, body.boardToken);
+        if (exists) throw new CareersError(409, 'SOURCE_EXISTS', `This board is already source #${exists.id} (${exists.name}).`, { sourceId: exists.id });
+
+        const check = await checkBoard(body.kind, body.boardToken);
+        const source = await prisma.source.create({
+            data: { kind: body.kind, boardToken: body.boardToken, companyId: company.id, name: body.name ?? defaultSourceName(company.name, body.kind) },
+            select: sourceSelect,
+        });
+        const request = await queueRun(source.id, req.user.id, 'createSource');
+        return res.status(201).json({
+            success: true,
+            message: `Board added: ${check.fetchedCount} jobs now, ${check.relevantNow} ${check.relevantNow === 1 ? 'looks' : 'look'} relevant (India, early career). ${request ? 'Queued for fetching; the worker starts it within seconds.' : 'It runs with the next scheduled ingest.'}`,
+            data: { source, check, runRequest: request },
+        });
+    } catch (err) {
+        return sendError(res, err, 'createSource');
+    }
+};
+
+// "Add boards in bulk" (P6-T1, F-23): one `kind token company` per line, each checked like Add board.
+// One fetch of all sources is queued when at least one board was added.
+export const bulkCreateSources = async (req, res) => {
+    try {
+        const { lines } = bulkBody.parse(req.body);
+        const { entries, errors, tooMany } = parseBulkLines(lines);
+        if (tooMany) throw new CareersError(400, 'VALIDATION_ERROR', `Paste at most ${MAX_BULK_LINES} boards at a time (${entries.length} given).`);
+        if (!entries.length && !errors.length) throw new CareersError(400, 'VALIDATION_ERROR', 'Paste at least one line: kind token company.');
+        const index = await loadCompanyIndex(prisma);
+        const results = await bulkAddBoards(prisma, entries, { index });
+        const summary = bulkSummary(results, errors);
+        const request = summary.added ? await queueRun('ALL', req.user.id, 'bulkCreateSources') : null;
+        return res.status(summary.added ? 201 : 200).json({
+            success: true,
+            message: `${summary.added} added, ${summary.skipped} already there, ${summary.failed} failed.${request ? ' New boards are queued for fetching.' : ''}`,
+            data: { summary, results, lineErrors: errors, runRequest: request },
+        });
+    } catch (err) {
+        return sendError(res, err, 'bulkCreateSources');
+    }
+};
+
+export const updateSource = async (req, res) => {
+    try {
+        const id = parseId(req.params.id);
+        const body = updateBody.parse(req.body);
+        const source = await prisma.source.findUnique({ where: { id } });
+        if (!source) throw new CareersError(404, 'NOT_FOUND', `Source #${id} was not found.`);
+        if (!ATS_KINDS.includes(source.kind) && body.isEnabled === false) {
+            throw new CareersError(400, 'VALIDATION_ERROR', 'The MANUAL and STUDENT_LINK system sources cannot be disabled.');
+        }
+        const archived = enableProblem(source, body);
+        if (archived) throw new CareersError(409, 'SOURCE_ARCHIVED', archived);
+        // Edit (P6-T11): the company must exist and not be merged away, as on Add board.
+        if (body.companyId !== undefined) {
+            const company = await prisma.company.findUnique({ where: { id: body.companyId }, select: { name: true, status: true } });
+            if (!company) throw new CareersError(404, 'NOT_FOUND', `Company #${body.companyId} was not found.`);
+            if (company.status === 'MERGED') throw new CareersError(409, 'COMPANY_MERGED', `${company.name} is merged into another company; pick that one.`);
+        }
+        const data = { ...body };
+        // Health follows the switch at once; a re-enabled source is UNKNOWN until its next run.
+        if (body.isEnabled === false) data.health = 'DISABLED';
+        if (body.isEnabled === true && !source.isEnabled) data.health = 'UNKNOWN';
+        const updated = await prisma.source.update({ where: { id }, data, select: sourceSelect });
+        const request = runAfterUpdate(source, body) ? await queueRun(id, req.user.id, 'updateSource') : null;
+        return res.json({ success: true, message: request ? 'Source enabled and queued for fetching.' : 'Source updated.', data: updated });
+    } catch (err) {
+        return sendError(res, err, 'updateSource');
+    }
+};
+
+// P6-T11 (F-07): archive = disabled and hidden, history kept; restore = back in the list, disabled.
+export const archiveSource = async (req, res) => {
+    try {
+        const id = parseId(req.params.id);
+        const source = await prisma.source.findUnique({ where: { id } });
+        if (!source) throw new CareersError(404, 'NOT_FOUND', `Source #${id} was not found.`);
+        const problem = archiveProblem(source);
+        if (problem) throw new CareersError(409, 'INVALID_STATE', problem);
+        const updated = await prisma.source.update({ where: { id }, data: archiveData(), select: sourceSelect });
+        return res.json({ success: true, message: `${source.name} archived. It is no longer fetched; its postings keep their history.`, data: updated });
+    } catch (err) {
+        return sendError(res, err, 'archiveSource');
+    }
+};
+
+export const restoreSource = async (req, res) => {
+    try {
+        const id = parseId(req.params.id);
+        const source = await prisma.source.findUnique({ where: { id } });
+        if (!source) throw new CareersError(404, 'NOT_FOUND', `Source #${id} was not found.`);
+        if (!source.archivedAt) throw new CareersError(409, 'INVALID_STATE', 'This source is not archived.');
+        const updated = await prisma.source.update({ where: { id }, data: restoreData(), select: sourceSelect });
+        return res.json({ success: true, message: `${source.name} restored. It stays disabled until you enable it.`, data: updated });
+    } catch (err) {
+        return sendError(res, err, 'restoreSource');
+    }
+};
+
+// Pure: combines a new run request with one still waiting. Two different sources -> run all.
+export function mergeRunRequest(pending, sourceId) {
+    if (!pending || pending.sourceId === sourceId) return sourceId;
+    return 'ALL';
+}
+
+async function requestRun(sourceId, userId) {
+    clearSettingsCache();
+    const pending = await getSetting('careers.runRequest');
+    const request = { sourceId: mergeRunRequest(pending, sourceId), requestedAt: new Date().toISOString(), byUserId: userId };
+    await setSetting('careers.runRequest', request, userId);
+    return request;
+}
+
+// Pure: a source switched from disabled to enabled is fetched at once.
+export function runAfterUpdate(source, body) {
+    return body.isEnabled === true && !source.isEnabled;
+}
+
+// The source is already saved, so a failed request must not fail the call; it is logged and the
+// source simply waits for the next scheduled ingest.
+async function queueRun(sourceId, userId, context) {
+    try {
+        return await requestRun(sourceId, userId);
+    } catch (err) {
+        console.error(`[careers] ${context}: could not queue a run for source #${sourceId}`, err);
+        return null;
+    }
+}
+
+export const runSourceNow = async (req, res) => {
+    try {
+        const id = parseId(req.params.id);
+        const source = await prisma.source.findUnique({ where: { id } });
+        if (!source) throw new CareersError(404, 'NOT_FOUND', `Source #${id} was not found.`);
+        if (!ATS_KINDS.includes(source.kind)) throw new CareersError(400, 'VALIDATION_ERROR', `${source.kind} sources are not fetched from a board.`);
+        if (!source.isEnabled) throw new CareersError(409, 'SOURCE_DISABLED', 'Enable the source before running it.');
+        const request = await requestRun(id, req.user.id);
+        return res.status(202).json({ success: true, message: 'Fetch queued. The worker starts it within seconds; this page updates when it finishes.', data: request });
+    } catch (err) {
+        return sendError(res, err, 'runSourceNow');
+    }
+};
+
+export const runAllNow = async (req, res) => {
+    try {
+        const request = await requestRun('ALL', req.user.id);
+        return res.status(202).json({ success: true, message: 'Fetch of all sources queued. The worker starts it within seconds; this page updates when it finishes.', data: request });
+    } catch (err) {
+        return sendError(res, err, 'runAllNow');
+    }
+};
+
+export const listRuns = async (req, res) => {
+    try {
+        const id = parseId(req.params.id);
+        const { limit } = runsQuery.parse(req.query);
+        const runs = await prisma.sourceRun.findMany({ where: { sourceId: id }, orderBy: { startedAt: 'desc' }, take: limit });
+        return res.json({ success: true, data: runs });
+    } catch (err) {
+        return sendError(res, err, 'listRuns');
+    }
+};

@@ -12,12 +12,19 @@ import {
   Briefcase,
   Landmark,
   TrendingUp,
+  Building2,
+  ListChecks,
+  Activity,
+  Search,
   FileSearch,
   MessagesSquare,
 } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import AuthContext from "../context/auth/authContext";
 import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
+import { useCareersStatus } from "../hooks/useCareersStatus";
+import ReviewCountBadge from "../pages/admin/careers/components/ReviewCountBadge";
+import NewJobsBadge from "../pages/Careers/components/NewJobsBadge";
 
 export default function DashboardLayout() {
   const { user, logout } = useContext(AuthContext);
@@ -38,6 +45,8 @@ export default function DashboardLayout() {
   const canManageResearch = ["SUPER_ADMIN", "FACULTY", "RESEARCH_ADMIN"].includes(user?.role);
   const isSTUDENT = user?.role === "STUDENT";
   const isFaculty = user?.role === "FACULTY";
+  const canManageCareers = ["SUPER_ADMIN", "FACULTY", "CAREER_ADMIN"].includes(user?.role);
+  const careers = useCareersStatus(user?.id);
 
   const [open, setOpen] = useState(false);
   const [viewRole, setViewRole] = useState("STUDENT");
@@ -65,7 +74,7 @@ export default function DashboardLayout() {
       <button
         onClick={() => setOpen(!open)}
         className={`
-            fixed top-20 z-[60] md:hidden
+            fixed top-32 z-[60] md:hidden
             flex items-center justify-center
             w-9 h-9 bg-white border border-slate-200 text-slate-800 rounded-r-lg shadow-md
             hover:bg-slate-50 transition-all cursor-pointer
@@ -177,11 +186,21 @@ export default function DashboardLayout() {
                 />
                 <SidebarItem
                   to="/dashboard/career-vault"
+                  end
                   icon={<Briefcase size={16} />}
                   iconColor="text-emerald-600 bg-emerald-50 border-emerald-100"
                   label="Career Vault"
                   onClick={() => setOpen(false)}
                 />
+                {careers.enabled && (
+                  <SidebarItem
+                    to="/dashboard/career-vault/jobs"
+                    icon={<Search size={16} />}
+                    iconColor="text-teal-600 bg-teal-50 border-teal-100"
+                    label={<>Jobs & Internships<NewJobsBadge /></>}
+                    onClick={() => setOpen(false)}
+                  />
+                )}
                 <SidebarItem
                   to="/dashboard/finance-vault"
                   icon={<Landmark size={16} />}
@@ -282,6 +301,33 @@ export default function DashboardLayout() {
                 label="Level Up"
                 onClick={() => setOpen(false)}
               />
+              {canManageCareers && (
+                <SidebarItem
+                  to="/admin/careers/review"
+                  icon={<ListChecks size={16} />}
+                  iconColor="text-teal-600 bg-teal-50 border-teal-100"
+                  label={<>Jobs Review<ReviewCountBadge /></>}
+                  onClick={() => setOpen(false)}
+                />
+              )}
+              {canManageCareers && (
+                <SidebarItem
+                  to="/admin/careers/companies"
+                  icon={<Building2 size={16} />}
+                  iconColor="text-teal-600 bg-teal-50 border-teal-100"
+                  label="Companies"
+                  onClick={() => setOpen(false)}
+                />
+              )}
+              {canManageCareers && (
+                <SidebarItem
+                  to="/admin/careers/ops"
+                  icon={<Activity size={16} />}
+                  iconColor="text-teal-600 bg-teal-50 border-teal-100"
+                  label="Sources & Ops"
+                  onClick={() => setOpen(false)}
+                />
+              )}
               {(user?.role === "SUPER_ADMIN" || isFaculty) && (
                 <SidebarItem
                   to="/admin/manage-doubts"
@@ -311,6 +357,27 @@ export default function DashboardLayout() {
                 icon={<TrendingUp size={16} />}
                 iconColor="text-blue-600 bg-blue-50 border-blue-100"
                 label="Level Up"
+                onClick={() => setOpen(false)}
+              />
+              <SidebarItem
+                to="/admin/careers/review"
+                icon={<ListChecks size={16} />}
+                iconColor="text-teal-600 bg-teal-50 border-teal-100"
+                label={<>Jobs Review<ReviewCountBadge /></>}
+                onClick={() => setOpen(false)}
+              />
+              <SidebarItem
+                to="/admin/careers/companies"
+                icon={<Building2 size={16} />}
+                iconColor="text-teal-600 bg-teal-50 border-teal-100"
+                label="Companies"
+                onClick={() => setOpen(false)}
+              />
+              <SidebarItem
+                to="/admin/careers/ops"
+                icon={<Activity size={16} />}
+                iconColor="text-teal-600 bg-teal-50 border-teal-100"
+                label="Sources & Ops"
                 onClick={() => setOpen(false)}
               />
             </>
@@ -374,10 +441,11 @@ export default function DashboardLayout() {
   );
 }
 
-function SidebarItem({ to, icon, iconColor, label, onClick }) {
+function SidebarItem({ to, end, icon, iconColor, label, onClick }) {
   return (
     <NavLink
       to={to}
+      end={end}
       onClick={onClick}
       className={({ isActive }) =>
         `

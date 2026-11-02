@@ -1,0 +1,113 @@
+// Turns one relevant RawPosting from an ATS adapter into Posting fields (Architecture 6.2, steps
+// 2-6 and 8). Pure and deterministic: no LLM, no database. Unknown stays unknown (null / UNKNOWN /
+// NOT_DISCLOSED) and is listed in uncertainFields so the review queue highlights it.
+import { normalizeTitle, normalizeLocation } from '../text/normalize.js';
+import { parseEligibility } from '../text/eligibility.js';
+import { parseSeason } from '../text/season.js';
+import { parseCompensation, findPayText } from '../text/compensation.js';
+import { simhash64 } from '../text/fingerprint.js';
+import { extractSkills } from '../text/skills.js';
+import { detectWorkMode } from '../text/workMode.js';
+
+export const UNCERTAIN_FIELD_PENALTY = 0.15;
+
+const EMPLOYMENT_INTERN = /\b(intern|internship|trainee|apprentice|apprenticeship|co-?op)\b/i;
+const EMPLOYMENT_FULL_TIME = /\b(full[\s-]?time|permanent|regular)\b/i;
+
+// The title decides first (relevance.type), then the ATS employment type ("Intern", "Full-time").
+// An internship signal from either side wins, so an intern role is never shown as a job.
+export function resolveType(relevanceType, employmentTypeText) {
+    const employment = employmentTypeText ?? '';
+    if (relevanceType === 'INTERNSHIP' || EMPLOYMENT_INTERN.test(employment)) return 'INTERNSHIP';
+    if (relevanceType === 'FULL_TIME' || EMPLOYMENT_FULL_TIME.test(employment)) return 'FULL_TIME';
+    return 'UNKNOWN';
+}
+
+// Stipend for internships (monthly), CTC otherwise (yearly). The unused side stays NOT_DISCLOSED.
+export function compensationFields(text, type) {
+    const fields = {
+        compCurrency: 'INR',
+        stipendMin: null, stipendMax: null, stipendDisclosure: 'NOT_DISCLOSED',
+        ctcMin: null, ctcMax: null, ctcDisclosure: 'NOT_DISCLOSED',
+        compensationRaw: null,
+    };
+    if (typeof text !== 'string' || !text.trim()) return fields;
+
+    const kind = type === 'INTERNSHIP' ? 'stipend' : 'ctc';
+    const parsed = parseCompensation(text, { kind });
+    fields.compensationRaw = parsed.raw;
+    fields.compCurrency = parsed.currency ?? 'INR';
+    if (kind === 'stipend') {
+        Object.assign(fields, { stipendMin: parsed.min, stipendMax: parsed.max, stipendDisclosure: parsed.disclosure });
+    } else {
+        Object.assign(fields, { ctcMin: parsed.min, ctcMax: parsed.max, ctcDisclosure: parsed.disclosure });
+    }
+    return fields;
+}
+
+function parseDate(value) {
+    if (value === null || value === undefined || value === '') return null;
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+}
+
+export function confidenceFor(uncertainFields) {
+    const score = 1 - UNCERTAIN_FIELD_PENALTY * uncertainFields.length;
+    return Math.max(0, Math.round(score * 100) / 100);
+}
+
+// raw: RawPosting; relevance: result of evaluateRelevance (keep === true);
+// company: { companyId, uncertain }; uncertain: extra fields the caller already doubts (e.g. applyUrl).
+export function buildPostingData(raw, { relevance, company, uncertain = [], now = new Date() }) {
+    const title = raw.title.trim();
+    const description = raw.descriptionText ?? '';
+    const type = resolveType(relevance.type, raw.employmentTypeText);
+    // No pay field: pay stated in the description is used, but only as a suggestion for the reviewer (B-21).
+    const payFromText = raw.compensationText ? null : findPayText(description);
+    const comp = compensationFields(raw.compensationText ?? payFromText, type);
+    const location = raw.locationText?.trim() || null;
+    const eligibility = parseEligibility(description, now);
+    // P7-T3: season / start / length, internships only.
+    const season = type === 'INTERNSHIP' ? parseSeason(title, description) : { season: null, startMonth: null, durationMonths: null, found: false };
+
+    const uncertainFields = [];
+    if (type === 'UNKNOWN') uncertainFields.push('type');
+    if (!location || relevance.location === 'unknown') uncertainFields.push('location');
+    if (company.uncertain) uncertainFields.push('company');
+    if (relevance.uncertain) uncertainFields.push('relevance');
+    // Pay was stated but could not be read with certainty; the raw text is kept for the reviewer.
+    const payStated = comp.stipendDisclosure !== 'NOT_DISCLOSED' || comp.ctcDisclosure !== 'NOT_DISCLOSED';
+    if (comp.stipendDisclosure === 'UNCLEAR' || comp.ctcDisclosure === 'UNCLEAR' || (payFromText && payStated)) uncertainFields.push('compensation');
+    // Eligibility from the description is only a suggestion until a reviewer confirms it.
+    if (eligibility.mentioned) uncertainFields.push('eligibility');
+    if (season.found) uncertainFields.push('season');
+    uncertainFields.push(...uncertain);
+
+    return {
+        companyId: company.companyId,
+        roleTitle: title,
+        roleTitleNormalized: normalizeTitle(title),
+        type,
+        location,
+        locationNormalized: normalizeLocation(location),
+        workMode: detectWorkMode({ workplaceText: raw.workplaceText, text: description }),
+        skills: extractSkills(`${title}\n${description}`),
+        // Boards have no eligibility field; what the description states, else [] / null = not stated
+        // (never leave the arrays NULL).
+        eligibleBranches: eligibility.branches,
+        eligibleYears: eligibility.years,
+        eligibleGradYears: eligibility.gradYears,
+        season: season.season,
+        startMonth: season.startMonth,
+        durationMonths: season.durationMonths,
+        minCpi: eligibility.minCpi,
+        ...comp,
+        descriptionText: description,
+        contentFingerprint: simhash64(description),
+        applyUrl: raw.url,
+        deadlineStated: parseDate(raw.deadline),
+        extractionTier: 'STRUCTURED',
+        extractionConfidence: confidenceFor(uncertainFields),
+        uncertainFields,
+    };
+}

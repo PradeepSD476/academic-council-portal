@@ -1,0 +1,87 @@
+import express from 'express';
+import { checkAuth } from '../middlewares/checkAuth.js';
+import { requireCareerAdmin } from '../middlewares/careers/requireCareerAdmin.js';
+import { getSettings, updateSettings } from '../controllers/careers/adminSettingsController.js';
+import {
+    listCompanies, getCompany, createCompany, updateCompany, addAlias, deleteAlias, approveCandidate, unapproveCompanyHandler, rejectCandidateCompany, restoreCandidateCompany,
+} from '../controllers/careers/adminCompaniesController.js';
+import { merge, split, listMergeLog, undo } from '../controllers/careers/adminMergeController.js';
+import {
+    listReview, getReviewCounts, listAllPostings, getPosting, patchPosting, approve, reject, expire, reopen, takeDown, handlePostingReports, bulk, bulkUndo, bulkRejectPostings, bulkExpirePostings, createManual, listSubmissions, retryLink, dismissLink,
+    mergePreviewPostings, mergeTwoPostings, deletePreviewPosting, deletePostingPermanently, draftFromUrl,
+} from '../controllers/careers/adminReviewController.js';
+import {
+    listSources, createSource, bulkCreateSources, updateSource, archiveSource, restoreSource, runSourceNow, runAllNow, listRuns,
+} from '../controllers/careers/adminSourcesController.js';
+import { getOps, getUsage, getActivity } from '../controllers/careers/adminOpsController.js';
+import { listBackfill, applyBackfill, unlinkBackfill } from '../controllers/careers/adminBackfillController.js';
+
+const router = express.Router();
+const admin = [checkAuth, requireCareerAdmin];
+
+router.get('/careers/admin/settings', ...admin, getSettings);
+router.put('/careers/admin/settings', ...admin, updateSettings);
+
+// Static paths before /:id paths.
+router.post('/careers/admin/companies/merge', ...admin, merge);
+router.get('/careers/admin/companies', ...admin, listCompanies);
+router.post('/careers/admin/companies', ...admin, createCompany);
+router.get('/careers/admin/companies/:id', ...admin, getCompany);
+router.patch('/careers/admin/companies/:id', ...admin, updateCompany);
+router.post('/careers/admin/companies/:id/aliases', ...admin, addAlias);
+router.post('/careers/admin/companies/:id/approve', ...admin, approveCandidate);
+router.post('/careers/admin/companies/:id/unapprove', ...admin, unapproveCompanyHandler);
+router.post('/careers/admin/companies/:id/reject', ...admin, rejectCandidateCompany);
+router.post('/careers/admin/companies/:id/restore', ...admin, restoreCandidateCompany);
+router.post('/careers/admin/companies/:id/split', ...admin, split);
+router.delete('/careers/admin/aliases/:aliasId', ...admin, deleteAlias);
+
+router.get('/careers/admin/merge-log', ...admin, listMergeLog);
+router.post('/careers/admin/merge-log/:id/undo', ...admin, undo);
+
+// Review queue and postings (static paths before /:id).
+router.get('/careers/admin/review', ...admin, listReview);
+router.get('/careers/admin/review/counts', ...admin, getReviewCounts);
+router.post('/careers/admin/postings/bulk-approve', ...admin, bulk);
+router.post('/careers/admin/postings/bulk-approve/undo', ...admin, bulkUndo);
+router.post('/careers/admin/postings/bulk-reject', ...admin, bulkRejectPostings);
+router.post('/careers/admin/postings/bulk-expire', ...admin, bulkExpirePostings);
+router.get('/careers/admin/postings/merge-preview', ...admin, mergePreviewPostings); // before /postings/:id (P7-T8)
+router.post('/careers/admin/postings/merge', ...admin, mergeTwoPostings);
+router.post('/careers/admin/postings/draft-from-url', ...admin, draftFromUrl); // F-34, before /postings/:id
+router.post('/careers/admin/postings', ...admin, createManual);
+router.get('/careers/admin/postings', ...admin, listAllPostings); // before /postings/:id
+router.get('/careers/admin/postings/:id', ...admin, getPosting);
+router.patch('/careers/admin/postings/:id', ...admin, patchPosting);
+router.delete('/careers/admin/postings/:id', ...admin, deletePostingPermanently); // P8-T2: body { reason, confirmId }
+router.get('/careers/admin/postings/:id/delete-preview', ...admin, deletePreviewPosting);
+router.post('/careers/admin/postings/:id/approve', ...admin, approve);
+router.post('/careers/admin/postings/:id/reject', ...admin, reject);
+router.post('/careers/admin/postings/:id/expire', ...admin, expire);
+router.post('/careers/admin/postings/:id/reopen', ...admin, reopen);
+router.post('/careers/admin/postings/:id/take-down', ...admin, takeDown);
+router.post('/careers/admin/postings/:id/reports/handled', ...admin, handlePostingReports);
+router.get('/careers/admin/submissions', ...admin, listSubmissions);
+router.post('/careers/admin/submissions/:id/retry', ...admin, retryLink);
+router.post('/careers/admin/submissions/:id/dismiss', ...admin, dismissLink);
+
+// Sources and operations.
+router.post('/careers/admin/sources/run-all', ...admin, runAllNow);
+router.get('/careers/admin/sources', ...admin, listSources);
+router.post('/careers/admin/sources', ...admin, createSource);
+router.post('/careers/admin/sources/bulk', ...admin, bulkCreateSources);
+router.patch('/careers/admin/sources/:id', ...admin, updateSource);
+router.post('/careers/admin/sources/:id/archive', ...admin, archiveSource);
+router.post('/careers/admin/sources/:id/restore', ...admin, restoreSource);
+router.post('/careers/admin/sources/:id/run', ...admin, runSourceNow);
+router.get('/careers/admin/sources/:id/runs', ...admin, listRuns);
+router.get('/careers/admin/ops', ...admin, getOps);
+router.get('/careers/admin/usage', ...admin, getUsage);
+router.get('/careers/admin/activity', ...admin, getActivity);
+
+// Experience backfill (link old Career Vault experiences to companies).
+router.get('/careers/admin/backfill/suggestions', ...admin, listBackfill);
+router.post('/careers/admin/backfill/apply', ...admin, applyBackfill);
+router.post('/careers/admin/backfill/unlink', ...admin, unlinkBackfill);
+
+export default router;
