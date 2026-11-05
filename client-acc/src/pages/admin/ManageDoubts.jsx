@@ -100,8 +100,13 @@ function ReportsPanel({ onChanged }) {
     setLoading(true);
     try {
       const res = await doubtApi.getReports({ status, page, limit: PAGE_SIZE });
+      const pages = res.data.pagination?.totalPages || 1;
+      if (page > pages) {
+        setPage(pages);
+        return;
+      }
       setReports(res.data.data || []);
-      setTotalPages(res.data.pagination?.totalPages || 1);
+      setTotalPages(pages);
     } catch (err) {
       toast.error(apiError(err, "Could not load reports."));
     } finally {
@@ -217,8 +222,13 @@ function DiscussionsPanel({ onChanged }) {
     setLoading(true);
     try {
       const res = await doubtApi.getDoubts({ page, limit: PAGE_SIZE, includeHidden: true, ...(search ? { search } : {}) });
+      const pages = res.data.pagination?.totalPages || 1;
+      if (page > pages) {
+        setPage(pages);
+        return;
+      }
       setDoubts(res.data.data || []);
-      setTotalPages(res.data.pagination?.totalPages || 1);
+      setTotalPages(pages);
     } catch (err) {
       toast.error(apiError(err, "Could not load discussions."));
     } finally {
