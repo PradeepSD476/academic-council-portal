@@ -1,0 +1,357 @@
+{
+ "nextPage": "WzE3ODkwODQ4MDAwMDAsNjA4NDYxOV0=",
+ "results": [
+  {
+   "id": 6176838,
+   "shortcode": "D2E4D92832",
+   "title": "Integration Architect (Workday)",
+   "remote": false,
+   "location": {
+    "city": "Gurugram",
+    "country": "India",
+    "countryCode": "IN",
+    "region": "Haryana"
+   },
+   "locations": [
+    {
+     "city": "Gurugram",
+     "country": "India",
+     "countryCode": "IN",
+     "hidden": false,
+     "region": "Haryana"
+    }
+   ],
+   "state": "published",
+   "isInternal": false,
+   "code": null,
+   "published": "2026-10-09T00:00:00.000Z",
+   "type": "full",
+   "language": "en",
+   "department": [
+    "Leena AI (India)"
+   ],
+   "accountUid": "85ac63c3-e445-4568-8ba6-f8bcd55f9c2a",
+   "approvalStatus": "approved",
+   "workplace": "on_site"
+  },
+  {
+   "id": 6177625,
+   "shortcode": "29E597FC11",
+   "title": "Senior Account Executive - Enterprise",
+   "remote": true,
+   "location": {
+    "city": "",
+    "country": "United Kingdom",
+    "countryCode": "GB",
+    "region": null
+   },
+   "locations": [
+    {
+     "city": "",
+     "country": "United Kingdom",
+     "countryCode": "GB",
+     "hidden": false,
+     "region": null
+    }
+   ],
+   "state": "published",
+   "isInternal": false,
+   "code": "",
+   "published": "2026-10-06T00:00:00.000Z",
+   "type": "full",
+   "language": "en",
+   "department": [
+    "Leena AI (Europe)"
+   ],
+   "accountUid": "85ac63c3-e445-4568-8ba6-f8bcd55f9c2a",
+   "approvalStatus": "approved",
+   "workplace": "remote"
+  },
+  {
+   "id": 6170057,
+   "shortcode": "99E7FB7D2B",
+   "title": "Senior Sales Engineer",
+   "remote": true,
+   "location": {
+    "city": "",
+    "country": "United States",
+    "countryCode": "US",
+    "region": null
+   },
+   "locations": [
+    {
+     "city": "",
+     "country": "United States",
+     "countryCode": "US",
+     "hidden": false,
+     "region": null
+    }
+   ],
+   "state": "published",
+   "isInternal": false,
+   "code": "",
+   "published": "2026-10-02T00:00:00.000Z",
+   "type": "full",
+   "language": "en",
+   "department": [
+    "Leena AI (US)"
+   ],
+   "accountUid": "85ac63c3-e445-4568-8ba6-f8bcd55f9c2a",
+   "approvalStatus": "approved",
+   "workplace": "remote"
+  },
+  {
+   "id": 6170110,
+   "shortcode": "01DB703E7F",
+   "title": "Senior Account Executive - Enterprise",
+   "remote": true,
+   "location": {
+    "city": "",
+    "country": "United States",
+    "countryCode": "US",
+    "region": null
+   },
+   "locations": [
+    {
+     "city": "",
+     "country": "United States",
+     "countryCode": "US",
+     "hidden": false,
+     "region": null
+    }
+   ],
+   "state": "published",
+   "isInternal": false,
+   "code": "",
+   "published": "2026-10-02T00:00:00.000Z",
+   "type": "full",
+   "language": "en",
+   "department": [
+    "Leena AI (US)"
+   ],
+   "accountUid": "85ac63c3-e445-4568-8ba6-f8bcd55f9c2a",
+   "approvalStatus": "approved",
+   "workplace": "remote"
+  },
+  {
+   "id": 6104193,
+   "shortcode": "454224FC97",
+   "title": "Sr. Brand Motion Designer",
+   "remote": false,
+   "location": {
+    "city": "Gurugram",
+    "country": "India",
+    "countryCode": "IN",
+    "region": "Haryana"
+   },
+   "locations": [
+    {
+     "city": "Gurugram",
+     "country": "India",
+     "countryCode": "IN",
+     "hidden": false,
+     "region": "Haryana"
+    }
+   ],
+   "state": "published",
+   "isInternal": false,
+   "code": null,
+   "published": "2026-09-29T00:00:00.000Z",
+   "type": "full",
+   "language": "en",
+   "department": [
+    "Leena AI (India)"
+   ],
+   "accountUid": "85ac63c3-e445-4568-8ba6-f8bcd55f9c2a",
+   "approvalStatus": "approved",
+   "workplace": "on_site"
+  },
+  {
+   "id": 6092669,
+   "shortcode": "54FEF3EBFC",
+   "title": "Project Manager- Professional Services",
+   "remote": true,
+   "location": {
+    "city": null,
+    "country": "United States",
+    "countryCode": "US",
+    "region": null
+   },
+   "locations": [
+    {
+     "city": null,
+     "country": "United States",
+     "countryCode": "US",
+     "hidden": false,
+     "region": null
+    }
+   ],
+   "state": "published",
+   "isInternal": false,
+   "code": null,
+   "published": "2026-09-25T00:00:00.000Z",
+   "type": "full",
+   "language": "en",
+   "department": [
+    "Leena AI (US)"
+   ],
+   "accountUid": "85ac63c3-e445-4568-8ba6-f8bcd55f9c2a",
+   "approvalStatus": "approved",
+   "workplace": "remote"
+  },
+  {
+   "id": 6092681,
+   "shortcode": "D4C4A9641D",
+   "title": "Forward Deployed Engineer",
+   "remote": true,
+   "location": {
+    "city": null,
+    "country": "United States",
+    "countryCode": "US",
+    "region": null
+   },
+   "locations": [
+    {
+     "city": null,
+     "country": "United States",
+     "countryCode": "US",
+     "hidden": false,
+     "region": null
+    }
+   ],
+   "state": "published",
+   "isInternal": false,
+   "code": null,
+   "published": "2026-09-25T00:00:00.000Z",
+   "type": "full",
+   "language": "en",
+   "department": [
+    "Leena AI (US)"
+   ],
+   "accountUid": "85ac63c3-e445-4568-8ba6-f8bcd55f9c2a",
+   "approvalStatus": "approved",
+   "workplace": "remote"
+  },
+  {
+   "id": 6120681,
+   "shortcode": "9F39D55151",
+   "title": "VP, Demand Generation",
+   "remote": false,
+   "location": {
+    "city": "New York",
+    "country": "United States",
+    "countryCode": "US",
+    "region": "New York"
+   },
+   "locations": [
+    {
+     "city": "New York",
+     "country": "United States",
+     "countryCode": "US",
+     "hidden": false,
+     "region": "New York"
+    }
+   ],
+   "state": "published",
+   "isInternal": false,
+   "code": null,
+   "published": "2026-09-25T00:00:00.000Z",
+   "type": "full",
+   "language": "en",
+   "department": [
+    "Leena AI (US)"
+   ],
+   "accountUid": "85ac63c3-e445-4568-8ba6-f8bcd55f9c2a",
+   "approvalStatus": "approved",
+   "workplace": "on_site"
+  },
+  {
+   "id": 6119647,
+   "shortcode": "E1AEC3AA9E",
+   "title": "Controller",
+   "remote": false,
+   "location": {
+    "city": "New York",
+    "country": "United States",
+    "countryCode": "US",
+    "region": "New York"
+   },
+   "locations": [
+    {
+     "city": "New York",
+     "country": "United States",
+     "countryCode": "US",
+     "hidden": false,
+     "region": "New York"
+    },
+    {
+     "city": "San Francisco",
+     "country": "United States",
+     "countryCode": "US",
+     "hidden": false,
+     "region": "California"
+    },
+    {
+     "city": "Seattle",
+     "country": "United States",
+     "countryCode": "US",
+     "hidden": false,
+     "region": "Washington"
+    }
+   ],
+   "state": "published",
+   "isInternal": false,
+   "code": null,
+   "published": "2026-09-24T00:00:00.000Z",
+   "type": "full",
+   "language": "en",
+   "department": [
+    "Leena AI (US)"
+   ],
+   "accountUid": "85ac63c3-e445-4568-8ba6-f8bcd55f9c2a",
+   "approvalStatus": "approved",
+   "workplace": "hybrid"
+  },
+  {
+   "id": 6084619,
+   "shortcode": "5C7CA928D2",
+   "title": "Enterprise Sales Development Representative- Europe",
+   "remote": false,
+   "location": {
+    "city": "Gurugram",
+    "country": "India",
+    "countryCode": "IN",
+    "region": "Haryana"
+   },
+   "locations": [
+    {
+     "city": "Gurugram",
+     "country": "India",
+     "countryCode": "IN",
+     "hidden": false,
+     "region": "Haryana"
+    },
+    {
+     "city": "Bengaluru",
+     "country": "India",
+     "countryCode": "IN",
+     "hidden": false,
+     "region": "Karnataka"
+    }
+   ],
+   "state": "published",
+   "isInternal": false,
+   "code": "",
+   "published": "2026-09-11T00:00:00.000Z",
+   "type": "full",
+   "language": "en",
+   "department": [
+    "Leena AI (India)"
+   ],
+   "accountUid": "85ac63c3-e445-4568-8ba6-f8bcd55f9c2a",
+   "approvalStatus": "approved",
+   "workplace": "on_site"
+  }
+ ],
+ "total": 11
+}

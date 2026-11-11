@@ -229,8 +229,25 @@ function SignIn() {
       if (!user.rollNo && user?.role !== 'FACULTY') navigate("/login-with-roll");
       else {
         const from = location.state?.from?.pathname || location.state?.from;
+
+        const getRoleDefaultPath = (role) => {
+          if (role === "RESEARCH_ADMIN") return "/admin/research-vault";
+          if (role === "FINANCE_ADMIN") return "/admin/finance-vault";
+          if (role === "CAREER_ADMIN") return "/admin/manage-posts";
+          if (role === "FACULTY" || role === "SUPER_ADMIN" || role === "ANNOUNCEMENT_ADMIN" || role === "RESOURCE_ADMIN") {
+            return "/admin/dashboard";
+          }
+          return "/dashboard/courses";
+        };
+
         if (from) {
-          navigate(from, { replace: true });
+          if ((from === "/admin" || from === "/admin/dashboard") && ["RESEARCH_ADMIN", "FINANCE_ADMIN", "CAREER_ADMIN"].includes(user?.role)) {
+            navigate(getRoleDefaultPath(user.role), { replace: true });
+          } else {
+            navigate(from, { replace: true });
+          }
+        } else if (["RESEARCH_ADMIN", "FINANCE_ADMIN", "CAREER_ADMIN"].includes(user?.role)) {
+          navigate(getRoleDefaultPath(user.role));
         } else if (user?.role !== 'FACULTY') {
           navigate("/dashboard/courses");
         } else {

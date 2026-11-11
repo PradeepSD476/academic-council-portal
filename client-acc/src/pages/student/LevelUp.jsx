@@ -32,7 +32,8 @@ export default function LevelUp() {
       user?.role === "ANNOUNCEMENT_ADMIN" ||
       user?.role === "RESOURCE_ADMIN" ||
       user?.role === "CAREER_ADMIN" ||
-      user?.role === "FINANCE_ADMIN") &&
+      user?.role === "FINANCE_ADMIN" ||
+      user?.role === "RESEARCH_ADMIN") &&
     location.pathname.startsWith("/admin");
 
   const [roadmaps, setRoadmaps] = useState([]);

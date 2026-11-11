@@ -20,6 +20,12 @@ import DevTeam from "./pages/Developers/page.jsx";
 import AdminTeam from "./pages/adminSection/page.jsx";
 import WingPage from "./pages/Wing/page.jsx";
 import Wings from "./pages/Wings/page.jsx";
+import JobsPage from "./pages/Careers/JobsPage.jsx";
+import JobDetailPage from "./pages/Careers/JobDetailPage.jsx";
+import CompaniesPage from "./pages/Careers/CompaniesPage.jsx";
+import CompanyPage from "./pages/Careers/CompanyPage.jsx";
+import SavedPage from "./pages/Careers/SavedPage.jsx";
+import UnsubscribePage from "./pages/Careers/UnsubscribePage.jsx";
 import FAQPage from "./pages/FAQ/page.jsx";
 import SignIn from "./pages/Login/page.jsx";
 import SignUp from "./pages/Signup/page.jsx";
@@ -37,8 +43,14 @@ import LevelUp from "./pages/student/LevelUp.jsx";
 import DoubtForum from "./pages/DoubtForum/index.jsx";
 import AskDoubt from "./pages/DoubtForum/AskDoubt.jsx";
 import DoubtThread from "./pages/DoubtForum/DoubtThread.jsx";
-
-// ACC Research Vault Module
+import CareersCompanies from "./pages/admin/careers/Companies.jsx";
+import CareersReviewQueue from "./pages/admin/careers/ReviewQueue.jsx";
+import CareersManualPosting from "./pages/admin/careers/ManualPosting.jsx";
+import CareersSources from "./pages/admin/careers/Sources.jsx";
+import CareersOperations from "./pages/admin/careers/Operations.jsx";
+import CareersBackfill from "./pages/admin/careers/ExperienceBackfill.jsx";
+import CareersAllPostings from "./pages/admin/careers/AllPostings.jsx";
+import CareersActivityLog from "./pages/admin/careers/ActivityLog.jsx";
 import ResearchVault from "./pages/ResearchVault/index.jsx";
 import ResearchVaultAdmin from "./pages/ResearchVault/ResearchVaultAdmin.jsx";
 import ResearchQuestionList from "./pages/ResearchVault/ResearchQuestionList.jsx";
@@ -65,6 +77,7 @@ import EditScholarship from "./pages/FinanceVault/admin/EditScholarship.jsx";
 import ManageRoadmap from "./pages/admin/ManageRoadmap.jsx";
 import ManageDoubts from "./pages/admin/ManageDoubts.jsx";
 
+
 const AppRoutes = () => {
   return (
     <Routes>
@@ -77,6 +90,7 @@ const AppRoutes = () => {
       <Route path="/wings" element={<Wings />} />
       <Route path="/faq" element={<FAQPage />} />
       <Route path="/wiki" element={<WikiHome />} />
+      <Route path="/alerts/unsubscribe" element={<UnsubscribePage />} />
       <Route path="/login" element={<SignIn />} />
       <Route path="/register" element={<SignUp />} />
       <Route path="/login-with-roll" element={<VerifyRoll />} />
@@ -115,6 +129,13 @@ const AppRoutes = () => {
         <Route path="level-up" element={<LevelUp />} />
         <Route path="level-up/:roadmapSlug/:chapterSlug" element={<LevelUp />} />
 
+        {/* Careers Routes */}
+        <Route path="career-vault/jobs" element={<JobsPage />} />
+        <Route path="career-vault/jobs/:id" element={<JobDetailPage />} />
+        <Route path="career-vault/companies" element={<CompaniesPage />} />
+        <Route path="career-vault/companies/:slug" element={<CompanyPage />} />
+        <Route path="career-vault/saved" element={<SavedPage />} />
+
         {/* Research Vault Routes */}
         <Route path="research-vault" element={<ResearchVault />} />
         <Route path="research-vault/questions" element={<ResearchQuestionList />} />
@@ -150,6 +171,7 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       >
+
         <Route
           path="research-vault"
           element={
@@ -271,9 +293,74 @@ const AppRoutes = () => {
                 "FACULTY",
                 "CAREER_ADMIN",
                 "FINANCE_ADMIN",
+                "RESEARCH_ADMIN",
               ]}
             >
               <ManageRoadmap />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="careers/companies"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY", "CAREER_ADMIN"]}>
+              <CareersCompanies />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="careers/review"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY", "CAREER_ADMIN"]}>
+              <CareersReviewQueue />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="careers/postings"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY", "CAREER_ADMIN"]}>
+              <CareersAllPostings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="careers/new"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY", "CAREER_ADMIN"]}>
+              <CareersManualPosting />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="careers/sources"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY", "CAREER_ADMIN"]}>
+              <CareersSources />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="careers/activity"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY", "CAREER_ADMIN"]}>
+              <CareersActivityLog />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="careers/ops"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY", "CAREER_ADMIN"]}>
+              <CareersOperations />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="careers/backfill"
+          element={
+            <ProtectedRoute roles={["SUPER_ADMIN", "FACULTY", "CAREER_ADMIN"]}>
+              <CareersBackfill />
             </ProtectedRoute>
           }
         />

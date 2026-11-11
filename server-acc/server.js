@@ -20,6 +20,8 @@ import roadmapRoutes from './routes/roadmap.js';
 import doubtRoutes from './routes/doubt.js';
 
 import { ensureBucket } from './config/minio.js';
+import careersRoutes from './routes/careers.js';
+import careersAdminRoutes from './routes/careersAdmin.js';
 
 dotenv.config();
 
@@ -73,6 +75,8 @@ app.use('/api/v1/finance-vault', financeVaultRoutes);
 app.use('/api/v1/wiki', wikiRoutes);
 app.use('/api/v1/vault', researchVaultRoutes);
 app.use('/api/v1', roadmapRoutes);
+app.use('/api/v1', careersRoutes);
+app.use('/api/v1', careersAdminRoutes);
 app.use('/api/v1', doubtRoutes);
 
 server.listen(PORT, () => {

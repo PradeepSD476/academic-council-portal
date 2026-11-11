@@ -1,0 +1,582 @@
+[
+ {
+  "company": "Stripe"
+ },
+ {
+  "company": "Databricks"
+ },
+ {
+  "company": "Rubrik"
+ },
+ {
+  "company": "Cohesity"
+ },
+ {
+  "company": "Postman"
+ },
+ {
+  "company": "Razorpay"
+ },
+ {
+  "company": "CRED"
+ },
+ {
+  "company": "Meesho"
+ },
+ {
+  "company": "Groww"
+ },
+ {
+  "company": "Zeta"
+ },
+ {
+  "company": "Sprinklr"
+ },
+ {
+  "company": "Twilio"
+ },
+ {
+  "company": "DoorDash"
+ },
+ {
+  "company": "Airbnb"
+ },
+ {
+  "company": "Coinbase"
+ },
+ {
+  "company": "Robinhood"
+ },
+ {
+  "company": "Pinterest"
+ },
+ {
+  "company": "Dropbox"
+ },
+ {
+  "company": "Palantir"
+ },
+ {
+  "company": "Rippling"
+ },
+ {
+  "company": "Notion"
+ },
+ {
+  "company": "Ramp"
+ },
+ {
+  "company": "Plaid"
+ },
+ {
+  "company": "Figma"
+ },
+ {
+  "company": "Discord"
+ },
+ {
+  "company": "Reddit"
+ },
+ {
+  "company": "Instacart"
+ },
+ {
+  "company": "Lyft"
+ },
+ {
+  "company": "Snowflake"
+ },
+ {
+  "company": "MongoDB"
+ },
+ {
+  "company": "Elastic"
+ },
+ {
+  "company": "Okta"
+ },
+ {
+  "company": "Zscaler"
+ },
+ {
+  "company": "Confluent"
+ },
+ {
+  "company": "HashiCorp"
+ },
+ {
+  "company": "GitLab"
+ },
+ {
+  "company": "Cloudflare"
+ },
+ {
+  "company": "Datadog"
+ },
+ {
+  "company": "PhonePe"
+ },
+ {
+  "company": "Swiggy"
+ },
+ {
+  "company": "Zomato"
+ },
+ {
+  "company": "Flipkart"
+ },
+ {
+  "company": "Dream11"
+ },
+ {
+  "company": "ShareChat"
+ },
+ {
+  "company": "Unacademy"
+ },
+ {
+  "company": "upGrad"
+ },
+ {
+  "company": "BrowserStack"
+ },
+ {
+  "company": "Chargebee"
+ },
+ {
+  "company": "InMobi"
+ },
+ {
+  "company": "Paytm"
+ },
+ {
+  "company": "Juspay"
+ },
+ {
+  "company": "Slice",
+  "tokens": [
+   "sliceit"
+  ]
+ },
+ {
+  "company": "Jupiter"
+ },
+ {
+  "company": "Navi"
+ },
+ {
+  "company": "Udaan"
+ },
+ {
+  "company": "ClearTax"
+ },
+ {
+  "company": "Zepto"
+ },
+ {
+  "company": "Blinkit"
+ },
+ {
+  "company": "Ola",
+  "tokens": [
+   "olacabs",
+   "olaelectric"
+  ]
+ },
+ {
+  "company": "Rapido"
+ },
+ {
+  "company": "Urban Company"
+ },
+ {
+  "company": "Nykaa"
+ },
+ {
+  "company": "Lenskart"
+ },
+ {
+  "company": "Cars24"
+ },
+ {
+  "company": "Spinny"
+ },
+ {
+  "company": "Licious"
+ },
+ {
+  "company": "Delhivery"
+ },
+ {
+  "company": "Ather Energy"
+ },
+ {
+  "company": "Tower Research Capital",
+  "tokens": [
+   "towerresearchcapital"
+  ]
+ },
+ {
+  "company": "Optiver"
+ },
+ {
+  "company": "Graviton Research Capital"
+ },
+ {
+  "company": "Quadeye"
+ },
+ {
+  "company": "AlphaGrep"
+ },
+ {
+  "company": "Squarepoint Capital"
+ },
+ {
+  "company": "Hudson River Trading",
+  "tokens": [
+   "wehrtyou"
+  ]
+ },
+ {
+  "company": "Two Sigma"
+ },
+ {
+  "company": "Jump Trading"
+ },
+ {
+  "company": "DRW",
+  "tokens": [
+   "drw",
+   "drweng"
+  ]
+ },
+ {
+  "company": "IMC Trading",
+  "tokens": [
+   "imc"
+  ]
+ },
+ {
+  "company": "Akuna Capital"
+ },
+ {
+  "company": "WorldQuant"
+ },
+ {
+  "company": "Arcesium"
+ },
+ {
+  "company": "Sarvam AI"
+ },
+ {
+  "company": "Glean",
+  "tokens": [
+   "gleanwork"
+  ]
+ },
+ {
+  "company": "Perplexity"
+ },
+ {
+  "company": "OpenAI"
+ },
+ {
+  "company": "Anthropic"
+ },
+ {
+  "company": "Scale AI",
+  "tokens": [
+   "scaleai"
+  ]
+ },
+ {
+  "company": "Cohere"
+ },
+ {
+  "company": "Hasura"
+ },
+ {
+  "company": "Innovaccer"
+ },
+ {
+  "company": "Druva"
+ },
+ {
+  "company": "Icertis"
+ },
+ {
+  "company": "Whatfix"
+ },
+ {
+  "company": "MoEngage"
+ },
+ {
+  "company": "CleverTap"
+ },
+ {
+  "company": "Darwinbox"
+ },
+ {
+  "company": "LeadSquared"
+ },
+ {
+  "company": "Mindtickle"
+ },
+ {
+  "company": "Uniphore"
+ },
+ {
+  "company": "Observe.AI",
+  "tokens": [
+   "observeai"
+  ]
+ },
+ {
+  "company": "Cerebras",
+  "tokens": [
+   "cerebrassystems"
+  ]
+ },
+ {
+  "company": "SiFive"
+ },
+ {
+  "company": "Netradyne"
+ },
+ {
+  "company": "Khatabook"
+ },
+ {
+  "company": "OkCredit"
+ },
+ {
+  "company": "BharatPe"
+ },
+ {
+  "company": "Pine Labs"
+ },
+ {
+  "company": "Cashfree Payments",
+  "tokens": [
+   "cashfree"
+  ]
+ },
+ {
+  "company": "Setu"
+ },
+ {
+  "company": "smallcase"
+ },
+ {
+  "company": "INDmoney"
+ },
+ {
+  "company": "Upstox"
+ },
+ {
+  "company": "CoinSwitch"
+ },
+ {
+  "company": "CoinDCX"
+ },
+ {
+  "company": "Polygon Technology",
+  "tokens": [
+   "polygon",
+   "polygontechnology"
+  ]
+ },
+ {
+  "company": "Atlan"
+ },
+ {
+  "company": "Hevo Data"
+ },
+ {
+  "company": "Fyle"
+ },
+ {
+  "company": "Salesforce"
+ },
+ {
+  "company": "Uber"
+ },
+ {
+  "company": "Grab"
+ },
+ {
+  "company": "Gojek"
+ },
+ {
+  "company": "Sea",
+  "tokens": [
+   "sea",
+   "seagroup"
+  ]
+ },
+ {
+  "company": "Shopee"
+ },
+ {
+  "company": "Agoda"
+ },
+ {
+  "company": "Booking.com",
+  "tokens": [
+   "bookingcom"
+  ]
+ },
+ {
+  "company": "Expedia"
+ },
+ {
+  "company": "Atlassian"
+ },
+ {
+  "company": "Canva"
+ },
+ {
+  "company": "Miro"
+ },
+ {
+  "company": "Asana"
+ },
+ {
+  "company": "Airtable"
+ },
+ {
+  "company": "Zapier"
+ },
+ {
+  "company": "Vercel"
+ },
+ {
+  "company": "Supabase"
+ },
+ {
+  "company": "PostHog"
+ },
+ {
+  "company": "Linear"
+ },
+ {
+  "company": "Retool"
+ },
+ {
+  "company": "Brex"
+ },
+ {
+  "company": "Mercury"
+ },
+ {
+  "company": "Chime"
+ },
+ {
+  "company": "Affirm"
+ },
+ {
+  "company": "Nubank"
+ },
+ {
+  "company": "Revolut"
+ },
+ {
+  "company": "Wise"
+ },
+ {
+  "company": "Toast"
+ },
+ {
+  "company": "Samsara"
+ },
+ {
+  "company": "Verkada"
+ },
+ {
+  "company": "Anduril"
+ },
+ {
+  "company": "Applied Intuition"
+ },
+ {
+  "company": "Nuro"
+ },
+ {
+  "company": "Waymo"
+ },
+ {
+  "company": "Aurora"
+ },
+ {
+  "company": "Motive"
+ },
+ {
+  "company": "Gupshup"
+ },
+ {
+  "company": "Haptik"
+ },
+ {
+  "company": "Yellow.ai",
+  "tokens": [
+   "yellowai"
+  ]
+ },
+ {
+  "company": "Freshworks"
+ },
+ {
+  "company": "Zoho"
+ },
+ {
+  "company": "Tekion"
+ },
+ {
+  "company": "Amagi"
+ },
+ {
+  "company": "Sigmoid"
+ },
+ {
+  "company": "Fractal Analytics"
+ },
+ {
+  "company": "Tiger Analytics"
+ },
+ {
+  "company": "MathCo"
+ },
+ {
+  "company": "Quantiphi"
+ },
+ {
+  "company": "Turing"
+ },
+ {
+  "company": "Deel"
+ },
+ {
+  "company": "Remote",
+  "tokens": [
+   "remotecom"
+  ]
+ },
+ {
+  "company": "Oyster HR"
+ },
+ {
+  "company": "Hackerrank"
+ },
+ {
+  "company": "Josh Talks"
+ },
+ {
+  "company": "Physics Wallah"
+ },
+ {
+  "company": "Eightfold AI"
+ },
+ {
+  "company": "Simplilearn"
+ }
+]
