@@ -122,3 +122,6 @@ jobs:
 
           docker exec acc-backend \
             npx prisma migrate deploy
+
+          docker exec acc-backend \
+            npx prisma db seed

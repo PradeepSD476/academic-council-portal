@@ -13,6 +13,9 @@
     "careers:job": "node scripts/careers/runJob.js",
     "careers:seed": "node prisma/seedCareers.js"
   },
+  "prisma": {
+    "seed": "node seedWiki.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

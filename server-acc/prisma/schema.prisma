@@ -1,32 +1,35 @@
 generator client {
   provider = "prisma-client-js"
 }
-
 datasource db {
-  provider = "postgresql"
-  url      = env("POSTGRES_DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
-
 model User {
   id                  Int            @id @default(autoincrement())
   email               String         @unique
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
-  admissionYear       Int?
-  branchName          String?
-  displayName         String?
-  photoURL            String?
-  program             Program?
+  password            String         @default("xyz")
   role                Role           @default(STUDENT)
   rollNo              String?
-  password            String         @default("xyz")
+  displayName         String?
+  photoURL            String?
+  admissionYear       Int?
+  branchName          String?
+  program             Program?
   lastseen            DateTime?
+
   postedAnnouncements Announcement[]
   comments            Comment[]      @relation("CommentBy")
   experiences         Experience[]
   likes               Like[]
   uploadedResources   Resource[]
   bookmarks           Bookmark[]
+  wikiArticles        WikiArticle[]
+  doubts              Doubt[]
+  doubtAnswers        DoubtAnswer[]
+  doubtVotes          DoubtVote[]
+  doubtReports        DoubtReport[]
   // Careers (P2): self-reported, 0.00-10.00, used only to filter postings for this user. Hidden from
   // every query by the global omit in config/db.js; only /careers/me/* opts in.
   cpi                 Decimal?       @db.Decimal(4, 2)
@@ -39,16 +42,14 @@ model User {
   hiddenPostings      HiddenPosting[] // careers P6 (relation only, no column)
   savedSearches       SavedSearch[] // careers P7 (relation only, no column)
 
-  // Research Vault (4 Models)
+  // Research Vault Relations
   researchOpenPositions       ResearchOpenPosition[] @relation("OpenPositionsUploaded")
   researchResourcesUploaded   ResearchResource[]     @relation("ResearchResourcesUploaded")
   researchResourcesApproved   ResearchResource[]     @relation("ResearchResourcesApproved")
   researchDiscussionsAuthored ResearchDiscussion[]   @relation("ResearchDiscussionsAuthored")
 
-  doubts       Doubt[]
-  doubtAnswers DoubtAnswer[]
-  doubtVotes   DoubtVote[]
-  doubtReports DoubtReport[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Experience {
@@ -57,15 +58,15 @@ model Experience {
   description    String         @db.Text
   experienceType ExperienceType
   status         ContentStatus
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  uploadedById   Int
   domain         String?
   resumeUrl      String?
-  comments       Comment[]
+  uploadedById   Int
   uploadedBy     User           @relation(fields: [uploadedById], references: [id])
+  comments       Comment[]
   likes          Like[]
   bookmarks      Bookmark[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
   companyId      Int?
   company        Company?       @relation(fields: [companyId], references: [id])
   // careers P8-T1 (F-29, user OK 11 Oct, D-15): optional numbers a senior reports. Private per
@@ -80,12 +81,12 @@ model Experience {
 
 model Bookmark {
   id        Int        @id @default(autoincrement())
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
   postId    Int
   post      Experience @relation(fields: [postId], references: [id], onDelete: Cascade)
   userId    Int
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
   @@unique([userId, postId])
   @@index([postId])
@@ -95,8 +96,6 @@ model Bookmark {
 model Comment {
   id        Int         @id @default(autoincrement())
   content   String?
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
   postId    Int?
   userId    Int
   parentId  Int?
@@ -105,6 +104,8 @@ model Comment {
   replies   Comment[]   @relation("ParentComment")
   post      Experience? @relation(fields: [postId], references: [id])
   user      User        @relation("CommentBy", fields: [userId], references: [id])
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 
   @@index([postId])
   @@index([rootId])
@@ -114,12 +115,12 @@ model Comment {
 
 model Like {
   id        Int         @id @default(autoincrement())
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
   postId    Int?
   userId    Int
   post      Experience? @relation(fields: [postId], references: [id])
   user      User        @relation(fields: [userId], references: [id])
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 
   @@unique([userId, postId])
   @@index([postId])
@@ -130,9 +131,9 @@ model Verification {
   email      String
   otpHash    String
   type       VerificationType
+  expiringAt DateTime
   createdAt  DateTime         @default(now())
   updatedAt  DateTime         @updatedAt
-  expiringAt DateTime
 
   @@index([email])
   @@index([expiringAt])
@@ -143,14 +144,14 @@ model Course {
   courseCode    String     @unique
   name          String
   description   String?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
   academicYear  Int
   allowedBranch String[]
   program       Program
   credits       Decimal    @db.Decimal
   instructor    String
   resources     Resource[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 }
 
 model Resource {
@@ -161,59 +162,76 @@ model Resource {
   resourceType ResourceType
   uploadedById Int?
   courseId     Int?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
   course       Course?      @relation(fields: [courseId], references: [id])
   uploadedBy   User?        @relation(fields: [uploadedById], references: [id])
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 }
 
 model Announcement {
   id             Int      @id @default(autoincrement())
   title          String
   description    String?
+  type           String   @default("GENERAL")
   isPinned       Boolean  @default(false)
   isFileAttached Boolean  @default(false)
   filePath       String?
   uploadedById   Int?
+  uploadedBy     User?    @relation(fields: [uploadedById], references: [id])
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-  type           String   @default("GENERAL")
-  uploadedBy     User?    @relation(fields: [uploadedById], references: [id])
 }
 
 model FinanceVault {
-  id          Int    @id @default(autoincrement())
-  title       String
-  description String
-
-  category FinanceCategory
-  provider String?
-
-  amount String?
-
+  id                  Int               @id @default(autoincrement())
+  title               String
+  description         String
+  category            FinanceCategory
+  provider            String?
+  amount              String?
   eligibilityCriteria String?
   incomeEligibility   String?
+  genderEligibility   GenderEligibility @default(ALL)
+  applicableBranch    String[]
+  academicYear        String?
+  subCategory         String[]
+  state               String[]
+  deadline            DateTime?
+  applicationUrl      String?
+  officialWebsite     String?
+  requiredDocuments   String?
+  attachments         Json?
+  isActive            Boolean           @default(true)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+}
 
-  genderEligibility GenderEligibility @default(ALL)
+model WikiCategory {
+  id          Int           @id @default(autoincrement())
+  name        String        @unique
+  slug        String        @unique
+  description String?
+  articles    WikiArticle[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
 
-  applicableBranch String[]
-  academicYear     String?
+model WikiArticle {
+  id          Int          @id @default(autoincrement())
+  title       String
+  slug        String       @unique
+  content     String       @db.Text
+  categoryId  Int
+  category    WikiCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  authorId    Int?
+  author      User?        @relation(fields: [authorId], references: [id])
+  isPublished Boolean      @default(true)
+  views       Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
-  subCategory String[]
-  state       String[]
-
-  deadline DateTime?
-
-  applicationUrl  String?
-  officialWebsite String?
-
-  requiredDocuments String?
-  attachments       Json?
-
-  isActive Boolean @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  @@index([categoryId])
+  @@index([slug])
 }
 
 enum Role {
@@ -224,6 +242,7 @@ enum Role {
   FACULTY
   CAREER_ADMIN
   FINANCE_ADMIN
+  WIKI_ADMIN
   RESEARCH_ADMIN
 }
 
@@ -300,7 +319,7 @@ model Roadmap {
   icon        String?
   isPublished Boolean          @default(true)
   createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  updatedAt   DateTime         @default(now())
   sections    RoadmapSection[]
 }
 
@@ -931,7 +950,7 @@ enum DoubtReportStatus {
 }
 
 // ===========================================================================
-// Research Vault (Exactly 4 Models)
+// Research Vault
 // ===========================================================================
 
 enum ResearchResourceType {
@@ -1013,7 +1032,7 @@ model ResearchOpenPosition {
   @@index([researchAreas], type: Gin)
 }
 
-// 3. RESEARCH RESOURCES (Guides, Papers, Templates, and Student Experiences)
+// 3. RESEARCH RESOURCES
 model ResearchResource {
   id               Int                  @id @default(autoincrement())
   title            String
@@ -1053,7 +1072,7 @@ model ResearchResource {
   @@index([researchAreas], type: Gin)
 }
 
-// 4. RESEARCH DISCUSSIONS (Q&A, 1-Level Threaded Replies, and Resource Comments)
+// 4. RESEARCH DISCUSSIONS
 model ResearchDiscussion {
   id            Int      @id @default(autoincrement())
   title         String?
