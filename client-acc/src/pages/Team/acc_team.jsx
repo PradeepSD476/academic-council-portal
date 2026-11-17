@@ -230,7 +230,7 @@ const details = {
           phone: "",
           email: "pgr@iitp.ac.in",
           linkedin: "",
-          profile: "/user.png"
+          profile: "/biplab.jpg"
         }
       ]
     },
