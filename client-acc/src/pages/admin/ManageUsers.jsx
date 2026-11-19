@@ -12,14 +12,15 @@ const ManageUsers = () => {
   const limit = 10;
   const [hasMore, setHasMore] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [onlineOnly, setOnlineOnly] = useState(false);
+  const [activity, setActivity] = useState('all');
 
   const roles = ['STUDENT', 'CAREER_ADMIN', 'ANNOUNCEMENT_ADMIN', 'RESOURCE_ADMIN', 'FINANCE_ADMIN', 'RESEARCH_ADMIN', 'SUPER_ADMIN', 'FACULTY'];
 
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/v1/users?page=${page}&limit=${limit}&search=${searchTerm}${onlineOnly ? '&online=true' : ''}`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/v1/users`, {
+        params: { page, limit, search: searchTerm, activity },
         withCredentials: true
       });
 
@@ -41,7 +42,7 @@ const ManageUsers = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, [page, searchTerm, onlineOnly]);
+  }, [page, searchTerm, activity]);
 
   const handleRoleChange = async (userId, newRole) => {
     setUpdatingId(userId);
@@ -94,17 +95,26 @@ const ManageUsers = () => {
             className="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-white/95 backdrop-blur-xl shadow-xs text-[var(--color-primary)] placeholder-slate-400 focus:outline-none focus:border-[var(--color-secondary)] focus:ring-1 focus:ring-[var(--color-secondary)] text-sm shadow-sm transition"
           />
         </div>
-        <button
-          onClick={() => { setOnlineOnly(prev => !prev); setPage(1); }}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-xs font-bold transition-all duration-200 cursor-pointer shrink-0 ${
-            onlineOnly
+        <div className="relative shrink-0">
+          <Wifi size={14} aria-hidden="true" className={`absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none ${activity !== 'all' ? 'text-emerald-500' : 'text-slate-400'}`} />
+          <select
+            aria-label="Filter users by last activity"
+            value={activity}
+            onChange={(e) => { setActivity(e.target.value); setPage(1); }}
+            className={`pl-9 pr-4 py-2.5 rounded-2xl border text-xs font-bold transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--color-secondary)] ${
+            activity !== 'all'
               ? 'bg-emerald-50 border-emerald-300 text-emerald-700 shadow-sm'
               : 'bg-white/95 border-slate-200 text-slate-500 hover:border-slate-300'
           }`}
-        >
-          <Wifi size={14} className={onlineOnly ? 'text-emerald-500' : 'text-slate-400'} />
-          {onlineOnly ? 'Online Only' : 'Show Online'}
-        </button>
+          >
+            <option value="all">All users</option>
+            <option value="online">Online</option>
+            <option value="1h">Last 1 hour</option>
+            <option value="24h">Last 24 hours</option>
+            <option value="7d">Last 7 days</option>
+            <option value="30d">Last 30 days</option>
+          </select>
+        </div>
       </div>
 
       {/* Main Content Area */}

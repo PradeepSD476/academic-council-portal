@@ -1,10 +1,25 @@
 import prisma from '../config/db.js';
 
+const activityWindows = new Map([
+    ['online', 60 * 1000],
+    ['1h', 60 * 60 * 1000],
+    ['24h', 24 * 60 * 60 * 1000],
+    ['7d', 7 * 24 * 60 * 60 * 1000],
+    ['30d', 30 * 24 * 60 * 60 * 1000],
+]);
+
 export const getUsers = async (req, res) => {
     const page = parseInt(req.query.page);
     const limit = parseInt(req.query.limit);
     const search = req.query.search?.trim() || "";
-    const onlineOnly = req.query.online === 'true';
+    const activity = req.query.activity ?? (req.query.online === 'true' ? 'online' : 'all');
+    if (activity !== 'all' && !activityWindows.has(activity)) {
+        return res.status(400).json({
+            success: false,
+            error: "Bad Request",
+            message: "Activity must be one of: all, online, 1h, 24h, 7d, 30d."
+        });
+    }
     if (!page || !limit) {
         return res.status(400).json({
             success: false,
@@ -31,8 +46,8 @@ export const getUsers = async (req, res) => {
         ];
     }
 
-    if (onlineOnly) {
-        whereClause.lastseen = { gt: new Date(Date.now() - 60 * 1000) };
+    if (activity !== 'all') {
+        whereClause.lastseen = { gt: new Date(Date.now() - activityWindows.get(activity)) };
     }
 
     const results = await prisma.user.findMany({
