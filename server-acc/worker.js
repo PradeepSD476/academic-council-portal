@@ -5,6 +5,7 @@ import cron from 'node-cron';
 import prisma from './config/db.js';
 import { JOBS } from './services/careers/jobs.js';
 import { heartbeat } from './services/careers/heartbeat.js';
+import { examReminderTick } from './services/exams/jobs.js';
 
 const timezone = process.env.CAREERS_TZ || 'Asia/Kolkata';
 
@@ -17,6 +18,13 @@ const tasks = Object.entries(JOBS).map(([name, job]) => cron.schedule(job.cron, 
         console.error(`[careers] job ${name} crashed`, err);
     }
 }, { name, timezone, noOverlap: true }));
+
+// Exam datasets carry their own timezone and send time; a minute tick also hot-reloads config
+// and recovers due retries. Disabled by default; no exam work runs in the HTTP process.
+tasks.push(cron.schedule('* * * * *', async () => {
+    try { await examReminderTick(); }
+    catch (err) { console.error('[exams] worker tick failed', err); }
+}, { name: 'examReminders', timezone: 'UTC', noOverlap: true }));
 
 try {
     await heartbeat('workerStarted');
