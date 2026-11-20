@@ -1,0 +1,21 @@
+{
+  "activeDatasets": ["endsem-autumn-2026"],
+  "datasets": [{
+    "id": "endsem-autumn-2026",
+    "examName": "End-Semester Examination, Autumn 2026",
+    "source": { "liveUrlEnv": "EXAM_ENDSEM_SHEET_URL", "fallbackPathEnv": "EXAM_ENDSEM_FALLBACK_PATH" },
+    "sendAt": "07:30",
+    "sendAtEnv": "EXAM_REMINDERS_SEND_AT",
+    "timezone": "Asia/Kolkata",
+    "dateFormats": ["yyyy-MM-dd", "dd/MM/yyyy", "d/M/yyyy", "dd-MM-yyyy", "d-M-yyyy", "d MMM yyyy", "dd MMM yyyy"],
+    "separators": { "courses": [",", "\n"], "roomCourses": [","], "roomRolls": [","], "enrolmentRolls": [";"], "unit": "/" },
+    "holidays": { "keywords": ["holiday", "jayanti"], "dates": [] },
+    "slots": [
+      { "id": "morning", "label": "Morning", "aliases": ["Morning"], "header": "Morning 9:30 am - 12:30 pm", "start": "09:30", "end": "12:30", "displayTime": "9:30 AM to 12:30 PM" },
+      { "id": "evening", "label": "Evening", "aliases": ["Evening"], "header": "Evening 3:00 pm - 6:00 pm", "start": "15:00", "end": "18:00", "displayTime": "3:00 PM to 6:00 PM" }
+    ],
+    "timetable": { "tab": "EndSem Timetable", "layout": "grid", "columns": { "date": "HS" } },
+    "rooms": { "tab": "Room Allocation EndSem", "columns": { "date": "Date", "slot": "Slot", "room": "Room", "unit": "Courses", "rolls": "Rolls" } },
+    "enrolments": { "tab": "Course Wise List", "columns": { "unit": "Sub", "rolls": "Rolls" } }
+  }]
+}

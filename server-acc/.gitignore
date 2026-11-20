@@ -11,3 +11,10 @@ firebase-service-account-key.json
 prisma/seed.js
 
 .env*
+
+# Bundle the selected fallback workbook; keep other exam data and outputs local.
+data/exams/*
+!data/exams/.gitkeep
+!data/exams/endsem.xlsx
+exam-output/
+config/exams/*.local.json

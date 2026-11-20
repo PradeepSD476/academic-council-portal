@@ -1,0 +1,41 @@
+{
+  "config": {
+    "id": "synthetic-midsem",
+    "examName": "Synthetic Mid-Semester Exams",
+    "source": { "liveUrlEnv": "SYNTHETIC_URL", "fallbackPathEnv": "SYNTHETIC_FILE" },
+    "dateFormats": ["dd.MM.yyyy"],
+    "roll": { "trim": true, "uppercase": true, "pattern": "^ST[0-9]{3}$" },
+    "separators": { "courses": ["|"], "roomCourses": ["|"], "roomRolls": ["|"], "enrolmentRolls": ["|"], "unit": "+" },
+    "slots": [
+      { "id": "early", "label": "First sitting", "aliases": ["A"], "start": "08:00", "end": "09:00", "displayTime": "8–9 AM" },
+      { "id": "noon", "label": "Second sitting", "aliases": ["B"], "start": "12:00", "end": "13:00", "displayTime": "12–1 PM" },
+      { "id": "late", "label": "Third sitting", "aliases": ["C"], "start": "17:00", "end": "18:00", "displayTime": "5–6 PM" }
+    ],
+    "timetable": { "tab": "MidSem Timetable", "layout": "rows", "columns": { "date": ["Exam day", "Date"], "slot": "Sitting", "unit": "Paper" } },
+    "rooms": { "tab": "Room Allocation_Mid_Sem", "columns": { "date": "When", "slot": "Period", "room": "Venue", "unit": "Module", "rolls": "Candidates" } },
+    "enrolments": { "tab": "Different registration", "columns": { "unit": "Module", "rolls": "Candidates" } }
+  },
+  "sheets": {
+    "MidSem Timetable": [
+      ["A title before the real headers"],
+      [],
+      ["Extra", "Paper", "Sitting", "Exam day"],
+      ["ignored", "AA100+BB100", "C", "05.12.2026"],
+      [],
+      ["ignored", "CC200", "A", "05.12.2026"],
+      ["ignored", "DD300", "B", "05.12.2026"]
+    ],
+    "Room Allocation_Mid_Sem": [
+      ["Candidates", "Venue", "Unused", "Period", "Module", "When"],
+      ["st001|ST002", 102, "x", "C", "BB100+AA100 (2)", "05.12.2026"],
+      ["ST001", "Lab A", "x", "A", "CC200 (1)", "05.12.2026"],
+      ["ST001", "Hall", "x", "B", "DD300 (1)", "05.12.2026"]
+    ],
+    "Different registration": [
+      ["Notes", "Candidates", "Module"],
+      ["x", " st001 | ST002 ", "BB100+AA100"],
+      ["x", "ST001", "CC200"],
+      ["x", "ST001", "DD300"]
+    ]
+  }
+}

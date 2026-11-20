@@ -83,6 +83,9 @@ services:
     command: ["node", "worker.js"]
     env_file:
       - ./server-acc/.env
+    volumes:
+      # Re-read registry changes without rebuilding the image. The fallback xlsx is bundled.
+      - ./server-acc/config/exams:/app/config/exams:ro
     # Unhealthy when the worker's heartbeat (written every minute) is over 5 minutes old. Compose
     # shows it in `docker ps`; it does not restart an unhealthy container by itself.
     healthcheck:

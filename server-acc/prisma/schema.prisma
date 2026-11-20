@@ -7,6 +7,53 @@ datasource db {
   url      = env("POSTGRES_DATABASE_URL")
 }
 
+// Exam data is kept out of AppSetting: caches contain student seating data, and send logs
+// must survive restarts independently of user records. Dates are calendar keys in dataset TZ.
+model ExamWorkbookCache {
+  datasetId String
+  sourceKey String
+  workbook  Bytes
+  fetchedAt DateTime
+  @@id([datasetId, sourceKey])
+}
+
+model ExamReminderRun {
+  id           String    @id
+  datasetId    String
+  examDate     String
+  mode         String
+  status       String
+  attempts     Int       @default(0)
+  claimToken   String?
+  leaseUntil   DateTime?
+  nextRunAt    DateTime?
+  summary      Json?
+  adminStatus  String    @default("PENDING")
+  adminError   String?
+  startedAt    DateTime  @default(now())
+  finishedAt   DateTime?
+  @@index([datasetId, examDate])
+}
+
+model ExamReminderDelivery {
+  datasetId    String
+  roll         String
+  examDate     String
+  recipient    String
+  status       String    @default("PENDING")
+  attempts     Int       @default(0)
+  claimToken   String?
+  leaseUntil   DateTime?
+  nextRetryAt  DateTime?
+  sentAt       DateTime?
+  messageId    String?
+  lastError    String?
+  uncertain    Boolean   @default(false)
+  updatedAt    DateTime  @updatedAt
+  @@id([datasetId, roll, examDate])
+  @@index([status, nextRetryAt])
+}
+
 model User {
   id                  Int            @id @default(autoincrement())
   email               String         @unique

@@ -2,3 +2,7 @@ node_modules
 .git
 .env
 npm-debug.log*
+data/exams/*
+!data/exams/endsem.xlsx
+exam-output/
+config/exams/*.local.json
