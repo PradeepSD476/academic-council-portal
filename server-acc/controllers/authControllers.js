@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import sendOTP from '../utils/mail/sendOTP.js';
 import { checkEmailValidity } from '../utils/checkValidEmail.js';
 import { parseRollNumber } from '../utils/extractDetails.js';
+import { resolvePhotoURL } from '../services/profile/photos.js';
 
 export const Login = async (req, res) => {
   const { email, password } = req.body;
@@ -89,7 +90,7 @@ export const Login = async (req, res) => {
         id: user.id,
         email: user.email,
         displayName: user.displayName,
-        photoURL: user.photoURL,
+        photoURL: await resolvePhotoURL(user.photoURL),
         role: user.role,
         rollNo: user.rollNo,
         branchName: user.branchName,
@@ -374,7 +375,7 @@ export const GetMe = async (req, res) => {
         id: user.id,
         email: user.email,
         displayName: user.displayName,
-        photoURL: user.photoURL,
+        photoURL: await resolvePhotoURL(user.photoURL),
         role: user.role,
         rollNo: user.rollNo,
         branchName: user.branchName,

@@ -1,18 +1,20 @@
+import { resolveUserPhotos } from '../services/profile/photos.js';
+
 // Standard API response formatting for consistency across controllers
 
-export const success = (res, data, message = 'Success', statusCode = 200) => {
+export const success = async (res, data, message = 'Success', statusCode = 200) => {
   return res.status(statusCode).json({
     success: true,
     message,
-    data,
+    data: await resolveUserPhotos(data),
   });
 };
 
-export const paginated = (res, data, pagination, message = 'Success', statusCode = 200) => {
+export const paginated = async (res, data, pagination, message = 'Success', statusCode = 200) => {
   return res.status(statusCode).json({
     success: true,
     message,
-    data,
+    data: await resolveUserPhotos(data),
     pagination: {
       page: pagination.page,
       limit: pagination.limit,

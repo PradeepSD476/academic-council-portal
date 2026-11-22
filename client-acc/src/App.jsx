@@ -62,6 +62,7 @@ import DoubtForum from "./pages/DoubtForum/index.jsx";
 import AskDoubt from "./pages/DoubtForum/AskDoubt.jsx";
 import DoubtThread from "./pages/DoubtForum/DoubtThread.jsx";
 import ManageDoubts from "./pages/admin/ManageDoubts.jsx";
+import MyProfile from "./pages/Profile/index.jsx";
 
 
 const AppRoutes = () => {
@@ -79,6 +80,7 @@ const AppRoutes = () => {
       <Route path="/login" element={<SignIn />} />
       <Route path="/register" element={<SignUp />} />
       <Route path="/login-with-roll" element={<VerifyRoll />} />
+      <Route path="/profile" element={<ProtectedRoute><MyProfile /></ProtectedRoute>} />
 
       {/* student  */}
       <Route

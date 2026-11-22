@@ -1,12 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
 import { Users, Shield, ChevronLeft, ChevronRight, Loader2, Wifi } from 'lucide-react';
 import toast from 'react-hot-toast';
+import UserAvatar from '../../components/profile/UserAvatar';
+import PhotoViewer from '../../components/profile/PhotoViewer';
 
 const ManageUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState(null);
+  const [photoUser, setPhotoUser] = useState(null);
+  const closePhoto = useCallback(() => setPhotoUser(null), []);
 
   const [page, setPage] = useState(1);
   const limit = 10;
@@ -16,7 +20,7 @@ const ManageUsers = () => {
 
   const roles = ['STUDENT', 'CAREER_ADMIN', 'ANNOUNCEMENT_ADMIN', 'RESOURCE_ADMIN', 'FINANCE_ADMIN', 'RESEARCH_ADMIN', 'SUPER_ADMIN', 'FACULTY'];
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/v1/users`, {
@@ -38,11 +42,11 @@ const ManageUsers = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, searchTerm, activity]);
 
   useEffect(() => {
     fetchUsers();
-  }, [page, searchTerm, activity]);
+  }, [fetchUsers]);
 
   const handleRoleChange = async (userId, newRole) => {
     setUpdatingId(userId);
@@ -66,6 +70,7 @@ const ManageUsers = () => {
   return (
     <div className="space-y-6">
       {/* Header section */}
+      {photoUser && <PhotoViewer key={photoUser.id} user={photoUser} onClose={closePhoto} />}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 mb-2">
@@ -141,9 +146,7 @@ const ManageUsers = () => {
                     <tr key={user.id} className="hover:bg-white/5 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10 bg-[var(--color-secondary)]/15 border border-[var(--color-secondary)]/30 text-[var(--color-secondary)] rounded-xl flex items-center justify-center font-bold text-sm">
-                            {user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}
-                          </div>
+                          <UserAvatar user={user} className="h-10 w-10 rounded-xl text-sm" onClick={() => setPhotoUser(user)} />
                           <div className="ml-3.5 min-w-0">
                             <div className="text-sm font-bold text-[var(--color-primary)] leading-snug">
                               {user.displayName || "No Name"}
@@ -188,9 +191,7 @@ const ManageUsers = () => {
               {users.map((user) => (
                 <div key={user.id} className="p-4 flex flex-col gap-3 hover:bg-white/5 transition-colors">
                   <div className="flex items-center">
-                    <div className="flex-shrink-0 h-9 w-9 bg-[var(--color-secondary)]/15 border border-[var(--color-secondary)]/30 text-[var(--color-secondary)] rounded-xl flex items-center justify-center font-bold text-xs">
-                      {user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}
-                    </div>
+                    <UserAvatar user={user} className="h-9 w-9 rounded-xl text-xs" onClick={() => setPhotoUser(user)} />
                     <div className="ml-3 min-w-0">
                       <div className="text-sm font-bold text-[var(--color-primary)] truncate">
                         {user.displayName || "No Name"}

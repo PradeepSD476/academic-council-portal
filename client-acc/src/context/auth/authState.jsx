@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import AuthContext from "./authContext";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -8,6 +8,7 @@ const AuthState = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
+    const updateUser = useCallback((updated) => setUser(updated), []);
 
     useEffect(() => {
         const fetchMe = async () => {
@@ -134,6 +135,7 @@ const AuthState = ({ children }) => {
         logout,
         register,
         loading,
+        updateUser,
         isAuthenticated: !!user
     }
 
