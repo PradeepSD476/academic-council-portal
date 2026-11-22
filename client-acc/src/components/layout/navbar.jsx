@@ -10,8 +10,9 @@ import {
   FiSettings,
   FiArrowRight,
 } from "react-icons/fi";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion as Motion, AnimatePresence } from "framer-motion";
 import AuthContext from "../../context/auth/authContext";
+import UserAvatar from "../profile/UserAvatar";
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -95,7 +96,7 @@ function Navbar() {
                 >
                   <span>{item.name}</span>
                   {isActive && (
-                    <motion.div
+                    <Motion.div
                       layoutId="activeTabIndicator"
                       className="absolute -bottom-1.5 left-0 right-0 h-[2px] bg-blue-600 rounded-full"
                       transition={{ type: "spring", stiffness: 380, damping: 30 }}
@@ -134,9 +135,7 @@ function Navbar() {
                     aria-haspopup="true"
                     aria-expanded={dropdown}
                   >
-                    <span className="flex items-center justify-center w-6 h-6 rounded-md bg-blue-50 text-blue-600 border border-blue-100 font-bold text-[11px] shrink-0">
-                      {displayName.charAt(0).toUpperCase()}
-                    </span>
+                    <UserAvatar user={user} className="h-6 w-6 rounded-md text-[11px]" />
                     <span className="font-semibold text-slate-800 text-xs truncate max-w-[120px]">
                       {displayName}
                     </span>
@@ -148,7 +147,7 @@ function Navbar() {
 
                   <AnimatePresence>
                     {dropdown && (
-                      <motion.div
+                      <Motion.div
                         initial={{ opacity: 0, y: 4, scale: 0.98 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 4, scale: 0.98 }}
@@ -183,6 +182,11 @@ function Navbar() {
                             <span>My Dashboard</span>
                           </button>
 
+                          <Link to="/profile" onClick={() => setDropdown(false)} className="flex items-center gap-2.5 w-full px-2.5 py-2 font-medium text-slate-700 hover:text-slate-950 hover:bg-slate-100 rounded-md transition-colors">
+                            <FiUser className="text-sm text-blue-600" />
+                            <span>My Profile</span>
+                          </Link>
+
                           <div className="h-px bg-slate-100 my-1" />
 
                           <button
@@ -193,7 +197,7 @@ function Navbar() {
                             <span>Sign Out</span>
                           </button>
                         </div>
-                      </motion.div>
+                      </Motion.div>
                     )}
                   </AnimatePresence>
                 </div>
@@ -217,7 +221,7 @@ function Navbar() {
       {/* Mobile Menu Dropdown */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
@@ -272,6 +276,9 @@ function Navbar() {
                       <FiGrid className="text-sm" />
                       <span>Open Dashboard</span>
                     </button>
+                    <Link to="/profile" onClick={() => setIsOpen(false)} className="academic-btn-outline flex w-full items-center justify-center gap-2">
+                      <FiUser className="text-sm" />My Profile
+                    </Link>
                     <button
                       onClick={() => {
                         handleLogout();
@@ -285,7 +292,7 @@ function Navbar() {
                 )}
               </li>
             </ul>
-          </motion.div>
+          </Motion.div>
         )}
       </AnimatePresence>
     </nav>

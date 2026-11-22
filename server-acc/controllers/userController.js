@@ -1,4 +1,5 @@
 import prisma from '../config/db.js';
+import { safeUser, safeUserSelect } from '../services/profile/photos.js';
 
 const activityWindows = new Map([
     ['online', 60 * 1000],
@@ -51,6 +52,7 @@ export const getUsers = async (req, res) => {
     }
 
     const results = await prisma.user.findMany({
+    select: safeUserSelect,
     where: whereClause,
     skip: (page - 1) * limit,
     take: limit,
@@ -66,7 +68,7 @@ export const getUsers = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "Data fetched Successfully",
-            data: results,
+            data: await Promise.all(results.map(safeUser)),
         })
     } catch (error) {
         return res.status(500).json({
@@ -136,7 +138,7 @@ export const getMe = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "My Details Fetched Successfully...",
-            data: user
+            data: await safeUser(user)
         })
     } catch (error) {
         console.log(error)
