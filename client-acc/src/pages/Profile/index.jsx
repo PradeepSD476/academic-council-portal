@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import AuthContext from '../../context/auth/authContext';
 import { profileApi } from '../../api/profileApi';
 import UserAvatar from '../../components/profile/UserAvatar';
+import NotificationSettings from '../../components/profile/NotificationSettings';
 
 export function ProfileForm({ profile, onSaved }) {
   const [name, setName] = useState(profile.displayName || '');
@@ -119,6 +120,7 @@ export default function MyProfile() {
     <div className="mx-auto w-full max-w-4xl space-y-6 px-4 py-8 sm:px-6 sm:py-12">
       <header><div className="mb-2 flex items-center gap-3"><div className="rounded-xl bg-blue-50 p-2.5 text-blue-600"><UserRound size={24} /></div><h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">My Profile</h1></div><p className="text-sm text-slate-500">Your personal details and current courses, in one place.</p></header>
       {profileError ? <div role="alert" className="rounded-2xl border border-rose-200 bg-white p-6 text-sm text-rose-700">{profileError}<button type="button" onClick={retryLoad} className="ml-3 font-bold underline">Retry</button></div> : profile ? <ProfileForm key={revision} profile={profile} onSaved={saved} /> : <div role="status" className="flex min-h-64 items-center justify-center gap-3 rounded-3xl border border-slate-200 bg-white text-sm text-slate-500"><Loader2 className="animate-spin text-blue-600" />Loading profile…</div>}
+      <NotificationSettings />
       <section className="rounded-3xl border border-slate-200 bg-white/95 p-5 shadow-sm sm:p-8" aria-labelledby="profile-courses-title">
         <h2 id="profile-courses-title" className="mb-2 flex items-center gap-2 text-lg font-bold text-slate-900"><BookOpen size={20} className="text-blue-600" />Current courses</h2>
         <p className="mb-5 text-xs text-slate-500">Courses shown in My Courses for your branch, programme, and academic year.</p>

@@ -21,6 +21,16 @@ Names are trimmed and must contain 1–100 characters. Updates always target the
 
 The existing `photoURL` field in authentication, Manage Users and nested author responses remains a usable viewing URL. Shared response helpers resolve nested author/reply fields without changing separate faculty `photoUrl` fields, dates, or Prisma decimals.
 
+## Email notification settings
+
+The profile's **Settings → Email notifications** card contains four switches: resources, Career Vault experiences, jobs/internships and announcements. All default to enabled. Each change saves automatically and is independent of unsaved name/photo edits. Failed saves restore the previous switch value.
+
+Preferences live in the separate one-to-one `UserNotificationSettings` table. A missing row means all enabled; the first update creates a row. Existing/new users need no backfill or signup change. Accounts can read/update only their own settings through `GET`/`PATCH /api/v1/profile/notification-settings`. PATCH accepts a nonempty subset of `resourcesEnabled`, `careerVaultExperiencesEnabled`, `jobsInternshipsEnabled`, and `announcementsEnabled`, with boolean values only.
+
+Resources keep their existing course targeting and publisher notification checkbox. Career Vault preferences affect new experience-publication emails. Jobs/internships preferences affect opening-publication announcements and existing saved-search digests; individual saved-search unsubscribe settings still apply. Announcement preferences are saved for future use; no announcement email integration is added. Security/OTP, exam reminders, comment/reply and operational admin emails are unaffected.
+
+See [notification operations](notifications.md) for queue behaviour and deployment. Unlike the initial name/photo feature, these settings and the job-email queue require an additive database migration.
+
 ## Verification
 
 Run `npm test -- tests/profile` and the full server test suite from `server-acc`. From `client-acc`, run `npm run build` and lint the changed profile, avatar, modal, navbar, auth-context and Manage Users files. Backend tests mock storage/database operations; they do not upload to production.

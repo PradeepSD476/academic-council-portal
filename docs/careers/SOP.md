@@ -48,6 +48,7 @@ The API and the worker never call each other. They talk only through the databas
 | 10:00 | `reviewReminder` | Hidden feature (see A5): finds it is off and does nothing. |
 | every 10 min | `linksAndExtraction` | Processes links students shared (and the AI step, if on). |
 | every 10 s | `runRequests` | Runs a "Fetch now" request, if there is one. |
+| every 10 s | `publicationEmails` | Sends queued new-opening announcements to registered users who have jobs emails enabled. |
 | every minute | `heartbeat` | Writes "I'm alive". |
 
 Two copies of the same job never run at once (database lock), so a manual run and a scheduled run can't clash.
@@ -100,8 +101,8 @@ The API and the worker share the same `.env` file. Never put real values in git.
 | `CAREERS_LLM_FAST_MODEL` | optional | Model name. Leave empty for the provider's default. |
 | `CAREERS_LLM_STRONG_MODEL` | optional | Second, stronger model for unsure results (Gemini only). Leave empty to skip. |
 | `GEMINI_API_KEY` / `GROQ_API_KEY` | only for that provider | **Server-side only.** Never a `VITE_*` variable, never in the browser. |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | existing | This feature sends no email for now (see A5), so it doesn't use them. |
-| `CLIENT_URL` | existing | Same: only used for links inside the hidden emails. |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | existing | Used for new-opening publication emails and any separately enabled digest/admin reminders. |
+| `CLIENT_URL` | existing | Portal base URL for email links. |
 | `SECRET_KEY` | yes (existing) | Also used to count weekly visitors without storing who they are. |
 | `POSTGRES_DATABASE_URL` | yes (existing) | The worker needs the database too. |
 | `DEV_SEED_PASSWORD` | **local only** | For the developers' demo accounts. Not used on the server. |

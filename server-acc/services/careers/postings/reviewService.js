@@ -10,6 +10,7 @@ import { findDuplicateCandidates, isSamePosting } from '../ingest/dedup.js';
 import { loadCompanyIndex } from '../companies/companyIndex.js';
 import { resolveCompany } from '../companies/resolveCompany.js';
 import { assertLinkable, attachSubmission } from '../links/submissionActions.js';
+import { enqueueJobPublication } from '../notifications/publicationQueue.js';
 
 const BULK_TIERS = ['STRUCTURED', 'JSON_LD'];
 
@@ -98,6 +99,7 @@ export async function approvePosting(id, edits, userId, { trail = false } = {}) 
             data: { ...data, status: 'LIVE', publishedAt: posting.publishedAt ?? now, reviewedById: userId, reviewedAt: now, uncertainFields: [], rejectReason: null },
         });
         await review(tx, id, 'APPROVE', userId, trail ? { ...changes, ...approveTrail(posting, now, userId) } : changes);
+        if (!posting.publishedAt) await enqueueJobPublication(tx, id);
         return { posting: updated, changes };
     });
 }
@@ -227,6 +229,7 @@ export async function createManualPosting(body, userId) {
         });
         await review(tx, created.id, 'CREATE_MANUAL', userId);
         if (publish) await review(tx, created.id, 'APPROVE', userId);
+        if (publish) await enqueueJobPublication(tx, created.id);
         if (submissionId) await attachSubmission(tx, submissionId, created.id);
         return { posting: created, possibleDuplicates };
     });
