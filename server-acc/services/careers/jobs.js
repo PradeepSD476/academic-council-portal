@@ -2,6 +2,7 @@
 // runs one by hand. Every job goes through withJobLock, so two workers (or a cron tick and a manual
 // run) never run the same job at once.
 import { withJobLock, JOB_LOCKS } from './jobLock.js';
+import { runPublicationNotifications } from './notifications/publicationQueue.js';
 import { getSetting, setSetting, clearSettingsCache } from './settings.js';
 import { ingestAll } from './ingest/ingestAll.js';
 import { processSubmissions } from './links/processSubmission.js';
@@ -96,7 +97,16 @@ export async function reviewReminderJob(options = {}) {
 }
 
 // name -> { cron, run }
+export async function publicationEmailsJob(options = {}) {
+    let result = null;
+    const outcome = await withJobLock(JOB_LOCKS.publicationEmails, 'publicationEmails', async () => {
+        result = await runPublicationNotifications(options.runOptions ?? {});
+    }, { heartbeat: options.heartbeat ?? false });
+    return { ...outcome, result };
+}
+
 export const JOBS = {
+    publicationEmails: { cron: '*/10 * * * * *', run: () => publicationEmailsJob() },
     // Every 6 hours (02:00, 08:00, 14:00, 20:00 IST): one run is ~12 sequential board requests, so this
     // is cheap, and new openings reach the review queue within hours. Liveness counts missed runs, so a
     // job that leaves its board expires after ~12 hours (MISSED_RUNS_TO_DROP = 2).

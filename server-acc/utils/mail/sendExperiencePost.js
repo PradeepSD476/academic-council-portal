@@ -1,13 +1,14 @@
 import careerVaultTemplate from "../../templates/careerVaultTemplate.js";
 import transporter from "./transporter.js";
 import prisma from "../../config/db.js";
+import { notificationAllowed, notificationRecipientWhere, validNotificationEmail } from '../../services/notifications/preferences.js';
 
-const getEmailReciever = async () => {
+const getEmailReciever = async (db) => {
 	try {
-		const students = await prisma.user.findMany();
+		const students = await db.user.findMany({ where: notificationRecipientWhere('careerVaultExperiencesEnabled'), select: { id: true, email: true } });
 		return students;
 	} catch (error) {
-		console.log(error);
+		throw error;
 	}
 }
 
@@ -30,18 +31,26 @@ function sleep(ms) {
 }
 
 
-export default async function notifyOnNewPost({ displayName, experienceTitle, experienceType, company }) {
+export default async function notifyOnNewPost({ displayName, experienceTitle, experienceType, company }, { db = prisma, send = sendCareerVaultMail, allowed = notificationAllowed, pause = sleep, pauseMs = 300 } = {}) {
+	const summary = { sent: 0, skipped: 0, failed: 0 };
 	try {
-		const recievers = await getEmailReciever();
+		const recievers = await getEmailReciever(db);
 		for (const val of recievers) {
+			let attempted = false;
 			try {
-				await sendCareerVaultMail({ to: val.email, name: displayName, experienceTitle: experienceTitle, experienceType: experienceType, company: company })
-				await sleep(300);
+				if (!validNotificationEmail(val.email) || !(await allowed(val.id, 'careerVaultExperiencesEnabled', db))) { summary.skipped++; continue; }
+				attempted = true;
+				await send({ to: val.email.trim(), name: displayName, experienceTitle, experienceType, company });
+				summary.sent++;
 			} catch (mailErr) {
+				summary.failed++;
 				console.error(mailErr)
-			}
+			} finally { if (attempted && pauseMs) await pause(pauseMs); }
 		}
 	} catch (error) {
+		summary.error = 'Unable to finish loading experience notification recipients.';
 		console.error("Mail Service Stopped: ", error)
 	}
+	console.info('[notifications] Experience emails:', JSON.stringify(summary));
+	return summary;
 }

@@ -2,6 +2,8 @@ import axios from 'axios';
 
 const api = axios.create({ baseURL: `${import.meta.env.VITE_API_URL}/v1`, withCredentials: true });
 export const profileApi = {
+  notificationSettings: async (signal) => (await api.get('/profile/notification-settings', { signal })).data.data,
+  updateNotificationSettings: async (settings) => (await api.patch('/profile/notification-settings', settings)).data.data,
   me: async (signal) => (await api.get('/getuser/me', { signal })).data.data,
   courses: async (signal) => (await api.get('/courses/my', { signal })).data.data,
   update: async (updates) => (await api.patch('/profile', updates)).data.data,

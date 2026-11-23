@@ -85,6 +85,8 @@ model User {
   postingReports      PostingReport[] // careers P6 (relation only, no column)
   hiddenPostings      HiddenPosting[] // careers P6 (relation only, no column)
   savedSearches       SavedSearch[] // careers P7 (relation only, no column)
+  notificationSettings UserNotificationSettings?
+  jobPublicationDeliveries JobPublicationDelivery[]
 
   // Research Vault (4 Models)
   researchOpenPositions       ResearchOpenPosition[] @relation("OpenPositionsUploaded")
@@ -96,6 +98,44 @@ model User {
   doubtAnswers DoubtAnswer[]
   doubtVotes   DoubtVote[]
   doubtReports DoubtReport[]
+}
+
+model UserNotificationSettings {
+  userId Int @id
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resourcesEnabled Boolean @default(true)
+  careerVaultExperiencesEnabled Boolean @default(true)
+  jobsInternshipsEnabled Boolean @default(true)
+  announcementsEnabled Boolean @default(true)
+  updatedAt DateTime @updatedAt
+}
+
+// One durable event per opening; delivery rows are populated in bounded worker batches.
+model JobPublicationNotification {
+  postingId Int @id
+  posting Posting @relation(fields: [postingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  status String @default("PENDING")
+  audienceCursor Int @default(0)
+  audienceComplete Boolean @default(false)
+  deliveries JobPublicationDelivery[]
+  @@index([status, createdAt])
+}
+
+model JobPublicationDelivery {
+  postingId Int
+  notification JobPublicationNotification @relation(fields: [postingId], references: [postingId], onDelete: Cascade)
+  userId Int
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status String @default("PENDING")
+  attempts Int @default(0)
+  nextAttemptAt DateTime @default(now())
+  claimToken String?
+  leaseUntil DateTime?
+  sentAt DateTime?
+  lastError String?
+  @@id([postingId, userId])
+  @@index([status, nextAttemptAt])
 }
 
 model Experience {
@@ -632,6 +672,7 @@ model Posting {
   reports              PostingReport[]
   hiddenBy             HiddenPosting[]
   dailyStats           PostingDailyStat[] // careers P7-T4 (relation only, no column)
+  publicationNotification JobPublicationNotification?
 
   @@index([status, lastSeenLiveAt])
   @@index([status, publishedAt]) // "Newest first" (B-15)

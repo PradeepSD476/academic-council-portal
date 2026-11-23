@@ -11,11 +11,12 @@ import { cardFields } from '../postings/cards.js';
 import { isDue, alertWindow, alertParams, alertPostingsWhere, DIGEST_LIMIT } from './savedSearch.js';
 import { digestMail } from './digestMail.js';
 import { sendCareersMail, mailConfigured } from '../mail/careersMail.js';
+import { notificationAllowed } from '../../notifications/preferences.js';
 
 const PAUSE_MS = 300; // between emails, like upstream's mailers
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export async function runAlerts({ now = new Date(), transport, configured = mailConfigured(), clientUrl = process.env.CLIENT_URL, pauseMs = PAUSE_MS, onlyIds } = {}) {
+export async function runAlerts({ now = new Date(), transport, configured = mailConfigured(), clientUrl = process.env.CLIENT_URL, pauseMs = PAUSE_MS, onlyIds, allowed = notificationAllowed } = {}) {
     if (!(await getSetting('careers.visibleToStudents'))) return { skipped: 'the jobs feature is hidden from students' };
     if (!(await getSetting('careers.alertEmailsEnabled'))) return { skipped: 'job-alert emails are switched off (careers.alertEmailsEnabled)' };
 
@@ -36,6 +37,11 @@ export async function runAlerts({ now = new Date(), transport, configured = mail
 
     for (const alert of due) {
         try {
+            if (!(await allowed(alert.userId, 'jobsInternshipsEnabled'))) {
+                await prisma.savedSearch.update({ where: { id: alert.id }, data: { lastRunAt: now, lastError: null } });
+                summary.optedOut = (summary.optedOut || 0) + 1;
+                continue;
+            }
             const params = alertParams(alert.filters);
             const window = alertWindow(alert, now);
             const eligibility = params.eligibleOnly ? eligibilityWhere(eligibilityProfile(alert.user, now)) : null;
@@ -50,6 +56,11 @@ export async function runAlerts({ now = new Date(), transport, configured = mail
                 continue;
             }
             const mail = digestMail({ alert, postings, total, clientUrl });
+            if (!(await allowed(alert.userId, 'jobsInternshipsEnabled'))) {
+                await prisma.savedSearch.update({ where: { id: alert.id }, data: { lastRunAt: now, lastError: null } });
+                summary.optedOut = (summary.optedOut || 0) + 1;
+                continue;
+            }
             await sendCareersMail({
                 to: alert.user.email, subject: mail.subject, text: mail.text, html: mail.html,
                 headers: { 'List-Unsubscribe': `<${mail.unsubscribeUrl}>` },

@@ -116,9 +116,9 @@ jobs:
           docker compose \
             -f docker-compose.prod.yml \
             --env-file .env.prod \
+            run --rm --no-deps backend-acc npx prisma migrate deploy
+
+          docker compose \
+            -f docker-compose.prod.yml \
+            --env-file .env.prod \
             up -d
-
-          sleep 10
-
-          docker exec acc-backend \
-            npx prisma migrate deploy
