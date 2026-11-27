@@ -103,10 +103,10 @@ model User {
 model UserNotificationSettings {
   userId Int @id
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  resourcesEnabled Boolean @default(true)
-  careerVaultExperiencesEnabled Boolean @default(true)
-  jobsInternshipsEnabled Boolean @default(true)
-  announcementsEnabled Boolean @default(true)
+  resourcesEnabled Boolean @default(false)
+  careerVaultExperiencesEnabled Boolean @default(false)
+  jobsInternshipsEnabled Boolean @default(false)
+  announcementsEnabled Boolean @default(false)
   updatedAt DateTime @updatedAt
 }
 
